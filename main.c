@@ -24,7 +24,7 @@
 #include <netpacket/packet.h>
 #include <net/ethernet.h>
 #include <sys/ioctl.h>
-//#include <net/if.h> /* not needed since we include linux/wireless.h */
+#include <net/if.h> /* not needed since we include linux/wireless.h */
 #include <string.h>
 
 #include <getopt.h>
