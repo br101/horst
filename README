@@ -1,0 +1,54 @@
+HORST - Horsts Olsr Radio Scanning Tool
+---------------------------------------
+Copyright (C) 2005 Bruno Randolf
+Released under the GPL
+
+"horst" is a scanning and analysis tool for wireless OLSR nodes in ad-hoc mode.
+
+problem description: with the usual wireless tools like iwconfig and iwspy it is hard
+to measure the received signal strength (or SNR) for each of the different nodes which
+form an ad-hoc network. this information however is very important for setting up,
+debugging and optimizing wireless OLSR mesh networks.
+
+"horst" aims to fill this gap and lists the single nodes of an ad-hoc network
+seperately including the signal strength (SNR) of the last received packet from each node.
+this way you can see which nodes are part of a specific ad-hoc cell (BSSID), discover
+problems with ad-hoc cell merging (a problem of many wlan drivers), which of the
+nodes send OLSR packets, wether they use the link quality exension, how many neighbors
+each node sees and the SNR of the last received packet of each station.
+
+it uses the monitor mode including prism2 headers (for the signal strength information)
+of the wlan cards and listens to all packets which come in the wireless interface.
+these packets are scanned for OLSR traffic and summarized by the MAC address of the
+sending node. [actually what it does is quite similar to kismet, and in might be a good
+idea to include this functionality into kismet.]
+
+it should work with any wlan card which can do monitor mode and which has prism2 headers
+in monitor mode. but it has been tested only with the following wlan chipsets/drivers:
+ * prism2 with hostap
+ * atheros with madwifi-ng
+
+you have to put your card in monitor mode and set the channel manually before you start
+the tool:
+
+1.) put card in monitor mode:
+	hostap:
+	# iwconfig wlan0 mode monitor
+
+	madwifi-ng:
+	# wlanconfig wlan0 create wlandev wifi0 wlanmode monitor
+
+2.) enable prism headers in monitor mode
+	hostap:
+	# iwpriv wlan0 monitor_type 1
+	or
+	# prism2_param wlan0 monitor_type 1
+
+	(madwifi-ng: prism headers are enabled by default)
+
+3.) tune to a channel
+	# ifconfig wlan0 up
+	# iwconfig wlan0 channel 10
+
+4.) start tool
+	# ./horst
