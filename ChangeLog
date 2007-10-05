@@ -1,7 +1,7 @@
 2007-01-15  Anon (Sven-Ola: I cannot remember whos sending this)
 
-        * Added remote capability. Start on one WRT using -q
-          then listen on other WRT with -p
+	* Added remote capability. Start on one WRT using -q
+	  then listen on other WRT with -p
 
 2006-10-12  Robert Schuster   (robertschuster@fsfe.org)
 
@@ -11,6 +11,6 @@
 
 2006-10-12  Sven-Ola aet gmx.de
 
-        * Unfixed some includes. the necesary include
-          addon is required to fix (k)ubunto ip.h whoes
-          but breaks build elsewhere
+	* Unfixed some includes. the necesary include
+	  addon is required to fix (k)ubunto ip.h whoes
+	  but breaks build elsewhere
