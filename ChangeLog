@@ -1,3 +1,8 @@
+2007-01-15  Anon (Sven-Ola: I cannot remember whos sending this)
+
+        * Added remote capability. Start on one WRT using -q
+          then listen on other WRT with -p
+
 2006-10-12  Robert Schuster   (robertschuster@fsfe.org)
 
 	* various changes to output (requested by Horst :) )
