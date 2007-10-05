@@ -36,6 +36,7 @@ struct packet_info {
 	int prism_noise;
 	int snr;
 	int wlan_type;
+	int wlan_stype;
 	unsigned char wlan_src[6];
 	unsigned char wlan_dst[6];
 	unsigned char wlan_bssid[6];
@@ -71,12 +72,15 @@ struct node_info {
 	int pkt_count;
 	int olsr_count;
 	unsigned char wlan_bssid[6];
+	unsigned long tsfl;
+	unsigned long tsfh;
 };
 
 extern struct node_info nodes[MAX_NODES];
 
 extern int paused;
 extern int olsr_only;
+extern int no_ctrl;
 
 #define NODE_TIMEOUT 60 /* seconds */
 

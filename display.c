@@ -32,7 +32,7 @@ WINDOW *stat_win;
 static void update_stat_win(struct packet_info* pkt);
 static void update_list_win(void);
 
-static int do_sort=1;
+static int do_sort=0;
 
 void
 init_display(void)
@@ -61,7 +61,7 @@ init_display(void)
 
 	stat_win = newwin(LINES/2, 15, LINES/2, COLS-15);
 	box(stat_win, 0 , 0);
-	mvwprintw(stat_win,0,2," status ");
+	mvwprintw(stat_win,0,2," Status ");
 	wattron(stat_win, COLOR_PAIR(2));
 	scrollok(stat_win,FALSE);
 	wrefresh(stat_win);
@@ -99,6 +99,10 @@ handle_user_input()
 			paused = paused ? 0 : 1;
 			update_stat_win(NULL);
 			break;
+		case 'c': case 'C':
+			no_ctrl = no_ctrl ? 0 : 1;
+			update_stat_win(NULL);
+			break;
 		case 'o': case 'O':
 			olsr_only = olsr_only ? 0 : 1;
 			update_stat_win(NULL);
@@ -132,8 +136,9 @@ update_display(struct packet_info* pkt)
 		ether_sprintf(pkt->wlan_src));
 	wprintw(dump_win,"(%s) ", ether_sprintf(pkt->wlan_bssid));
 	if (pkt->pkt_types & PKT_TYPE_BEACON) {
-		//wprintw(dump_win,"BEACON %02x%02x%02x%02x%02x%02x%02x%02x", pkt->wlan_tsf[7], pkt->wlan_tsf[6], pkt->wlan_tsf[5], pkt->wlan_tsf[4], pkt->wlan_tsf[3], pkt->wlan_tsf[2], pkt->wlan_tsf[1], pkt->wlan_tsf[0] );
-		wprintw(dump_win,"BEACON %s", pkt->wlan_essid );
+		wprintw(dump_win,"BEACON %s %08x:%08x", pkt->wlan_essid,
+			ntohl(*(unsigned long*)(&pkt->wlan_tsf[4])),
+			ntohl(*(unsigned long*)(&pkt->wlan_tsf[0])));
 	}
 	else if (pkt->pkt_types & PKT_TYPE_PROBE_REQ) {
 		wprintw(dump_win,"PROBE_REQUEST" );
@@ -147,7 +152,7 @@ update_display(struct packet_info* pkt)
 			case HNA_MESSAGE: wprintw(dump_win,"HNA"); break;
 			case LQ_HELLO_MESSAGE: wprintw(dump_win,"LQ_HELLO"); break;
 			case LQ_TC_MESSAGE: wprintw(dump_win,"LQ_TC"); break;
-			default: wprintw(dump_win,"UNKNOWN");
+			default: wprintw(dump_win,"OLSR(%d)",pkt->olsr_type);
 		}
 	}
 	else if (pkt->pkt_types & PKT_TYPE_DATA) {
@@ -156,10 +161,105 @@ update_display(struct packet_info* pkt)
 	else if (pkt->pkt_types & PKT_TYPE_DATA) {
 		wprintw(dump_win,"DATA");
 	}
-	else {
-		wprintw(dump_win,"UNKNOWN");
+	else if (WLAN_FC_TYPE_MGMT == pkt->wlan_type) {
+		switch(pkt->wlan_stype) {
+			case WLAN_FC_STYPE_ASSOC_REQ:
+				wprintw(dump_win,"ASSOC_REQ");
+			break;
+			case WLAN_FC_STYPE_ASSOC_RESP:
+				wprintw(dump_win,"ASSOC_RESP");
+			break;
+			case WLAN_FC_STYPE_REASSOC_REQ:
+				wprintw(dump_win,"REASSOC_REQ");
+			break;
+			case WLAN_FC_STYPE_REASSOC_RESP:
+				wprintw(dump_win,"REASSOC_RESP");
+			break;
+			case WLAN_FC_STYPE_PROBE_REQ:
+				wprintw(dump_win,"PROBE_REQ");
+			break;
+			case WLAN_FC_STYPE_PROBE_RESP:
+				wprintw(dump_win,"PROBE_RESP");
+			break;
+			case WLAN_FC_STYPE_BEACON:
+				wprintw(dump_win,"BEACON");
+			break;
+			case WLAN_FC_STYPE_ATIM:
+				wprintw(dump_win,"ATIM");
+			break;
+			case WLAN_FC_STYPE_DISASSOC:
+				wprintw(dump_win,"DISASSOC");
+			break;
+			case WLAN_FC_STYPE_AUTH:
+				wprintw(dump_win,"AUTH");
+			break;
+			case WLAN_FC_STYPE_DEAUTH:
+				wprintw(dump_win,"DEAUTH");
+			break;
+			default:
+				wprintw(dump_win,"MGMT(0x%02x)",pkt->wlan_stype);
+			break;
+		}
 	}
-	
+	else if (WLAN_FC_TYPE_CTRL == pkt->wlan_type) {
+		switch(pkt->wlan_stype) {
+			case WLAN_FC_STYPE_PSPOLL:
+				wprintw(dump_win,"PSPOLL");
+			break;
+			case WLAN_FC_STYPE_RTS:
+				wprintw(dump_win,"RTS");
+			break;
+			case WLAN_FC_STYPE_CTS:
+				wprintw(dump_win,"CTS");
+			break;
+			case WLAN_FC_STYPE_ACK:
+				wprintw(dump_win,"ACK");
+			break;
+			case WLAN_FC_STYPE_CFEND:
+				wprintw(dump_win,"CFEND");
+			break;
+			case WLAN_FC_STYPE_CFENDACK:
+				wprintw(dump_win,"CFENDACK");
+			break;
+			default:
+				wprintw(dump_win,"CTRL(0x%02x)",pkt->wlan_stype);
+			break;
+		}
+	}
+	else if (WLAN_FC_TYPE_DATA == pkt->wlan_type) {
+		switch(pkt->wlan_stype) {
+			case WLAN_FC_STYPE_DATA:
+				wprintw(dump_win,"DATA");
+			break;
+			case WLAN_FC_STYPE_DATA_CFACK:
+				wprintw(dump_win,"DATA_CFACK");
+			break;
+			case WLAN_FC_STYPE_DATA_CFPOLL:
+				wprintw(dump_win,"DATA_CFPOLL");
+			break;
+			case WLAN_FC_STYPE_DATA_CFACKPOLL:
+				wprintw(dump_win,"DATA_CFACKPOLL");
+			break;
+			case WLAN_FC_STYPE_NULLFUNC:
+				wprintw(dump_win,"NULLFUNC");
+			break;
+			case WLAN_FC_STYPE_CFACK:
+				wprintw(dump_win,"CFACK");
+			break;
+			case WLAN_FC_STYPE_CFPOLL:
+				wprintw(dump_win,"CFPOLL");
+			break;
+			case WLAN_FC_STYPE_CFACKPOLL:
+				wprintw(dump_win,"CFACKPOLL");
+			break;
+			default:
+				wprintw(dump_win,"DATA(0x%02x)",pkt->wlan_stype);
+			break;
+		}
+	}
+	else {
+		wprintw(dump_win,"UNK(%x,%x)", pkt->wlan_stype, pkt->wlan_type);
+	}
 	
 	wprintw(dump_win,"\n");
 	wattroff(dump_win,A_BOLD);
@@ -177,6 +277,7 @@ update_stat_win(struct packet_info* pkt)
 	{
 		int snr = pkt->snr;
 		int max_bar = LINES/2-2;
+		if (0 > snr) snr += 95; /* Sven-Ola: WRT54g SNR is negative, convert to val above 0 */
 		
 		snr=(snr/60.0)*max_bar; /* normalize for bar, assume max received SNR is 60 */
 		if (snr>max_bar) snr=max_bar; /* cap if still bigger */
@@ -199,16 +300,26 @@ update_stat_win(struct packet_info* pkt)
 	else
 		mvwprintw(stat_win,3,6,"p: RUN  ");
 
+	if (olsr_only) {
+		mvwprintw(stat_win,4,6,"        ");
+	}
+	else {
+		if (no_ctrl)
+			mvwprintw(stat_win,4,6,"c: -CTRL");
+		else
+			mvwprintw(stat_win,4,6,"c: +CTRL");
+	}
+
 	if (olsr_only)
-		mvwprintw(stat_win,4,6,"o: OLSR");
+		mvwprintw(stat_win,5,6,"o: OLSR");
 	else
-		mvwprintw(stat_win,4,6,"o: ALL ");
+		mvwprintw(stat_win,5,6,"o: ALL ");
 
 
 	if (do_sort)
-		mvwprintw(stat_win,5,6,"s: SORT ");
+		mvwprintw(stat_win,6,6,"s: SORT ");
 	else
-		mvwprintw(stat_win,5,6,"s: !SORT");
+		mvwprintw(stat_win,6,6,"s: !SORT");
 
 	wrefresh(stat_win);
 }
@@ -222,16 +333,17 @@ print_list_line(int line, int i, struct packet_info* p)
 		p->snr,
 		p->prism_signal, p->prism_noise,
 		ether_sprintf(p->wlan_src));
-	mvwprintw(list_win,line,29," (%s)", ether_sprintf(nodes[i].wlan_bssid));
+	mvwprintw(list_win,line,30," (%s)", ether_sprintf(nodes[i].wlan_bssid));
 	if (nodes[i].pkt_types & PKT_TYPE_IP)
-		mvwprintw(list_win,line,50,"%s", ip_sprintf(nodes[i].ip_src));
+		mvwprintw(list_win,line,51,"%s", ip_sprintf(nodes[i].ip_src));
 	if (nodes[i].pkt_types & PKT_TYPE_OLSR_LQ)
-		mvwprintw(list_win,line,66,"LQ");
+		mvwprintw(list_win,line,67,"LQ");
 	if (nodes[i].pkt_types & PKT_TYPE_OLSR_GW)
-		mvwprintw(list_win,line,69,"GW");
+		mvwprintw(list_win,line,70,"GW");
 	if (nodes[i].pkt_types & PKT_TYPE_OLSR)
-		mvwprintw(list_win,line,72,"N:%d", nodes[i].olsr_neigh);
-	mvwprintw(list_win,line,78,"%d/%d", nodes[i].olsr_count, nodes[i].pkt_count);
+		mvwprintw(list_win,line,73,"N:%d", nodes[i].olsr_neigh);
+	mvwprintw(list_win,line,79,"%d/%d", nodes[i].olsr_count, nodes[i].pkt_count);
+	mvwprintw(list_win,line,90,"%08x", nodes[i].tsfh);
 	wattroff(list_win,A_BOLD);
 }
 
@@ -248,19 +360,20 @@ update_list_win(void)
 	werase(list_win);
 	wattron(list_win,COLOR_PAIR(5));
 	box(list_win, 0 , 0);
-	mvwprintw(list_win,0,1,"SN");
-	mvwprintw(list_win,0,4,"Sig/Noi");
-	mvwprintw(list_win,0,12,"SOURCE");
-	mvwprintw(list_win,0,30,"(BSSID)");
-	mvwprintw(list_win,0,50,"IP");
-	mvwprintw(list_win,0,66,"LQ GW NEIGH");
-	mvwprintw(list_win,0,78,"OLSR/COUNT");
+	mvwprintw(list_win,0,1,"SNR");
+	mvwprintw(list_win,0,5,"Sig/Noi");
+	mvwprintw(list_win,0,13,"SOURCE");
+	mvwprintw(list_win,0,31,"(BSSID)");
+	mvwprintw(list_win,0,51,"IP");
+	mvwprintw(list_win,0,67,"LQ GW NEIGH");
+	mvwprintw(list_win,0,79,"OLSR/COUNT");
+	mvwprintw(list_win,0,90,"TSF(High)");
 
 	wattron(list_win,COLOR_PAIR(1));
 
 	if (do_sort) {
 		/* sort by SNR: probably the most inefficient way to do it ;) */
-		for (s=100; s>0; s--) {
+		for (s=100; s>-100; s--) {
 			for (i=0; i<MAX_NODES; i++) {
 				if (nodes[i].status == 1) {
 					p = &nodes[i].last_pkt;

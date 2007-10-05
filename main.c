@@ -31,7 +31,7 @@
 #include <signal.h>
 #include <time.h>
 
-#include <linux/wireless.h> /* it's not good to include kernel headers, i know... ;( */
+#include <wireless.h> /* it's not good to include kernel headers, i know... ;( */
 
 #include "protocol_parser.h"
 #include "display.h"
@@ -47,10 +47,11 @@ struct packet_info current_packet;
 
 struct node_info nodes[MAX_NODES]; /* no, i dont want to implement a list now */
 
-char* ifname = "wlan0";
+char* ifname = "prism0";
 
 int paused = 0;
 int olsr_only = 0;
+int no_ctrl = 0;
 
 static int mon; /* monitoring socket */
 
@@ -90,8 +91,12 @@ main(int argc, char** argv)
 
 			node_update(&current_packet);
 #if !DO_DEBUG
-			if (!olsr_only || current_packet.pkt_types & PKT_TYPE_OLSR)
-			{
+			if (olsr_only) {
+				if (current_packet.pkt_types & PKT_TYPE_OLSR) {
+					update_display(&current_packet);
+				}
+			}
+			else if (!no_ctrl || (WLAN_FC_TYPE_CTRL != current_packet.wlan_type)) {
 				update_display(&current_packet);
 			}
 #endif
@@ -255,6 +260,10 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		n->olsr_count++;
 	if (p->wlan_bssid[0] != 0xff)
 		memcpy(n->wlan_bssid, p->wlan_bssid, 6);
+	if (p->pkt_types & PKT_TYPE_BEACON) {
+		n->tsfl = ntohl(*(unsigned long*)(&p->wlan_tsf[0]));
+		n->tsfh = ntohl(*(unsigned long*)(&p->wlan_tsf[4]));
+	}
 }
 
 static void 

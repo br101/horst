@@ -19,13 +19,16 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "protocol_parser.h"
 #include <linux/ip.h>
 #include <linux/udp.h>
 #include <linux/tcp.h>
-
-#include "protocol_parser.h"
 #include "main.h"
 #include "display.h"
+
+#ifndef bswap_16
+#define bswap_16(x) (((x) & 0x00ff) << 8 | ((x) & 0xff00) >> 8)
+#endif
 
 static unsigned char* parse_prism_header(unsigned char* buf, int len);
 static unsigned char* parse_80211_header(unsigned char* buf, int len);
@@ -57,13 +60,19 @@ parse_prism_header(unsigned char* buf, int len)
 	wlan_ng_prism2_header* ph;
 	ph = (wlan_ng_prism2_header*)buf;
 
-	/* madwifi reports different S/N values than hostap */
+	/* madwifi and reports different S/N values than hostap */
 	if (((int)ph->noise.data)<0) {
 		/* madwifi: noise is constantly -95 */
 		current_packet.prism_noise = 95;
 		/* signal is rssi (received signal strength) relative to -95dB noise */
 		current_packet.prism_signal = 95 - ph->signal.data;
 		current_packet.snr = ph->signal.data;
+	}
+	/* broadcom hack */
+	else if (((int)ph->rssi.data)<0) {
+		current_packet.prism_noise = 95;
+		current_packet.prism_signal = 95 - ph->rssi.data;
+		current_packet.snr = ph->rssi.data;
 	}
 	else {
 		/* assume hostap */
@@ -93,10 +102,11 @@ parse_80211_header(unsigned char* buf, int len)
 	memcpy(current_packet.wlan_dst, wh->addr1, 6);
 	memcpy(current_packet.wlan_src, wh->addr2, 6);
 	memcpy(current_packet.wlan_bssid, wh->addr3, 6);
-	current_packet.wlan_type = WLAN_FC_GET_STYPE(wh->frame_control);
+	current_packet.wlan_type = WLAN_FC_GET_TYPE(ntohs(bswap_16(wh->frame_control)));
+	current_packet.wlan_stype = WLAN_FC_GET_STYPE(ntohs(bswap_16(wh->frame_control)));
 
 	//TODO: other subtypes
-	if (current_packet.wlan_type == WLAN_FC_STYPE_BEACON) {
+	if (current_packet.wlan_type == WLAN_FC_TYPE_MGMT && current_packet.wlan_stype == WLAN_FC_STYPE_BEACON) {
 		struct ieee80211_mgmt* whm;
 		whm = (struct ieee80211_mgmt*)buf;
 		memcpy(current_packet.wlan_tsf, whm->u.beacon.timestamp,8);
@@ -107,11 +117,11 @@ parse_80211_header(unsigned char* buf, int len)
 		current_packet.pkt_types = PKT_TYPE_BEACON;
 		return NULL;
 	}
-	else if (current_packet.wlan_type == WLAN_FC_STYPE_PROBE_REQ) {
+	else if (current_packet.wlan_type == WLAN_FC_TYPE_MGMT && current_packet.wlan_stype == WLAN_FC_STYPE_PROBE_REQ) {
 		current_packet.pkt_types = PKT_TYPE_PROBE_REQ;
 		return NULL;
 	}
-	else if (current_packet.wlan_type == WLAN_FC_STYPE_DATA) {
+	else if (current_packet.wlan_type == WLAN_FC_TYPE_DATA && current_packet.wlan_stype == WLAN_FC_STYPE_DATA) {
 		current_packet.pkt_types = PKT_TYPE_DATA;
 	}
 	else {
@@ -127,11 +137,14 @@ parse_ip_header(unsigned char* buf, int len)
 {
 	/* check type in LLC header */	
 	buf = buf + 6;
-	int llc_type = ntohs((u16)*buf);
-	DEBUG("type: %x\n", llc_type);
-	if (llc_type != 0x0800) /* not IP */
+
+	if (*buf != 0x08) /* not IP */
 		return NULL;
-	buf = buf + 2;
+	buf++;
+	
+	if (*buf != 0x00)
+		return NULL;
+	buf++;
 
 	struct iphdr* ih;
 	ih = (struct iphdr*)buf;
