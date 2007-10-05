@@ -22,10 +22,11 @@
 #include "olsr_header.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <curses.h>
 
 WINDOW *dump_win;
-WINDOW* dump_win_box;
+WINDOW *dump_win_box;
 WINDOW *list_win;
 WINDOW *stat_win;
 
@@ -51,7 +52,7 @@ init_display(void)
 	init_pair(5, COLOR_WHITE, COLOR_BLACK);
 
 	move(0,COLS/2-20);
-	printw("HORST - Horsts OLSR Radio Scanning Tool");
+	printw("HORST - Horsts OLSR Radio Scanning Tool " PACKAGE_VERSION " (build date: " PACKAGE_BUILDDATE ")");
 	refresh();
 
 	list_win = newwin(LINES/2-1, COLS, 1, 0);
@@ -324,28 +325,47 @@ update_stat_win(struct packet_info* pkt)
 	wrefresh(stat_win);
 }
 
+#define COL_IP 1
+#define COL_SNR 17
+#define COL_SOURCE 21
+#define COL_BSSID 39
+#define COL_LQ 59
+#define COL_OLSR 71
+#define COL_TSF 82
+
+#define MAX(x,y) ((x>y) ? x : y)
+
 static void
 print_list_line(int line, int i, struct packet_info* p)
 {
+        /* Prevents overdraw of last line */
+        if (line >= LINES/2-2)
+          return;
+
 	if (nodes[i].pkt_types & PKT_TYPE_OLSR)
 		wattron(list_win,A_BOLD);
-	mvwprintw(list_win,line,1,"%2d %03d/%03d %s", 
-		p->snr,
-		p->prism_signal, p->prism_noise,
-		ether_sprintf(p->wlan_src));
-	mvwprintw(list_win,line,30," (%s)", ether_sprintf(nodes[i].wlan_bssid));
+
+        // SNR values being too big are marked as invalid.
+        if (abs(p->snr) > 999)
+          mvwprintw(list_win, line, COL_SNR, "INV");
+        else
+	  mvwprintw(list_win,line,COL_SNR,"%3d", abs(p->snr));
+
+	mvwprintw(list_win,line,COL_SOURCE,"%s", ether_sprintf(p->wlan_src));
+	mvwprintw(list_win,line,COL_BSSID,"(%s)", ether_sprintf(nodes[i].wlan_bssid));
 	if (nodes[i].pkt_types & PKT_TYPE_IP)
-		mvwprintw(list_win,line,51,"%s", ip_sprintf(nodes[i].ip_src));
+		mvwprintw(list_win,line,COL_IP,"%s", ip_sprintf(nodes[i].ip_src));
 	if (nodes[i].pkt_types & PKT_TYPE_OLSR_LQ)
-		mvwprintw(list_win,line,67,"LQ");
+		mvwprintw(list_win,line,COL_LQ,"LQ");
 	if (nodes[i].pkt_types & PKT_TYPE_OLSR_GW)
-		mvwprintw(list_win,line,70,"GW");
+		mvwprintw(list_win,line,COL_LQ+3,"GW");
 	if (nodes[i].pkt_types & PKT_TYPE_OLSR)
-		mvwprintw(list_win,line,73,"N:%d", nodes[i].olsr_neigh);
-	mvwprintw(list_win,line,79,"%d/%d", nodes[i].olsr_count, nodes[i].pkt_count);
-	mvwprintw(list_win,line,90,"%08x", nodes[i].tsfh);
+		mvwprintw(list_win,line,COL_LQ+6,"N:%d", nodes[i].olsr_neigh);
+	mvwprintw(list_win,line,COL_OLSR,"%d/%d", nodes[i].olsr_count, nodes[i].pkt_count);
+	mvwprintw(list_win,line,COL_TSF,"%08x", nodes[i].tsfh);
 	wattroff(list_win,A_BOLD);
 }
+
 
 static void
 update_list_win(void)
@@ -360,14 +380,13 @@ update_list_win(void)
 	werase(list_win);
 	wattron(list_win,COLOR_PAIR(5));
 	box(list_win, 0 , 0);
-	mvwprintw(list_win,0,1,"SNR");
-	mvwprintw(list_win,0,5,"Sig/Noi");
-	mvwprintw(list_win,0,13,"SOURCE");
-	mvwprintw(list_win,0,31,"(BSSID)");
-	mvwprintw(list_win,0,51,"IP");
-	mvwprintw(list_win,0,67,"LQ GW NEIGH");
-	mvwprintw(list_win,0,79,"OLSR/COUNT");
-	mvwprintw(list_win,0,90,"TSF(High)");
+	mvwprintw(list_win,0,COL_SNR,"SNR");
+	mvwprintw(list_win,0,COL_SOURCE,"SOURCE");
+	mvwprintw(list_win,0,COL_BSSID,"(BSSID)");
+	mvwprintw(list_win,0,COL_IP,"IP");
+	mvwprintw(list_win,0,COL_LQ,"LQ GW NEIGH");
+	mvwprintw(list_win,0,COL_OLSR,"OLSR/COUNT");
+	mvwprintw(list_win,0,COL_TSF,"TSF(High)");
 
 	wattron(list_win,COLOR_PAIR(1));
 

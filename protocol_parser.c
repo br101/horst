@@ -20,6 +20,9 @@
 #include <stdio.h>
 #include <string.h>
 #include "protocol_parser.h"
+/* Include this on (K)UBUNTU to get rid of ENDIAN whoes
+#include <netinet/ip.h>
+*/
 #include <linux/ip.h>
 #include <linux/udp.h>
 #include <linux/tcp.h>

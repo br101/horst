@@ -17,9 +17,11 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 NAME=horst
+VERSION=1.2.2
+BUILDDATE=$(shell date +"%Y-%m-%e")
 OBJS=protocol_parser.o main.o display.o
 LIBS=-l ncurses
-CFLAGS=-Wall
+CFLAGS=-Wall -DPACKAGE_VERSION=\"$(VERSION)\" -DPACKAGE_BUILDDATE=\"$(BUILDDATE)\"
 
 all: $(NAME)
 

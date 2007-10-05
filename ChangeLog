@@ -1,0 +1,11 @@
+2006-10-12  Robert Schuster   (robertschuster@fsfe.org)
+
+	* various changes to output (requested by Horst :) )
+	* fixed some includes (to compile with (k)ubunut)
+	* added version and build date to main window
+
+2006-10-12  Sven-Ola aet gmx.de
+
+        * Unfixed some includes. the necesary include
+          addon is required to fix (k)ubunto ip.h whoes
+          but breaks build elsewhere

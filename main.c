@@ -31,7 +31,8 @@
 #include <signal.h>
 #include <time.h>
 
-#include <wireless.h> /* it's not good to include kernel headers, i know... ;( */
+#include <linux/wireless.h>
+/* it's not good to include kernel headers, i know... ;( */
 
 #include "protocol_parser.h"
 #include "display.h"
