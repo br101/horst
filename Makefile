@@ -18,10 +18,11 @@
 
 NAME=horst
 VERSION=1.2.2
+DEBUG=0
 BUILDDATE=$(shell date +"%Y-%m-%d")
 OBJS=protocol_parser.o main.o display.o network.o
 LIBS=-l ncurses
-CFLAGS=-Wall -DPACKAGE_VERSION=\"$(VERSION)\" -DPACKAGE_BUILDDATE=\"$(BUILDDATE)\"
+CFLAGS=-Wall -DPACKAGE_VERSION=\"$(VERSION)\" -DPACKAGE_BUILDDATE=\"$(BUILDDATE)\" -DDO_DEBUG=$(DEBUG)
 
 all: $(NAME)
 

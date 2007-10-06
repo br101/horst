@@ -22,7 +22,9 @@
 
 #include <time.h>
 
-#define DO_DEBUG 1
+#ifndef DO_DEBUG
+#define DO_DEBUG 0
+#endif
 
 #if DO_DEBUG
 #define DEBUG(...) printf(__VA_ARGS__)
