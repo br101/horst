@@ -264,7 +264,8 @@ finish_all(int sig)
 #if !DO_DEBUG
 	if (rport)
 		net_finish();
-	finish_display(sig);
+	else
+		finish_display(sig);
 #endif
 	exit(0);
 }
