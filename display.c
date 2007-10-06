@@ -137,7 +137,7 @@ update_display(struct packet_info* pkt)
 		ether_sprintf(pkt->wlan_src));
 	wprintw(dump_win,"(%s) ", ether_sprintf(pkt->wlan_bssid));
 	if (pkt->pkt_types & PKT_TYPE_BEACON) {
-		wprintw(dump_win,"BEACON %s %08x:%08x", pkt->wlan_essid,
+		wprintw(dump_win,"BEACON '%s' %08x:%08x", pkt->wlan_essid,
 			ntohl(*(unsigned long*)(&pkt->wlan_tsf[4])),
 			ntohl(*(unsigned long*)(&pkt->wlan_tsf[0])));
 	}
