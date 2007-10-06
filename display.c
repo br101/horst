@@ -338,9 +338,9 @@ update_stat_win(struct packet_info* pkt)
 static void
 print_list_line(int line, int i, struct packet_info* p)
 {
-        /* Prevents overdraw of last line */
-        if (line >= LINES/2-2)
-          return;
+	/* Prevents overdraw of last line */
+	if (line >= LINES/2-2)
+		return;
 
 	if (nodes[i].pkt_types & PKT_TYPE_OLSR)
 		wattron(list_win,A_BOLD);
@@ -392,7 +392,7 @@ update_list_win(void)
 
 	if (do_sort) {
 		/* sort by SNR: probably the most inefficient way to do it ;) */
-		for (s=100; s>-100; s--) {
+		for (s=100; s>0; s--) {
 			for (i=0; i<MAX_NODES; i++) {
 				if (nodes[i].status == 1) {
 					p = &nodes[i].last_pkt;

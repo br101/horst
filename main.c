@@ -24,18 +24,19 @@
 #include <netpacket/packet.h>
 #include <net/ethernet.h>
 #include <sys/ioctl.h>
-#include <net/if.h> /* not needed since we include linux/wireless.h */
+//#include <net/if.h> /* XXX??? not needed since we include linux/wireless.h */
 #include <string.h>
 
 #include <getopt.h>
 #include <signal.h>
 #include <time.h>
 
-#include <linux/wireless.h>
+#include <linux/wireless.h> //XXX: with or without linux/???
 /* it's not good to include kernel headers, i know... ;( */
 
 #include "protocol_parser.h"
 #include "display.h"
+#include "network.h"
 #include "main.h"
 
 static int device_index(int fd, const char *if_name);
@@ -48,7 +49,7 @@ struct packet_info current_packet;
 
 struct node_info nodes[MAX_NODES]; /* no, i dont want to implement a list now */
 
-char* ifname = "prism0";
+char* ifname = "ath0";
 
 int paused = 0;
 int olsr_only = 0;
@@ -69,20 +70,10 @@ main(int argc, char** argv)
 	socklen_t fromlen;
 	int len;
 
-	struct sockaddr_in sin,cin;
-	socklen_t	cinlen;
-	int srv_fd=0;
-	int	cli_fd=0;
-	int i;
-	fd_set rs;
-	char		line[256];
-	int		llen;
-	struct timeval to={0,0};
-	struct timeval tr={0,100};
-	int on = 1;
-
 	get_options(argc, argv);
-	if(!quiet) printf("using interface %s\n", ifname);
+
+	if (!quiet)
+		printf("using interface %s\n", ifname);
 
 	signal(SIGINT, finish_all);
 
@@ -91,22 +82,13 @@ main(int argc, char** argv)
 	if (mon < 0)
 		exit(0);
 	
-	if(rport) {
-		if(!quiet) printf("using remote port %d\n",rport);
-		sin.sin_family=AF_INET;
-		sin.sin_port=htons(rport);
-		sin.sin_addr.s_addr=htonl(INADDR_ANY);
-
-		if ((srv_fd=socket(AF_INET,SOCK_STREAM,0)) < 0) { perror("socket"); exit(-1); }
-		if (setsockopt(srv_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {perror("setsockopt SO_REUSEADDR"); exit(-1);}
-		if (bind(srv_fd, &sin, sizeof(sin)) < 0) { perror("bind"); exit(-1); }
-		if (listen(srv_fd, 5) < 0) { perror("listen"); exit(-1); }
-	}
-	else {
+	if (rport)
+		net_init_socket(rport);
 #if !DO_DEBUG
+	else {
 		init_display();
-#endif
 	}
+#endif
 
 	while ((len = recvfrom(mon, buffer, 8192, 0, &from, &fromlen))) 
 	{
@@ -119,62 +101,22 @@ main(int argc, char** argv)
 			parse_packet(buffer, len);
 
 			node_update(&current_packet);
-			if(rport) {
-				FD_ZERO(&rs);
-				FD_SET(srv_fd,&rs);
-				if(select(srv_fd+1,&rs,NULL,NULL,&to) && FD_ISSET(srv_fd,&rs)) {
-					cli_fd = accept(srv_fd,&cin,&cinlen);
-					if(!quiet) printf("horst: accepting client\n");
-					if(!cli_fd) continue;
-					
 
-					// discard stuff which was sent to us e.g. by a http client
-					FD_ZERO(&rs);
-					FD_SET(cli_fd,&rs);
-					while(select(cli_fd+1,&rs,NULL,NULL,&tr) && FD_ISSET(cli_fd,&rs)) {
-						read(cli_fd,line,sizeof(line));
-						FD_ZERO(&rs);
-						FD_SET(cli_fd,&rs);
-					}
-					
-					// satisfy http clients (wget)
-					static const char hdr[]="HTTP/1.0 200 ok\r\nContent-Type: text/plain\r\n\r\n";
-					write(cli_fd,hdr,sizeof(hdr));
-
-					for (i=0;i<MAX_NODES;i++) {
-						char src_eth[18];
-						strcpy(src_eth,ether_sprintf(nodes[i].last_pkt.wlan_src));
-						if (nodes[i].status == 1) {
-							/* ip sig noise snr source bssid lq gw neigh olsrcount count tsf */
-							llen=snprintf(line,sizeof(line)-1,"%s %d %d %d %s %s %d %d %d %d %d %08x\r\n",
-								ip_sprintf(nodes[i].ip_src),
-								nodes[i].last_pkt.prism_signal,nodes[i].last_pkt.prism_noise,abs(nodes[i].last_pkt.snr),
-								src_eth,
-								ether_sprintf(nodes[i].wlan_bssid),
-								nodes[i].pkt_types & PKT_TYPE_OLSR_LQ,
-								nodes[i].pkt_types & PKT_TYPE_OLSR_GW,
-								nodes[i].olsr_neigh,
-								nodes[i].olsr_count, nodes[i].pkt_count,
-								nodes[i].tsfh
-							);
-							write(cli_fd,line,llen);
-						}
-					}
-					close(cli_fd);
-				}
+			if (rport) {
+				net_send_packet();
+				continue;
 			}
-			else {
+
 #if !DO_DEBUG
-				if (olsr_only) {
-					if (current_packet.pkt_types & PKT_TYPE_OLSR) {
-						update_display(&current_packet);
-					}
-				}
-				else if (!no_ctrl || (WLAN_FC_TYPE_CTRL != current_packet.wlan_type)) {
+			if (olsr_only) {  //XXX simplify logic???
+				if (current_packet.pkt_types & PKT_TYPE_OLSR) {
 					update_display(&current_packet);
 				}
-#endif
 			}
+			else if (!no_ctrl || (WLAN_FC_TYPE_CTRL != current_packet.wlan_type)) {
+				update_display(&current_packet);
+			}
+#endif
 		}
 	}
 	return 0;
@@ -320,6 +262,8 @@ finish_all(int sig)
 	device_promisc(mon, ifname, 0);
 	close(mon);
 #if !DO_DEBUG
+	if (rport)
+		net_finish();
 	finish_display(sig);
 #endif
 	exit(0);

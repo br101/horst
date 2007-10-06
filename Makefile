@@ -18,8 +18,8 @@
 
 NAME=horst
 VERSION=1.2.2
-BUILDDATE=$(shell date +"%Y-%m-%e")
-OBJS=protocol_parser.o main.o display.o
+BUILDDATE=$(shell date +"%Y-%m-%d")
+OBJS=protocol_parser.o main.o display.o network.o
 LIBS=-l ncurses
 CFLAGS=-Wall -DPACKAGE_VERSION=\"$(VERSION)\" -DPACKAGE_BUILDDATE=\"$(BUILDDATE)\"
 
@@ -28,10 +28,11 @@ all: $(NAME)
 protocol_parser.o: ieee80211_header.h prism_header.h olsr_header.h
 main.o: main.h
 display.o: display.h
+network.o: network.h
 
 $(NAME): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
 clean:
-	-rm -f *.o
+	-rm -f *.o *~
 	-rm -f $(NAME)
