@@ -23,6 +23,8 @@
 #include <linux/udp.h>
 #include <linux/tcp.h>
 
+#include "ieee80211_radiotap.h"
+
 #include "protocol_parser.h"
 #include "main.h"
 #include "display.h"
@@ -32,6 +34,7 @@
 #endif
 
 static unsigned char* parse_prism_header(unsigned char* buf, int len);
+static unsigned char* parse_radiotap_header(unsigned char* buf, int len);
 static unsigned char* parse_80211_header(unsigned char* buf, int len);
 static unsigned char* parse_ip_header(unsigned char* buf, int len);
 static unsigned char* parse_udp_header(unsigned char* buf, int len);
@@ -40,7 +43,8 @@ static unsigned char* parse_olsr_packet(unsigned char* buf, int len);
 int
 parse_packet(unsigned char* buf, int len)
 {
-	buf = parse_prism_header(buf, len);
+//	buf = parse_prism_header(buf, len);
+	buf = parse_radiotap_header(buf, len);
 	if (buf != NULL)
 		buf = parse_80211_header(buf, len);
 	if (buf != NULL)
@@ -105,6 +109,25 @@ parse_prism_header(unsigned char* buf, int len)
 
 	return buf + sizeof(wlan_ng_prism2_header);
 }
+
+
+static unsigned char*
+parse_radiotap_header(unsigned char* buf, int len)
+{
+	struct ath_rx_radiotap_header* rh;
+	rh = (struct ath_rx_radiotap_header*)buf;
+
+	current_packet.prism_signal = rh->wr_dbm_antsignal;
+	current_packet.prism_noise = rh->wr_dbm_antnoise;
+	current_packet.snr = rh->wr_antsignal;
+
+	DEBUG("signal: %d -> %d\n", rh->wr_antsignal, current_packet.prism_signal);
+	DEBUG("noise: %d -> %d\n", rh->wr_dbm_antnoise, current_packet.prism_noise);
+	DEBUG("rssi: %d\n", rh->wr_antsignal);
+	DEBUG("*** SNR %d\n", current_packet.snr);
+	return buf + rh->wr_ihdr.it_len;
+}
+
 
 static unsigned char*
 parse_80211_header(unsigned char* buf, int len)

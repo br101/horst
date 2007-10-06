@@ -148,6 +148,8 @@ init_packet_socket(char* devname)
 
 	device_promisc(fd, devname, 1);
 
+	// check dev->type
+	//ARPHRD_IEEE80211_RADIOTAP || ARPHRD_IEEE80211_PRISM
 	return fd;
 }
 
