@@ -25,6 +25,14 @@
 #include <stdlib.h>
 #include <curses.h>
 
+#define COL_IP 1
+#define COL_SNR 17
+#define COL_SOURCE 21
+#define COL_BSSID 39
+#define COL_LQ 59
+#define COL_OLSR 71
+#define COL_TSF 82
+
 WINDOW *dump_win;
 WINDOW *dump_win_box;
 WINDOW *list_win;
@@ -157,7 +165,7 @@ update_display(struct packet_info* pkt)
 		}
 	}
 	else if (pkt->pkt_types & PKT_TYPE_DATA) {
-		wprintw(dump_win,"IP   %s ", ip_sprintf(pkt->ip_src));
+		wprintw(dump_win,"IP     %s ", ip_sprintf(pkt->ip_src));
 	}
 	else if (pkt->pkt_types & PKT_TYPE_DATA) {
 		wprintw(dump_win,"DATA");
@@ -278,7 +286,6 @@ update_stat_win(struct packet_info* pkt)
 	{
 		int snr = pkt->snr;
 		int max_bar = LINES/2-2;
-		if (0 > snr) snr += 95; /* Sven-Ola: WRT54g SNR is negative, convert to val above 0 */
 		
 		snr=(snr/60.0)*max_bar; /* normalize for bar, assume max received SNR is 60 */
 		if (snr>max_bar) snr=max_bar; /* cap if still bigger */
@@ -291,7 +298,7 @@ update_stat_win(struct packet_info* pkt)
 
 		mvwprintw(stat_win, LINES/2-4,6,"SIG:%03d", pkt->prism_signal);
 		mvwprintw(stat_win, LINES/2-3,6,"NOI:%03d", pkt->prism_noise);
-		mvwprintw(stat_win, LINES/2-2,6,"SNR:%02d", pkt->snr);
+		mvwprintw(stat_win, LINES/2-2,6,"SNR:%03d", pkt->snr);
 	}
 
 	wattron(stat_win, COLOR_PAIR(5));
@@ -325,15 +332,6 @@ update_stat_win(struct packet_info* pkt)
 	wrefresh(stat_win);
 }
 
-#define COL_IP 1
-#define COL_SNR 17
-#define COL_SOURCE 21
-#define COL_BSSID 39
-#define COL_LQ 59
-#define COL_OLSR 71
-#define COL_TSF 82
-
-#define MAX(x,y) ((x>y) ? x : y)
 
 static void
 print_list_line(int line, int i, struct packet_info* p)
@@ -346,10 +344,10 @@ print_list_line(int line, int i, struct packet_info* p)
 		wattron(list_win,A_BOLD);
 
         // SNR values being too big are marked as invalid.
-        if (abs(p->snr) > 999)
+        if (p->snr > 999)
           mvwprintw(list_win, line, COL_SNR, "INV");
         else
-	  mvwprintw(list_win,line,COL_SNR,"%3d", abs(p->snr));
+	  mvwprintw(list_win,line,COL_SNR,"%3d", p->snr);
 
 	mvwprintw(list_win,line,COL_SOURCE,"%s", ether_sprintf(p->wlan_src));
 	mvwprintw(list_win,line,COL_BSSID,"(%s)", ether_sprintf(nodes[i].wlan_bssid));

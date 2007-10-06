@@ -61,31 +61,46 @@ parse_prism_header(unsigned char* buf, int len)
 	wlan_ng_prism2_header* ph;
 	ph = (wlan_ng_prism2_header*)buf;
 
-	/* madwifi and reports different S/N values than hostap */
+	/*
+	 * different drivers report S/N and rssi values differently
+	 * let's make sure here that SNR is always positive, so we
+	 * don't have do handle special cases later
+	 * let signal and noise be driver specific for now
+	*/
 	if (((int)ph->noise.data)<0) {
-		/* madwifi: noise is constantly -95 */
-		current_packet.prism_noise = 95;
-		/* signal is rssi (received signal strength) relative to -95dB noise */
+		/* new madwifi */
+		current_packet.prism_signal = ph->signal.data;
+		current_packet.prism_noise = ph->noise.data;
+		current_packet.snr = ph->rssi.data;
+		/* old madwifi:
+		current_packet.prism_noise = 95; // noise is constantly -95
+		// signal is rssi (received signal strength) relative to -95dB noise
 		current_packet.prism_signal = 95 - ph->signal.data;
 		current_packet.snr = ph->signal.data;
+		*/
 	}
-	/* broadcom hack */
 	else if (((int)ph->rssi.data)<0) {
-		current_packet.prism_noise = 95;
-		current_packet.prism_signal = 95 - ph->rssi.data;
-		current_packet.snr = ph->rssi.data;
+		/* broadcom hack */
+		current_packet.prism_signal = -95 - ph->rssi.data;
+		current_packet.prism_noise = -95;
+		current_packet.snr = -ph->rssi.data;
 	}
 	else {
 		/* assume hostap */
 		current_packet.prism_signal = ph->signal.data;
 		current_packet.prism_noise = ph->noise.data;
-		current_packet.snr = ph->signal.data - ph->noise.data;
+		current_packet.snr = ph->signal.data - ph->noise.data; //XXX rssi?
 	}
+
+	/* just in case...*/
+	if (current_packet.snr<0)
+		current_packet.snr = -current_packet.snr;
 
 	DEBUG("devname: %s\n", ph->devname);
 	DEBUG("signal: %d -> %d\n", ph->signal.data, current_packet.prism_signal);
 	DEBUG("noise: %d -> %d\n", ph->noise.data, current_packet.prism_noise);
 	DEBUG("rate: %d\n", ph->rate.data);
+	DEBUG("rssi: %d\n", ph->rssi.data);
 	DEBUG("*** SNR %d\n", current_packet.snr);
 
 	return buf + sizeof(wlan_ng_prism2_header);
