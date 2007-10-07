@@ -87,7 +87,7 @@ init_display(void)
 	mvwprintw(dump_win_box,0,54,"INFO");
 	mvwprintw(dump_win_box,LINES/2-1,2,"V" PACKAGE_VERSION " (built: " PACKAGE_BUILDDATE ")");
 
-	if (arphrd==803)
+	if (arphrd == 803)
 		mvwprintw(dump_win_box,LINES/2-1,COLS-25,"RADIOTAP");
 	else if (arphrd == 802)
 		mvwprintw(dump_win_box,LINES/2-1,COLS-25,"PRISM2");
