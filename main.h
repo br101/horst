@@ -83,6 +83,7 @@ extern struct node_info nodes[MAX_NODES];
 extern int paused;
 extern int olsr_only;
 extern int no_ctrl;
+extern int arphrd; // the device ARP type
 
 #define NODE_TIMEOUT 60 /* seconds */
 

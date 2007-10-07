@@ -22,6 +22,8 @@
 #include <linux/ip.h>
 #include <linux/udp.h>
 #include <linux/tcp.h>
+#include <sys/socket.h>
+#include <linux/if_arp.h>
 
 #include "ieee80211_radiotap.h"
 
@@ -29,8 +31,17 @@
 #include "main.h"
 #include "display.h"
 
+/* compatibility with old kernel includes */
 #ifndef bswap_16
 #define bswap_16(x) (((x) & 0x00ff) << 8 | ((x) & 0xff00) >> 8)
+#endif
+
+#ifndef ARPHRD_IEEE80211_RADIOTAP
+#define ARPHRD_IEEE80211_RADIOTAP 803    /* IEEE 802.11 + radiotap header */
+#endif
+
+#ifndef ARPHRD_IEEE80211_PRISM
+#define ARPHRD_IEEE80211_PRISM 802      /* IEEE 802.11 + Prism2 header  */
 #endif
 
 static unsigned char* parse_prism_header(unsigned char* buf, int len);
@@ -43,9 +54,15 @@ static unsigned char* parse_olsr_packet(unsigned char* buf, int len);
 int
 parse_packet(unsigned char* buf, int len)
 {
-//	buf = parse_prism_header(buf, len);
-	buf = parse_radiotap_header(buf, len);
-	if (buf != NULL)
+	if (arphrd == ARPHRD_IEEE80211_PRISM)
+		buf = parse_prism_header(buf, len);
+	else if (arphrd == ARPHRD_IEEE80211_RADIOTAP)
+		buf = parse_radiotap_header(buf, len);
+
+	if (buf != NULL &&
+	    (arphrd == ARPHRD_IEEE80211 ||
+	    arphrd == ARPHRD_IEEE80211_PRISM ||
+	    arphrd == ARPHRD_IEEE80211_RADIOTAP))
 		buf = parse_80211_header(buf, len);
 	if (buf != NULL)
 		buf = parse_ip_header(buf, len);
@@ -64,6 +81,8 @@ parse_prism_header(unsigned char* buf, int len)
 {
 	wlan_ng_prism2_header* ph;
 	ph = (wlan_ng_prism2_header*)buf;
+
+	DEBUG("PRISM2 HEADER\n");
 
 	/*
 	 * different drivers report S/N and rssi values differently
@@ -117,14 +136,17 @@ parse_radiotap_header(unsigned char* buf, int len)
 	struct ath_rx_radiotap_header* rh;
 	rh = (struct ath_rx_radiotap_header*)buf;
 
+	DEBUG("RADIOTAP HEADER\n");
+
 	current_packet.prism_signal = rh->wr_dbm_antsignal;
 	current_packet.prism_noise = rh->wr_dbm_antnoise;
 	current_packet.snr = rh->wr_antsignal;
 
-	DEBUG("signal: %d -> %d\n", rh->wr_antsignal, current_packet.prism_signal);
+	DEBUG("signal: %d -> %d\n", rh->wr_dbm_antsignal, current_packet.prism_signal);
 	DEBUG("noise: %d -> %d\n", rh->wr_dbm_antnoise, current_packet.prism_noise);
 	DEBUG("rssi: %d\n", rh->wr_antsignal);
 	DEBUG("*** SNR %d\n", current_packet.snr);
+
 	return buf + rh->wr_ihdr.it_len;
 }
 
@@ -135,7 +157,7 @@ parse_80211_header(unsigned char* buf, int len)
 	struct ieee80211_hdr* wh;
 	wh = (struct ieee80211_hdr*)buf;
 
-	DEBUG("%x\n", WLAN_FC_GET_STYPE(wh->frame_control));
+	DEBUG("STYPE %x\n", WLAN_FC_GET_STYPE(wh->frame_control));
 
 	//TODO: addresses are not always like this (WDS)
 	memcpy(current_packet.wlan_dst, wh->addr1, 6);

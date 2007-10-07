@@ -41,6 +41,7 @@
 
 static int device_index(int fd, const char *if_name);
 static void device_promisc(int fd, const char *if_name, int on);
+static int device_get_arptype(int fd, const char *device);
 static int init_packet_socket(char* devname);
 static void get_options(int argv, char** argc);
 static void node_update(struct packet_info* pkt);
@@ -60,6 +61,9 @@ static int mon; /* monitoring socket */
 int rport = 0;
 
 int quiet = 0;
+
+int arphrd;
+
 
 /* may be better to integrate all this into kismet */
 int
@@ -92,11 +96,13 @@ main(int argc, char** argv)
 
 	while ((len = recvfrom(mon, buffer, 8192, 0, &from, &fromlen))) 
 	{
+#if DO_DEBUG
+		dump_packet(buffer, len);
+#endif
+
 		handle_user_input();
 		
 		if (!paused) {
-			//dump_packet(buffer, len);
-	
 			memset(&current_packet,0,sizeof(current_packet));
 			parse_packet(buffer, len);
 
@@ -147,11 +153,11 @@ init_packet_socket(char* devname)
 		perror("bind failed");
 
 	device_promisc(fd, devname, 1);
+	arphrd = device_get_arptype(fd, devname);
 
-	// check dev->type
-	//ARPHRD_IEEE80211_RADIOTAP || ARPHRD_IEEE80211_PRISM
 	return fd;
 }
+
 
 #if 0
 static void
@@ -167,6 +173,7 @@ device_address(int fd, const char *if_name)
 	DEBUG("hw %s\n", ether_sprintf((const unsigned char *)&req.ifr_hwaddr.sa_data));
 }
 #endif
+
 
 static int
 device_index(int fd, const char *if_name)
@@ -185,6 +192,7 @@ device_index(int fd, const char *if_name)
 	DEBUG("index %d\n", req.ifr_ifindex);
 	return req.ifr_ifindex;
 }
+
 
 static void
 device_promisc(int fd, const char *if_name, int on)
@@ -212,6 +220,27 @@ device_promisc(int fd, const char *if_name, int on)
 		exit(1);
 	}
 }
+
+
+/*
+ *  Get the hardware type of the given interface as ARPHRD_xxx constant.
+ */
+static int
+device_get_arptype(int fd, const char *device)
+{
+	struct ifreq    ifr;
+
+	memset(&ifr, 0, sizeof(ifr));
+	strncpy(ifr.ifr_name, device, sizeof(ifr.ifr_name));
+
+	if (ioctl(fd, SIOCGIFHWADDR, &ifr) == -1) {
+		perror("SIOCGIFHWADDR");
+		return -1;
+	}
+	DEBUG("ARPTYPE %d\n", ifr.ifr_hwaddr.sa_family);
+	return ifr.ifr_hwaddr.sa_family;
+}
+
 
 #if 0
 static void
