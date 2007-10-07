@@ -376,12 +376,25 @@ print_list_line(int line, int i, struct packet_info* p)
 	wattroff(list_win,A_BOLD);
 }
 
+static int
+compare_nodes_snr(const void *p1, const void *p2)
+{
+	struct node_info* n1 = (struct node_info*)p1;
+	struct node_info* n2 = (struct node_info*)p2;
+
+	if (n1->last_pkt.snr > n2->last_pkt.snr)
+		return -1;
+	else if (n1->last_pkt.snr == n2->last_pkt.snr)
+		return 0;
+	else
+		return 1;
+}
+
 
 static void
 update_list_win(void)
 {
 	int i;
-	int s;
 	int line=0;
 	struct packet_info* p;
 	time_t now;
@@ -401,30 +414,16 @@ update_list_win(void)
 	wattron(list_win,COLOR_PAIR(1));
 
 	if (do_sort) {
-		/* sort by SNR: probably the most inefficient way to do it ;) */
-		for (s=100; s>0; s--) {
-			for (i=0; i<MAX_NODES; i++) {
-				if (nodes[i].status == 1) {
-					p = &nodes[i].last_pkt;
-					if ((p->snr) == s
-					&& nodes[i].last_seen > now - NODE_TIMEOUT) {
-						line++;
-						print_list_line(line,i,p);
-					}
-				}
-				else
-					break;
-			}
-		}
+		/* sort by SNR */
+		qsort(nodes, MAX_NODES, sizeof(struct node_info), compare_nodes_snr);
 	}
-	else {
-		for (i=0; i<MAX_NODES; i++) {
-			if (nodes[i].status == 1
-			    && nodes[i].last_seen > now - NODE_TIMEOUT) {
-				p = &nodes[i].last_pkt;
-				line++;
-				print_list_line(line,i,p);
-			}
+
+	for (i=0; i<MAX_NODES; i++) {
+		if (nodes[i].status == 1
+		    && nodes[i].last_seen > now - NODE_TIMEOUT) {
+			p = &nodes[i].last_pkt;
+			line++;
+			print_list_line(line,i,p);
 		}
 	}
 	wrefresh(list_win);
