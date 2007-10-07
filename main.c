@@ -55,6 +55,9 @@ char* ifname = "ath0";
 int paused = 0;
 int olsr_only = 0;
 int no_ctrl = 0;
+int filter = 0;
+
+unsigned char filtermac[6];
 
 static int mon; /* monitoring socket */
 
@@ -105,6 +108,10 @@ main(int argc, char** argv)
 		if (!paused) {
 			memset(&current_packet,0,sizeof(current_packet));
 			parse_packet(buffer, len);
+
+			if (filter && 0 != memcmp(current_packet.wlan_src,
+			    filtermac, sizeof(filtermac)))
+				continue;
 
 			node_update(&current_packet);
 
@@ -266,7 +273,7 @@ get_options(int argc, char** argv)
 {
 	int c;
 	
-	while((c = getopt(argc, argv, "hqi:p:")) > 0) {
+	while((c = getopt(argc, argv, "hqi:p:e:")) > 0) {
 		switch (c) {
 			case 'p':
 				rport = atoi(optarg);
@@ -277,10 +284,20 @@ get_options(int argc, char** argv)
 			case 'i':
 				ifname = optarg;
 				break;
-
+			case 'e':
+				filter = 1;
+				for(c = 0; c < sizeof(filtermac) / sizeof(filtermac[0]); c++)
+				{
+					int x = 0;
+					if (optarg) sscanf(optarg, "%x", &x);
+					filtermac[c] = x;
+					optarg = strchr(optarg, ':');
+					if (optarg) optarg++;
+				}
+				break;
 			case 'h':
 			default:
-				printf("usage: %s [-q] [-i <interface>] [-p <remote port>]\n\n", argv[0]);
+				printf("usage: %s [-q] [-i <interface>] [-p <remote port>] -e <filtermac>\n\n", argv[0]);
 				exit(0);
 				break;
 		}
