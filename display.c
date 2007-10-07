@@ -157,7 +157,9 @@ update_stat_win(struct packet_info* pkt, int node_number)
 	{
 		int snr = pkt->snr;
 		int max_bar = LINES/2-2;
-		
+		int min;
+		int max;
+
 		snr=(snr/60.0)*max_bar; /* normalize for bar, assume max received SNR is 60 */
 		if (snr>max_bar) snr=max_bar; /* cap if still bigger */
 	
@@ -165,10 +167,13 @@ update_stat_win(struct packet_info* pkt, int node_number)
 		mvwvline(stat_win, 1, 2, ' ', max_bar-snr);
 		mvwvline(stat_win, 1, 3, ' ', max_bar-snr);
 		if (node_number>=0 && nodes[node_number].snr_max>0) {
-			int max=(nodes[node_number].snr_max/60.0)*max_bar;
+			wattron(stat_win, A_BOLD);
+			mvwprintw(stat_win, LINES/2-2,8,"/%2d/%2d",
+				  nodes[node_number].snr_max, nodes[node_number].snr_min);
+			wattroff(stat_win, A_BOLD);
 
-			mvwprintw(stat_win, LINES/2-8,6,"MAX:%2d", nodes[node_number].snr_max);
-			mvwprintw(stat_win, LINES/2-7,6,"MIN:%2d", nodes[node_number].snr_min);
+			max=(nodes[node_number].snr_max/60.0)*max_bar;
+			min=(nodes[node_number].snr_min/60.0)*max_bar;
 			if (max>1)
 				mvwprintw(stat_win, LINES/2-max-1, 2, "--");
 		}
@@ -177,10 +182,16 @@ update_stat_win(struct packet_info* pkt, int node_number)
 		mvwvline(stat_win, max_bar-snr+1, 3, ACS_BLOCK, snr);
 		wattroff(stat_win, A_BOLD);
 
-		mvwprintw(stat_win, LINES/2-5,6,"RATE:%2d", pkt->rate);
-		mvwprintw(stat_win, LINES/2-4,6,"SIG:%03d", pkt->signal);
-		mvwprintw(stat_win, LINES/2-3,6,"NOI:%03d", pkt->noise);
-		mvwprintw(stat_win, LINES/2-2,6,"SNR:%3d", pkt->snr);
+		if (node_number>=0 && nodes[node_number].snr_max>0 && min>1)
+			mvwvline(stat_win, max_bar-min+1, 2, ACS_BLOCK, min);
+
+		mvwprintw(stat_win, LINES/2-6,6,"RATE:%2d", pkt->rate);
+		mvwprintw(stat_win, LINES/2-5,6,"Sig/Noi");
+		mvwprintw(stat_win, LINES/2-3,6,"SN/MX/MI");
+		wattron(stat_win, A_BOLD);
+		mvwprintw(stat_win, LINES/2-4,6,"%03d/%03d", pkt->signal, pkt->noise);
+		mvwprintw(stat_win, LINES/2-2,6,"%2d", pkt->snr);
+		wattroff(stat_win, A_BOLD);
 	}
 
 	wattron(stat_win, COLOR_PAIR(5));
@@ -232,12 +243,12 @@ compare_nodes_snr(const void *p1, const void *p2)
 
 #define COL_IP 1
 #define COL_SNR 17
-#define COL_RATE 23
-#define COL_SOURCE 26
-#define COL_BSSID 44
-#define COL_LQ 64
-#define COL_OLSR 76
-#define COL_TSF 88
+#define COL_RATE 26
+#define COL_SOURCE 29
+#define COL_BSSID 47
+#define COL_LQ 67
+#define COL_OLSR 79
+#define COL_TSF 91
 
 
 static void
@@ -254,9 +265,10 @@ print_list_line(int line, int i, time_t now)
 
 	// SNR values being too big are marked as invalid.
 	if (p->snr > 999)
-		mvwprintw(list_win, line, COL_SNR, "INV");
+		mvwprintw(list_win, line, COL_SNR, "IN");
 	else
-		mvwprintw(list_win,line,COL_SNR,"%2d/%2d", p->snr, nodes[i].snr_max);
+		mvwprintw(list_win,line,COL_SNR,"%2d/%2d/%2d",
+			  p->snr, nodes[i].snr_max, nodes[i].snr_min);
 
 	mvwprintw(list_win,line,COL_RATE,"%2d", p->rate);
 	mvwprintw(list_win,line,COL_SOURCE,"%s", ether_sprintf(p->wlan_src));
@@ -289,7 +301,7 @@ update_list_win(void)
 	werase(list_win);
 	wattron(list_win,COLOR_PAIR(5));
 	box(list_win, 0 , 0);
-	mvwprintw(list_win,0,COL_SNR,"SN/MX");
+	mvwprintw(list_win,0,COL_SNR,"SN/MX/MI");
 	mvwprintw(list_win,0,COL_RATE,"RT");
 	mvwprintw(list_win,0,COL_SOURCE,"SOURCE");
 	mvwprintw(list_win,0,COL_BSSID,"(BSSID)");

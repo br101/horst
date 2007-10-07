@@ -344,7 +344,7 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 	}
 	if (p->snr > n->snr_max)
 		n->snr_max = p->snr;
-	if (p->snr < n->snr_min)
+	if ((n->snr_min == 0 && p->snr > 0) || p->snr < n->snr_min)
 		n->snr_min = p->snr;
 }
 
