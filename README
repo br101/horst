@@ -1,54 +1,52 @@
-HORST - Horsts Olsr Radio Scanning Tool
+HORST - Horsts OLSR Radio Scanning Tool
 ---------------------------------------
-Copyright (C) 2005 Bruno Randolf
-Released under the GPL
+Copyright (C) 2005-2007 Bruno Randolf
+Licensed under the GNU Public License (GPL) V2
 
-"horst" is a scanning and analysis tool for wireless OLSR nodes in ad-hoc mode.
+"horst" is a scanning and analysis tool for IEEE802.11 wireless ad-hoc (IBSS)
+networks and the OLSR mesh routing protocol. it can be used discover the best
+OLSR nodes in the neighbourhood, to optimize antenna positions and to discover
+problems in the mesh network.
 
-problem description: with the usual wireless tools like iwconfig and iwspy it is hard
-to measure the received signal strength (or SNR) for each of the different nodes which
-form an ad-hoc network. this information however is very important for setting up,
-debugging and optimizing wireless OLSR mesh networks.
+with the usual wireless tools like iwconfig and iwspy (and even kismet) it is
+hard to measure the received signal strength (SNR or RSSI) for each of the
+*different* nodes which form an ad-hoc network, since they all treat the whole
+IBSS as one. this information however is very important for setting up,
+debugging and optimizing wireless mesh networks.
 
-"horst" aims to fill this gap and lists the single nodes of an ad-hoc network
-seperately including the signal strength (SNR) of the last received packet from each node.
-this way you can see which nodes are part of a specific ad-hoc cell (BSSID), discover
-problems with ad-hoc cell merging (a problem of many wlan drivers), which of the
-nodes send OLSR packets, wether they use the link quality exension, how many neighbors
-each node sees and the SNR of the last received packet of each station.
+"horst" aims to fill this gap and lists each single node of an ad-hoc network
+seperately, showing the signal strength (SNR) of the last received packet. this
+way you can see which nodes are part of a specific ad-hoc cell (BSSID), discover
+problems with ad-hoc cell merging ("cell splitting" - a problem of many wlan
+drivers), which of the nodes send OLSR packets, wether they use the OLSR link
+quality exension, how many neighbors they see, etc.
 
-it uses the monitor mode including prism2 headers (for the signal strength information)
-of the wlan cards and listens to all packets which come in the wireless interface.
-these packets are scanned for OLSR traffic and summarized by the MAC address of the
-sending node. [actually what it does is quite similar to kismet, and in might be a good
-idea to include this functionality into kismet.]
+to do this, it uses the monitor mode including prism2 or radiotap headers (for
+the signal strength information) of the wlan cards and listens to all packets
+which come in the wireless interface. these packets are scanned for OLSR traffic
+and summarized by the MAC address of the sending node, and displayed in a simple
+text (ncurses) interface. [actually what it does is quite similar to kismet, and
+in might be a good idea to include this functionality into kismet.]
 
-it should work with any wlan card which can do monitor mode and which has prism2 headers
-in monitor mode. but it has been tested only with the following wlan chipsets/drivers:
- * prism2 with hostap
- * atheros with madwifi-ng
+it should work with any wlan card which can do monitor mode, with either
+"prism2" or "radiotap" headers.
 
-you have to put your card in monitor mode and set the channel manually before you start
-the tool:
+you have to put your card in monitor mode and set the channel manually before
+you start the tool (it does not rotate channels like kismet):
 
 1.) put card in monitor mode:
 	hostap:
 	# iwconfig wlan0 mode monitor
 
-	madwifi-ng:
+	madwifi:
 	# wlanconfig wlan0 create wlandev wifi0 wlanmode monitor
 
-2.) enable prism headers in monitor mode
-	hostap:
+2.) for hostap: enable prism headers in monitor mode
 	# iwpriv wlan0 monitor_type 1
-	or
-	# prism2_param wlan0 monitor_type 1
-
-	(madwifi-ng: prism headers are enabled by default)
 
 3.) tune to a channel
-	# ifconfig wlan0 up
 	# iwconfig wlan0 channel 10
+	# ifconfig wlan0 up
 
 4.) start tool
 	# ./horst
