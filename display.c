@@ -60,7 +60,7 @@ init_display(void)
 	init_pair(5, COLOR_WHITE, COLOR_BLACK);
 
 	move(0,COLS/2-20);
-	printw("HORST - Horsts OLSR Radio Scanning Tool " PACKAGE_VERSION " (build date: " PACKAGE_BUILDDATE ")");
+	printw("HORST - Horsts OLSR Radio Scanning Tool");
 	refresh();
 
 	list_win = newwin(LINES/2-1, COLS, 1, 0);
@@ -82,6 +82,7 @@ init_display(void)
 	mvwprintw(dump_win_box,0,27,"(BSSID)");
 	mvwprintw(dump_win_box,0,47,"TYPE");
 	mvwprintw(dump_win_box,0,54,"INFO");
+	mvwprintw(dump_win_box,LINES/2-1,2,"V" PACKAGE_VERSION " (built: " PACKAGE_BUILDDATE ")");	
 	wrefresh(dump_win_box);
 	dump_win = newwin(LINES/2-2, COLS-15-2, LINES/2+1, 1);
 	wattron(dump_win, COLOR_PAIR(1));
