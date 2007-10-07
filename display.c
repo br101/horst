@@ -17,13 +17,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include "display.h"
-#include "ieee80211_header.h"
-#include "olsr_header.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <curses.h>
+#include <sys/socket.h>
+#include <linux/if_arp.h>
+
+#include "display.h"
+#include "ieee80211_header.h"
+#include "olsr_header.h"
 
 #define COL_IP 1
 #define COL_SNR 17
@@ -39,12 +41,14 @@ WINDOW *dump_win_box;
 WINDOW *list_win;
 WINDOW *stat_win;
 
+static void update_dump_win(struct packet_info* pkt);
 static void update_stat_win(struct packet_info* pkt);
 static void update_list_win(void);
 
 static int do_sort=0;
 
 extern char* ifname;
+
 
 void
 init_display(void)
@@ -103,12 +107,20 @@ init_display(void)
 	wrefresh(dump_win);
 }
 
+
+void update_display(struct packet_info* pkt) {
+	update_dump_win(pkt);
+	update_stat_win(pkt);
+	update_list_win();
+}
+
+
 void 
 finish_display(int sig)
 {
-	printw("CLEAN");
 	endwin();
 }
+
 
 void
 handle_user_input()
@@ -146,13 +158,160 @@ handle_user_input()
 	}
 }
 
-void
-update_display(struct packet_info* pkt)
+
+static void
+update_stat_win(struct packet_info* pkt)
 {
-	if (pkt->olsr_type>0)
-	if (pkt->pkt_types & PKT_TYPE_OLSR)
+	if (pkt!=NULL)
+	{
+		int snr = pkt->snr;
+		int max_bar = LINES/2-2;
+		
+		snr=(snr/60.0)*max_bar; /* normalize for bar, assume max received SNR is 60 */
+		if (snr>max_bar) snr=max_bar; /* cap if still bigger */
+	
+		wattron(stat_win, COLOR_PAIR(2));
+		mvwvline(stat_win, 1, 2, ' ', max_bar-snr);
+		mvwvline(stat_win, max_bar-snr+1, 2, ACS_BLOCK, snr);
+		mvwvline(stat_win, 1, 3, ' ', max_bar-snr);
+		mvwvline(stat_win, max_bar-snr+1, 3, ACS_BLOCK, snr);
+
+		mvwprintw(stat_win, LINES/2-5,6,"RATE:%2d", pkt->rate);
+		mvwprintw(stat_win, LINES/2-4,6,"SIG:%03d", pkt->signal);
+		mvwprintw(stat_win, LINES/2-3,6,"NOI:%03d", pkt->noise);
+		mvwprintw(stat_win, LINES/2-2,6,"SNR:%3d", pkt->snr);
+	}
+
+	wattron(stat_win, COLOR_PAIR(5));
+	mvwprintw(stat_win,2,6,"q: QUIT");
+	if (paused)
+		mvwprintw(stat_win,3,6,"p: PAUSE");
+	else
+		mvwprintw(stat_win,3,6,"p: RUN  ");
+
+	if (olsr_only) {
+		mvwprintw(stat_win,4,6,"        ");
+	}
+	else {
+		if (no_ctrl)
+			mvwprintw(stat_win,4,6,"c: -CTRL");
+		else
+			mvwprintw(stat_win,4,6,"c: +CTRL");
+	}
+
+	if (olsr_only)
+		mvwprintw(stat_win,5,6,"o: OLSR");
+	else
+		mvwprintw(stat_win,5,6,"o: ALL ");
+
+
+	if (do_sort)
+		mvwprintw(stat_win,6,6,"s: SORT ");
+	else
+		mvwprintw(stat_win,6,6,"s: !SORT");
+
+	wrefresh(stat_win);
+}
+
+
+static int
+compare_nodes_snr(const void *p1, const void *p2)
+{
+	struct node_info* n1 = (struct node_info*)p1;
+	struct node_info* n2 = (struct node_info*)p2;
+
+	if (n1->last_pkt.snr > n2->last_pkt.snr)
+		return -1;
+	else if (n1->last_pkt.snr == n2->last_pkt.snr)
+		return 0;
+	else
+		return 1;
+}
+
+
+static void
+print_list_line(int line, int i, time_t now)
+{
+	struct packet_info* p = &nodes[i].last_pkt;
+
+	if (nodes[i].pkt_types & PKT_TYPE_OLSR)
+		wattron(list_win,A_UNDERLINE);
+	if (nodes[i].last_seen > now - NODE_TIMEOUT/2)
+		wattron(list_win,A_BOLD);
+	else
+		wattron(list_win,A_NORMAL);
+
+	// SNR values being too big are marked as invalid.
+	if (p->snr > 999)
+		mvwprintw(list_win, line, COL_SNR, "INV");
+	else
+		mvwprintw(list_win,line,COL_SNR,"%3d", p->snr);
+
+	mvwprintw(list_win,line,COL_RATE,"%2d", p->rate);
+	mvwprintw(list_win,line,COL_SOURCE,"%s", ether_sprintf(p->wlan_src));
+	mvwprintw(list_win,line,COL_BSSID,"(%s)", ether_sprintf(nodes[i].wlan_bssid));
+	if (nodes[i].pkt_types & PKT_TYPE_IP)
+		mvwprintw(list_win,line,COL_IP,"%s", ip_sprintf(nodes[i].ip_src));
+	if (nodes[i].pkt_types & PKT_TYPE_OLSR_LQ)
+		mvwprintw(list_win,line,COL_LQ,"LQ");
+	if (nodes[i].pkt_types & PKT_TYPE_OLSR_GW)
+		mvwprintw(list_win,line,COL_LQ+3,"GW");
+	if (nodes[i].pkt_types & PKT_TYPE_OLSR)
+		mvwprintw(list_win,line,COL_LQ+6,"N:%d", nodes[i].olsr_neigh);
+	mvwprintw(list_win,line,COL_OLSR,"%d/%d", nodes[i].olsr_count, nodes[i].pkt_count);
+	mvwprintw(list_win,line,COL_TSF,"%08x", nodes[i].tsfh);
+
+	wattroff(list_win,A_BOLD);
+	wattroff(list_win,A_UNDERLINE);
+}
+
+
+static void
+update_list_win(void)
+{
+	int i;
+	int line=0;
+	time_t now;
+	now = time(NULL);
+
+	// repaint everything every time
+	werase(list_win);
+	wattron(list_win,COLOR_PAIR(5));
+	box(list_win, 0 , 0);
+	mvwprintw(list_win,0,COL_SNR,"SNR");
+	mvwprintw(list_win,0,COL_RATE,"RT");
+	mvwprintw(list_win,0,COL_SOURCE,"SOURCE");
+	mvwprintw(list_win,0,COL_BSSID,"(BSSID)");
+	mvwprintw(list_win,0,COL_IP,"IP");
+	mvwprintw(list_win,0,COL_LQ,"LQ GW NEIGH");
+	mvwprintw(list_win,0,COL_OLSR,"OLSR/COUNT");
+	mvwprintw(list_win,0,COL_TSF,"TSF(High)");
+	wattron(list_win,COLOR_PAIR(1));
+
+	if (do_sort) {
+		/* sort by SNR */
+		qsort(nodes, MAX_NODES, sizeof(struct node_info), compare_nodes_snr);
+	}
+
+	for (i=0; i<MAX_NODES; i++) {
+		if (nodes[i].status == 1
+		    && nodes[i].last_seen > now - NODE_TIMEOUT) {
+			line++;
+			/* Prevent overdraw of last line */
+			if (line < LINES/2-2)
+				print_list_line(line,i,now);
+		}
+	}
+	wrefresh(list_win);
+}
+
+
+void
+update_dump_win(struct packet_info* pkt)
+{
+	if (pkt->olsr_type>0 && pkt->pkt_types & PKT_TYPE_OLSR)
 		wattron(dump_win,A_BOLD);
-	/* print */
+
 	wprintw(dump_win,"%03d/%03d ", pkt->signal, pkt->noise);
 	wprintw(dump_win,"%2d ", pkt->rate);
 	wprintw(dump_win,"%s ", ether_sprintf(pkt->wlan_src));
@@ -283,163 +442,12 @@ update_display(struct packet_info* pkt)
 	else {
 		wprintw(dump_win,"UNK(%x,%x)", pkt->wlan_stype, pkt->wlan_type);
 	}
-	
+
 	wprintw(dump_win,"\n");
 	wattroff(dump_win,A_BOLD);
 	wrefresh(dump_win);
-
-	update_stat_win(pkt);
-
-	update_list_win();
 }
 
-static void
-update_stat_win(struct packet_info* pkt)
-{
-	if (pkt!=NULL)
-	{
-		int snr = pkt->snr;
-		int max_bar = LINES/2-2;
-		
-		snr=(snr/60.0)*max_bar; /* normalize for bar, assume max received SNR is 60 */
-		if (snr>max_bar) snr=max_bar; /* cap if still bigger */
-	
-		wattron(stat_win, COLOR_PAIR(2));
-		mvwvline(stat_win, 1, 2, ' ', max_bar-snr);
-		mvwvline(stat_win, max_bar-snr+1, 2, ACS_BLOCK, snr);
-		mvwvline(stat_win, 1, 3, ' ', max_bar-snr);
-		mvwvline(stat_win, max_bar-snr+1, 3, ACS_BLOCK, snr);
-
-		mvwprintw(stat_win, LINES/2-5,6,"RATE:%2d", pkt->rate);
-		mvwprintw(stat_win, LINES/2-4,6,"SIG:%03d", pkt->signal);
-		mvwprintw(stat_win, LINES/2-3,6,"NOI:%03d", pkt->noise);
-		mvwprintw(stat_win, LINES/2-2,6,"SNR:%3d", pkt->snr);
-	}
-
-	wattron(stat_win, COLOR_PAIR(5));
-	mvwprintw(stat_win,2,6,"q: QUIT");
-	if (paused)
-		mvwprintw(stat_win,3,6,"p: PAUSE");
-	else
-		mvwprintw(stat_win,3,6,"p: RUN  ");
-
-	if (olsr_only) {
-		mvwprintw(stat_win,4,6,"        ");
-	}
-	else {
-		if (no_ctrl)
-			mvwprintw(stat_win,4,6,"c: -CTRL");
-		else
-			mvwprintw(stat_win,4,6,"c: +CTRL");
-	}
-
-	if (olsr_only)
-		mvwprintw(stat_win,5,6,"o: OLSR");
-	else
-		mvwprintw(stat_win,5,6,"o: ALL ");
-
-
-	if (do_sort)
-		mvwprintw(stat_win,6,6,"s: SORT ");
-	else
-		mvwprintw(stat_win,6,6,"s: !SORT");
-
-	wrefresh(stat_win);
-}
-
-
-static int
-compare_nodes_snr(const void *p1, const void *p2)
-{
-	struct node_info* n1 = (struct node_info*)p1;
-	struct node_info* n2 = (struct node_info*)p2;
-
-	if (n1->last_pkt.snr > n2->last_pkt.snr)
-		return -1;
-	else if (n1->last_pkt.snr == n2->last_pkt.snr)
-		return 0;
-	else
-		return 1;
-}
-
-
-static void
-print_list_line(int line, int i, struct packet_info* p, time_t now)
-{
-	/* Prevents overdraw of last line */
-	if (line >= LINES/2-2)
-		return;
-
-	if (nodes[i].pkt_types & PKT_TYPE_OLSR)
-		wattron(list_win,A_UNDERLINE);
-	if (nodes[i].last_seen > now - NODE_TIMEOUT/2)
-		wattron(list_win,A_BOLD);
-	else
-		wattron(list_win,A_NORMAL);
-
-	// SNR values being too big are marked as invalid.
-	if (p->snr > 999)
-		mvwprintw(list_win, line, COL_SNR, "INV");
-	else
-		mvwprintw(list_win,line,COL_SNR,"%3d", p->snr);
-
-	mvwprintw(list_win,line,COL_RATE,"%2d", p->rate);
-	mvwprintw(list_win,line,COL_SOURCE,"%s", ether_sprintf(p->wlan_src));
-	mvwprintw(list_win,line,COL_BSSID,"(%s)", ether_sprintf(nodes[i].wlan_bssid));
-	if (nodes[i].pkt_types & PKT_TYPE_IP)
-		mvwprintw(list_win,line,COL_IP,"%s", ip_sprintf(nodes[i].ip_src));
-	if (nodes[i].pkt_types & PKT_TYPE_OLSR_LQ)
-		mvwprintw(list_win,line,COL_LQ,"LQ");
-	if (nodes[i].pkt_types & PKT_TYPE_OLSR_GW)
-		mvwprintw(list_win,line,COL_LQ+3,"GW");
-	if (nodes[i].pkt_types & PKT_TYPE_OLSR)
-		mvwprintw(list_win,line,COL_LQ+6,"N:%d", nodes[i].olsr_neigh);
-	mvwprintw(list_win,line,COL_OLSR,"%d/%d", nodes[i].olsr_count, nodes[i].pkt_count);
-	mvwprintw(list_win,line,COL_TSF,"%08x", nodes[i].tsfh);
-
-	wattroff(list_win,A_BOLD);
-	wattroff(list_win,A_UNDERLINE);
-}
-
-
-static void
-update_list_win(void)
-{
-	int i;
-	int line=0;
-	struct packet_info* p;
-	time_t now;
-	now = time(NULL);
-
-	werase(list_win);
-	wattron(list_win,COLOR_PAIR(5));
-	box(list_win, 0 , 0);
-	mvwprintw(list_win,0,COL_SNR,"SNR");
-	mvwprintw(list_win,0,COL_RATE,"RT");
-	mvwprintw(list_win,0,COL_SOURCE,"SOURCE");
-	mvwprintw(list_win,0,COL_BSSID,"(BSSID)");
-	mvwprintw(list_win,0,COL_IP,"IP");
-	mvwprintw(list_win,0,COL_LQ,"LQ GW NEIGH");
-	mvwprintw(list_win,0,COL_OLSR,"OLSR/COUNT");
-	mvwprintw(list_win,0,COL_TSF,"TSF(High)");
-
-	wattron(list_win,COLOR_PAIR(1));
-
-	if (do_sort) {
-		/* sort by SNR */
-		qsort(nodes, MAX_NODES, sizeof(struct node_info), compare_nodes_snr);
-	}
-
-	for (i=0; i<MAX_NODES; i++) {
-		if (nodes[i].status == 1
-		    && nodes[i].last_seen > now - NODE_TIMEOUT) {
-			p = &nodes[i].last_pkt;
-			line++;
-			print_list_line(line,i,p,now);
-		}
-	}
-	wrefresh(list_win);
-}
 
 #if 0 /* not used yet */
 static void
@@ -467,6 +475,7 @@ show_channel_win()
 }
 #endif
 
+
 void
 dump_packet(const unsigned char* buf, int len)
 {
@@ -481,6 +490,7 @@ dump_packet(const unsigned char* buf, int len)
 	DEBUG("\n");
 }
 
+
 const char*
 ether_sprintf(const unsigned char *mac)
 {
@@ -489,6 +499,7 @@ ether_sprintf(const unsigned char *mac)
 		mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 	return etherbuf;
 }
+
 
 const char*
 ip_sprintf(const unsigned int ip)
