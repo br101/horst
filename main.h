@@ -77,8 +77,8 @@ struct node_info {
 	unsigned char wlan_bssid[6];
 	unsigned long tsfl;
 	unsigned long tsfh;
-	int snr_max;
 	int snr_min;
+	int snr_max;
 };
 
 extern struct node_info nodes[MAX_NODES];

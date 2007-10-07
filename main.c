@@ -44,7 +44,7 @@ static void device_promisc(int fd, const char *if_name, int on);
 static int device_get_arptype(int fd, const char *device);
 static int init_packet_socket(char* devname);
 static void get_options(int argv, char** argc);
-static void node_update(struct packet_info* pkt);
+static int node_update(struct packet_info* pkt);
 
 struct packet_info current_packet;
 
@@ -76,6 +76,7 @@ main(int argc, char** argv)
 	struct sockaddr from;
 	socklen_t fromlen;
 	int len;
+	int n;
 
 	get_options(argc, argv);
 
@@ -113,7 +114,7 @@ main(int argc, char** argv)
 			    filtermac, sizeof(filtermac)))
 				continue;
 
-			node_update(&current_packet);
+			n = node_update(&current_packet);
 
 			if (rport) {
 				net_send_packet();
@@ -123,11 +124,11 @@ main(int argc, char** argv)
 #if !DO_DEBUG
 			if (olsr_only) {  //XXX simplify logic???
 				if (current_packet.pkt_types & PKT_TYPE_OLSR) {
-					update_display(&current_packet);
+					update_display(&current_packet, n);
 				}
 			}
 			else if (!no_ctrl || (WLAN_FC_TYPE_CTRL != current_packet.wlan_type)) {
-				update_display(&current_packet);
+				update_display(&current_packet, n);
 			}
 #endif
 		}
@@ -341,28 +342,30 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		n->tsfl = ntohl(*(unsigned long*)(&p->wlan_tsf[0]));
 		n->tsfh = ntohl(*(unsigned long*)(&p->wlan_tsf[4]));
 	}
+	if (p->snr > n->snr_max)
+		n->snr_max = p->snr;
+	if (p->snr < n->snr_min)
+		n->snr_min = p->snr;
 }
 
-static void 
+static int
 node_update(struct packet_info* pkt)
 {
 	int i;
 	
-	if (!(pkt->pkt_types & (PKT_TYPE_BEACON | PKT_TYPE_PROBE_REQ | PKT_TYPE_DATA)))
-		return;
-
 	for (i=0;i<MAX_NODES;i++) {
 		if (nodes[i].status == 1) {
 			/* check existing node */
 			if (memcmp(pkt->wlan_src, nodes[i].last_pkt.wlan_src, 6) == 0) {
 				//wprintw(list_win,"found");
 				copy_nodeinfo(&nodes[i], pkt);
-				return;
+				return i;
 			}
 		} else {
 			/* past all used nodes: create new node */
 			copy_nodeinfo(&nodes[i], pkt);
-			return;
+			return i;
 		}
 	}
+	return -1;
 }

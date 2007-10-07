@@ -27,22 +27,13 @@
 #include "ieee80211_header.h"
 #include "olsr_header.h"
 
-#define COL_IP 1
-#define COL_SNR 17
-#define COL_RATE 21
-#define COL_SOURCE 24
-#define COL_BSSID 42
-#define COL_LQ 62
-#define COL_OLSR 74
-#define COL_TSF 86
-
 WINDOW *dump_win;
 WINDOW *dump_win_box;
 WINDOW *list_win;
 WINDOW *stat_win;
 
 static void update_dump_win(struct packet_info* pkt);
-static void update_stat_win(struct packet_info* pkt);
+static void update_stat_win(struct packet_info* pkt, int node_number);
 static void update_list_win(void);
 
 static int do_sort=0;
@@ -108,9 +99,9 @@ init_display(void)
 }
 
 
-void update_display(struct packet_info* pkt) {
+void update_display(struct packet_info* pkt, int node_number) {
 	update_dump_win(pkt);
-	update_stat_win(pkt);
+	update_stat_win(pkt, node_number);
 	update_list_win();
 }
 
@@ -131,15 +122,15 @@ handle_user_input()
 	switch(key) {
 		case ' ': case 'p': case 'P':
 			paused = paused ? 0 : 1;
-			update_stat_win(NULL);
+			update_stat_win(NULL,-1);
 			break;
 		case 'c': case 'C':
 			no_ctrl = no_ctrl ? 0 : 1;
-			update_stat_win(NULL);
+			update_stat_win(NULL,-1);
 			break;
 		case 'o': case 'O':
 			olsr_only = olsr_only ? 0 : 1;
-			update_stat_win(NULL);
+			update_stat_win(NULL,-1);
 			break;
 		case 'q': case 'Q':
 			finish_all(0);
@@ -160,7 +151,7 @@ handle_user_input()
 
 
 static void
-update_stat_win(struct packet_info* pkt)
+update_stat_win(struct packet_info* pkt, int node_number)
 {
 	if (pkt!=NULL)
 	{
@@ -172,9 +163,19 @@ update_stat_win(struct packet_info* pkt)
 	
 		wattron(stat_win, COLOR_PAIR(2));
 		mvwvline(stat_win, 1, 2, ' ', max_bar-snr);
-		mvwvline(stat_win, max_bar-snr+1, 2, ACS_BLOCK, snr);
 		mvwvline(stat_win, 1, 3, ' ', max_bar-snr);
+		if (node_number>=0 && nodes[node_number].snr_max>0) {
+			int max=(nodes[node_number].snr_max/60.0)*max_bar;
+
+			mvwprintw(stat_win, LINES/2-8,6,"MAX:%2d", nodes[node_number].snr_max);
+			mvwprintw(stat_win, LINES/2-7,6,"MIN:%2d", nodes[node_number].snr_min);
+			if (max>1)
+				mvwprintw(stat_win, LINES/2-max-1, 2, "--");
+		}
+		wattron(stat_win, A_BOLD);
+		mvwvline(stat_win, max_bar-snr+1, 2, ACS_BLOCK, snr);
 		mvwvline(stat_win, max_bar-snr+1, 3, ACS_BLOCK, snr);
+		wattroff(stat_win, A_BOLD);
 
 		mvwprintw(stat_win, LINES/2-5,6,"RATE:%2d", pkt->rate);
 		mvwprintw(stat_win, LINES/2-4,6,"SIG:%03d", pkt->signal);
@@ -229,6 +230,16 @@ compare_nodes_snr(const void *p1, const void *p2)
 }
 
 
+#define COL_IP 1
+#define COL_SNR 17
+#define COL_RATE 23
+#define COL_SOURCE 26
+#define COL_BSSID 44
+#define COL_LQ 64
+#define COL_OLSR 76
+#define COL_TSF 88
+
+
 static void
 print_list_line(int line, int i, time_t now)
 {
@@ -245,7 +256,7 @@ print_list_line(int line, int i, time_t now)
 	if (p->snr > 999)
 		mvwprintw(list_win, line, COL_SNR, "INV");
 	else
-		mvwprintw(list_win,line,COL_SNR,"%3d", p->snr);
+		mvwprintw(list_win,line,COL_SNR,"%2d/%2d", p->snr, nodes[i].snr_max);
 
 	mvwprintw(list_win,line,COL_RATE,"%2d", p->rate);
 	mvwprintw(list_win,line,COL_SOURCE,"%s", ether_sprintf(p->wlan_src));
@@ -278,7 +289,7 @@ update_list_win(void)
 	werase(list_win);
 	wattron(list_win,COLOR_PAIR(5));
 	box(list_win, 0 , 0);
-	mvwprintw(list_win,0,COL_SNR,"SNR");
+	mvwprintw(list_win,0,COL_SNR,"SN/MX");
 	mvwprintw(list_win,0,COL_RATE,"RT");
 	mvwprintw(list_win,0,COL_SOURCE,"SOURCE");
 	mvwprintw(list_win,0,COL_BSSID,"(BSSID)");
