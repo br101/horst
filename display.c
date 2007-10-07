@@ -27,11 +27,12 @@
 
 #define COL_IP 1
 #define COL_SNR 17
-#define COL_SOURCE 21
-#define COL_BSSID 39
-#define COL_LQ 59
-#define COL_OLSR 71
-#define COL_TSF 82
+#define COL_RATE 21
+#define COL_SOURCE 24
+#define COL_BSSID 42
+#define COL_LQ 62
+#define COL_OLSR 74
+#define COL_TSF 86
 
 WINDOW *dump_win;
 WINDOW *dump_win_box;
@@ -80,10 +81,11 @@ init_display(void)
 	dump_win_box = newwin(LINES/2, COLS-15, LINES/2, 0);
 	box(dump_win_box, 0 , 0);
 	mvwprintw(dump_win_box,0,1,"Sig/Noi");
-	mvwprintw(dump_win_box,0,9,"SOURCE");
-	mvwprintw(dump_win_box,0,27,"(BSSID)");
-	mvwprintw(dump_win_box,0,47,"TYPE");
-	mvwprintw(dump_win_box,0,54,"INFO");
+	mvwprintw(dump_win_box,0,9,"RT");
+	mvwprintw(dump_win_box,0,12,"SOURCE");
+	mvwprintw(dump_win_box,0,30,"(BSSID)");
+	mvwprintw(dump_win_box,0,50,"TYPE");
+	mvwprintw(dump_win_box,0,57,"INFO");
 	mvwprintw(dump_win_box,LINES/2-1,2,"V" PACKAGE_VERSION " (built: " PACKAGE_BUILDDATE ")");
 
 	if (arphrd == 803)
@@ -151,10 +153,11 @@ update_display(struct packet_info* pkt)
 	if (pkt->pkt_types & PKT_TYPE_OLSR)
 		wattron(dump_win,A_BOLD);
 	/* print */
-	wprintw(dump_win,"%03d/%03d %s ",
-		pkt->signal, pkt->noise, 
-		ether_sprintf(pkt->wlan_src));
+	wprintw(dump_win,"%03d/%03d ", pkt->signal, pkt->noise);
+	wprintw(dump_win,"%2d ", pkt->rate);
+	wprintw(dump_win,"%s ", ether_sprintf(pkt->wlan_src));
 	wprintw(dump_win,"(%s) ", ether_sprintf(pkt->wlan_bssid));
+
 	if (pkt->pkt_types & PKT_TYPE_BEACON) {
 		wprintw(dump_win,"BEACON '%s' %08x:%08x", pkt->wlan_essid,
 			ntohl(*(unsigned long*)(&pkt->wlan_tsf[4])),
@@ -307,6 +310,7 @@ update_stat_win(struct packet_info* pkt)
 		mvwvline(stat_win, 1, 3, ' ', max_bar-snr);
 		mvwvline(stat_win, max_bar-snr+1, 3, ACS_BLOCK, snr);
 
+		mvwprintw(stat_win, LINES/2-5,6,"RATE:%2d", pkt->rate);
 		mvwprintw(stat_win, LINES/2-4,6,"SIG:%03d", pkt->signal);
 		mvwprintw(stat_win, LINES/2-3,6,"NOI:%03d", pkt->noise);
 		mvwprintw(stat_win, LINES/2-2,6,"SNR:%3d", pkt->snr);
@@ -344,6 +348,21 @@ update_stat_win(struct packet_info* pkt)
 }
 
 
+static int
+compare_nodes_snr(const void *p1, const void *p2)
+{
+	struct node_info* n1 = (struct node_info*)p1;
+	struct node_info* n2 = (struct node_info*)p2;
+
+	if (n1->last_pkt.snr > n2->last_pkt.snr)
+		return -1;
+	else if (n1->last_pkt.snr == n2->last_pkt.snr)
+		return 0;
+	else
+		return 1;
+}
+
+
 static void
 print_list_line(int line, int i, struct packet_info* p, time_t now)
 {
@@ -364,6 +383,7 @@ print_list_line(int line, int i, struct packet_info* p, time_t now)
 	else
 		mvwprintw(list_win,line,COL_SNR,"%3d", p->snr);
 
+	mvwprintw(list_win,line,COL_RATE,"%2d", p->rate);
 	mvwprintw(list_win,line,COL_SOURCE,"%s", ether_sprintf(p->wlan_src));
 	mvwprintw(list_win,line,COL_BSSID,"(%s)", ether_sprintf(nodes[i].wlan_bssid));
 	if (nodes[i].pkt_types & PKT_TYPE_IP)
@@ -381,20 +401,6 @@ print_list_line(int line, int i, struct packet_info* p, time_t now)
 	wattroff(list_win,A_UNDERLINE);
 }
 
-static int
-compare_nodes_snr(const void *p1, const void *p2)
-{
-	struct node_info* n1 = (struct node_info*)p1;
-	struct node_info* n2 = (struct node_info*)p2;
-
-	if (n1->last_pkt.snr > n2->last_pkt.snr)
-		return -1;
-	else if (n1->last_pkt.snr == n2->last_pkt.snr)
-		return 0;
-	else
-		return 1;
-}
-
 
 static void
 update_list_win(void)
@@ -409,6 +415,7 @@ update_list_win(void)
 	wattron(list_win,COLOR_PAIR(5));
 	box(list_win, 0 , 0);
 	mvwprintw(list_win,0,COL_SNR,"SNR");
+	mvwprintw(list_win,0,COL_RATE,"RT");
 	mvwprintw(list_win,0,COL_SOURCE,"SOURCE");
 	mvwprintw(list_win,0,COL_BSSID,"(BSSID)");
 	mvwprintw(list_win,0,COL_IP,"IP");

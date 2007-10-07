@@ -119,6 +119,8 @@ parse_prism_header(unsigned char* buf, int len)
 	if (current_packet.snr<0)
 		current_packet.snr = -current_packet.snr;
 
+	current_packet.rate = ph->rate.data/2;
+
 	DEBUG("devname: %s\n", ph->devname);
 	DEBUG("signal: %d -> %d\n", ph->signal.data, current_packet.signal);
 	DEBUG("noise: %d -> %d\n", ph->noise.data, current_packet.noise);
@@ -141,10 +143,12 @@ parse_radiotap_header(unsigned char* buf, int len)
 	current_packet.signal = rh->wr_dbm_antsignal;
 	current_packet.noise = rh->wr_dbm_antnoise;
 	current_packet.snr = rh->wr_antsignal;
+	current_packet.rate = rh->wr_rate/2;
 
 	DEBUG("signal: %d -> %d\n", rh->wr_dbm_antsignal, current_packet.signal);
 	DEBUG("noise: %d -> %d\n", rh->wr_dbm_antnoise, current_packet.noise);
 	DEBUG("rssi: %d\n", rh->wr_antsignal);
+	DEBUG("rate: %d\n", rh->wr_rate);
 	DEBUG("*** SNR %d\n", current_packet.snr);
 
 	return buf + rh->wr_ihdr.it_len;

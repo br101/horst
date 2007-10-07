@@ -37,6 +37,7 @@ struct packet_info {
 	int signal;
 	int noise;
 	int snr;
+	int rate;
 	int wlan_type;
 	int wlan_stype;
 	unsigned char wlan_src[6];
@@ -76,6 +77,8 @@ struct node_info {
 	unsigned char wlan_bssid[6];
 	unsigned long tsfl;
 	unsigned long tsfh;
+	int snr_max;
+	int snr_min;
 };
 
 extern struct node_info nodes[MAX_NODES];
