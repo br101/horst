@@ -299,7 +299,7 @@ update_stat_win(struct packet_info* pkt)
 
 		mvwprintw(stat_win, LINES/2-4,6,"SIG:%03d", pkt->prism_signal);
 		mvwprintw(stat_win, LINES/2-3,6,"NOI:%03d", pkt->prism_noise);
-		mvwprintw(stat_win, LINES/2-2,6,"SNR:%03d", pkt->snr);
+		mvwprintw(stat_win, LINES/2-2,6,"SNR:%3d", pkt->snr);
 	}
 
 	wattron(stat_win, COLOR_PAIR(5));
