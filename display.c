@@ -43,6 +43,8 @@ static void update_list_win(void);
 
 static int do_sort=0;
 
+extern char* ifname;
+
 void
 init_display(void)
 {
@@ -71,6 +73,7 @@ init_display(void)
 	stat_win = newwin(LINES/2, 15, LINES/2, COLS-15);
 	box(stat_win, 0 , 0);
 	mvwprintw(stat_win,0,2," Status ");
+	mvwprintw(stat_win,LINES/2-1,2,ifname);
 	wattron(stat_win, COLOR_PAIR(2));
 	scrollok(stat_win,FALSE);
 	wrefresh(stat_win);
@@ -82,7 +85,15 @@ init_display(void)
 	mvwprintw(dump_win_box,0,27,"(BSSID)");
 	mvwprintw(dump_win_box,0,47,"TYPE");
 	mvwprintw(dump_win_box,0,54,"INFO");
-	mvwprintw(dump_win_box,LINES/2-1,2,"V" PACKAGE_VERSION " (built: " PACKAGE_BUILDDATE ")");	
+	mvwprintw(dump_win_box,LINES/2-1,2,"V" PACKAGE_VERSION " (built: " PACKAGE_BUILDDATE ")");
+
+	if (arphrd==803)
+		mvwprintw(dump_win_box,LINES/2-1,COLS-25,"RADIOTAP");
+	else if (arphrd == 802)
+		mvwprintw(dump_win_box,LINES/2-1,COLS-25,"PRISM2");
+	else
+		mvwprintw(dump_win_box,LINES/2-1,COLS-25,"UNSUPP");
+
 	wrefresh(dump_win_box);
 	dump_win = newwin(LINES/2-2, COLS-15-2, LINES/2+1, 1);
 	wattron(dump_win, COLOR_PAIR(1));
