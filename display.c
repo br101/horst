@@ -66,7 +66,6 @@ init_display(void)
 	refresh();
 
 	list_win = newwin(LINES/2-1, COLS, 1, 0);
-	
 	scrollok(list_win,FALSE);
 	wrefresh(list_win);
 
@@ -346,20 +345,24 @@ update_stat_win(struct packet_info* pkt)
 
 
 static void
-print_list_line(int line, int i, struct packet_info* p)
+print_list_line(int line, int i, struct packet_info* p, time_t now)
 {
 	/* Prevents overdraw of last line */
 	if (line >= LINES/2-2)
 		return;
 
 	if (nodes[i].pkt_types & PKT_TYPE_OLSR)
+		wattron(list_win,A_UNDERLINE);
+	if (nodes[i].last_seen > now - NODE_TIMEOUT/2)
 		wattron(list_win,A_BOLD);
+	else
+		wattron(list_win,A_NORMAL);
 
-        // SNR values being too big are marked as invalid.
-        if (p->snr > 999)
-          mvwprintw(list_win, line, COL_SNR, "INV");
-        else
-	  mvwprintw(list_win,line,COL_SNR,"%3d", p->snr);
+	// SNR values being too big are marked as invalid.
+	if (p->snr > 999)
+		mvwprintw(list_win, line, COL_SNR, "INV");
+	else
+		mvwprintw(list_win,line,COL_SNR,"%3d", p->snr);
 
 	mvwprintw(list_win,line,COL_SOURCE,"%s", ether_sprintf(p->wlan_src));
 	mvwprintw(list_win,line,COL_BSSID,"(%s)", ether_sprintf(nodes[i].wlan_bssid));
@@ -373,7 +376,9 @@ print_list_line(int line, int i, struct packet_info* p)
 		mvwprintw(list_win,line,COL_LQ+6,"N:%d", nodes[i].olsr_neigh);
 	mvwprintw(list_win,line,COL_OLSR,"%d/%d", nodes[i].olsr_count, nodes[i].pkt_count);
 	mvwprintw(list_win,line,COL_TSF,"%08x", nodes[i].tsfh);
+
 	wattroff(list_win,A_BOLD);
+	wattroff(list_win,A_UNDERLINE);
 }
 
 static int
@@ -423,7 +428,7 @@ update_list_win(void)
 		    && nodes[i].last_seen > now - NODE_TIMEOUT) {
 			p = &nodes[i].last_pkt;
 			line++;
-			print_list_line(line,i,p);
+			print_list_line(line,i,p,now);
 		}
 	}
 	wrefresh(list_win);
