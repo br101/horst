@@ -84,7 +84,7 @@ net_send_packet()
 				/* ip sig noise snr source bssid lq gw neigh olsrcount count tsf */
 				llen=snprintf(line,sizeof(line)-1,"%s %d %d %d %s %s %d %d %d %d %d %08lx\r\n",
 					ip_sprintf(nodes[i].ip_src),
-					nodes[i].last_pkt.prism_signal,nodes[i].last_pkt.prism_noise,nodes[i].last_pkt.snr,
+					nodes[i].last_pkt.signal,nodes[i].last_pkt.noise,nodes[i].last_pkt.snr,
 					src_eth,
 					ether_sprintf(nodes[i].wlan_bssid),
 					nodes[i].pkt_types & PKT_TYPE_OLSR_LQ,

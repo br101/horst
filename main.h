@@ -34,8 +34,8 @@
 
 struct packet_info {
 	int pkt_types;
-	int prism_signal;
-	int prism_noise;
+	int signal;
+	int noise;
 	int snr;
 	int wlan_type;
 	int wlan_stype;

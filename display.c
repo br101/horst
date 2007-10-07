@@ -152,7 +152,7 @@ update_display(struct packet_info* pkt)
 		wattron(dump_win,A_BOLD);
 	/* print */
 	wprintw(dump_win,"%03d/%03d %s ",
-		pkt->prism_signal, pkt->prism_noise, 
+		pkt->signal, pkt->noise, 
 		ether_sprintf(pkt->wlan_src));
 	wprintw(dump_win,"(%s) ", ether_sprintf(pkt->wlan_bssid));
 	if (pkt->pkt_types & PKT_TYPE_BEACON) {
@@ -307,8 +307,8 @@ update_stat_win(struct packet_info* pkt)
 		mvwvline(stat_win, 1, 3, ' ', max_bar-snr);
 		mvwvline(stat_win, max_bar-snr+1, 3, ACS_BLOCK, snr);
 
-		mvwprintw(stat_win, LINES/2-4,6,"SIG:%03d", pkt->prism_signal);
-		mvwprintw(stat_win, LINES/2-3,6,"NOI:%03d", pkt->prism_noise);
+		mvwprintw(stat_win, LINES/2-4,6,"SIG:%03d", pkt->signal);
+		mvwprintw(stat_win, LINES/2-3,6,"NOI:%03d", pkt->noise);
 		mvwprintw(stat_win, LINES/2-2,6,"SNR:%3d", pkt->snr);
 	}
 

@@ -92,26 +92,26 @@ parse_prism_header(unsigned char* buf, int len)
 	*/
 	if (((int)ph->noise.data)<0) {
 		/* new madwifi */
-		current_packet.prism_signal = ph->signal.data;
-		current_packet.prism_noise = ph->noise.data;
+		current_packet.signal = ph->signal.data;
+		current_packet.noise = ph->noise.data;
 		current_packet.snr = ph->rssi.data;
 		/* old madwifi:
-		current_packet.prism_noise = 95; // noise is constantly -95
+		current_packet.noise = 95; // noise is constantly -95
 		// signal is rssi (received signal strength) relative to -95dB noise
-		current_packet.prism_signal = 95 - ph->signal.data;
+		current_packet.signal = 95 - ph->signal.data;
 		current_packet.snr = ph->signal.data;
 		*/
 	}
 	else if (((int)ph->rssi.data)<0) {
 		/* broadcom hack */
-		current_packet.prism_signal = -95 - ph->rssi.data;
-		current_packet.prism_noise = -95;
+		current_packet.signal = -95 - ph->rssi.data;
+		current_packet.noise = -95;
 		current_packet.snr = -ph->rssi.data;
 	}
 	else {
 		/* assume hostap */
-		current_packet.prism_signal = ph->signal.data;
-		current_packet.prism_noise = ph->noise.data;
+		current_packet.signal = ph->signal.data;
+		current_packet.noise = ph->noise.data;
 		current_packet.snr = ph->signal.data - ph->noise.data; //XXX rssi?
 	}
 
@@ -120,8 +120,8 @@ parse_prism_header(unsigned char* buf, int len)
 		current_packet.snr = -current_packet.snr;
 
 	DEBUG("devname: %s\n", ph->devname);
-	DEBUG("signal: %d -> %d\n", ph->signal.data, current_packet.prism_signal);
-	DEBUG("noise: %d -> %d\n", ph->noise.data, current_packet.prism_noise);
+	DEBUG("signal: %d -> %d\n", ph->signal.data, current_packet.signal);
+	DEBUG("noise: %d -> %d\n", ph->noise.data, current_packet.noise);
 	DEBUG("rate: %d\n", ph->rate.data);
 	DEBUG("rssi: %d\n", ph->rssi.data);
 	DEBUG("*** SNR %d\n", current_packet.snr);
@@ -138,12 +138,12 @@ parse_radiotap_header(unsigned char* buf, int len)
 
 	DEBUG("RADIOTAP HEADER\n");
 
-	current_packet.prism_signal = rh->wr_dbm_antsignal;
-	current_packet.prism_noise = rh->wr_dbm_antnoise;
+	current_packet.signal = rh->wr_dbm_antsignal;
+	current_packet.noise = rh->wr_dbm_antnoise;
 	current_packet.snr = rh->wr_antsignal;
 
-	DEBUG("signal: %d -> %d\n", rh->wr_dbm_antsignal, current_packet.prism_signal);
-	DEBUG("noise: %d -> %d\n", rh->wr_dbm_antnoise, current_packet.prism_noise);
+	DEBUG("signal: %d -> %d\n", rh->wr_dbm_antsignal, current_packet.signal);
+	DEBUG("noise: %d -> %d\n", rh->wr_dbm_antnoise, current_packet.noise);
 	DEBUG("rssi: %d\n", rh->wr_antsignal);
 	DEBUG("*** SNR %d\n", current_packet.snr);
 
