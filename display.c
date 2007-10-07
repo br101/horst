@@ -182,9 +182,6 @@ update_stat_win(struct packet_info* pkt, int node_number)
 		mvwvline(stat_win, max_bar-snr+1, 3, ACS_BLOCK, snr);
 		wattroff(stat_win, A_BOLD);
 
-		if (node_number>=0 && nodes[node_number].snr_max>0 && min>1)
-			mvwvline(stat_win, max_bar-min+1, 2, ACS_BLOCK, min);
-
 		mvwprintw(stat_win, LINES/2-6,6,"RATE:%2d", pkt->rate);
 		mvwprintw(stat_win, LINES/2-5,6,"Sig/Noi");
 		mvwprintw(stat_win, LINES/2-3,6,"SN/MX/MI");
