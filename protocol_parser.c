@@ -151,7 +151,7 @@ parse_radiotap_header(unsigned char* buf, int len)
 	DEBUG("%08x\n", present);
 
 	/* check for header extension - ignore for now, just advance current position */
-	while (present & 0x80000000) {
+	while (present & 0x80000000  && b-buf<rh->it_len) {
 		DEBUG("extension\n");
 		b = b + 4;
 		present = *(__le32*)b;
