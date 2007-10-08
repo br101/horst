@@ -256,17 +256,4 @@ enum ieee80211_radiotap_type {
 #define IEEE80211_RADIOTAP_F_TX_CTS    0x0002  /* used cts 'protection' */
 #define IEEE80211_RADIOTAP_F_TX_RTS    0x0004  /* used rts/cts handshake */
 
-struct ath_rx_radiotap_header {
-        struct ieee80211_radiotap_header wr_ihdr;
-        __le64          wr_tsft;
-        u_int8_t        wr_flags;
-        u_int8_t        wr_rate;
-        __le16          wr_chan_freq;
-        __le16          wr_chan_flags;
-        int8_t          wr_dbm_antsignal;
-        int8_t          wr_dbm_antnoise;
-        u_int8_t        wr_antenna;
-        u_int8_t        wr_antsignal;
-}__attribute__((__packed__));
-
 #endif /* _NET_IF_IEEE80211RADIOTAP_H_ */

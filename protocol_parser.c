@@ -137,26 +137,97 @@ parse_prism_header(unsigned char* buf, int len)
 static unsigned char*
 parse_radiotap_header(unsigned char* buf, int len)
 {
-	struct ath_rx_radiotap_header* rh;
-	rh = (struct ath_rx_radiotap_header*)buf;
+	struct ieee80211_radiotap_header* rh;
+	rh = (struct ieee80211_radiotap_header*)buf;
+	__le32 present; /* the present bitmap */
+	unsigned char* b; /* current byte */
+	int i;
 
 	DEBUG("RADIOTAP HEADER\n");
 
-	current_packet.signal = rh->wr_dbm_antsignal;
-	current_packet.noise = rh->wr_dbm_antnoise;
-	current_packet.snr = rh->wr_antsignal;
-	current_packet.rate = rh->wr_rate/2;
+	b = buf + sizeof(struct ieee80211_radiotap_header);
+	present = rh->it_present;
+
+	DEBUG("%08x\n", present);
+
+	/* check for header extension - ignore for now, just advance current position */
+	while (present & 0x80000000) {
+		DEBUG("extension\n");
+		b = b + 4;
+		present = *(__le32*)b;
+	}
+	present = rh->it_present; // in case it moved
+
+	/* radiotap bitmap has 32 bit, but we are only interrested until
+	 * bit 12 (IEEE80211_RADIOTAP_DB_ANTSIGNAL) => i<13 */
+	for (i=0; i<13; i++) {
+		if ((present >> i) & 1) {
+			DEBUG("1");
+			switch (i) {
+				/* just ignore the following (advance position only): */
+				case IEEE80211_RADIOTAP_TSFT:
+					DEBUG("[+8]");
+					b = b + 8;
+					break;
+				case IEEE80211_RADIOTAP_DBM_TX_POWER:
+				case IEEE80211_RADIOTAP_ANTENNA:
+				case IEEE80211_RADIOTAP_RTS_RETRIES:
+				case IEEE80211_RADIOTAP_DATA_RETRIES:
+				case IEEE80211_RADIOTAP_FLAGS:
+					DEBUG("[+1]");
+					b++;
+					break;
+				case IEEE80211_RADIOTAP_CHANNEL:
+				case IEEE80211_RADIOTAP_EXT:
+					DEBUG("[+4]");
+					b = b + 4;
+					break;
+				case IEEE80211_RADIOTAP_FHSS:
+				case IEEE80211_RADIOTAP_LOCK_QUALITY:
+				case IEEE80211_RADIOTAP_TX_ATTENUATION:
+				case IEEE80211_RADIOTAP_RX_FLAGS:
+				case IEEE80211_RADIOTAP_TX_FLAGS:
+				case IEEE80211_RADIOTAP_DB_TX_ATTENUATION:
+					DEBUG("[+2]");
+					b = b + 2;
+					break;
+				/* we are only interrested in these: */
+				case IEEE80211_RADIOTAP_RATE:
+					DEBUG("[rate %0x]", *b);
+					current_packet.rate = (*b)/2;
+					b++;
+					break;
+				case IEEE80211_RADIOTAP_DBM_ANTSIGNAL:
+					DEBUG("[sig %0x]", *b);
+					current_packet.signal = *(char*)b;
+					b++;
+					break;
+				case IEEE80211_RADIOTAP_DBM_ANTNOISE:
+					DEBUG("[noi %0x]", *b);
+					current_packet.noise = *(char*)b;
+					b++;
+					break;
+				case IEEE80211_RADIOTAP_DB_ANTSIGNAL:
+					DEBUG("[snr %0x]", *b);
+					current_packet.snr = *b;
+					b++;
+					break;
+			}
+		}
+		else {
+			DEBUG("0");
+		}
+	}
 
 	if (current_packet.snr>99)
 		current_packet.snr = 99;
 
-	DEBUG("signal: %d -> %d\n", rh->wr_dbm_antsignal, current_packet.signal);
-	DEBUG("noise: %d -> %d\n", rh->wr_dbm_antnoise, current_packet.noise);
-	DEBUG("rssi: %d\n", rh->wr_antsignal);
-	DEBUG("rate: %d\n", rh->wr_rate);
-	DEBUG("*** SNR %d\n", current_packet.snr);
+	DEBUG("\nrate: %d\n", current_packet.rate);
+	DEBUG("signal: %d\n", current_packet.signal);
+	DEBUG("noise: %d\n", current_packet.noise);
+	DEBUG("snr: %d\n", current_packet.snr);
 
-	return buf + rh->wr_ihdr.it_len;
+	return buf + rh->it_len;
 }
 
 
