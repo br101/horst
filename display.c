@@ -260,12 +260,8 @@ print_list_line(int line, int i, time_t now)
 	else
 		wattron(list_win,A_NORMAL);
 
-	// SNR values being too big are marked as invalid.
-	if (p->snr > 999)
-		mvwprintw(list_win, line, COL_SNR, "IN");
-	else
-		mvwprintw(list_win,line,COL_SNR,"%2d/%2d/%2d",
-			  p->snr, nodes[i].snr_max, nodes[i].snr_min);
+	mvwprintw(list_win,line,COL_SNR,"%2d/%2d/%2d",
+		  p->snr, nodes[i].snr_max, nodes[i].snr_min);
 
 	mvwprintw(list_win,line,COL_RATE,"%2d", p->rate);
 	mvwprintw(list_win,line,COL_SOURCE,"%s", ether_sprintf(p->wlan_src));
