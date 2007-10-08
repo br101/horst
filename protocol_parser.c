@@ -160,7 +160,7 @@ parse_radiotap_header(unsigned char* buf, int len)
 
 	/* radiotap bitmap has 32 bit, but we are only interrested until
 	 * bit 12 (IEEE80211_RADIOTAP_DB_ANTSIGNAL) => i<13 */
-	for (i=0; i<13; i++) {
+	for (i=0; i<13 && b-buf<rh->it_len; i++) {
 		if ((present >> i) & 1) {
 			DEBUG("1");
 			switch (i) {
