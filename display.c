@@ -31,10 +31,13 @@ WINDOW *dump_win;
 WINDOW *dump_win_box;
 WINDOW *list_win;
 WINDOW *stat_win;
+WINDOW *essid_win = NULL;
 
 static void update_dump_win(struct packet_info* pkt);
 static void update_stat_win(struct packet_info* pkt, int node_number);
 static void update_list_win(void);
+static void update_essid_win(void);
+static void display_essid_win(void);
 
 static int do_sort=0;
 
@@ -101,9 +104,13 @@ init_display(void)
 
 
 void update_display(struct packet_info* pkt, int node_number) {
-	update_dump_win(pkt);
-	update_stat_win(pkt, node_number);
-	update_list_win();
+	if (essid_win!=NULL)
+		update_essid_win();
+	else {
+		update_dump_win(pkt);
+		update_stat_win(pkt, node_number);
+		update_list_win();
+	}
 }
 
 
@@ -137,6 +144,14 @@ handle_user_input()
 			finish_all(0);
 		case 's': case 'S':
 			do_sort = do_sort ? 0 : 1;
+			break;
+		case 'e': case 'E':
+			if (essid_win == NULL)
+				display_essid_win();
+			else {
+				delwin(essid_win);
+				essid_win = NULL;
+			}
 			break;
 		/* not yet: 
 		case 'c': case 'C':
@@ -333,6 +348,58 @@ update_list_win(void)
 	}
 
 	wrefresh(list_win);
+}
+
+
+
+static void
+display_essid_win()
+{
+	essid_win = newwin(LINES-3, 80, 2, 2);
+	box(essid_win, 0 , 0);
+	mvwprintw(essid_win,0,2," ESSIDs ");
+	mvwprintw(essid_win,LINES/2-1,2,ifname);
+	wattron(essid_win, COLOR_PAIR(2));
+	scrollok(essid_win,FALSE);
+	wrefresh(essid_win);
+	mvwprintw(essid_win,10,2," LALAs ");
+	update_essid_win();
+}
+
+
+static void
+update_essid_win(void)
+{
+	int i, n;
+	int line=2;
+	struct node_info* node;
+
+	werase(essid_win);
+	box(essid_win, 0 , 0);
+	mvwprintw(essid_win,0,2," ESSIDs ");
+
+	for (i=0; i<MAX_ESSIDS && essids[i].num_nodes>0; i++) {
+		if (essids[i].split>0)
+			wattron(essid_win, COLOR_PAIR(6));
+		else
+			wattron(essid_win, COLOR_PAIR(2));
+		mvwprintw(essid_win, line, 2, "ESSID '%s' BSSID ", essids[i].essid );
+		if (essids[i].split==0)
+			wprintw(essid_win, "(%s)", ether_sprintf(nodes[essids[i].nodes[0]].wlan_bssid));
+		else
+			wprintw(essid_win, "*** SPLIT!!! ***");
+		line++;
+		for (n=0; n<essids[i].num_nodes && n<MAX_NODES; n++) {
+			node = &nodes[essids[i].nodes[n]];
+			mvwprintw(essid_win, line, 4, "%2d. %s", n+1,
+				ether_sprintf(node->last_pkt.wlan_src));
+			wprintw(essid_win, " bssid (%s) ", ether_sprintf(node->wlan_bssid));
+			wprintw(essid_win,"TSF %08x:%08x", nodes[i].tsfh, nodes[i].tsfl);
+			line++;
+		}
+		line++;
+	}
+	wrefresh(essid_win);
 }
 
 
