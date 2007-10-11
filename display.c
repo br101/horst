@@ -32,16 +32,22 @@ WINDOW *dump_win_box;
 WINDOW *list_win;
 WINDOW *stat_win;
 WINDOW *essid_win = NULL;
+WINDOW *filter_win = NULL;
 
 static void update_dump_win(struct packet_info* pkt);
 static void update_stat_win(struct packet_info* pkt, int node_number);
 static void update_list_win(void);
 static void update_essid_win(void);
 static void display_essid_win(void);
+static void display_filter_win(void);
 
 static int do_sort=0;
 
 extern char* ifname;
+extern unsigned char filtermac[6];
+extern int do_filter;
+
+void convert_string_to_mac(const char* string, unsigned char* mac);
 
 
 void
@@ -70,36 +76,19 @@ init_display(void)
 	wrefresh(list_win);
 
 	stat_win = newwin(LINES/2, 15, LINES/2, COLS-15);
-	box(stat_win, 0 , 0);
-	mvwprintw(stat_win,0,2," Status ");
-	mvwprintw(stat_win,LINES/2-1,2,ifname);
-	wattron(stat_win, COLOR_PAIR(2));
 	scrollok(stat_win,FALSE);
 	wrefresh(stat_win);
 
 	dump_win_box = newwin(LINES/2, COLS-15, LINES/2, 0);
-	box(dump_win_box, 0 , 0);
-	mvwprintw(dump_win_box,0,1,"Sig/Noi");
-	mvwprintw(dump_win_box,0,9,"RT");
-	mvwprintw(dump_win_box,0,12,"SOURCE");
-	mvwprintw(dump_win_box,0,30,"(BSSID)");
-	mvwprintw(dump_win_box,0,50,"TYPE");
-	mvwprintw(dump_win_box,0,57,"INFO");
-	mvwprintw(dump_win_box,LINES/2-1,2,"V" PACKAGE_VERSION " (built: " PACKAGE_BUILDDATE ")");
+	scrollok(dump_win_box,FALSE);
+	wrefresh(dump_win);
 
-	if (arphrd == 803)
-		mvwprintw(dump_win_box,LINES/2-1,COLS-25,"RADIOTAP");
-	else if (arphrd == 802)
-		mvwprintw(dump_win_box,LINES/2-1,COLS-25,"PRISM2");
-	else
-		mvwprintw(dump_win_box,LINES/2-1,COLS-25,"UNSUPP");
-
-	wrefresh(dump_win_box);
 	dump_win = newwin(LINES/2-2, COLS-15-2, LINES/2+1, 1);
 	wattron(dump_win, COLOR_PAIR(1));
 	scrollok(dump_win,TRUE);
-	
 	wrefresh(dump_win);
+
+	update_display(NULL,-1);
 }
 
 
@@ -121,24 +110,62 @@ finish_display(int sig)
 }
 
 
+void filter_input(int c)
+{
+	static int pos = 0;
+	static char buffer[18];
+
+	switch(c) {
+		case 'q': case '\r': case KEY_ENTER:
+			buffer[18] = '\0';
+			convert_string_to_mac(buffer, filtermac);
+			if (filtermac[0] || filtermac[1] || filtermac[2] ||
+				filtermac[3] || filtermac[4] || filtermac[5])
+				do_filter = 1;
+			else
+				do_filter = 0;
+			paused = 0;
+			delwin(filter_win);
+			filter_win = NULL;
+			pos = 0;
+			update_display(NULL,-1);
+			break;
+		case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':case '0':
+		case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
+		case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case ':':
+			if (pos<18) {
+				buffer[pos] = c;
+				pos++;
+				wechochar(filter_win, c);
+			}
+			break;
+		case KEY_BACKSPACE:
+			break;
+	}
+}
+
+
 void
 handle_user_input()
 {
 	int key;
 
 	key = getch();
+
+	if (filter_win!=NULL) {
+		filter_input(key);
+		return;
+	}
+
 	switch(key) {
 		case ' ': case 'p': case 'P':
 			paused = paused ? 0 : 1;
-			update_stat_win(NULL,-1);
 			break;
 		case 'c': case 'C':
 			no_ctrl = no_ctrl ? 0 : 1;
-			update_stat_win(NULL,-1);
 			break;
 		case 'o': case 'O':
 			olsr_only = olsr_only ? 0 : 1;
-			update_stat_win(NULL,-1);
 			break;
 		case 'q': case 'Q':
 			finish_all(0);
@@ -152,7 +179,15 @@ handle_user_input()
 				delwin(essid_win);
 				essid_win = NULL;
 			}
-			break;
+			break;//return; // dont redraw
+		case 'f': case 'F':
+			if (filter_win == NULL)
+				display_filter_win();
+			else {
+				delwin(filter_win);
+				filter_win = NULL;
+			}
+			return; // dont redraw
 		/* not yet: 
 		case 'c': case 'C':
 			pause = 1;
@@ -162,13 +197,24 @@ handle_user_input()
 		case KEY_RESIZE: /* xterm window resize event */
 			endwin();
 			init_display();
+			return;
+		default:
+			return;
 	}
+	update_display(NULL,-1);
 }
 
 
 static void
 update_stat_win(struct packet_info* pkt, int node_number)
 {
+	// repaint everything every time
+	werase(stat_win);
+	box(stat_win, 0 , 0);
+	mvwprintw(stat_win,0,2," Status ");
+	mvwprintw(stat_win,LINES/2-1,2,ifname);
+	wattron(stat_win, COLOR_PAIR(2));
+
 	if (pkt!=NULL)
 	{
 		int snr = pkt->snr;
@@ -234,6 +280,12 @@ update_stat_win(struct packet_info* pkt, int node_number)
 		mvwprintw(stat_win,6,6,"s: SORT ");
 	else
 		mvwprintw(stat_win,6,6,"s: !SORT");
+
+	if (do_filter)
+		mvwprintw(stat_win,11,6,"%s", ether_sprintf(filtermac));
+
+	mvwprintw(stat_win,9,6,"e ESSIDs");
+	mvwprintw(stat_win,10,6,"f FILTER");
 
 	wrefresh(stat_win);
 }
@@ -362,7 +414,6 @@ display_essid_win()
 	wattron(essid_win, COLOR_PAIR(2));
 	scrollok(essid_win,FALSE);
 	wrefresh(essid_win);
-	mvwprintw(essid_win,10,2," LALAs ");
 	update_essid_win();
 }
 
@@ -403,9 +454,47 @@ update_essid_win(void)
 }
 
 
+static void
+display_filter_win()
+{
+	paused = 1;
+	filter_win = newwin(7, 25, LINES/2-2, COLS/2-15);
+	box(filter_win, 0 , 0);
+	mvwprintw(filter_win,0,2," Enter Filter MAC ");
+	if (do_filter)
+		mvwprintw(filter_win,2,2, "%s", ether_sprintf(filtermac));
+	else
+		mvwprintw(filter_win,2,2, "  :  :  :  :  :  ");
+	wmove(filter_win,2,2);
+	scrollok(filter_win,FALSE);
+	wrefresh(filter_win);
+}
+
+
 void
 update_dump_win(struct packet_info* pkt)
 {
+	box(dump_win_box, 0 , 0);
+	mvwprintw(dump_win_box,0,1,"Sig/Noi");
+	mvwprintw(dump_win_box,0,9,"RT");
+	mvwprintw(dump_win_box,0,12,"SOURCE");
+	mvwprintw(dump_win_box,0,30,"(BSSID)");
+	mvwprintw(dump_win_box,0,50,"TYPE");
+	mvwprintw(dump_win_box,0,57,"INFO");
+	mvwprintw(dump_win_box,LINES/2-1,2,"V" PACKAGE_VERSION " (built: " PACKAGE_BUILDDATE ")");
+	if (arphrd == 803)
+		mvwprintw(dump_win_box,LINES/2-1,COLS-25,"RADIOTAP");
+	else if (arphrd == 802)
+		mvwprintw(dump_win_box,LINES/2-1,COLS-25,"PRISM2");
+	else
+		mvwprintw(dump_win_box,LINES/2-1,COLS-25,"UNSUPP");
+
+	if (!pkt) {
+		wrefresh(dump_win_box);
+		wrefresh(dump_win);
+		return;
+	}
+
 	if (pkt->olsr_type>0 && pkt->pkt_types & PKT_TYPE_OLSR)
 		wattron(dump_win,A_BOLD);
 

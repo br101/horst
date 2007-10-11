@@ -62,7 +62,7 @@ char* ifname = "wlan0";
 int paused = 0;
 int olsr_only = 0;
 int no_ctrl = 0;
-int filter = 0;
+int do_filter = 0;
 
 unsigned char filtermac[6];
 
@@ -102,22 +102,22 @@ main(int argc, char** argv)
 #if !DO_DEBUG
 	else {
 		init_display();
+		update_display(NULL, -1);
 	}
 #endif
 
-	while ((len = recvfrom(mon, buffer, 8192, 0, &from, &fromlen))) 
+	while ((len = recvfrom(mon, buffer, 8192, MSG_DONTWAIT, &from, &fromlen)))
 	{
 #if DO_DEBUG
 		dump_packet(buffer, len);
 #endif
-
 		handle_user_input();
-		
-		if (!paused) {
+
+		if (!paused && len != -1) {
 			memset(&current_packet,0,sizeof(current_packet));
 			parse_packet(buffer, len);
 
-			if (filter && 0 != memcmp(current_packet.wlan_src,
+			if (do_filter && 0 != memcmp(current_packet.wlan_src,
 			    filtermac, sizeof(filtermac)))
 				continue;
 
@@ -279,6 +279,22 @@ device_wireless_channel(int fd, const char* if_name, int chan)
 #endif
 
 void
+convert_string_to_mac(const char* string, unsigned char* mac)
+{
+	int c;
+	for(c=0; c < 6 && string; c++)
+	{
+		int x = 0;
+		if (string)
+			sscanf(string, "%x", &x);
+		mac[c] = x;
+		string = strchr(string, ':');
+		if (string)
+			string++;
+	}
+}
+
+void
 get_options(int argc, char** argv)
 {
 	int c;
@@ -295,15 +311,10 @@ get_options(int argc, char** argv)
 				ifname = optarg;
 				break;
 			case 'e':
-				filter = 1;
-				for(c = 0; c < sizeof(filtermac) / sizeof(filtermac[0]); c++)
-				{
-					int x = 0;
-					if (optarg) sscanf(optarg, "%x", &x);
-					filtermac[c] = x;
-					optarg = strchr(optarg, ':');
-					if (optarg) optarg++;
-				}
+				do_filter = 1;
+				convert_string_to_mac(optarg, filtermac);
+				printf("%s\n",ether_sprintf(filtermac));
+				exit(0);
 				break;
 			case 'h':
 			default:
