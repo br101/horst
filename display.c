@@ -56,6 +56,7 @@ init_display(void)
 	init_pair(3, COLOR_YELLOW, COLOR_BLACK);
 	init_pair(4, COLOR_BLUE, COLOR_BLACK);
 	init_pair(5, COLOR_WHITE, COLOR_BLACK);
+	init_pair(6, COLOR_RED, COLOR_BLACK);
 
 	move(0,COLS/2-20);
 	printw("HORST - Horsts OLSR Radio Scanning Tool");
@@ -260,6 +261,9 @@ print_list_line(int line, int i, time_t now)
 	else
 		wattron(list_win,A_NORMAL);
 
+	if (essids[nodes[i].essid].split>0)
+		wattron(list_win,COLOR_PAIR(6));
+
 	mvwprintw(list_win,line,COL_SNR,"%2d/%2d/%2d",
 		  p->snr, nodes[i].snr_max, nodes[i].snr_min);
 
@@ -279,6 +283,7 @@ print_list_line(int line, int i, time_t now)
 
 	wattroff(list_win,A_BOLD);
 	wattroff(list_win,A_UNDERLINE);
+	wattroff(list_win,COLOR_PAIR(6));
 }
 
 
@@ -302,7 +307,6 @@ update_list_win(void)
 	mvwprintw(list_win,0,COL_LQ,"LQ GW NEIGH");
 	mvwprintw(list_win,0,COL_OLSR,"OLSR/COUNT");
 	mvwprintw(list_win,0,COL_TSF,"TSF(High)");
-	wattron(list_win,COLOR_PAIR(1));
 
 	if (do_sort) {
 		/* sort by SNR */
@@ -318,6 +322,16 @@ update_list_win(void)
 				print_list_line(line,i,now);
 		}
 	}
+
+	if (splits.count>0) {
+		wattron(list_win, COLOR_PAIR(6));
+		mvwprintw(list_win,LINES/2-2,10," *** IBSS SPLIT DETECTED!!! ESSID ");
+		wprintw(list_win,"'%s' ", essids[splits.essid[0]].essid);
+		wprintw(list_win,"%d nodes *** ",
+			essids[splits.essid[0]].num_nodes);
+		wattroff(list_win, COLOR_PAIR(6));
+	}
+
 	wrefresh(list_win);
 }
 

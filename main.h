@@ -44,7 +44,7 @@ struct packet_info {
 	unsigned char wlan_dst[6];
 	unsigned char wlan_bssid[6];
 	unsigned char wlan_tsf[8];
-	unsigned char wlan_essid[255];
+	char wlan_essid[255];
 	unsigned int ip_src;
 	unsigned int ip_dst;
 	int olsr_type;
@@ -55,6 +55,8 @@ struct packet_info {
 extern struct packet_info current_packet;
 
 #define MAX_NODES 255
+#define MAX_ESSIDS 255
+#define MAX_BSSIDS 255
 
 #define PKT_TYPE_BEACON		0x01
 #define PKT_TYPE_PROBE_REQ	0x02
@@ -79,9 +81,27 @@ struct node_info {
 	unsigned long tsfh;
 	int snr_min;
 	int snr_max;
+	int essid;
 };
 
 extern struct node_info nodes[MAX_NODES];
+
+#define MAX_ESSID_LEN 255
+struct essid_info {
+	char essid[MAX_ESSID_LEN];
+	int nodes[MAX_NODES];
+	int num_nodes;
+	int split;
+};
+
+extern struct essid_info essids[MAX_ESSIDS];
+
+struct split_info {
+	int essid[MAX_ESSIDS];
+	int count;
+};
+
+extern struct split_info splits;
 
 extern int paused;
 extern int olsr_only;

@@ -24,7 +24,7 @@
 #include <netpacket/packet.h>
 #include <net/ethernet.h>
 #include <sys/ioctl.h>
-//#include <net/if.h> /* XXX??? not needed since we include linux/wireless.h */
+#include <net/if.h> /* needed for newer wireless tools */
 #include <string.h>
 
 #include <getopt.h>
@@ -45,12 +45,19 @@ static int device_get_arptype(int fd, const char *device);
 static int init_packet_socket(char* devname);
 static void get_options(int argv, char** argc);
 static int node_update(struct packet_info* pkt);
+static void check_ibss_split(struct packet_info* pkt, int pkt_node);
 
 struct packet_info current_packet;
 
-struct node_info nodes[MAX_NODES]; /* no, i dont want to implement a list now */
+/* no, i dont want to implement a linked list now */
 
-char* ifname = "ath0";
+struct node_info nodes[MAX_NODES];
+
+struct essid_info essids[MAX_ESSIDS];
+
+struct split_info splits;
+
+char* ifname = "wlan0";
 
 int paused = 0;
 int olsr_only = 0;
@@ -115,6 +122,8 @@ main(int argc, char** argv)
 				continue;
 
 			n = node_update(&current_packet);
+
+			check_ibss_split(&current_packet, n);
 
 			if (rport) {
 				net_send_packet();
@@ -364,8 +373,92 @@ node_update(struct packet_info* pkt)
 		} else {
 			/* past all used nodes: create new node */
 			copy_nodeinfo(&nodes[i], pkt);
+			nodes[i].essid = -1;
 			return i;
 		}
 	}
 	return -1;
+}
+
+
+static void
+check_ibss_split(struct packet_info* pkt, int pkt_node)
+{
+	int i, n;
+	struct node_info* node;
+	unsigned char* last_bssid = NULL;
+
+	/* only check beacons (XXX: what about PROBE?) */
+	if (!(pkt->pkt_types & PKT_TYPE_BEACON)) {
+		return;
+	}
+
+	DEBUG("SPLIT check ibss '%s' node %s ", pkt->wlan_essid,
+		ether_sprintf(pkt->wlan_src));
+	DEBUG("bssid %s\n", ether_sprintf(pkt->wlan_bssid));
+
+	/* find essid */
+	for (i=0; i<MAX_ESSIDS; i++) {
+		if (essids[i].num_nodes == 0) {
+			/* unused entry */
+			break;
+		}
+		if (strncmp(essids[i].essid, pkt->wlan_essid, MAX_ESSID_LEN) == 0) {
+			/* essid matches */
+			DEBUG("SPLIT   essid found\n");
+			break;
+		}
+	}
+
+	/* find node if already recorded */
+	for (n=0; n<essids[i].num_nodes && n<MAX_NODES; n++) {
+		if (essids[i].nodes[n] == pkt_node) {
+			DEBUG("SPLIT   node found %d\n", n);
+			break;
+		}
+	}
+
+	DEBUG("SPLIT   at essid %d count %d node %d\n",i, essids[i].num_nodes, n);
+
+	/* new essid */
+	if (essids[i].num_nodes==0) {
+		DEBUG("SPLIT   new essid '%s'\n",pkt->wlan_essid);
+		strncpy(essids[i].essid, pkt->wlan_essid, MAX_ESSID_LEN);
+	}
+
+	/* new node */
+	if (essids[i].num_nodes==0 || essids[i].nodes[n] != pkt_node) {
+		DEBUG("SPLIT   recorded new node nr %d %d %s\n", n, pkt_node,
+			ether_sprintf(pkt->wlan_src) );
+		essids[i].nodes[n] = pkt_node;
+		essids[i].num_nodes = n+1;
+		nodes[pkt_node].essid = i;
+	}
+
+	/* check for split */
+	essids[i].split = 0;
+	for (n=0; n<essids[i].num_nodes && n<MAX_NODES; n++) {
+		node = &nodes[essids[i].nodes[n]];
+		DEBUG("SPLIT      %d. node %d src %s", n,
+			essids[i].nodes[n], ether_sprintf(node->last_pkt.wlan_src));
+		DEBUG(" bssid %s\n", ether_sprintf(node->wlan_bssid));
+
+		if (last_bssid && memcmp(last_bssid,node->wlan_bssid,6) != 0) {
+			essids[i].split = 1;
+			//XXX count number of different bssids
+			DEBUG("SPLIT *** DETECTED!!! %d different bssids\n", essids[i].split);
+		}
+		last_bssid = node->wlan_bssid;
+	}
+
+	/* if a split occurred on this essid, record it */
+	//XXX record a list of all split essids
+	if (essids[i].split>0) {
+		DEBUG("SPLIT *** new record %d\n", i);
+		splits.count = 1;
+		splits.essid[0] = i;
+	}
+	else {
+		splits.count = 0;
+	}
 }
