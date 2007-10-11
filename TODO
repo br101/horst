@@ -1,6 +1,18 @@
- * ibss split detection
+ * ibss split detection: warn only IBSS in AP mode its normal
  * display AP or ADHOC
  * batman support
  * snr history graph
  * dump info into file
  * remote client
+
+> WEITERE OPTIONEN, (braucht ein tmp. eingabe-feld, zb. im header)
+> evt. als [IP:], dann untermenue:
+> - [k: keep] eintrag nach time-out in der anzeige halten, markiert m."?".
+> - [u: up  ] mit der man einzelne IPs 'nach-oben' holen kann,
+>             wichtig für schwache nodes, die sonst bei langer liste
+>             nach unten aus dem sichtbaren display gedrängt würden.
+> - [d: del]  ausgewählte IPs aus der anzeige filtern.
+
+noise WRT
+
+SNR flattern - nur beacon option fuer SNR

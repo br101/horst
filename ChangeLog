@@ -1,3 +1,21 @@
+2007-10-XX  Bruno Randolf (br1@einfach.org)
+
+	* added radiotap header support and automatic detection of
+	  the header format used by the driver (prism2 or radiotap)
+
+	* added IBSS SLIT detection: warn when one ESSID (name)
+	  is announced in beacons from different nodes in IBSS mode
+
+	* added ESSID window: list all known ESSIDs and all stations
+	  which announce the ESSID in their beacons including the TSF
+	  timestamp for easier IBSS split analysis
+
+	* added MAC Filter window
+
+	* display minimum and maximum SNR of each node
+
+	* various smaller improvements and cleanups
+
 2007-07-20  Sven-Ola aet gmx.de
 
 	* Added -e macaddr filter switch
