@@ -106,14 +106,14 @@ main(int argc, char** argv)
 	}
 #endif
 
-	while ((len = recvfrom(mon, buffer, 8192, 0, &from, &fromlen))) //MSG_DONTWAIT, &from, &fromlen)))
+	while ((len = recvfrom(mon, buffer, 8192, MSG_DONTWAIT, &from, &fromlen)))
 	{
-#if DO_DEBUG
-		dump_packet(buffer, len);
-#endif
 		handle_user_input();
 
 		if (!paused && len != -1) {
+#if DO_DEBUG
+			dump_packet(buffer, len);
+#endif
 			memset(&current_packet,0,sizeof(current_packet));
 			parse_packet(buffer, len);
 
@@ -140,8 +140,8 @@ main(int argc, char** argv)
 				update_display(&current_packet, n);
 			}
 #endif
-		//usleep(100000);
 		}
+		usleep(100000);
 	}
 	return 0;
 }
