@@ -334,6 +334,13 @@ print_list_line(int line, int i, time_t now)
 	mvwprintw(list_win,line,COL_SNR,"%2d/%2d/%2d",
 		  p->snr, nodes[i].snr_max, nodes[i].snr_min);
 
+	if (nodes[i].wlan_mode == WLAN_MODE_AP )
+		mvwprintw(list_win,line,COL_LQ,"A");
+	else if (nodes[i].wlan_mode == WLAN_MODE_IBSS )
+		mvwprintw(list_win,line,COL_LQ,"I");
+	else
+		mvwprintw(list_win,line,COL_LQ,"S");
+
 	mvwprintw(list_win,line,COL_RATE,"%2d", p->rate);
 	mvwprintw(list_win,line,COL_SOURCE,"%s", ether_sprintf(p->wlan_src));
 	mvwprintw(list_win,line,COL_BSSID,"(%s)", ether_sprintf(nodes[i].wlan_bssid));
@@ -442,7 +449,12 @@ update_essid_win(void)
 		line++;
 		for (n=0; n<essids[i].num_nodes && n<MAX_NODES; n++) {
 			node = &nodes[essids[i].nodes[n]];
-			mvwprintw(essid_win, line, 4, "%2d. %s", n+1,
+			if (node->wlan_mode == WLAN_MODE_AP )
+				mvwprintw(essid_win,line,4, " AP");
+			else if (node->wlan_mode == WLAN_MODE_IBSS )
+				mvwprintw(essid_win,line,4," IBSS");
+
+			mvwprintw(essid_win, line, 9, "%2d. %s", n+1,
 				ether_sprintf(node->last_pkt.wlan_src));
 			wprintw(essid_win, " bssid (%s) ", ether_sprintf(node->wlan_bssid));
 			wprintw(essid_win,"TSF %08x:%08x", nodes[i].tsfh, nodes[i].tsfl);

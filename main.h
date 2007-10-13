@@ -45,6 +45,7 @@ struct packet_info {
 	unsigned char wlan_bssid[6];
 	unsigned char wlan_tsf[8];
 	char wlan_essid[255];
+	int wlan_mode;
 	unsigned int ip_src;
 	unsigned int ip_dst;
 	int olsr_type;
@@ -66,6 +67,9 @@ extern struct packet_info current_packet;
 #define PKT_TYPE_OLSR_LQ	0x20
 #define PKT_TYPE_OLSR_GW	0x40
 
+#define WLAN_MODE_AP		0x01
+#define WLAN_MODE_IBSS		0x02
+
 struct node_info {
 	int status;
 	int pkt_types;
@@ -77,6 +81,7 @@ struct node_info {
 	int pkt_count;
 	int olsr_count;
 	unsigned char wlan_bssid[6];
+	int wlan_mode;
 	unsigned long tsfl;
 	unsigned long tsfh;
 	int snr_min;

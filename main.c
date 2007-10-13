@@ -106,7 +106,7 @@ main(int argc, char** argv)
 	}
 #endif
 
-	while ((len = recvfrom(mon, buffer, 8192, MSG_DONTWAIT, &from, &fromlen)))
+	while ((len = recvfrom(mon, buffer, 8192, 0, &from, &fromlen))) //MSG_DONTWAIT, &from, &fromlen)))
 	{
 #if DO_DEBUG
 		dump_packet(buffer, len);
@@ -140,6 +140,7 @@ main(int argc, char** argv)
 				update_display(&current_packet, n);
 			}
 #endif
+		//usleep(100000);
 		}
 	}
 	return 0;
@@ -348,6 +349,7 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		n->ip_src = p->ip_src;
 	n->status=1;
 	n->pkt_types |= p->pkt_types;
+	n->wlan_mode = p->wlan_mode;
 	n->last_seen = time(NULL);
 	if (p->olsr_tc)
 		n->olsr_tc = p->olsr_tc;
@@ -359,8 +361,8 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 	if (p->wlan_bssid[0] != 0xff)
 		memcpy(n->wlan_bssid, p->wlan_bssid, 6);
 	if (p->pkt_types & PKT_TYPE_BEACON) {
-		n->tsfl = ntohl(*(unsigned long*)(&p->wlan_tsf[0]));
-		n->tsfh = ntohl(*(unsigned long*)(&p->wlan_tsf[4]));
+		n->tsfl = *(unsigned long*)(&p->wlan_tsf[0]);
+		n->tsfh = *(unsigned long*)(&p->wlan_tsf[4]);
 	}
 	if (p->snr > n->snr_max)
 		n->snr_max = p->snr;

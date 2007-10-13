@@ -256,6 +256,11 @@ parse_80211_header(unsigned char* buf, int len)
 			current_packet.wlan_essid[whm->u.beacon.variable[1]]='\0';
 		}
 		current_packet.pkt_types = PKT_TYPE_BEACON;
+		if (whm->u.beacon.capab_info & WLAN_CAPABILITY_IBSS)
+			current_packet.wlan_mode = WLAN_MODE_IBSS;
+		else if (whm->u.beacon.capab_info & WLAN_CAPABILITY_ESS)
+			current_packet.wlan_mode = WLAN_MODE_AP;
+
 		return NULL;
 	}
 	else if (current_packet.wlan_type == WLAN_FC_TYPE_MGMT && current_packet.wlan_stype == WLAN_FC_STYPE_PROBE_REQ) {
