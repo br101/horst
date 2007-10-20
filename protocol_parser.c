@@ -25,7 +25,10 @@
 #include <sys/socket.h>
 #include <linux/if_arp.h>
 
+#include "prism_header.h"
 #include "ieee80211_radiotap.h"
+#include "ieee80211_header.h"
+#include "olsr_header.h"
 
 #include "protocol_parser.h"
 #include "main.h"
@@ -44,45 +47,62 @@
 #define ARPHRD_IEEE80211_PRISM 802      /* IEEE 802.11 + Prism2 header  */
 #endif
 
-static unsigned char* parse_prism_header(unsigned char* buf, int len);
-static unsigned char* parse_radiotap_header(unsigned char* buf, int len);
-static unsigned char* parse_80211_header(unsigned char* buf, int len);
-static unsigned char* parse_ip_header(unsigned char* buf, int len);
-static unsigned char* parse_udp_header(unsigned char* buf, int len);
-static unsigned char* parse_olsr_packet(unsigned char* buf, int len);
+static int parse_prism_header(unsigned char** buf, int len);
+static int parse_radiotap_header(unsigned char** buf, int len);
+static int parse_80211_header(unsigned char** buf, int len);
+static int parse_ip_header(unsigned char** buf, int len);
+static int parse_udp_header(unsigned char** buf, int len);
+static int parse_olsr_packet(unsigned char** buf, int len);
 
+/* return 1 if we parsed enough = min ieee header */
 int
 parse_packet(unsigned char* buf, int len)
 {
-	if (arphrd == ARPHRD_IEEE80211_PRISM)
-		buf = parse_prism_header(buf, len);
-	else if (arphrd == ARPHRD_IEEE80211_RADIOTAP)
-		buf = parse_radiotap_header(buf, len);
+	if (arphrd == ARPHRD_IEEE80211_PRISM) {
+		len = parse_prism_header(&buf, len);
+		if (len <= 0)
+			return 0;
+	}
+	else if (arphrd == ARPHRD_IEEE80211_RADIOTAP) {
+		len = parse_radiotap_header(&buf, len);
+		if (len <= 0)
+			return 0;
+	}
 
-	if (buf != NULL &&
-	    (arphrd == ARPHRD_IEEE80211 ||
+	if (arphrd == ARPHRD_IEEE80211 ||
 	    arphrd == ARPHRD_IEEE80211_PRISM ||
-	    arphrd == ARPHRD_IEEE80211_RADIOTAP))
-		buf = parse_80211_header(buf, len);
-	if (buf != NULL)
-		buf = parse_ip_header(buf, len);
-	if (buf != NULL)
-		buf = parse_udp_header(buf, len);
-	if (buf != NULL)
-		parse_olsr_packet(buf, len);
+	    arphrd == ARPHRD_IEEE80211_RADIOTAP) {
+		len = parse_80211_header(&buf, len);
+		if (len < 0) /* couldnt parse */
+			return 0;
+		else if (len == 0)
+			return 1;
+	}
 	
-	if (buf != NULL) /* parsing successful */
+	len = parse_ip_header(&buf, len);
+	if (len <= 0)
 		return 1;
-	return 0;
+
+	len = parse_udp_header(&buf, len);
+	if (len <= 0)
+		return 1;
+
+	len = parse_olsr_packet(&buf, len);
+	return 1;
 }
 
-static unsigned char*
-parse_prism_header(unsigned char* buf, int len)
+
+static int
+parse_prism_header(unsigned char** buf, int len)
 {
 	wlan_ng_prism2_header* ph;
-	ph = (wlan_ng_prism2_header*)buf;
 
 	DEBUG("PRISM2 HEADER\n");
+
+	if (len < sizeof(wlan_ng_prism2_header))
+		return -1;
+
+	ph = (wlan_ng_prism2_header*)*buf;
 
 	/*
 	 * different drivers report S/N and rssi values differently
@@ -130,37 +150,40 @@ parse_prism_header(unsigned char* buf, int len)
 	DEBUG("rssi: %d\n", ph->rssi.data);
 	DEBUG("*** SNR %d\n", current_packet.snr);
 
-	return buf + sizeof(wlan_ng_prism2_header);
+	*buf = *buf + sizeof(wlan_ng_prism2_header);
+	return len - sizeof(wlan_ng_prism2_header);
 }
 
 
-static unsigned char*
-parse_radiotap_header(unsigned char* buf, int len)
+static int
+parse_radiotap_header(unsigned char** buf, int len)
 {
 	struct ieee80211_radiotap_header* rh;
-	rh = (struct ieee80211_radiotap_header*)buf;
 	__le32 present; /* the present bitmap */
 	unsigned char* b; /* current byte */
 	int i;
 
 	DEBUG("RADIOTAP HEADER\n");
 
-	b = buf + sizeof(struct ieee80211_radiotap_header);
+	if (len < sizeof(struct ieee80211_radiotap_header))
+		return -1;
+
+	rh = (struct ieee80211_radiotap_header*)*buf;
+	b = *buf + sizeof(struct ieee80211_radiotap_header);
 	present = rh->it_present;
 
 	DEBUG("%08x\n", present);
 
 	/* check for header extension - ignore for now, just advance current position */
-	while (present & 0x80000000  && b-buf<rh->it_len) {
+	while (present & 0x80000000  && b-*buf < rh->it_len) {
 		DEBUG("extension\n");
 		b = b + 4;
 		present = *(__le32*)b;
 	}
-	present = rh->it_present; // in case it moved
-
+	present = rh->it_present; // in case it move
 	/* radiotap bitmap has 32 bit, but we are only interrested until
 	 * bit 12 (IEEE80211_RADIOTAP_DB_ANTSIGNAL) => i<13 */
-	for (i=0; i<13 && b-buf<rh->it_len; i++) {
+	for (i=0; i<13 && b-*buf < rh->it_len; i++) {
 		if ((present >> i) & 1) {
 			DEBUG("1");
 			switch (i) {
@@ -227,17 +250,22 @@ parse_radiotap_header(unsigned char* buf, int len)
 	DEBUG("noise: %d\n", current_packet.noise);
 	DEBUG("snr: %d\n", current_packet.snr);
 
-	return buf + rh->it_len;
+	*buf = *buf + rh->it_len;
+	return len - rh->it_len;
 }
 
 
-static unsigned char*
-parse_80211_header(unsigned char* buf, int len)
+static int
+parse_80211_header(unsigned char** buf, int len)
 {
 	struct ieee80211_hdr* wh;
-	wh = (struct ieee80211_hdr*)buf;
 
 	DEBUG("STYPE %x\n", WLAN_FC_GET_STYPE(wh->frame_control));
+
+	if (len < sizeof(struct ieee80211_hdr))
+		return -1;
+
+	wh = (struct ieee80211_hdr*)*buf;
 
 	//TODO: addresses are not always like this (WDS)
 	memcpy(current_packet.wlan_dst, wh->addr1, 6);
@@ -249,7 +277,9 @@ parse_80211_header(unsigned char* buf, int len)
 	//TODO: other subtypes
 	if (current_packet.wlan_type == WLAN_FC_TYPE_MGMT && current_packet.wlan_stype == WLAN_FC_STYPE_BEACON) {
 		struct ieee80211_mgmt* whm;
-		whm = (struct ieee80211_mgmt*)buf;
+		if (len < sizeof(struct ieee80211_mgmt))
+			return -1;
+		whm = (struct ieee80211_mgmt*)*buf;
 		memcpy(current_packet.wlan_tsf, whm->u.beacon.timestamp,8);
 		if (whm->u.beacon.variable[0] == 0) { /* ESSID */
 			memcpy(current_packet.wlan_essid, &whm->u.beacon.variable[2], whm->u.beacon.variable[1]);
@@ -261,39 +291,48 @@ parse_80211_header(unsigned char* buf, int len)
 		else if (whm->u.beacon.capab_info & WLAN_CAPABILITY_ESS)
 			current_packet.wlan_mode = WLAN_MODE_AP;
 
-		return NULL;
+		return 0;
 	}
 	else if (current_packet.wlan_type == WLAN_FC_TYPE_MGMT && current_packet.wlan_stype == WLAN_FC_STYPE_PROBE_REQ) {
 		current_packet.pkt_types = PKT_TYPE_PROBE_REQ;
-		return NULL;
+		return 0;
 	}
 	else if (current_packet.wlan_type == WLAN_FC_TYPE_DATA && current_packet.wlan_stype == WLAN_FC_STYPE_DATA) {
 		current_packet.pkt_types = PKT_TYPE_DATA;
 	}
 	else {
-		return NULL;
+		return 0;
 	}
 
 	//TODO: 802.11 headers with 4 addresses (WDS) are longer
-	return buf + IEEE80211_HEADER_LEN;
+
+	*buf = *buf + IEEE80211_HEADER_LEN;
+	return len - IEEE80211_HEADER_LEN;
 }
 
-static unsigned char*
-parse_ip_header(unsigned char* buf, int len)
+static int
+parse_ip_header(unsigned char** buf, int len)
 {
-	/* check type in LLC header */	
-	buf = buf + 6;
-
-	if (*buf != 0x08) /* not IP */
-		return NULL;
-	buf++;
-	
-	if (*buf != 0x00)
-		return NULL;
-	buf++;
-
 	struct iphdr* ih;
-	ih = (struct iphdr*)buf;
+
+	if (len < 6)
+		return -1;
+
+	/* check type in LLC header */	
+	*buf = *buf + 6;
+
+	if (**buf != 0x08) /* not IP */
+		return -1;
+	(*buf)++;
+	
+	if (**buf != 0x00)
+		return -1;
+	(*buf)++;
+
+	if (len < sizeof(struct iphdr))
+		return -1;
+
+	ih = (struct iphdr*)*buf;
 
 	DEBUG("*** IP SRC: %s\n", ip_sprintf(ih->saddr));
 	DEBUG("*** IP DST: %s\n", ip_sprintf(ih->daddr));
@@ -303,29 +342,42 @@ parse_ip_header(unsigned char* buf, int len)
 
 	DEBUG("IP proto: %d\n", ih->protocol);
 	if (ih->protocol != 17) /* UDP */
-		return NULL;
-	return buf + ih->ihl*4;
+		return 0;
+
+	*buf = *buf + ih->ihl*4;
+	return len - ih->ihl*4;
 }
 
-static unsigned char*
-parse_udp_header(unsigned char* buf, int len)
+
+static int
+parse_udp_header(unsigned char** buf, int len)
 {
 	struct udphdr* uh;
-	uh = (struct udphdr*)buf;
+
+	if (len < sizeof(struct udphdr))
+		return -1;
+
+	uh = (struct udphdr*)*buf;
 
 	DEBUG("UPD dest port: %d\n", ntohs(uh->dest));
 	if (ntohs(uh->dest) != 698) /* OLSR */
-		return NULL;
-	return buf + 8;
+		return 0;
+	*buf = *buf + 8;
+	return len - 8;
 }
 
-static unsigned char*
-parse_olsr_packet(unsigned char* buf, int len)
+
+static int
+parse_olsr_packet(unsigned char** buf, int len)
 {
 	struct olsr* oh;
-	oh = (struct olsr*)buf;
 	int number;
 	int i;
+
+	if (len < sizeof(struct olsr))
+		return -1;
+
+	oh = (struct olsr*)*buf;
 
 	// TODO: more than one olsr messages can be in one packet
 	int msgtype = oh->olsr_msg[0].olsr_msgtype;
@@ -380,5 +432,5 @@ parse_olsr_packet(unsigned char* buf, int len)
 		}
 	}
 
-	return NULL;
+	return 0;
 }

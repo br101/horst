@@ -20,10 +20,6 @@
 #ifndef _PROTOCOL_PARSER_H_
 #define _PROTOCOL_PARSER_H_
 
-#include "prism_header.h"
-#include "ieee80211_header.h"
-#include "olsr_header.h"
-
 int parse_packet(unsigned char* buf, int len);
 
 #endif

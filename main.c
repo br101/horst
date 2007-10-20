@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netpacket/packet.h>
 #include <net/ethernet.h>
@@ -46,6 +47,7 @@ static int init_packet_socket(char* devname);
 static void get_options(int argv, char** argc);
 static int node_update(struct packet_info* pkt);
 static void check_ibss_split(struct packet_info* pkt, int pkt_node);
+static int filter_packet(struct packet_info* pkt);
 
 struct packet_info current_packet;
 
@@ -102,7 +104,6 @@ main(int argc, char** argv)
 #if !DO_DEBUG
 	else {
 		init_display();
-		update_display(NULL, -1);
 	}
 #endif
 
@@ -115,10 +116,10 @@ main(int argc, char** argv)
 			dump_packet(buffer, len);
 #endif
 			memset(&current_packet,0,sizeof(current_packet));
-			parse_packet(buffer, len);
+			if (!parse_packet(buffer, len))
+				continue;
 
-			if (do_filter && 0 != memcmp(current_packet.wlan_src,
-			    filtermac, sizeof(filtermac)))
+			if (filter_packet(&current_packet))
 				continue;
 
 			n = node_update(&current_packet);
@@ -131,17 +132,11 @@ main(int argc, char** argv)
 			}
 
 #if !DO_DEBUG
-			if (olsr_only) {  //XXX simplify logic???
-				if (current_packet.pkt_types & PKT_TYPE_OLSR) {
-					update_display(&current_packet, n);
-				}
-			}
-			else if (!no_ctrl || (WLAN_FC_TYPE_CTRL != current_packet.wlan_type)) {
-				update_display(&current_packet, n);
-			}
+			update_display(&current_packet, n);
 #endif
 		}
-		usleep(100000);
+		else
+			usleep(100000);
 	}
 	return 0;
 }
@@ -345,17 +340,18 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 {
 	memcpy(&(n->last_pkt), p, sizeof(struct packet_info));
 	// update timestamp + status
+	n->last_seen = time(NULL);
+	n->status=1;
+	n->pkt_count++;
+	n->pkt_types |= p->pkt_types;
 	if (p->ip_src)
 		n->ip_src = p->ip_src;
-	n->status=1;
-	n->pkt_types |= p->pkt_types;
-	n->wlan_mode = p->wlan_mode;
-	n->last_seen = time(NULL);
+	if (p->wlan_mode)
+		n->wlan_mode = p->wlan_mode;
 	if (p->olsr_tc)
 		n->olsr_tc = p->olsr_tc;
 	if (p->olsr_neigh)
 		n->olsr_neigh = p->olsr_neigh;
-	n->pkt_count++;
 	if (p->pkt_types & PKT_TYPE_OLSR)
 		n->olsr_count++;
 	if (p->wlan_bssid[0] != 0xff)
@@ -474,4 +470,11 @@ check_ibss_split(struct packet_info* pkt, int pkt_node)
 	else {
 		splits.count = 0;
 	}
+}
+
+
+static int
+filter_packet(struct packet_info* pkt) {
+	//TODO add filter for packet types: OLSR, BEACON, CONTROL
+	return (do_filter && 0 != memcmp(current_packet.wlan_src, filtermac, sizeof(filtermac)));
 }
