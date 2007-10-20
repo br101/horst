@@ -552,8 +552,8 @@ update_dump_win(struct packet_info* pkt)
 				break;
 			case WLAN_FC_STYPE_BEACON:
 				wprintw(dump_win,"BEACON '%s' %08x:%08x", pkt->wlan_essid,
-					ntohl(*(unsigned long*)(&pkt->wlan_tsf[4])),
-					ntohl(*(unsigned long*)(&pkt->wlan_tsf[0])));
+					*(unsigned long*)(&pkt->wlan_tsf[4]),
+					*(unsigned long*)(&pkt->wlan_tsf[0]));
 				break;
 			case WLAN_FC_STYPE_ATIM:
 				wprintw(dump_win,"ATIM");
