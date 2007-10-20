@@ -254,38 +254,21 @@ update_stat_win(struct packet_info* pkt, int node_number)
 	}
 
 	wattron(stat_win, COLOR_PAIR(5));
-	mvwprintw(stat_win,2,6,"q: QUIT");
+	mvwprintw(stat_win,2,6,"q QUIT");
 	if (paused)
-		mvwprintw(stat_win,3,6,"p: PAUSE");
+		mvwprintw(stat_win,3,6,"p PAUSE");
 	else
-		mvwprintw(stat_win,3,6,"p: RUN  ");
-
-	if (olsr_only) {
-		mvwprintw(stat_win,4,6,"        ");
-	}
-	else {
-		if (no_ctrl)
-			mvwprintw(stat_win,4,6,"c: -CTRL");
-		else
-			mvwprintw(stat_win,4,6,"c: +CTRL");
-	}
-
-	if (olsr_only)
-		mvwprintw(stat_win,5,6,"o: OLSR");
-	else
-		mvwprintw(stat_win,5,6,"o: ALL ");
-
+		mvwprintw(stat_win,3,6,"p RUN  ");
 
 	if (do_sort)
-		mvwprintw(stat_win,6,6,"s: SORT ");
+		mvwprintw(stat_win,4,6,"s SORT ");
 	else
-		mvwprintw(stat_win,6,6,"s: !SORT");
-
+		mvwprintw(stat_win,4,6,"s !SORT");
+	mvwprintw(stat_win,5,6,"e ESSIDs");
+	mvwprintw(stat_win,6,6,"f FILTER");
 	if (do_filter)
-		mvwprintw(stat_win,11,6,"%s", ether_sprintf(filtermac));
+		mvwprintw(stat_win,7,6,"  ACTIVE");
 
-	mvwprintw(stat_win,9,6,"e ESSIDs");
-	mvwprintw(stat_win,10,6,"f FILTER");
 
 	wrefresh(stat_win);
 }
@@ -310,10 +293,11 @@ compare_nodes_snr(const void *p1, const void *p2)
 #define COL_SNR 17
 #define COL_RATE 26
 #define COL_SOURCE 29
-#define COL_BSSID 47
-#define COL_LQ 67
-#define COL_OLSR 79
-#define COL_TSF 91
+#define COL_STA 47
+#define COL_BSSID 49
+#define COL_LQ 69
+#define COL_OLSR 81
+#define COL_TSF 93
 
 
 static void
@@ -335,11 +319,11 @@ print_list_line(int line, int i, time_t now)
 		  p->snr, nodes[i].snr_max, nodes[i].snr_min);
 
 	if (nodes[i].wlan_mode == WLAN_MODE_AP )
-		mvwprintw(list_win,line,COL_LQ,"A");
+		mvwprintw(list_win,line,COL_STA,"A");
 	else if (nodes[i].wlan_mode == WLAN_MODE_IBSS )
-		mvwprintw(list_win,line,COL_LQ,"I");
+		mvwprintw(list_win,line,COL_STA,"I");
 	else
-		mvwprintw(list_win,line,COL_LQ,"S");
+		mvwprintw(list_win,line,COL_STA,"S");
 
 	mvwprintw(list_win,line,COL_RATE,"%2d", p->rate);
 	mvwprintw(list_win,line,COL_SOURCE,"%s", ether_sprintf(p->wlan_src));
