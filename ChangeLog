@@ -1,20 +1,22 @@
 2007-10-XX  Bruno Randolf (br1@einfach.org)
 
-	* added radiotap header support and automatic detection of
-	  the header format used by the driver (prism2 or radiotap)
+	* added radiotap header support and automatic detection of the header
+	format used by the driver (prism2 or radiotap)
 
-	* added IBSS SLIT detection: warn when one ESSID (name)
-	  is announced in beacons from different nodes in IBSS mode
+	* added IBSS split detection: warn when one ESSID (name) is announced
+	with different BSSIDs in beacons from different nodes in IBSS mode
 
-	* added ESSID window: list all known ESSIDs and all stations
-	  which announce the ESSID in their beacons including the TSF
-	  timestamp for easier IBSS split analysis
+	* added ESSID window: list all known ESSIDs and all stations which
+	announce the ESSID in their beacons including the TSF timestamp for
+	easier IBSS split analysis
 
-	* added MAC Filter window
+	* added MAC Filter window, improved filtering in general
 
 	* display minimum and maximum SNR of each node
 
-	* various smaller improvements and cleanups
+	* various smaller improvements, fixes and cleanups
+
+	* use non-blocking IO
 
 2007-07-20  Sven-Ola aet gmx.de
 
@@ -25,7 +27,7 @@
 	* Added remote capability. Start on one WRT using -q
 	  then listen on other WRT with -p
 
-2006-10-12  Robert Schuster   (robertschuster@fsfe.org)
+2006-10-12  Robert Schuster (robertschuster@fsfe.org)
 
 	* various changes to output (requested by Horst :) )
 	* fixed some includes (to compile with (k)ubunut)
