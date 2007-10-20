@@ -24,7 +24,9 @@ OBJS=protocol_parser.o main.o display.o network.o
 LIBS=-l ncurses
 CFLAGS=-Wall -DPACKAGE_VERSION=\"$(VERSION)\" -DPACKAGE_BUILDDATE=\"$(BUILDDATE)\" -DDO_DEBUG=$(DEBUG)
 
-all: $(NAME)
+buildstamp=.build_debug$(DEBUG)
+
+all: $(buildstamp) $(NAME)
 
 protocol_parser.o: ieee80211_header.h prism_header.h olsr_header.h
 main.o: main.h
@@ -37,3 +39,8 @@ $(NAME): $(OBJS)
 clean:
 	-rm -f *.o *~
 	-rm -f $(NAME)
+	-rm -f .build_*
+
+$(buildstamp):
+	make clean
+	touch $@
