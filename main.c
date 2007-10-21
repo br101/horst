@@ -22,18 +22,15 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <net/if.h>
 #include <netpacket/packet.h>
 #include <net/ethernet.h>
 #include <sys/ioctl.h>
-#include <net/if.h> /* needed for newer wireless tools */
 #include <string.h>
 
 #include <getopt.h>
 #include <signal.h>
 #include <time.h>
-
-#include <linux/wireless.h> //XXX: with or without linux/???
-/* it's not good to include kernel headers, i know... ;( */
 
 #include "protocol_parser.h"
 #include "display.h"
