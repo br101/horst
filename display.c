@@ -97,9 +97,9 @@ void update_display(struct packet_info* pkt, int node_number) {
 		update_essid_win();
 	else {
 		update_dump_win(pkt);
-		update_stat_win(pkt, node_number);
 		update_list_win();
 	}
+	update_stat_win(pkt, node_number);
 }
 
 

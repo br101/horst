@@ -307,7 +307,6 @@ get_options(int argc, char** argv)
 				do_filter = 1;
 				convert_string_to_mac(optarg, filtermac);
 				printf("%s\n",ether_sprintf(filtermac));
-				exit(0);
 				break;
 			case 'h':
 			default:
