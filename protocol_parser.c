@@ -34,11 +34,6 @@
 #include "main.h"
 #include "display.h"
 
-/* compatibility with old kernel includes */
-#ifndef bswap_16
-#define bswap_16(x) (((x) & 0x00ff) << 8 | ((x) & 0xff00) >> 8)
-#endif
-
 #ifndef ARPHRD_IEEE80211_RADIOTAP
 #define ARPHRD_IEEE80211_RADIOTAP 803    /* IEEE 802.11 + radiotap header */
 #endif
@@ -267,40 +262,69 @@ parse_80211_header(unsigned char** buf, int len)
 
 	wh = (struct ieee80211_hdr*)*buf;
 
-	//TODO: addresses are not always like this (WDS)
-	memcpy(current_packet.wlan_dst, wh->addr1, 6);
-	memcpy(current_packet.wlan_src, wh->addr2, 6);
-	memcpy(current_packet.wlan_bssid, wh->addr3, 6);
-	current_packet.wlan_type = WLAN_FC_GET_TYPE(ntohs(bswap_16(wh->frame_control)));
-	current_packet.wlan_stype = WLAN_FC_GET_STYPE(ntohs(bswap_16(wh->frame_control)));
+	current_packet.wlan_type = WLAN_FC_GET_TYPE(wh->frame_control);
+	current_packet.wlan_stype = WLAN_FC_GET_STYPE(wh->frame_control);
 
-	//TODO: other subtypes
-	if (current_packet.wlan_type == WLAN_FC_TYPE_MGMT && current_packet.wlan_stype == WLAN_FC_STYPE_BEACON) {
-		struct ieee80211_mgmt* whm;
-		if (len < sizeof(struct ieee80211_mgmt))
-			return -1;
-		whm = (struct ieee80211_mgmt*)*buf;
-		memcpy(current_packet.wlan_tsf, whm->u.beacon.timestamp,8);
-		if (whm->u.beacon.variable[0] == 0) { /* ESSID */
-			memcpy(current_packet.wlan_essid, &whm->u.beacon.variable[2], whm->u.beacon.variable[1]);
-			current_packet.wlan_essid[whm->u.beacon.variable[1]]='\0';
+	if (WLAN_FC_GET_TYPE(wh->frame_control) == WLAN_FC_TYPE_DATA)
+	{
+		if (wh->frame_control & WLAN_FC_TODS) {
+			/* to AP */
+			memcpy(current_packet.wlan_src, wh->addr2, 6);
+			memcpy(current_packet.wlan_dst, wh->addr3, 6);
+			memcpy(current_packet.wlan_bssid, wh->addr1, 6);
+			current_packet.wlan_mode = WLAN_MODE_STA;
 		}
-		current_packet.pkt_types = PKT_TYPE_BEACON;
-		if (whm->u.beacon.capab_info & WLAN_CAPABILITY_IBSS)
-			current_packet.wlan_mode = WLAN_MODE_IBSS;
-		else if (whm->u.beacon.capab_info & WLAN_CAPABILITY_ESS)
+		else if (wh->frame_control & WLAN_FC_FROMDS) {
+			/* from AP */
+			memcpy(current_packet.wlan_src, wh->addr3, 6);
+			memcpy(current_packet.wlan_dst, wh->addr1, 6);
+			memcpy(current_packet.wlan_bssid, wh->addr2, 6);
 			current_packet.wlan_mode = WLAN_MODE_AP;
-
-		return 0;
-	}
-	else if (current_packet.wlan_type == WLAN_FC_TYPE_MGMT && current_packet.wlan_stype == WLAN_FC_STYPE_PROBE_REQ) {
-		current_packet.pkt_types = PKT_TYPE_PROBE_REQ;
-		return 0;
-	}
-	else if (current_packet.wlan_type == WLAN_FC_TYPE_DATA && current_packet.wlan_stype == WLAN_FC_STYPE_DATA) {
+		}
+		else if (wh->frame_control & WLAN_FC_FROMDS && wh->frame_control & WLAN_FC_TODS) {
+			/* WDS - ignore */
+			return 0;
+		}
+		else {
+			/* IBSS */
+			memcpy(current_packet.wlan_src, wh->addr2, 6);
+			memcpy(current_packet.wlan_dst, wh->addr1, 6);
+			memcpy(current_packet.wlan_bssid, wh->addr3, 6);
+			current_packet.wlan_mode = WLAN_MODE_IBSS;
+		}
 		current_packet.pkt_types = PKT_TYPE_DATA;
 	}
-	else {
+	else if (WLAN_FC_GET_TYPE(wh->frame_control) == WLAN_FC_TYPE_MGMT) {
+		memcpy(current_packet.wlan_dst, wh->addr1, 6);
+		memcpy(current_packet.wlan_src, wh->addr2, 6);
+		memcpy(current_packet.wlan_bssid, wh->addr3, 6);
+		//TODO: other subtypes
+		if (WLAN_FC_GET_STYPE(wh->frame_control) & WLAN_FC_STYPE_BEACON) {
+			struct ieee80211_mgmt* whm;
+			if (len < sizeof(struct ieee80211_mgmt))
+				return -1;
+			whm = (struct ieee80211_mgmt*)*buf;
+			memcpy(current_packet.wlan_tsf, whm->u.beacon.timestamp,8);
+			if (whm->u.beacon.variable[0] == 0) { /* ESSID */
+				memcpy(current_packet.wlan_essid, &whm->u.beacon.variable[2], whm->u.beacon.variable[1]);
+				current_packet.wlan_essid[whm->u.beacon.variable[1]]='\0';
+			}
+			current_packet.pkt_types = PKT_TYPE_BEACON;
+			if (whm->u.beacon.capab_info & WLAN_CAPABILITY_IBSS)
+				current_packet.wlan_mode = WLAN_MODE_IBSS;
+			else if (whm->u.beacon.capab_info & WLAN_CAPABILITY_ESS)
+				current_packet.wlan_mode = WLAN_MODE_AP;
+			return 0;
+		}
+		else if (WLAN_FC_GET_STYPE(wh->frame_control) & WLAN_FC_STYPE_PROBE_REQ) {
+			current_packet.pkt_types = PKT_TYPE_PROBE_REQ;
+			return 0;
+		}
+	}
+	else if (WLAN_FC_GET_TYPE(wh->frame_control) == WLAN_FC_TYPE_CTRL) {
+		; /* ignore */
+	}
+	else { /* shouldnt happen (tm) */
 		return 0;
 	}
 

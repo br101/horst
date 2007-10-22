@@ -69,6 +69,7 @@ extern struct packet_info current_packet;
 
 #define WLAN_MODE_AP		0x01
 #define WLAN_MODE_IBSS		0x02
+#define WLAN_MODE_STA		0x04
 
 struct node_info {
 	int status;
