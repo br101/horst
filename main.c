@@ -394,7 +394,7 @@ check_ibss_split(struct packet_info* pkt, int pkt_node)
 	unsigned char* last_bssid = NULL;
 
 	/* only check beacons (XXX: what about PROBE?) */
-	if (!(pkt->pkt_types & PKT_TYPE_BEACON)) {
+	if (pkt->pkt_types != PKT_TYPE_BEACON) {
 		return;
 	}
 
@@ -447,6 +447,9 @@ check_ibss_split(struct packet_info* pkt, int pkt_node)
 		DEBUG("SPLIT      %d. node %d src %s", n,
 			essids[i].nodes[n], ether_sprintf(node->last_pkt.wlan_src));
 		DEBUG(" bssid %s\n", ether_sprintf(node->wlan_bssid));
+
+		if (node->wlan_mode == WLAN_MODE_AP)
+			continue;
 
 		if (last_bssid && memcmp(last_bssid,node->wlan_bssid,6) != 0) {
 			essids[i].split = 1;

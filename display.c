@@ -441,7 +441,7 @@ update_essid_win(void)
 			mvwprintw(essid_win, line, 9, "%2d. %s", n+1,
 				ether_sprintf(node->last_pkt.wlan_src));
 			wprintw(essid_win, " bssid (%s) ", ether_sprintf(node->wlan_bssid));
-			wprintw(essid_win,"TSF %08x:%08x", nodes[i].tsfh, nodes[i].tsfl);
+			wprintw(essid_win,"TSF %08x:%08x", node->tsfh, node->tsfl);
 			line++;
 		}
 		line++;
