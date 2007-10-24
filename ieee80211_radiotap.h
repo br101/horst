@@ -54,6 +54,14 @@
 #endif
 #endif /* defined(__KERNEL__) || defined(_KERNEL) */
 
+/* kernel 2.4 compat */
+#if !defined __le16
+#define __le16        u_int16_t
+#endif
+#if !defined __le32
+#define __le32        u_int32_t
+#endif
+
 /* The radio capture header precedes the 802.11 header. */
 struct ieee80211_radiotap_header {
 	u_int8_t it_version;		/* Version 0. Only increases
