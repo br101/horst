@@ -1,5 +1,3 @@
- * ibss split detection: warn only IBSS in AP mode its normal
- * display AP or ADHOC
  * batman support
  * snr history graph
  * dump info into file
@@ -16,3 +14,12 @@
 noise WRT
 
 SNR flattern - nur beacon option fuer SNR
+
+Eine kleine Statistik, mit 2 Torten oder Balkendiags:
+
+1: empfangene Wifi Frames nach Typ, etwa
+    (typ 4-probereq sind 10%, typ 32-data sind 30%)
+
+2: empfangene Wifi Frames nach Speed, etwa
+    (10% auf 1mbit, 20% auf 5.5mbit etc am besten
+   die belegte "Luftzeit%" -also bytes*rate=time anzeigen)
