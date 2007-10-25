@@ -113,8 +113,10 @@ main(int argc, char** argv)
 			dump_packet(buffer, len);
 #endif
 			memset(&current_packet,0,sizeof(current_packet));
-			if (!parse_packet(buffer, len))
+			if (!parse_packet(buffer, len)) {
+				DEBUG("parsing failed\n");
 				continue;
+			}
 
 			if (filter_packet(&current_packet))
 				continue;

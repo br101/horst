@@ -481,6 +481,8 @@ update_dump_win(struct packet_info* pkt)
 		mvwprintw(dump_win_box,LINES/2-1,COLS-25,"RADIOTAP");
 	else if (arphrd == 802)
 		mvwprintw(dump_win_box,LINES/2-1,COLS-25,"PRISM2");
+	else if (arphrd == 801)
+		mvwprintw(dump_win_box,LINES/2-1,COLS-26,"IEEE802.11");
 	else
 		mvwprintw(dump_win_box,LINES/2-1,COLS-25,"UNSUPP");
 

@@ -66,6 +66,7 @@ parse_packet(unsigned char* buf, int len)
 	if (arphrd == ARPHRD_IEEE80211 ||
 	    arphrd == ARPHRD_IEEE80211_PRISM ||
 	    arphrd == ARPHRD_IEEE80211_RADIOTAP) {
+		DEBUG("before parse 80211 len: %d\n", len);
 		len = parse_80211_header(&buf, len);
 		if (len < 0) /* couldnt parse */
 			return 0;
@@ -254,12 +255,11 @@ parse_80211_header(unsigned char** buf, int len)
 {
 	struct ieee80211_hdr* wh;
 
-	DEBUG("STYPE %x\n", WLAN_FC_GET_STYPE(wh->frame_control));
-
 	if (len < sizeof(struct ieee80211_hdr))
 		return -1;
 
 	wh = (struct ieee80211_hdr*)*buf;
+	DEBUG("STYPE %x\n", WLAN_FC_GET_STYPE(wh->frame_control));
 
 	current_packet.wlan_type = WLAN_FC_GET_TYPE(wh->frame_control);
 	current_packet.wlan_stype = WLAN_FC_GET_STYPE(wh->frame_control);
