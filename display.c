@@ -200,7 +200,8 @@ handle_user_input()
 		default:
 			return;
 	}
-	update_display(NULL,-1);
+	if (!paused)
+		update_display(NULL,-1);
 }
 
 
