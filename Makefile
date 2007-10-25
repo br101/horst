@@ -22,8 +22,7 @@ DEBUG=0
 BUILDDATE=$(shell date +"%d.%m.%Y")
 OBJS=protocol_parser.o main.o display.o network.o
 LIBS=-l ncurses
-CFLAGS+=-Wall -DPACKAGE_VERSION=\"$(VERSION)\" -DPACKAGE_BUILDDATE=\"$(BUILDDATE)\" 
--DDO_DEBUG=$(DEBUG)
+CFLAGS+=-Wall -DPACKAGE_VERSION=\"$(VERSION)\" -DPACKAGE_BUILDDATE=\"$(BUILDDATE)\" -DDO_DEBUG=$(DEBUG)
 
 buildstamp=.build_debug$(DEBUG)
 
