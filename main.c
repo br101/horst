@@ -79,8 +79,6 @@ int
 main(int argc, char** argv)
 {
 	unsigned char buffer[8192];
-	struct sockaddr from;
-	socklen_t fromlen;
 	int len;
 	int n;
 
@@ -104,7 +102,7 @@ main(int argc, char** argv)
 	}
 #endif
 
-	while ((len = recvfrom(mon, buffer, 8192, MSG_DONTWAIT, &from, &fromlen)))
+	while ((len = recv(mon, buffer, 8192, MSG_DONTWAIT)))
 	{
 		handle_user_input();
 
