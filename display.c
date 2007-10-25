@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <curses.h>
 #include <sys/socket.h>
-#include <linux/if_arp.h>
 
 #include "display.h"
 #include "ieee80211_header.h"

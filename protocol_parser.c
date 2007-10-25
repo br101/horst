@@ -19,11 +19,10 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <linux/ip.h>
-#include <linux/udp.h>
-#include <linux/tcp.h>
 #include <sys/socket.h>
-#include <linux/if_arp.h>
+#include <net/if_arp.h>
+#include <netinet/ip.h>
+#include <netinet/udp.h>
 
 #include "prism_header.h"
 #include "ieee80211_radiotap.h"
