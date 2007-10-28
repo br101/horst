@@ -103,25 +103,18 @@ parse_prism_header(unsigned char** buf, int len)
 	 * different drivers report S/N and rssi values differently
 	 * let's make sure here that SNR is always positive, so we
 	 * don't have do handle special cases later
-	 * let signal and noise be driver specific for now
 	*/
 	if (((int)ph->noise.data)<0) {
 		/* new madwifi */
 		current_packet.signal = ph->signal.data;
 		current_packet.noise = ph->noise.data;
 		current_packet.snr = ph->rssi.data;
-		/* old madwifi:
-		current_packet.noise = 95; // noise is constantly -95
-		// signal is rssi (received signal strength) relative to -95dB noise
-		current_packet.signal = 95 - ph->signal.data;
-		current_packet.snr = ph->signal.data;
-		*/
 	}
 	else if (((int)ph->rssi.data)<0) {
 		/* broadcom hack */
-		current_packet.signal = -95 - ph->rssi.data;
+		current_packet.signal = ph->rssi.data;
 		current_packet.noise = -95;
-		current_packet.snr = -ph->rssi.data;
+		current_packet.snr = 95 + ph->rssi.data;
 	}
 	else {
 		/* assume hostap */
