@@ -29,10 +29,10 @@
 #include "ieee80211_header.h"
 #include "olsr_header.h"
 
-WINDOW *dump_win;
-WINDOW *dump_win_box;
-WINDOW *list_win;
-WINDOW *stat_win;
+WINDOW *dump_win = NULL;
+WINDOW *dump_win_box = NULL;
+WINDOW *list_win = NULL;
+WINDOW *stat_win = NULL;
 WINDOW *essid_win = NULL;
 WINDOW *filter_win = NULL;
 WINDOW *hist_win = NULL;
@@ -51,6 +51,8 @@ static int do_sort=0;
 extern char* ifname;
 extern unsigned char filtermac[6];
 extern int do_filter;
+
+struct node_info* sort_nodes[MAX_NODES];
 
 
 static inline void print_centered(WINDOW* win, int line, char* str) {
@@ -288,8 +290,8 @@ update_stat_win(struct packet_info* pkt, int node_number)
 static int
 compare_nodes_snr(const void *p1, const void *p2)
 {
-	struct node_info* n1 = (struct node_info*)p1;
-	struct node_info* n2 = (struct node_info*)p2;
+	struct node_info* n1 = *(struct node_info**)p1;
+	struct node_info* n2 = *(struct node_info**)p2;
 
 	if (n1->last_pkt.snr > n2->last_pkt.snr)
 		return -1;
@@ -311,43 +313,43 @@ compare_nodes_snr(const void *p1, const void *p2)
 #define COL_TSF 93
 
 static void
-print_list_line(int line, int i, time_t now)
+print_list_line(int line, struct node_info* n, time_t now)
 {
-	struct packet_info* p = &nodes[i].last_pkt;
+	struct packet_info* p = &n->last_pkt;
 
-	if (nodes[i].pkt_types & PKT_TYPE_OLSR)
+	if (n->pkt_types & PKT_TYPE_OLSR)
 		wattron(list_win,A_UNDERLINE);
-	if (nodes[i].last_seen > now - NODE_TIMEOUT/2)
+	if (n->last_seen > now - NODE_TIMEOUT/2)
 		wattron(list_win,A_BOLD);
 	else
 		wattron(list_win,A_NORMAL);
 
-	if (essids[nodes[i].essid].split>0)
+	if (essids[n->essid].split>0)
 		wattron(list_win,RED);
 
 	mvwprintw(list_win,line,COL_SNR,"%2d/%2d/%2d",
-		  p->snr, nodes[i].snr_max, nodes[i].snr_min);
+		  p->snr, n->snr_max, n->snr_min);
 
-	if (nodes[i].wlan_mode == WLAN_MODE_AP )
+	if (n->wlan_mode == WLAN_MODE_AP )
 		mvwprintw(list_win,line,COL_STA,"A");
-	else if (nodes[i].wlan_mode == WLAN_MODE_IBSS )
+	else if (n->wlan_mode == WLAN_MODE_IBSS )
 		mvwprintw(list_win,line,COL_STA,"I");
 	else
 		mvwprintw(list_win,line,COL_STA,"S");
 
 	mvwprintw(list_win,line,COL_RATE,"%2d", p->rate);
 	mvwprintw(list_win,line,COL_SOURCE,"%s", ether_sprintf(p->wlan_src));
-	mvwprintw(list_win,line,COL_BSSID,"(%s)", ether_sprintf(nodes[i].wlan_bssid));
-	if (nodes[i].pkt_types & PKT_TYPE_IP)
-		mvwprintw(list_win,line,COL_IP,"%s", ip_sprintf(nodes[i].ip_src));
-	if (nodes[i].pkt_types & PKT_TYPE_OLSR_LQ)
+	mvwprintw(list_win,line,COL_BSSID,"(%s)", ether_sprintf(n->wlan_bssid));
+	if (n->pkt_types & PKT_TYPE_IP)
+		mvwprintw(list_win,line,COL_IP,"%s", ip_sprintf(n->ip_src));
+	if (n->pkt_types & PKT_TYPE_OLSR_LQ)
 		mvwprintw(list_win,line,COL_LQ,"LQ");
-	if (nodes[i].pkt_types & PKT_TYPE_OLSR_GW)
+	if (n->pkt_types & PKT_TYPE_OLSR_GW)
 		mvwprintw(list_win,line,COL_LQ+3,"GW");
-	if (nodes[i].pkt_types & PKT_TYPE_OLSR)
-		mvwprintw(list_win,line,COL_LQ+6,"N:%d", nodes[i].olsr_neigh);
-	mvwprintw(list_win,line,COL_OLSR,"%d/%d", nodes[i].olsr_count, nodes[i].pkt_count);
-	mvwprintw(list_win,line,COL_TSF,"%08x", nodes[i].tsfh);
+	if (n->pkt_types & PKT_TYPE_OLSR)
+		mvwprintw(list_win,line,COL_LQ+6,"N:%d", n->olsr_neigh);
+	mvwprintw(list_win,line,COL_OLSR,"%d/%d", n->olsr_count, n->pkt_count);
+	mvwprintw(list_win,line,COL_TSF,"%08x", n->tsfh);
 
 	wattroff(list_win,A_BOLD);
 	wattroff(list_win,A_UNDERLINE);
@@ -359,11 +361,12 @@ static void
 update_list_win(void)
 {
 	int i;
+	int num_nodes;
+	struct node_info* n;
 	int line=0;
 	time_t now;
 	now = time(NULL);
 
-	// repaint everything every time
 	werase(list_win);
 	wattron(list_win, WHITE);
 	box(list_win, 0 , 0);
@@ -376,18 +379,24 @@ update_list_win(void)
 	mvwprintw(list_win,0,COL_OLSR,"OLSR/COUNT");
 	mvwprintw(list_win,0,COL_TSF,"TSF(High)");
 
+	/* create an array of node pointers to make sorting independent */
+	for (i=0; i<MAX_NODES && nodes[i].status == 1; i++)
+		sort_nodes[i] = &nodes[i];
+
+	num_nodes = i;
+
 	if (do_sort) {
 		/* sort by SNR */
-		qsort(nodes, MAX_NODES, sizeof(struct node_info), compare_nodes_snr);
+		qsort(sort_nodes, num_nodes, sizeof(struct node_info*), compare_nodes_snr);
 	}
 
-	for (i=0; i<MAX_NODES; i++) {
-		if (nodes[i].status == 1
-		    && nodes[i].last_seen > now - NODE_TIMEOUT) {
+	for (i=0; i<num_nodes; i++) {
+		n = sort_nodes[i];
+		if (n->last_seen > now - NODE_TIMEOUT) {
 			line++;
 			/* Prevent overdraw of last line */
 			if (line < LINES/2-2)
-				print_list_line(line,i,now);
+				print_list_line(line,n,now);
 		}
 	}
 
