@@ -58,6 +58,7 @@ extern struct packet_info current_packet;
 #define MAX_NODES 255
 #define MAX_ESSIDS 255
 #define MAX_BSSIDS 255
+#define MAX_HISTORY 100
 
 #define PKT_TYPE_BEACON		0x01
 #define PKT_TYPE_PROBE_REQ	0x02
@@ -108,6 +109,16 @@ struct split_info {
 };
 
 extern struct split_info splits;
+
+struct history {
+	int signal[MAX_HISTORY];
+	int noise[MAX_HISTORY];
+	int rate[MAX_HISTORY];
+	int type[MAX_HISTORY];
+	int index;
+};
+
+extern struct history hist;
 
 extern int paused;
 extern int olsr_only;

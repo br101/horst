@@ -32,13 +32,16 @@ WINDOW *list_win;
 WINDOW *stat_win;
 WINDOW *essid_win = NULL;
 WINDOW *filter_win = NULL;
+WINDOW *hist_win = NULL;
 
 static void update_dump_win(struct packet_info* pkt);
 static void update_stat_win(struct packet_info* pkt, int node_number);
 static void update_list_win(void);
 static void update_essid_win(void);
+static void update_hist_win(void);
 static void display_essid_win(void);
 static void display_filter_win(void);
+static void display_hist_win(void);
 
 static int do_sort=0;
 
@@ -47,6 +50,7 @@ extern unsigned char filtermac[6];
 extern int do_filter;
 
 void convert_string_to_mac(const char* string, unsigned char* mac);
+static inline int normalize(int val, float max_val, int max);
 
 
 void
@@ -59,12 +63,21 @@ init_display(void)
 	cbreak();       /* take input chars one at a time, no wait for \n */
 	noecho();         /* echo input - in color */
 	nodelay(stdscr,TRUE);
-	init_pair(1, COLOR_CYAN, COLOR_BLACK);
+	init_pair(1, COLOR_WHITE, COLOR_BLACK);
 	init_pair(2, COLOR_GREEN, COLOR_BLACK);
-	init_pair(3, COLOR_YELLOW, COLOR_BLACK);
-	init_pair(4, COLOR_BLUE, COLOR_BLACK);
-	init_pair(5, COLOR_WHITE, COLOR_BLACK);
-	init_pair(6, COLOR_RED, COLOR_BLACK);
+	init_pair(3, COLOR_RED, COLOR_BLACK);
+	init_pair(4, COLOR_CYAN, COLOR_BLACK);
+	init_pair(5, COLOR_BLUE, COLOR_BLACK);
+
+	/* COLOR_BLACK COLOR_RED COLOR_GREEN COLOR_YELLOW COLOR_BLUE 
+	COLOR_MAGENTA COLOR_CYAN COLOR_WHITE */
+
+#define WHITE	COLOR_PAIR(1)
+#define GREEN	COLOR_PAIR(2)
+#define RED	COLOR_PAIR(3)
+#define CYAN	COLOR_PAIR(4)
+#define BLUE	COLOR_PAIR(5)
+
 
 	move(0,COLS/2-20);
 	printw("HORST - Horsts OLSR Radio Scanning Tool");
@@ -83,7 +96,6 @@ init_display(void)
 	wrefresh(dump_win);
 
 	dump_win = newwin(LINES/2-2, COLS-15-2, LINES/2+1, 1);
-	wattron(dump_win, COLOR_PAIR(1));
 	scrollok(dump_win,TRUE);
 	wrefresh(dump_win);
 
@@ -94,11 +106,13 @@ init_display(void)
 void update_display(struct packet_info* pkt, int node_number) {
 	if (essid_win!=NULL)
 		update_essid_win();
+	else if (hist_win!=NULL)
+		update_hist_win();
 	else {
 		update_dump_win(pkt);
 		update_list_win();
+		update_stat_win(pkt, node_number);
 	}
-	update_stat_win(pkt, node_number);
 }
 
 
@@ -179,6 +193,15 @@ handle_user_input()
 				essid_win = NULL;
 			}
 			break;//return; // dont redraw
+		case 'h': case 'H':
+			if (hist_win == NULL)
+				display_hist_win();
+			else {
+				delwin(hist_win);
+				hist_win = NULL;
+			}
+			break;//return; // dont redraw
+
 		case 'f': case 'F':
 			if (filter_win == NULL)
 				display_filter_win();
@@ -210,10 +233,12 @@ update_stat_win(struct packet_info* pkt, int node_number)
 {
 	// repaint everything every time
 	werase(stat_win);
+	wattron(stat_win, WHITE);
 	box(stat_win, 0 , 0);
 	mvwprintw(stat_win,0,2," Status ");
 	mvwprintw(stat_win,LINES/2-1,2,ifname);
-	wattron(stat_win, COLOR_PAIR(2));
+
+	wattron(stat_win, GREEN);
 
 	if (pkt!=NULL)
 	{
@@ -222,10 +247,8 @@ update_stat_win(struct packet_info* pkt, int node_number)
 		int min;
 		int max;
 
-		snr=(snr/60.0)*max_bar; /* normalize for bar, assume max received SNR is 60 */
-		if (snr>max_bar) snr=max_bar; /* cap if still bigger */
-	
-		wattron(stat_win, COLOR_PAIR(2));
+		snr=normalize(snr,60.0,max_bar);
+
 		mvwvline(stat_win, 1, 2, ' ', max_bar-snr);
 		mvwvline(stat_win, 1, 3, ' ', max_bar-snr);
 		if (node_number>=0 && nodes[node_number].snr_max>0) {
@@ -234,8 +257,8 @@ update_stat_win(struct packet_info* pkt, int node_number)
 				  nodes[node_number].snr_max, nodes[node_number].snr_min);
 			wattroff(stat_win, A_BOLD);
 
-			max=(nodes[node_number].snr_max/60.0)*max_bar;
-			min=(nodes[node_number].snr_min/60.0)*max_bar;
+			max=normalize(nodes[node_number].snr_max,60.0,max_bar);
+			min=normalize(nodes[node_number].snr_min,60.0,max_bar);
 			if (max>1)
 				mvwprintw(stat_win, LINES/2-max-1, 2, "--");
 		}
@@ -252,23 +275,6 @@ update_stat_win(struct packet_info* pkt, int node_number)
 		mvwprintw(stat_win, LINES/2-2,6,"%2d", pkt->snr);
 		wattroff(stat_win, A_BOLD);
 	}
-
-	wattron(stat_win, COLOR_PAIR(5));
-	mvwprintw(stat_win,2,6,"q QUIT");
-	if (paused)
-		mvwprintw(stat_win,3,6,"p PAUSE");
-	else
-		mvwprintw(stat_win,3,6,"p RUN  ");
-
-	if (do_sort)
-		mvwprintw(stat_win,4,6,"s SORT ");
-	else
-		mvwprintw(stat_win,4,6,"s !SORT");
-	mvwprintw(stat_win,5,6,"e ESSIDs");
-	mvwprintw(stat_win,6,6,"f FILTER");
-	if (do_filter)
-		mvwprintw(stat_win,7,6,"  ACTIVE");
-
 
 	wrefresh(stat_win);
 }
@@ -299,7 +305,6 @@ compare_nodes_snr(const void *p1, const void *p2)
 #define COL_OLSR 81
 #define COL_TSF 93
 
-
 static void
 print_list_line(int line, int i, time_t now)
 {
@@ -313,7 +318,7 @@ print_list_line(int line, int i, time_t now)
 		wattron(list_win,A_NORMAL);
 
 	if (essids[nodes[i].essid].split>0)
-		wattron(list_win,COLOR_PAIR(6));
+		wattron(list_win,RED);
 
 	mvwprintw(list_win,line,COL_SNR,"%2d/%2d/%2d",
 		  p->snr, nodes[i].snr_max, nodes[i].snr_min);
@@ -341,7 +346,7 @@ print_list_line(int line, int i, time_t now)
 
 	wattroff(list_win,A_BOLD);
 	wattroff(list_win,A_UNDERLINE);
-	wattroff(list_win,COLOR_PAIR(6));
+	wattroff(list_win,RED);
 }
 
 
@@ -355,7 +360,7 @@ update_list_win(void)
 
 	// repaint everything every time
 	werase(list_win);
-	wattron(list_win,COLOR_PAIR(5));
+	wattron(list_win, WHITE);
 	box(list_win, 0 , 0);
 	mvwprintw(list_win,0,COL_SNR,"SN/MX/MI");
 	mvwprintw(list_win,0,COL_RATE,"RT");
@@ -382,12 +387,12 @@ update_list_win(void)
 	}
 
 	if (splits.count>0) {
-		wattron(list_win, COLOR_PAIR(6));
+		wattron(list_win, RED);
 		mvwprintw(list_win,LINES/2-2,10," *** IBSS SPLIT DETECTED!!! ESSID ");
 		wprintw(list_win,"'%s' ", essids[splits.essid[0]].essid);
 		wprintw(list_win,"%d nodes *** ",
 			essids[splits.essid[0]].num_nodes);
-		wattroff(list_win, COLOR_PAIR(6));
+		wattroff(list_win, RED);
 	}
 
 	wrefresh(list_win);
@@ -399,12 +404,7 @@ static void
 display_essid_win()
 {
 	essid_win = newwin(LINES-3, 80, 2, 2);
-	box(essid_win, 0 , 0);
-	mvwprintw(essid_win,0,2," ESSIDs ");
-	mvwprintw(essid_win,LINES/2-1,2,ifname);
-	wattron(essid_win, COLOR_PAIR(2));
 	scrollok(essid_win,FALSE);
-	wrefresh(essid_win);
 	update_essid_win();
 }
 
@@ -417,14 +417,15 @@ update_essid_win(void)
 	struct node_info* node;
 
 	werase(essid_win);
+	wattron(essid_win, WHITE);
 	box(essid_win, 0 , 0);
 	mvwprintw(essid_win,0,2," ESSIDs ");
 
 	for (i=0; i<MAX_ESSIDS && essids[i].num_nodes>0; i++) {
 		if (essids[i].split>0)
-			wattron(essid_win, COLOR_PAIR(6));
+			wattron(essid_win, RED);
 		else
-			wattron(essid_win, COLOR_PAIR(2));
+			wattron(essid_win, GREEN);
 		mvwprintw(essid_win, line, 2, "ESSID '%s' BSSID ", essids[i].essid );
 		if (essids[i].split==0)
 			wprintw(essid_win, "(%s)", ether_sprintf(nodes[essids[i].nodes[0]].wlan_bssid));
@@ -451,6 +452,102 @@ update_essid_win(void)
 
 
 static void
+display_hist_win()
+{
+	hist_win = newwin(LINES-2, COLS-4, 2, 2);
+	scrollok(hist_win,FALSE);
+	update_hist_win();
+}
+
+
+static inline int
+normalize(int oval, float max_val, int max) {
+	int val;
+	val=(oval/max_val)*max;
+	if (val>max)
+		val=max; /* cap if still bigger */
+	if (val==0 && oval > 0)
+		val=1;
+	return val;
+}
+
+
+#define SIGN_POS LINES-20
+#define TYPE_POS SIGN_POS+1
+#define RATE_POS LINES-5
+
+static void
+update_hist_win(void)
+{
+	int i;
+	int col=COLS-6;
+	int sig, noi, rat;
+
+	werase(hist_win);
+	wattron(hist_win, WHITE);
+	box(hist_win, 0 , 0);
+	mvwprintw(hist_win, 0, 2, " HISTORY ");
+	mvwhline(hist_win, SIGN_POS, 1, ACS_HLINE, col);
+	mvwhline(hist_win, RATE_POS-10, 1, ACS_HLINE, col);
+
+	wattron(hist_win, GREEN);
+	mvwprintw(hist_win, SIGN_POS-2, 1, "SIG");
+	wattron(hist_win, RED);
+	mvwprintw(hist_win, SIGN_POS-1, 1, "NOI");
+
+	wattron(hist_win, CYAN);
+	mvwprintw(hist_win, TYPE_POS, 1, "TYP");
+
+	wattron(hist_win, BLUE);
+	mvwprintw(hist_win, RATE_POS-9, 1, "54M");
+	mvwprintw(hist_win, RATE_POS-8, 1, "46M");
+	mvwprintw(hist_win, RATE_POS-7, 1, "36M");
+	mvwprintw(hist_win, RATE_POS-6, 1, "30M");
+	mvwprintw(hist_win, RATE_POS-5, 1, "24M");
+	mvwprintw(hist_win, RATE_POS-4, 1, "11M");
+	mvwprintw(hist_win, RATE_POS-3, 1, " 5M");
+	mvwprintw(hist_win, RATE_POS-2, 1, " 2M");
+	mvwprintw(hist_win, RATE_POS-1, 1, " 1M");
+
+	i = hist.index-1;
+
+	/* !!! assume history is always bigger than cols */
+
+	while (col>4 && hist.signal[i]!=0)
+	{
+		sig = normalize(-hist.signal[i], 99.0, SIGN_POS);
+		noi = normalize(-hist.noise[i], 99.0, SIGN_POS);
+		rat = normalize(hist.rate[i], 54.0, 10);
+
+		wattron(hist_win, GREEN);
+		mvwvline(hist_win, sig, col, ACS_BLOCK, SIGN_POS-sig);
+
+		wattron(hist_win, RED);
+		mvwvline(hist_win, noi, col, ACS_BLOCK, SIGN_POS-noi);
+
+		wattron(hist_win, BLUE);
+		mvwvline(hist_win, RATE_POS-rat, col, 'x', rat);
+
+		wattron(hist_win, CYAN);
+		if (hist.type[i] == WLAN_FC_TYPE_MGMT)
+			mvwprintw(hist_win, TYPE_POS, col, "M");
+		else if (hist.type[i] == WLAN_FC_TYPE_CTRL)
+			mvwprintw(hist_win, TYPE_POS, col, "C");
+		else if (hist.type[i] == WLAN_FC_TYPE_DATA)
+			mvwprintw(hist_win, TYPE_POS, col, "D");
+		else
+			mvwprintw(hist_win, TYPE_POS, col, "?");
+
+		i--;
+		col--;
+		if (i < 0) 
+			i = MAX_HISTORY-1;
+	}
+	wrefresh(hist_win);
+}
+
+
+static void
 display_filter_win()
 {
 	paused = 1;
@@ -470,6 +567,7 @@ display_filter_win()
 void
 update_dump_win(struct packet_info* pkt)
 {
+	wattron(stat_win, WHITE);
 	box(dump_win_box, 0 , 0);
 	mvwprintw(dump_win_box,0,1,"Sig/Noi");
 	mvwprintw(dump_win_box,0,9,"RT");
@@ -492,6 +590,8 @@ update_dump_win(struct packet_info* pkt)
 		wrefresh(dump_win);
 		return;
 	}
+
+	wattron(dump_win, CYAN);
 
 	if (pkt->olsr_type>0 && pkt->pkt_types & PKT_TYPE_OLSR)
 		wattron(dump_win,A_BOLD);

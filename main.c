@@ -45,6 +45,7 @@ static void get_options(int argv, char** argc);
 static int node_update(struct packet_info* pkt);
 static void check_ibss_split(struct packet_info* pkt, int pkt_node);
 static int filter_packet(struct packet_info* pkt);
+static void update_history(struct packet_info* pkt);
 
 struct packet_info current_packet;
 
@@ -55,6 +56,8 @@ struct node_info nodes[MAX_NODES];
 struct essid_info essids[MAX_ESSIDS];
 
 struct split_info splits;
+
+struct history hist;
 
 char* ifname = "wlan0";
 
@@ -120,6 +123,8 @@ main(int argc, char** argv)
 				continue;
 
 			n = node_update(&current_packet);
+
+			update_history(&current_packet);
 
 			check_ibss_split(&current_packet, n);
 
@@ -473,4 +478,15 @@ static int
 filter_packet(struct packet_info* pkt) {
 	//TODO add filter for packet types: OLSR, BEACON, CONTROL
 	return (do_filter && 0 != memcmp(current_packet.wlan_src, filtermac, sizeof(filtermac)));
+}
+
+static void
+update_history(struct packet_info* p) {
+	hist.signal[hist.index] = p->signal;
+	hist.noise[hist.index] = p->noise;
+	hist.rate[hist.index] = p->rate;
+	hist.type[hist.index] = p->wlan_type;
+	hist.index++;
+	if (hist.index == MAX_HISTORY)
+		hist.index = 0;
 }
