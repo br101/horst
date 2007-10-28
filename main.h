@@ -118,7 +118,7 @@ extern int paused;
 extern int olsr_only;
 extern int no_ctrl;
 extern int arphrd; // the device ARP type
-
+extern int node_timeout;
 
 void
 finish_all(int sig);

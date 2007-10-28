@@ -77,6 +77,7 @@ int quiet = 0;
 
 int arphrd;
 
+int node_timeout = NODE_TIMEOUT;
 
 /* may be better to integrate all this into kismet */
 int
@@ -280,7 +281,7 @@ get_options(int argc, char** argv)
 {
 	int c;
 	
-	while((c = getopt(argc, argv, "hqi:p:e:")) > 0) {
+	while((c = getopt(argc, argv, "hqi:t:p:e:")) > 0) {
 		switch (c) {
 			case 'p':
 				rport = atoi(optarg);
@@ -291,6 +292,9 @@ get_options(int argc, char** argv)
 			case 'i':
 				ifname = optarg;
 				break;
+			case 't':
+				node_timeout = atoi(optarg);
+				break;
 			case 'e':
 				do_filter = 1;
 				convert_string_to_mac(optarg, filtermac);
@@ -298,7 +302,7 @@ get_options(int argc, char** argv)
 				break;
 			case 'h':
 			default:
-				printf("usage: %s [-q] [-i <interface>] [-p <remote port>] -e <filtermac>\n\n", argv[0]);
+				printf("usage: %s [-q] [-i <interface>] [-t timeout] [-p <remote port>] -e <filtermac>\n\n", argv[0]);
 				exit(0);
 				break;
 		}

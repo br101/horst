@@ -319,7 +319,7 @@ print_list_line(int line, struct node_info* n, time_t now)
 
 	if (n->pkt_types & PKT_TYPE_OLSR)
 		wattron(list_win,A_UNDERLINE);
-	if (n->last_seen > now - NODE_TIMEOUT/2)
+	if (n->last_seen > now - node_timeout/2)
 		wattron(list_win,A_BOLD);
 	else
 		wattron(list_win,A_NORMAL);
@@ -392,7 +392,7 @@ update_list_win(void)
 
 	for (i=0; i<num_nodes; i++) {
 		n = sort_nodes[i];
-		if (n->last_seen > now - NODE_TIMEOUT) {
+		if (n->last_seen > now - node_timeout) {
 			line++;
 			/* Prevent overdraw of last line */
 			if (line < LINES/2-2)
