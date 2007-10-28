@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <err.h>
 
 #include "main.h"
 #include "display.h" // ether_sprintf
@@ -34,19 +35,16 @@ net_init_socket(int rport)
 	sock_in.sin_addr.s_addr=htonl(INADDR_ANY);
 
 	if ((srv_fd=socket(AF_INET,SOCK_STREAM,0)) < 0) {
-		perror("socket"); exit(-1);
+		err(1, "socket");
 	}
 	if (setsockopt(srv_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {
-		perror("setsockopt SO_REUSEADDR");
-		exit(-1);
+		err(1, "setsockopt SO_REUSEADDR");
 	}
 	if (bind(srv_fd, (struct sockaddr*)&sock_in, sizeof(sock_in)) < 0) {
-		perror("bind");
-		exit(-1);
+		err(1, "bind");
 	}
 	if (listen(srv_fd, 5) < 0) {
-		perror("listen");
-		exit(-1);
+		err(1, "listen");
 	}
 } 
 

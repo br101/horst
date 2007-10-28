@@ -27,10 +27,10 @@
 #include <net/ethernet.h>
 #include <sys/ioctl.h>
 #include <string.h>
-
 #include <getopt.h>
 #include <signal.h>
 #include <time.h>
+#include <err.h>
 
 #include "protocol_parser.h"
 #include "display.h"
@@ -148,7 +148,7 @@ init_packet_socket(char* devname)
 	/* an alternative could be to use the pcap library */
 	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 	if (fd < 0)
-		perror("could not create socket");
+		err(1, "could not create socket");
 
 	/* bind only to one interface */
 	ifindex = device_index(fd, devname);
@@ -160,7 +160,7 @@ init_packet_socket(char* devname)
 	
 	ret = bind(fd, (struct sockaddr*)&sall, sizeof(sall));
 	if (ret != 0)
-		perror("bind failed");
+		err(1, "bind failed");
 
 	device_promisc(fd, devname, 1);
 	arphrd = device_get_arptype(fd, devname);
@@ -193,11 +193,11 @@ device_index(int fd, const char *if_name)
 	strncpy(req.ifr_name, if_name, IFNAMSIZ);
 	req.ifr_addr.sa_family = AF_INET;
 
-	ioctl(fd, SIOCGIFINDEX, &req);
+	if (ioctl(fd, SIOCGIFINDEX, &req) < 0)
+		err(1, "interface %s not found", if_name);
 
 	if (req.ifr_ifindex<0) {
-		perror("interface not found");
-		exit(1);
+		err(1, "interface %s not found", if_name);
 	}
 	DEBUG("index %d\n", req.ifr_ifindex);
 	return req.ifr_ifindex;
@@ -212,9 +212,8 @@ device_promisc(int fd, const char *if_name, int on)
 	strncpy(req.ifr_name, if_name, IFNAMSIZ);
 	req.ifr_addr.sa_family = AF_INET;
 
-	if (ioctl(fd, SIOCGIFFLAGS, &req) == -1) {
-		perror("cound not get flags");
-		exit(1);
+	if (ioctl(fd, SIOCGIFFLAGS, &req) < 0) {
+		err(1, "could not get device flags for %s", if_name);
 	}
 	
 	/* put interface up in any case */
@@ -225,9 +224,8 @@ device_promisc(int fd, const char *if_name, int on)
 	else
 		req.ifr_flags &= ~IFF_PROMISC;
 
-	if (ioctl(fd, SIOCSIFFLAGS, &req) == -1) {
-		perror("cound not set promisc mode");
-		exit(1);
+	if (ioctl(fd, SIOCSIFFLAGS, &req) < 0) {
+		err(1, "could not set promisc mode for %s", if_name);
 	}
 }
 
@@ -243,9 +241,8 @@ device_get_arptype(int fd, const char *device)
 	memset(&ifr, 0, sizeof(ifr));
 	strncpy(ifr.ifr_name, device, sizeof(ifr.ifr_name));
 
-	if (ioctl(fd, SIOCGIFHWADDR, &ifr) == -1) {
-		perror("SIOCGIFHWADDR");
-		return -1;
+	if (ioctl(fd, SIOCGIFHWADDR, &ifr) < 0) {
+		err(1, "could not get arptype");
 	}
 	DEBUG("ARPTYPE %d\n", ifr.ifr_hwaddr.sa_family);
 	return ifr.ifr_hwaddr.sa_family;
