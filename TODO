@@ -1,6 +1,7 @@
  * batman support
  * dump info into file
  * remote client
+ * timed out nodes are never reclaimed!
 
 > WEITERE OPTIONEN, (braucht ein tmp. eingabe-feld, zb. im header)
 > evt. als [IP:], dann untermenue:
