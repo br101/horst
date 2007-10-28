@@ -81,6 +81,7 @@ struct node_info {
 	int wlan_mode;
 	unsigned long tsfl;
 	unsigned long tsfh;
+	int snr;
 	int snr_min;
 	int snr_max;
 	int essid;

@@ -348,6 +348,7 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		n->tsfl = *(unsigned long*)(&p->wlan_tsf[0]);
 		n->tsfh = *(unsigned long*)(&p->wlan_tsf[4]);
 	}
+	n->snr = p->snr;
 	if (p->snr > n->snr_max)
 		n->snr_max = p->snr;
 	if ((n->snr_min == 0 && p->snr > 0) || p->snr < n->snr_min)

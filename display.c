@@ -55,8 +55,8 @@ extern int do_filter;
 struct node_info* sort_nodes[MAX_NODES];
 
 
-static inline void print_centered(WINDOW* win, int line, char* str) {
-	mvwprintw(win, line, COLS/2 - strlen(str)/2, str);
+static inline void print_centered(WINDOW* win, int line, int cols, char* str) {
+	mvwprintw(win, line, cols/2 - strlen(str)/2, str);
 }
 
 
@@ -76,7 +76,7 @@ init_display(void)
 	init_pair(4, COLOR_CYAN, COLOR_BLACK);
 	init_pair(5, COLOR_BLUE, COLOR_BLACK);
 
-	/* COLOR_BLACK COLOR_RED COLOR_GREEN COLOR_YELLOW COLOR_BLUE 
+	/* COLOR_BLACK COLOR_RED COLOR_GREEN COLOR_YELLOW COLOR_BLUE
 	COLOR_MAGENTA COLOR_CYAN COLOR_WHITE */
 
 #define WHITE	COLOR_PAIR(1)
@@ -86,7 +86,7 @@ init_display(void)
 #define BLUE	COLOR_PAIR(5)
 
 
-	print_centered(stdscr, 0, "HORST - Horsts OLSR Radio Scanning Tool (v" \
+	print_centered(stdscr, 0, COLS, "HORST - Horsts OLSR Radio Scanning Tool (v" \
 			VERSION " " BUILDDATE ")");
 	refresh();
 
@@ -123,7 +123,7 @@ void update_display(struct packet_info* pkt, int node_number) {
 }
 
 
-void 
+void
 finish_display(int sig)
 {
 	endwin();
@@ -217,7 +217,7 @@ handle_user_input()
 				filter_win = NULL;
 			}
 			return; // dont redraw
-		/* not yet: 
+		/* not yet:
 		case 'c': case 'C':
 			pause = 1;
 			show_channel_win();
@@ -417,7 +417,7 @@ update_list_win(void)
 static void
 display_essid_win()
 {
-	essid_win = newwin(LINES-3, 80, 2, 2);
+	essid_win = newwin(LINES-3, 85, 2, 2);
 	scrollok(essid_win,FALSE);
 	update_essid_win();
 }
@@ -433,7 +433,7 @@ update_essid_win(void)
 	werase(essid_win);
 	wattron(essid_win, WHITE);
 	box(essid_win, 0 , 0);
-	print_centered(essid_win, 0, " ESSIDs ");
+	print_centered(essid_win, 0, 85, " ESSIDs ");
 
 	for (i=0; i<MAX_ESSIDS && essids[i].num_nodes>0; i++) {
 		if (essids[i].split>0)
@@ -457,6 +457,8 @@ update_essid_win(void)
 				ether_sprintf(node->last_pkt.wlan_src));
 			wprintw(essid_win, " bssid (%s) ", ether_sprintf(node->wlan_bssid));
 			wprintw(essid_win,"TSF %08x:%08x", node->tsfh, node->tsfl);
+			wprintw(essid_win," %ddB", node->snr);
+
 			line++;
 		}
 		line++;
@@ -494,7 +496,7 @@ update_hist_win(void)
 	werase(hist_win);
 	wattron(hist_win, WHITE);
 	box(hist_win, 0 , 0);
-	print_centered(hist_win, 0, " Signal/Noise HISTORY ");
+	print_centered(hist_win, 0, COLS-4, " Signal/Noise HISTORY ");
 	mvwhline(hist_win, SIGN_POS, 1, ACS_HLINE, col);
 	mvwvline(hist_win, 1, 4, ACS_VLINE, SIGN_POS+1);
 	mvwhline(hist_win, RATE_POS, 1, ACS_HLINE, col);
@@ -560,7 +562,7 @@ update_hist_win(void)
 
 		i--;
 		col--;
-		if (i < 0) 
+		if (i < 0)
 			i = MAX_HISTORY-1;
 	}
 	wrefresh(hist_win);
