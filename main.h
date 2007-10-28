@@ -58,7 +58,7 @@ extern struct packet_info current_packet;
 #define MAX_NODES 255
 #define MAX_ESSIDS 255
 #define MAX_BSSIDS 255
-#define MAX_HISTORY 100
+#define MAX_HISTORY 255
 
 #define PKT_TYPE_BEACON		0x01
 #define PKT_TYPE_PROBE_REQ	0x02

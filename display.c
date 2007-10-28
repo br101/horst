@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <curses.h>
+#include <string.h>
 #include <sys/socket.h>
 
 #include "display.h"
@@ -53,6 +54,11 @@ void convert_string_to_mac(const char* string, unsigned char* mac);
 static inline int normalize(int val, float max_val, int max);
 
 
+static inline void print_centered(WINDOW* win, int line, char* str) {
+	mvwprintw(win, line, COLS/2 - strlen(str)/2, str);
+}
+
+
 void
 init_display(void)
 {
@@ -79,8 +85,7 @@ init_display(void)
 #define BLUE	COLOR_PAIR(5)
 
 
-	move(0,COLS/2-20);
-	printw("HORST - Horsts OLSR Radio Scanning Tool");
+	print_centered(stdscr, 0, "HORST - Horsts OLSR Radio Scanning Tool");
 	refresh();
 
 	list_win = newwin(LINES/2-1, COLS, 1, 0);
@@ -419,7 +424,7 @@ update_essid_win(void)
 	werase(essid_win);
 	wattron(essid_win, WHITE);
 	box(essid_win, 0 , 0);
-	mvwprintw(essid_win,0,2," ESSIDs ");
+	print_centered(essid_win, 0, " ESSIDs ");
 
 	for (i=0; i<MAX_ESSIDS && essids[i].num_nodes>0; i++) {
 		if (essids[i].split>0)
@@ -471,6 +476,8 @@ normalize(int oval, float max_val, int max) {
 	return val;
 }
 
+#define normalize_db(val) \
+	normalize(val, 99.0, SIGN_POS)
 
 #define SIGN_POS LINES-20
 #define TYPE_POS SIGN_POS+1
@@ -483,17 +490,34 @@ update_hist_win(void)
 	int col=COLS-6;
 	int sig, noi, rat;
 
+	if (col>MAX_HISTORY)
+		col = 4+MAX_HISTORY;
+
 	werase(hist_win);
 	wattron(hist_win, WHITE);
 	box(hist_win, 0 , 0);
-	mvwprintw(hist_win, 0, 2, " HISTORY ");
+	print_centered(hist_win, 0, " Signal/Noise HISTORY ");
 	mvwhline(hist_win, SIGN_POS, 1, ACS_HLINE, col);
-	mvwhline(hist_win, RATE_POS-10, 1, ACS_HLINE, col);
+	mvwvline(hist_win, 1, 4, ACS_VLINE, SIGN_POS+1);
+	mvwhline(hist_win, RATE_POS, 1, ACS_HLINE, col);
+	mvwvline(hist_win, RATE_POS-9, 4, ACS_VLINE, 10);
+
+	mvwprintw(hist_win, 1, 1, "dBm");
+	mvwprintw(hist_win, normalize_db(10), 1, "-10");
+	mvwprintw(hist_win, normalize_db(20), 1, "-20");
+	mvwprintw(hist_win, normalize_db(30), 1, "-30");
+	mvwprintw(hist_win, normalize_db(40), 1, "-40");
+	mvwprintw(hist_win, normalize_db(50), 1, "-50");
+	mvwprintw(hist_win, normalize_db(60), 1, "-60");
+	mvwprintw(hist_win, normalize_db(70), 1, "-70");
+	mvwprintw(hist_win, normalize_db(80), 1, "-80");
+	mvwprintw(hist_win, normalize_db(90), 1, "-90");
+	mvwprintw(hist_win, SIGN_POS-1, 1, "-99");
 
 	wattron(hist_win, GREEN);
-	mvwprintw(hist_win, SIGN_POS-2, 1, "SIG");
+	mvwprintw(hist_win, 2, col-6, "Signal");
 	wattron(hist_win, RED);
-	mvwprintw(hist_win, SIGN_POS-1, 1, "NOI");
+	mvwprintw(hist_win, 3, col-5, "Noise");
 
 	wattron(hist_win, CYAN);
 	mvwprintw(hist_win, TYPE_POS, 1, "TYP");
@@ -515,8 +539,8 @@ update_hist_win(void)
 
 	while (col>4 && hist.signal[i]!=0)
 	{
-		sig = normalize(-hist.signal[i], 99.0, SIGN_POS);
-		noi = normalize(-hist.noise[i], 99.0, SIGN_POS);
+		sig = normalize_db(-hist.signal[i]);
+		noi = normalize_db(-hist.noise[i]);
 		rat = normalize(hist.rate[i], 54.0, 10);
 
 		wattron(hist_win, GREEN);

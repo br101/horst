@@ -30,7 +30,7 @@ all: $(buildstamp) $(NAME)
 
 protocol_parser.o: ieee80211_header.h prism_header.h olsr_header.h
 main.o: main.h
-display.o: display.h
+display.o: display.h main.h
 network.o: network.h
 
 $(NAME): $(OBJS)

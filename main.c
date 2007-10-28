@@ -482,6 +482,9 @@ filter_packet(struct packet_info* pkt) {
 
 static void
 update_history(struct packet_info* p) {
+	if (p->signal == 0)
+		return;
+
 	hist.signal[hist.index] = p->signal;
 	hist.noise[hist.index] = p->noise;
 	hist.rate[hist.index] = p->rate;
