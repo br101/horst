@@ -17,16 +17,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef _PROTOCOL_NETWORK_H_
-#define _PROTOCOL_NETWORK_H_
+#ifndef _UTIL_H_
+#define _UTIL_H_
 
-int
-net_init_socket(int rport);
+#if DO_DEBUG
+#define DEBUG(...) printf(__VA_ARGS__)
+#else
+#define DEBUG(...)
+#endif
 
-int
-net_send_packet(void);
+void 
+dump_packet(const unsigned char* buf, int len);
+
+const char*
+ether_sprintf(const unsigned char *mac);
+
+const char*
+ip_sprintf(const unsigned int ip);
 
 void
-net_finish(void);
+convert_string_to_mac(const char* string, unsigned char* mac);
+
+inline int
+normalize(int val, float max_val, int max);
 
 #endif

@@ -1,6 +1,6 @@
-# olsr scanning tool
+# horst - olsr scanning tool
 #
-# Copyright (C) 2005  Bruno Randolf
+# Copyright (C) 2005-2007  Bruno Randolf
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -20,9 +20,9 @@ NAME=horst
 VERSION=1.3-pre
 DEBUG=0
 BUILDDATE=$(shell date +"%d.%m.%Y")
-OBJS=protocol_parser.o main.o display.o network.o
+OBJS=protocol_parser.o main.o display.o network.o util.o
 LIBS=-l ncurses
-CFLAGS+=-Wall -DPACKAGE_VERSION=\"$(VERSION)\" -DPACKAGE_BUILDDATE=\"$(BUILDDATE)\" -DDO_DEBUG=$(DEBUG)
+CFLAGS+=-Wall -DVERSION=\"$(VERSION)\" -DBUILDDATE=\"$(BUILDDATE)\" -DDO_DEBUG=$(DEBUG)
 
 buildstamp=.build_debug$(DEBUG)
 

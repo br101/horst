@@ -1,6 +1,6 @@
-/* olsr scanning tool
+/* horst - olsr scanning tool
  *
- * Copyright (C) 2005  Bruno Randolf
+ * Copyright (C) 2005-2007  Bruno Randolf
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,7 +31,7 @@
 
 #include "protocol_parser.h"
 #include "main.h"
-#include "display.h"
+#include "util.h"
 
 #ifndef ARPHRD_IEEE80211_RADIOTAP
 #define ARPHRD_IEEE80211_RADIOTAP 803    /* IEEE 802.11 + radiotap header */

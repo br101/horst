@@ -1,6 +1,6 @@
-/* olsr scanning tool
+/* horst - olsr scanning tool
  *
- * Copyright (C) 2005  Bruno Randolf
+ * Copyright (C) 2005-2007  Bruno Randolf
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,17 +20,29 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
-#include <time.h>
-
 #ifndef DO_DEBUG
 #define DO_DEBUG 0
 #endif
 
-#if DO_DEBUG
-#define DEBUG(...) printf(__VA_ARGS__)
-#else
-#define DEBUG(...)
-#endif
+#define MAX_NODES 255
+#define MAX_ESSIDS 255
+#define MAX_BSSIDS 255
+#define MAX_HISTORY 255
+#define MAX_ESSID_LEN 255
+
+#define PKT_TYPE_BEACON		0x01
+#define PKT_TYPE_PROBE_REQ	0x02
+#define PKT_TYPE_DATA		0x04
+#define PKT_TYPE_IP		0x08
+#define PKT_TYPE_OLSR		0x10
+#define PKT_TYPE_OLSR_LQ	0x20
+#define PKT_TYPE_OLSR_GW	0x40
+
+#define WLAN_MODE_AP		0x01
+#define WLAN_MODE_IBSS		0x02
+#define WLAN_MODE_STA		0x04
+
+#define NODE_TIMEOUT 60 /* seconds */
 
 struct packet_info {
 	int pkt_types;
@@ -55,23 +67,6 @@ struct packet_info {
 
 extern struct packet_info current_packet;
 
-#define MAX_NODES 255
-#define MAX_ESSIDS 255
-#define MAX_BSSIDS 255
-#define MAX_HISTORY 255
-
-#define PKT_TYPE_BEACON		0x01
-#define PKT_TYPE_PROBE_REQ	0x02
-#define PKT_TYPE_DATA		0x04
-#define PKT_TYPE_IP		0x08
-#define PKT_TYPE_OLSR		0x10
-#define PKT_TYPE_OLSR_LQ	0x20
-#define PKT_TYPE_OLSR_GW	0x40
-
-#define WLAN_MODE_AP		0x01
-#define WLAN_MODE_IBSS		0x02
-#define WLAN_MODE_STA		0x04
-
 struct node_info {
 	int status;
 	int pkt_types;
@@ -93,7 +88,6 @@ struct node_info {
 
 extern struct node_info nodes[MAX_NODES];
 
-#define MAX_ESSID_LEN 255
 struct essid_info {
 	char essid[MAX_ESSID_LEN];
 	int nodes[MAX_NODES];
@@ -125,8 +119,8 @@ extern int olsr_only;
 extern int no_ctrl;
 extern int arphrd; // the device ARP type
 
-#define NODE_TIMEOUT 60 /* seconds */
 
-void finish_all(int sig);
+void
+finish_all(int sig);
 
 #endif

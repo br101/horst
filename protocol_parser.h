@@ -1,6 +1,6 @@
-/* olsr scanning tool
+/* horst - olsr scanning tool
  *
- * Copyright (C) 2005  Bruno Randolf
+ * Copyright (C) 2005-2007  Bruno Randolf
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,6 +20,7 @@
 #ifndef _PROTOCOL_PARSER_H_
 #define _PROTOCOL_PARSER_H_
 
-int parse_packet(unsigned char* buf, int len);
+int
+parse_packet(unsigned char* buf, int len);
 
 #endif

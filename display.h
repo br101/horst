@@ -1,6 +1,6 @@
-/* olsr scanning tool
+/* horst - olsr scanning tool
  *
- * Copyright (C) 2005  Bruno Randolf
+ * Copyright (C) 2005-2007  Bruno Randolf
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,14 +22,16 @@
 
 #include "main.h"
 
-void update_display(struct packet_info* pkg, int node_number);
-void handle_user_input();
+void
+update_display(struct packet_info* pkg, int node_number);
 
-void dump_packet(const unsigned char* buf, int len);
-const char* ether_sprintf(const unsigned char *mac);
-const char* ip_sprintf(const unsigned int ip);
+void
+handle_user_input();
 
-void init_display(void);
-void finish_display(int sig);
+void
+init_display(void);
+
+void
+finish_display(int sig);
 
 #endif

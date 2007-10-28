@@ -1,6 +1,6 @@
-/* olsr scanning tool
+/* horst - olsr scanning tool
  *
- * Copyright (C) 2005  Bruno Randolf
+ * Copyright (C) 2005-2007  Bruno Randolf
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,8 +22,10 @@
 #include <curses.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <time.h>
 
 #include "display.h"
+#include "util.h"
 #include "ieee80211_header.h"
 #include "olsr_header.h"
 
@@ -49,9 +51,6 @@ static int do_sort=0;
 extern char* ifname;
 extern unsigned char filtermac[6];
 extern int do_filter;
-
-void convert_string_to_mac(const char* string, unsigned char* mac);
-static inline int normalize(int val, float max_val, int max);
 
 
 static inline void print_centered(WINDOW* win, int line, char* str) {
@@ -85,7 +84,8 @@ init_display(void)
 #define BLUE	COLOR_PAIR(5)
 
 
-	print_centered(stdscr, 0, "HORST - Horsts OLSR Radio Scanning Tool");
+	print_centered(stdscr, 0, "HORST - Horsts OLSR Radio Scanning Tool (v" \
+			VERSION " " BUILDDATE ")");
 	refresh();
 
 	list_win = newwin(LINES/2-1, COLS, 1, 0);
@@ -465,17 +465,6 @@ display_hist_win()
 }
 
 
-static inline int
-normalize(int oval, float max_val, int max) {
-	int val;
-	val=(oval/max_val)*max;
-	if (val>max)
-		val=max; /* cap if still bigger */
-	if (val==0 && oval > 0)
-		val=1;
-	return val;
-}
-
 #define normalize_db(val) \
 	normalize(val, 99.0, SIGN_POS)
 
@@ -534,8 +523,6 @@ update_hist_win(void)
 	mvwprintw(hist_win, RATE_POS-1, 1, " 1M");
 
 	i = hist.index-1;
-
-	/* !!! assume history is always bigger than cols */
 
 	while (col>4 && hist.signal[i]!=0)
 	{
@@ -599,7 +586,6 @@ update_dump_win(struct packet_info* pkt)
 	mvwprintw(dump_win_box,0,30,"(BSSID)");
 	mvwprintw(dump_win_box,0,50,"TYPE");
 	mvwprintw(dump_win_box,0,57,"INFO");
-	mvwprintw(dump_win_box,LINES/2-1,2,"V" PACKAGE_VERSION " (built: " PACKAGE_BUILDDATE ")");
 	if (arphrd == 803)
 		mvwprintw(dump_win_box,LINES/2-1,COLS-25,"RADIOTAP");
 	else if (arphrd == 802)
@@ -773,39 +759,3 @@ show_channel_win()
 	wrefresh(list_win);
 }
 #endif
-
-
-void
-dump_packet(const unsigned char* buf, int len)
-{
-	int i;
-	for (i = 0; i < len; i++) {
-		if ((i%2) == 0)
-			DEBUG(" ");
-		if ((i%16) == 0)
-			DEBUG("\n");
-		DEBUG("%02x", buf[i]);
-	}
-	DEBUG("\n");
-}
-
-
-const char*
-ether_sprintf(const unsigned char *mac)
-{
-	static char etherbuf[18];
-	snprintf(etherbuf, sizeof(etherbuf), "%02x:%02x:%02x:%02x:%02x:%02x",
-		mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
-	return etherbuf;
-}
-
-
-const char*
-ip_sprintf(const unsigned int ip)
-{
-	static char ipbuf[18];
-	unsigned char* cip = (unsigned char*)&ip;
-	snprintf(ipbuf, sizeof(ipbuf), "%d.%d.%d.%d",
-		cip[0], cip[1], cip[2], cip[3]);
-	return ipbuf;
-}

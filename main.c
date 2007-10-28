@@ -1,6 +1,6 @@
-/* olsr scanning tool
+/* horst - olsr scanning tool
  *
- * Copyright (C) 2005  Bruno Randolf
+ * Copyright (C) 2005-2007  Bruno Randolf
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -36,6 +36,7 @@
 #include "display.h"
 #include "network.h"
 #include "main.h"
+#include "util.h"
 
 static int device_index(int fd, const char *if_name);
 static void device_promisc(int fd, const char *if_name, int on);
