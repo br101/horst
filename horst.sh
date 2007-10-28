@@ -6,11 +6,10 @@ if grep -q ath[0-9]: /proc/net/dev;then
 		BASE=$1
 		shift
 	fi
-	WLDEV=ath9
+	WLDEV=mon0
 	wlanconfig $WLDEV create wlandev $BASE wlanmode monitor >/dev/null
-	echo '802' > /proc/sys/net/$WLDEV/dev_type # prism2 headers
 	ip link set dev $WLDEV up
-	/usr/sbin/horst -i $WLDEV $*
+	horst -i $WLDEV $*
 	ip link set dev $WLDEV down
 	wlanconfig $WLDEV destroy
 else
