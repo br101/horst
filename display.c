@@ -477,7 +477,7 @@ display_hist_win()
 
 
 #define normalize_db(val) \
-	normalize(val, 99.0, SIGN_POS)
+	normalize(val, 100.0, SIGN_POS)
 
 #define SIGN_POS LINES-20
 #define TYPE_POS SIGN_POS+1

@@ -26,7 +26,7 @@
 #define DEBUG(...)
 #endif
 
-void 
+void
 dump_packet(const unsigned char* buf, int len);
 
 const char*
