@@ -1,7 +1,20 @@
- * batman support
+-----
+TODO:
+-----
+
+* batman support
+ * IP auswertung
+ * pause/run glitches
+ * filter eingabe (pkt types, readline?)
+ * filter per command line (zumindest olsr only)
  * dump info into file
  * remote client
  * timed out nodes are never reclaimed!
+ * sig/noise WRT
+
+-----------------
+feature requests:
+-----------------
 
 > WEITERE OPTIONEN, (braucht ein tmp. eingabe-feld, zb. im header)
 > evt. als [IP:], dann untermenue:
@@ -11,9 +24,7 @@
 >             nach unten aus dem sichtbaren display gedrängt würden.
 > - [d: del]  ausgewählte IPs aus der anzeige filtern.
 
-noise WRT
-
-SNR flattern - nur beacon option fuer SNR
+---
 
 Eine kleine Statistik, mit 2 Torten oder Balkendiags:
 
@@ -23,3 +34,15 @@ Eine kleine Statistik, mit 2 Torten oder Balkendiags:
 2: empfangene Wifi Frames nach Speed, etwa
     (10% auf 1mbit, 20% auf 5.5mbit etc am besten
    die belegte "Luftzeit%" -also bytes*rate=time anzeigen)
+
+---
+
+(eigentlich wünsche ich mir ein 3. horst-fenster am oberen rand,
+  wie [scanCG.pl] als simpel-'SPECTRUM-analyser' mit life-NOISE, um
+  CH-'belegung' u. nachbar-CH-'übersprechen' beurteilen zu können)
+
+---
+
+sound ausgabe
+
+---
