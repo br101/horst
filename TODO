@@ -2,7 +2,7 @@
 TODO:
 -----
 
-* batman support
+ * batman support
  * IP auswertung
  * pause/run glitches
  * filter eingabe (pkt types, readline?)

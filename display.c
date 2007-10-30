@@ -54,6 +54,7 @@ extern int do_filter;
 
 struct node_info* sort_nodes[MAX_NODES];
 
+static char get_paket_type_char(int type, int subtype);
 
 static inline void print_centered(WINDOW* win, int line, int cols, char* str) {
 	mvwprintw(win, line, cols/2 - strlen(str)/2, str);
@@ -470,7 +471,7 @@ update_essid_win(void)
 static void
 display_hist_win()
 {
-	hist_win = newwin(LINES-2, COLS-4, 2, 2);
+	hist_win = newwin(LINES-2, COLS, 1, 0);
 	scrollok(hist_win,FALSE);
 	update_hist_win();
 }
@@ -479,15 +480,15 @@ display_hist_win()
 #define normalize_db(val) \
 	normalize(val, 100.0, SIGN_POS)
 
-#define SIGN_POS LINES-20
+#define SIGN_POS LINES-15
 #define TYPE_POS SIGN_POS+1
-#define RATE_POS LINES-5
+#define RATE_POS LINES-3
 
 static void
 update_hist_win(void)
 {
 	int i;
-	int col=COLS-6;
+	int col=COLS-2;
 	int sig, noi, rat;
 
 	if (col>MAX_HISTORY)
@@ -496,11 +497,10 @@ update_hist_win(void)
 	werase(hist_win);
 	wattron(hist_win, WHITE);
 	box(hist_win, 0 , 0);
-	print_centered(hist_win, 0, COLS-4, " Signal/Noise HISTORY ");
+	print_centered(hist_win, 0, COLS, " Signal/Noise/Rate History ");
 	mvwhline(hist_win, SIGN_POS, 1, ACS_HLINE, col);
-	mvwvline(hist_win, 1, 4, ACS_VLINE, SIGN_POS+1);
-	mvwhline(hist_win, RATE_POS, 1, ACS_HLINE, col);
-	mvwvline(hist_win, RATE_POS-9, 4, ACS_VLINE, 10);
+	mvwhline(hist_win, SIGN_POS+2, 1, ACS_HLINE, col);
+	mvwvline(hist_win, 1, 4, ACS_VLINE, LINES-4);
 
 	mvwprintw(hist_win, 1, 1, "dBm");
 	mvwprintw(hist_win, normalize_db(10), 1, "-10");
@@ -521,13 +521,15 @@ update_hist_win(void)
 
 	wattron(hist_win, CYAN);
 	mvwprintw(hist_win, TYPE_POS, 1, "TYP");
+	mvwprintw(hist_win, 4, col-11, "Packet Type");
 
 	wattron(hist_win, BLUE);
+	mvwprintw(hist_win, 5, col-4, "Rate");
 	mvwprintw(hist_win, RATE_POS-9, 1, "54M");
-	mvwprintw(hist_win, RATE_POS-8, 1, "46M");
+	mvwprintw(hist_win, RATE_POS-8, 1, "48M");
 	mvwprintw(hist_win, RATE_POS-7, 1, "36M");
-	mvwprintw(hist_win, RATE_POS-6, 1, "30M");
-	mvwprintw(hist_win, RATE_POS-5, 1, "24M");
+	mvwprintw(hist_win, RATE_POS-6, 1, "24M");
+	mvwprintw(hist_win, RATE_POS-5, 1, "18M");
 	mvwprintw(hist_win, RATE_POS-4, 1, "11M");
 	mvwprintw(hist_win, RATE_POS-3, 1, " 5M");
 	mvwprintw(hist_win, RATE_POS-2, 1, " 2M");
@@ -539,7 +541,6 @@ update_hist_win(void)
 	{
 		sig = normalize_db(-hist.signal[i]);
 		noi = normalize_db(-hist.noise[i]);
-		rat = normalize(hist.rate[i], 54.0, 10);
 
 		wattron(hist_win, GREEN);
 		mvwvline(hist_win, sig, col, ACS_BLOCK, SIGN_POS-sig);
@@ -547,18 +548,24 @@ update_hist_win(void)
 		wattron(hist_win, RED);
 		mvwvline(hist_win, noi, col, ACS_BLOCK, SIGN_POS-noi);
 
+		wattron(hist_win, CYAN);
+		mvwprintw(hist_win, TYPE_POS, col, "%c", \
+			get_paket_type_char(hist.type[i], hist.stype[i]));
+
+		/* make rate table smaller by joining some values */
+		switch (hist.rate[i]) {
+			case 54: rat = 9; break;
+			case 48: rat = 8; break;
+			case 36: rat = 7; break;
+			case 24: rat = 6; break;
+			case 18: rat = 5; break;
+			case 12: case 11: case 9: rat = 4; break;
+			case 6: case 5: rat = 3; break;
+			case 2: rat = 2; break;
+			case 1: rat = 1; break;
+		}
 		wattron(hist_win, BLUE);
 		mvwvline(hist_win, RATE_POS-rat, col, 'x', rat);
-
-		wattron(hist_win, CYAN);
-		if (hist.type[i] == WLAN_FC_TYPE_MGMT)
-			mvwprintw(hist_win, TYPE_POS, col, "M");
-		else if (hist.type[i] == WLAN_FC_TYPE_CTRL)
-			mvwprintw(hist_win, TYPE_POS, col, "C");
-		else if (hist.type[i] == WLAN_FC_TYPE_DATA)
-			mvwprintw(hist_win, TYPE_POS, col, "D");
-		else
-			mvwprintw(hist_win, TYPE_POS, col, "?");
 
 		i--;
 		col--;
@@ -742,6 +749,73 @@ update_dump_win(struct packet_info* pkt)
 	wprintw(dump_win,"\n");
 	wattroff(dump_win,A_BOLD);
 	wrefresh(dump_win);
+}
+
+
+static char get_paket_type_char(int type, int subtype) {
+	if (WLAN_FC_TYPE_MGMT == type) {
+		switch(subtype) {
+		case WLAN_FC_STYPE_ASSOC_REQ:
+		case WLAN_FC_STYPE_REASSOC_REQ:
+			return 'a';
+		case WLAN_FC_STYPE_ASSOC_RESP:
+		case WLAN_FC_STYPE_REASSOC_RESP:
+			return 'A';
+		case WLAN_FC_STYPE_PROBE_REQ:
+			return 'p';
+		case WLAN_FC_STYPE_PROBE_RESP:
+			return 'P';
+		case WLAN_FC_STYPE_BEACON:
+			return 'B';
+		case WLAN_FC_STYPE_ATIM:
+			return 't';
+		case WLAN_FC_STYPE_DISASSOC:
+			return 'D';
+		case WLAN_FC_STYPE_AUTH:
+			return 'u';
+		case WLAN_FC_STYPE_DEAUTH:
+			return 'U';
+		default:
+			return 'm';
+		}
+	}
+	else if (WLAN_FC_TYPE_CTRL == type) {
+		switch(subtype) {
+		case WLAN_FC_STYPE_PSPOLL:
+			return 's';
+		case WLAN_FC_STYPE_RTS:
+			return 'R';
+		case WLAN_FC_STYPE_CTS:
+			return 'C';
+		case WLAN_FC_STYPE_ACK:
+			return 'K';
+		case WLAN_FC_STYPE_CFEND:
+		case WLAN_FC_STYPE_CFENDACK:
+			return 'f';
+		default:
+			return 'c';
+		}
+	}
+	else if (WLAN_FC_TYPE_DATA == type) {
+		switch(subtype) {
+		case WLAN_FC_STYPE_DATA:
+		case WLAN_FC_STYPE_DATA_CFACK:
+		case WLAN_FC_STYPE_DATA_CFPOLL:
+		case WLAN_FC_STYPE_DATA_CFACKPOLL:
+			return 'D';
+		case WLAN_FC_STYPE_NULLFUNC:
+			return '0';
+		case WLAN_FC_STYPE_CFACK:
+		case WLAN_FC_STYPE_CFPOLL:
+		case WLAN_FC_STYPE_CFACKPOLL:
+			return 'F';
+		default:
+			return 'd';
+		}
+	}
+	else {
+		return '?';
+	}
 }
 
 

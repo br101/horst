@@ -98,7 +98,7 @@ main(int argc, char** argv)
 
 	if (mon < 0)
 		exit(0);
-	
+
 	if (rport)
 		net_init_socket(rport);
 #if !DO_DEBUG
@@ -164,7 +164,7 @@ init_packet_socket(char* devname)
 	sall.sll_ifindex = ifindex;
 	sall.sll_family = AF_PACKET;
 	sall.sll_protocol = htons(ETH_P_ALL);
-	
+
 	ret = bind(fd, (struct sockaddr*)&sall, sizeof(sall));
 	if (ret != 0)
 		err(1, "bind failed");
@@ -181,7 +181,7 @@ static void
 device_address(int fd, const char *if_name)
 {
 	struct ifreq req;
- 
+
 	strncpy(req.ifr_name, if_name, IFNAMSIZ);
 	req.ifr_addr.sa_family = AF_INET;
 
@@ -196,7 +196,7 @@ static int
 device_index(int fd, const char *if_name)
 {
 	struct ifreq req;
- 
+
 	strncpy(req.ifr_name, if_name, IFNAMSIZ);
 	req.ifr_addr.sa_family = AF_INET;
 
@@ -215,17 +215,17 @@ static void
 device_promisc(int fd, const char *if_name, int on)
 {
 	struct ifreq req;
- 
+
 	strncpy(req.ifr_name, if_name, IFNAMSIZ);
 	req.ifr_addr.sa_family = AF_INET;
 
 	if (ioctl(fd, SIOCGIFFLAGS, &req) < 0) {
 		err(1, "could not get device flags for %s", if_name);
 	}
-	
+
 	/* put interface up in any case */
 	req.ifr_flags |= IFF_UP;
-	
+
 	if (on)
 		req.ifr_flags |= IFF_PROMISC;
 	else
@@ -280,7 +280,7 @@ void
 get_options(int argc, char** argv)
 {
 	int c;
-	
+
 	while((c = getopt(argc, argv, "hqi:t:p:e:")) > 0) {
 		switch (c) {
 			case 'p':
@@ -323,7 +323,7 @@ finish_all(int sig)
 	exit(0);
 }
 
-static void 
+static void
 copy_nodeinfo(struct node_info* n, struct packet_info* p)
 {
 	memcpy(&(n->last_pkt), p, sizeof(struct packet_info));
@@ -359,7 +359,7 @@ static int
 node_update(struct packet_info* pkt)
 {
 	int i;
-	
+
 	for (i=0;i<MAX_NODES;i++) {
 		if (nodes[i].status == 1) {
 			/* check existing node */
@@ -480,6 +480,7 @@ update_history(struct packet_info* p) {
 	hist.noise[hist.index] = p->noise;
 	hist.rate[hist.index] = p->rate;
 	hist.type[hist.index] = p->wlan_type;
+	hist.stype[hist.index] = p->wlan_stype;
 	hist.index++;
 	if (hist.index == MAX_HISTORY)
 		hist.index = 0;

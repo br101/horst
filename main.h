@@ -110,6 +110,7 @@ struct history {
 	int noise[MAX_HISTORY];
 	int rate[MAX_HISTORY];
 	int type[MAX_HISTORY];
+	int stype[MAX_HISTORY];
 	int index;
 };
 
