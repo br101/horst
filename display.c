@@ -418,7 +418,7 @@ update_list_win(void)
 static void
 display_essid_win()
 {
-	essid_win = newwin(LINES-3, 85, 2, 2);
+	essid_win = newwin(LINES-2, 90, 1, 0);
 	scrollok(essid_win,FALSE);
 	update_essid_win();
 }
