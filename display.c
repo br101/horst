@@ -478,7 +478,7 @@ display_hist_win()
 
 
 #define normalize_db(val) \
-	normalize(val, 100.0, SIGN_POS)
+	normalize(val-20, 80.0, SIGN_POS)
 
 #define SIGN_POS LINES-15
 #define TYPE_POS SIGN_POS+1
@@ -503,8 +503,6 @@ update_hist_win(void)
 	mvwvline(hist_win, 1, 4, ACS_VLINE, LINES-4);
 
 	mvwprintw(hist_win, 1, 1, "dBm");
-	mvwprintw(hist_win, normalize_db(10), 1, "-10");
-	mvwprintw(hist_win, normalize_db(20), 1, "-20");
 	mvwprintw(hist_win, normalize_db(30), 1, "-30");
 	mvwprintw(hist_win, normalize_db(40), 1, "-40");
 	mvwprintw(hist_win, normalize_db(50), 1, "-50");

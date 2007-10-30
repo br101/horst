@@ -29,6 +29,8 @@ normalize(int oval, float max_val, int max) {
 		val=max; /* cap if still bigger */
 	if (val==0 && oval > 0)
 		val=1;
+	if (val<0)
+		val=0;
 	return val;
 }
 
