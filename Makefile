@@ -17,12 +17,11 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 NAME=horst
-VERSION=1.3-pre
 DEBUG=0
 BUILDDATE=$(shell date +"%d.%m.%Y")
 OBJS=protocol_parser.o main.o display.o network.o util.o ieee80211_util.o
 LIBS=-l ncurses
-CFLAGS+=-Wall -DVERSION=\"$(VERSION)\" -DBUILDDATE=\"$(BUILDDATE)\" -DDO_DEBUG=$(DEBUG)
+CFLAGS+=-Wall -DBUILDDATE=\"$(BUILDDATE)\" -DDO_DEBUG=$(DEBUG)
 
 buildstamp=.build_debug$(DEBUG)
 
