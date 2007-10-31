@@ -22,6 +22,7 @@
 #include <curses.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <time.h>
 
 #include "display.h"
@@ -53,6 +54,8 @@ extern unsigned char filtermac[6];
 extern int do_filter;
 
 struct node_info* sort_nodes[MAX_NODES];
+
+struct timeval last_time;
 
 
 static inline void print_centered(WINDOW* win, int line, int cols, char* str) {
@@ -92,34 +95,43 @@ init_display(void)
 
 	list_win = newwin(LINES/2-1, COLS, 1, 0);
 	scrollok(list_win,FALSE);
-	wrefresh(list_win);
 
 	stat_win = newwin(LINES/2, 15, LINES/2, COLS-15);
 	scrollok(stat_win,FALSE);
-	wrefresh(stat_win);
 
 	dump_win_box = newwin(LINES/2, COLS-15, LINES/2, 0);
 	scrollok(dump_win_box,FALSE);
-	wrefresh(dump_win);
 
 	dump_win = newwin(LINES/2-2, COLS-15-2, LINES/2+1, 1);
 	scrollok(dump_win,TRUE);
-	wrefresh(dump_win);
 
 	update_display(NULL,-1);
 }
 
 
 void update_display(struct packet_info* pkt, int node_number) {
+	struct timeval the_time;
+	gettimeofday( &the_time, NULL );
+
+	if (the_time.tv_sec == last_time.tv_sec &&
+	   (the_time.tv_usec - last_time.tv_usec) < 100000 ) {
+		/* just add the line to dump win, don't update */
+		update_dump_win(pkt);
+		return;
+	}
+
+	last_time = the_time;
+
 	if (essid_win!=NULL)
 		update_essid_win();
 	else if (hist_win!=NULL)
 		update_hist_win();
 	else {
-		update_dump_win(pkt);
 		update_list_win();
 		update_stat_win(pkt, node_number);
+		update_dump_win(pkt);
 	}
+	doupdate();
 }
 
 
@@ -283,7 +295,7 @@ update_stat_win(struct packet_info* pkt, int node_number)
 		wattroff(stat_win, A_BOLD);
 	}
 
-	wrefresh(stat_win);
+	wnoutrefresh(stat_win);
 }
 
 
@@ -409,7 +421,7 @@ update_list_win(void)
 		wattroff(list_win, RED);
 	}
 
-	wrefresh(list_win);
+	wnoutrefresh(list_win);
 }
 
 
@@ -463,7 +475,7 @@ update_essid_win(void)
 		}
 		line++;
 	}
-	wrefresh(essid_win);
+	wnoutrefresh(essid_win);
 }
 
 
@@ -569,7 +581,7 @@ update_hist_win(void)
 		if (i < 0)
 			i = MAX_HISTORY-1;
 	}
-	wrefresh(hist_win);
+	wnoutrefresh(hist_win);
 }
 
 
@@ -611,8 +623,8 @@ update_dump_win(struct packet_info* pkt)
 		mvwprintw(dump_win_box,LINES/2-1,COLS-25,"UNSUPP");
 
 	if (!pkt) {
-		wrefresh(dump_win_box);
-		wrefresh(dump_win);
+		wnoutrefresh(dump_win_box);
+		wnoutrefresh(dump_win);
 		return;
 	}
 
@@ -670,7 +682,7 @@ update_dump_win(struct packet_info* pkt)
 
 	wprintw(dump_win,"\n");
 	wattroff(dump_win,A_BOLD);
-	wrefresh(dump_win);
+	wnoutrefresh(dump_win);
 }
 
 
@@ -695,7 +707,5 @@ show_channel_win()
 	wrefresh(chan_win);
 	delwin(chan_win);
 	paused = 0;
-
-	wrefresh(list_win);
 }
 #endif
