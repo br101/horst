@@ -20,6 +20,55 @@
 #include <stdio.h>
 #include <string.h>
 #include "util.h"
+#include "ieee80211.h"
+
+
+/* a list of packet type names for easier indexing with padding */
+struct pkt_names mgmt_names[] = {
+	{ 'a', "ASSOC_REQ" },		/* IEEE80211_STYPE_ASSOC_REQ	0x0000 */
+	{ 'A', "ASSOC_RESP" },		/* IEEE80211_STYPE_ASSOC_RESP	0x0010 */
+	{ 'a', "REASSOC_REQ" },		/* IEEE80211_STYPE_REASSOC_REQ	0x0020 */
+	{ 'A', "REASSOC_RESP" },	/* IEEE80211_STYPE_REASSOC_RESP	0x0030 */
+	{ 'p', "PROBE_REQ" },		/* IEEE80211_STYPE_PROBE_REQ	0x0040 */
+	{ 'P', "PROBE_RESP" },		/* IEEE80211_STYPE_PROBE_RESP	0x0050 */
+	{}, {}, 			/* unused */
+	{ 'B', "BEACON" },		/* IEEE80211_STYPE_BEACON	0x0080 */
+	{ 't', "ATIM" },		/* IEEE80211_STYPE_ATIM		0x0090 */
+	{ 'D', "DISASSOC" },		/* IEEE80211_STYPE_DISASSOC	0x00A0 */
+	{ 'u', "AUTH" },		/* IEEE80211_STYPE_AUTH		0x00B0 */
+	{ 'U', "DEAUTH" },		/* IEEE80211_STYPE_DEAUTH	0x00C0 */
+	{ 'T', "ACTION" },		/* IEEE80211_STYPE_ACTION	0x00D0 */
+};
+
+struct pkt_names ctl_names[] = {
+	{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, /* let's waste some memory ;) */
+	{ 's', "PSPOLL" },		/* IEEE80211_STYPE_PSPOLL	0x00A0 */
+	{ 'R', "RTS" },			/* IEEE80211_STYPE_RTS		0x00B0 */
+	{ 'C', "CTS" },			/* IEEE80211_STYPE_CTS		0x00C0 */
+	{ 'K', "ACK" },			/* IEEE80211_STYPE_ACK		0x00D0 */
+	{ 'f', "CFEND" },		/* IEEE80211_STYPE_CFEND	0x00E0 */
+	{ 'f', "CFENDACK" },		/* IEEE80211_STYPE_CFENDACK	0x00F0 */
+};
+
+struct pkt_names data_names[] = {
+	{ 'D', "DATA" },		/* IEEE80211_STYPE_DATA			0x0000 */
+	{ 'F', "DATA_CFACK" },		/* IEEE80211_STYPE_DATA_CFACK		0x0010 */
+	{ 'F', "DATA_CFPOLL" },		/* IEEE80211_STYPE_DATA_CFPOLL		0x0020 */
+	{ 'F', "DATA_CFACKPOLL" },	/* IEEE80211_STYPE_DATA_CFACKPOLL	0x0030 */
+	{ 'n', "NULLFUNC" },		/* IEEE80211_STYPE_NULLFUNC		0x0040 */
+	{ 'f', "CFACK" },		/* IEEE80211_STYPE_CFACK		0x0050 */
+	{ 'f', "CFPOLL" },		/* IEEE80211_STYPE_CFPOLL		0x0060 */
+	{ 'f', "CFACKPOLL" },		/* IEEE80211_STYPE_CFACKPOLL		0x0070 */
+	{ 'Q', "QOS_DATA" },		/* IEEE80211_STYPE_QOS_DATA		0x0080 */
+	{ 'F', "QOS_DATA_CFACK" },	/* IEEE80211_STYPE_QOS_DATA_CFACK	0x0090 */
+	{ 'F', "QOS_DATA_CFPOLL" },	/* IEEE80211_STYPE_QOS_DATA_CFPOLL	0x00A0 */
+	{ 'F', "QOS_DATA_CFACKPOLL" },	/* IEEE80211_STYPE_QOS_DATA_CFACKPOLL	0x00B0 */
+	{ 'N', "QOS_DATA_NULLFUNC" },	/* IEEE80211_STYPE_QOS_NULLFUNC		0x00C0 */
+	{ 'f', "QOS_CFACK" },		/* IEEE80211_STYPE_QOS_CFACK		0x00D0 */
+	{ 'f', "QOS_CFPOLL" },		/* IEEE80211_STYPE_QOS_CFPOLL		0x00E0 */
+	{ 'f', "QOS_CFACKPOLL" },	/* IEEE80211_STYPE_QOS_CFACKPOLL	0x00F0 */
+};
+
 
 inline int
 normalize(int oval, float max_val, int max) {
@@ -85,4 +134,38 @@ convert_string_to_mac(const char* string, unsigned char* mac)
 		if (string)
 			string++;
 	}
+}
+
+
+char
+get_paket_type_char(int type)
+{
+	switch (type & IEEE80211_FCTL_FTYPE) {
+	case IEEE80211_FTYPE_MGMT:
+		return MGMT_NAME(type & IEEE80211_FCTL_STYPE).c;
+
+	case IEEE80211_FTYPE_CTL:
+		return CTL_NAME(type & IEEE80211_FCTL_STYPE).c;
+
+	case IEEE80211_FTYPE_DATA:
+		return DATA_NAME(type & IEEE80211_FCTL_STYPE).c;
+	}
+	return '?';
+}
+
+
+char*
+get_paket_type_name(int type)
+{
+	switch (type & IEEE80211_FCTL_FTYPE) {
+	case IEEE80211_FTYPE_MGMT:
+		return MGMT_NAME(type & IEEE80211_FCTL_STYPE).name;
+
+	case IEEE80211_FTYPE_CTL:
+		return CTL_NAME(type & IEEE80211_FCTL_STYPE).name;
+
+	case IEEE80211_FTYPE_DATA:
+		return DATA_NAME(type & IEEE80211_FCTL_STYPE).name;
+	}
+	return "UNK";
 }

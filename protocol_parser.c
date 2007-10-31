@@ -26,7 +26,7 @@
 
 #include "prism_header.h"
 #include "ieee80211_radiotap.h"
-#include "ieee80211_header.h"
+#include "ieee80211.h"
 #include "olsr_header.h"
 
 #include "protocol_parser.h"
@@ -47,6 +47,10 @@ static int parse_80211_header(unsigned char** buf, int len);
 static int parse_ip_header(unsigned char** buf, int len);
 static int parse_udp_header(unsigned char** buf, int len);
 static int parse_olsr_packet(unsigned char** buf, int len);
+
+int ieee80211_get_hdrlen(u16 fc);
+u8 *ieee80211_get_bssid(struct ieee80211_hdr *hdr, size_t len);
+
 
 /* return 1 if we parsed enough = min ieee header */
 int
@@ -73,7 +77,7 @@ parse_packet(unsigned char* buf, int len)
 		else if (len == 0)
 			return 1;
 	}
-	
+
 	len = parse_ip_header(&buf, len);
 	if (len <= 0)
 		return 1;
@@ -247,84 +251,96 @@ static int
 parse_80211_header(unsigned char** buf, int len)
 {
 	struct ieee80211_hdr* wh;
+	int hdrlen;
+	u8* sa = NULL;
+	u8* da = NULL;
+	u8* bssid = NULL;
 
-	if (len < sizeof(struct ieee80211_hdr))
+	if (len < 2) /* not even enough space for fc */
 		return -1;
 
 	wh = (struct ieee80211_hdr*)*buf;
-	DEBUG("STYPE %x\n", WLAN_FC_GET_STYPE(wh->frame_control));
+	hdrlen = ieee80211_get_hdrlen(wh->frame_control);
 
-	current_packet.wlan_type = WLAN_FC_GET_TYPE(wh->frame_control);
-	current_packet.wlan_stype = WLAN_FC_GET_STYPE(wh->frame_control);
+	if (len < hdrlen)
+		return -1;
 
-	if (WLAN_FC_GET_TYPE(wh->frame_control) == WLAN_FC_TYPE_DATA)
-	{
-		if (wh->frame_control & WLAN_FC_TODS) {
-			/* to AP */
-			memcpy(current_packet.wlan_src, wh->addr2, 6);
-			memcpy(current_packet.wlan_dst, wh->addr3, 6);
-			memcpy(current_packet.wlan_bssid, wh->addr1, 6);
-			current_packet.wlan_mode = WLAN_MODE_STA;
+	current_packet.wlan_type = (wh->frame_control & (IEEE80211_FCTL_FTYPE | IEEE80211_FCTL_STYPE));
+
+	DEBUG("wlan_type %x - type %x - stype %x\n", wh->frame_control, wh->frame_control & IEEE80211_FCTL_FTYPE, wh->frame_control & IEEE80211_FCTL_STYPE );
+
+	DEBUG("%s\n", get_paket_type_name(wh->frame_control));
+
+	bssid = ieee80211_get_bssid(wh, len);
+
+	switch (current_packet.wlan_type & IEEE80211_FCTL_FTYPE) {
+	case IEEE80211_FTYPE_DATA:
+		sa = ieee80211_get_SA(wh);
+		da = ieee80211_get_DA(wh);
+		break;
+
+	case IEEE80211_FTYPE_CTL:
+		switch (current_packet.wlan_type & IEEE80211_FCTL_STYPE) {
+		case IEEE80211_STYPE_RTS:
+			sa = wh->addr2;
+			da = wh->addr1;
+			break;
+		case IEEE80211_STYPE_CTS:
+		case IEEE80211_STYPE_ACK:
+			da = wh->addr1;
+			break;
+		case IEEE80211_STYPE_PSPOLL:
+			sa = wh->addr2;
+			break;
+		case IEEE80211_STYPE_CFEND:
+		case IEEE80211_STYPE_CFENDACK:
+			/* dont know, dont care */
+			break;
 		}
-		else if (wh->frame_control & WLAN_FC_FROMDS) {
-			/* from AP */
-			memcpy(current_packet.wlan_src, wh->addr3, 6);
-			memcpy(current_packet.wlan_dst, wh->addr1, 6);
-			memcpy(current_packet.wlan_bssid, wh->addr2, 6);
-			current_packet.wlan_mode = WLAN_MODE_AP;
-		}
-		else if (wh->frame_control & WLAN_FC_FROMDS && wh->frame_control & WLAN_FC_TODS) {
-			/* WDS - ignore */
-			return 0;
-		}
-		else {
-			/* IBSS */
-			memcpy(current_packet.wlan_src, wh->addr2, 6);
-			memcpy(current_packet.wlan_dst, wh->addr1, 6);
-			memcpy(current_packet.wlan_bssid, wh->addr3, 6);
-			current_packet.wlan_mode = WLAN_MODE_IBSS;
-		}
-		current_packet.pkt_types = PKT_TYPE_DATA;
-	}
-	else if (WLAN_FC_GET_TYPE(wh->frame_control) == WLAN_FC_TYPE_MGMT) {
-		memcpy(current_packet.wlan_dst, wh->addr1, 6);
-		memcpy(current_packet.wlan_src, wh->addr2, 6);
-		memcpy(current_packet.wlan_bssid, wh->addr3, 6);
-		//TODO: other subtypes
-		if (WLAN_FC_GET_STYPE(wh->frame_control) & WLAN_FC_STYPE_BEACON) {
-			struct ieee80211_mgmt* whm;
-			if (len < sizeof(struct ieee80211_mgmt))
-				return -1;
-			whm = (struct ieee80211_mgmt*)*buf;
-			memcpy(current_packet.wlan_tsf, whm->u.beacon.timestamp,8);
+		break;
+
+	case IEEE80211_FTYPE_MGMT:
+		if (len < sizeof(struct ieee80211_mgmt))
+			return -1;
+		struct ieee80211_mgmt* whm;
+		whm = (struct ieee80211_mgmt*)*buf;
+		sa = whm->sa;
+		da = whm->da;
+
+		switch (current_packet.wlan_type & IEEE80211_FCTL_STYPE) {
+		case IEEE80211_STYPE_BEACON:
+			memcpy(current_packet.wlan_tsf, &whm->u.beacon.timestamp,8);
 			if (whm->u.beacon.variable[0] == 0) { /* ESSID */
 				memcpy(current_packet.wlan_essid, &whm->u.beacon.variable[2], whm->u.beacon.variable[1]);
 				current_packet.wlan_essid[whm->u.beacon.variable[1]]='\0';
 			}
-			current_packet.pkt_types = PKT_TYPE_BEACON;
 			if (whm->u.beacon.capab_info & WLAN_CAPABILITY_IBSS)
 				current_packet.wlan_mode = WLAN_MODE_IBSS;
 			else if (whm->u.beacon.capab_info & WLAN_CAPABILITY_ESS)
 				current_packet.wlan_mode = WLAN_MODE_AP;
-			return 0;
+			break;
 		}
-		else if (WLAN_FC_GET_STYPE(wh->frame_control) & WLAN_FC_STYPE_PROBE_REQ) {
-			current_packet.pkt_types = PKT_TYPE_PROBE_REQ;
-			return 0;
-		}
-	}
-	else if (WLAN_FC_GET_TYPE(wh->frame_control) == WLAN_FC_TYPE_CTRL) {
-		; /* ignore */
-	}
-	else { /* shouldnt happen (tm) */
-		return 0;
+		break;
 	}
 
-	//TODO: 802.11 headers with 4 addresses (WDS) are longer
+	if (sa != NULL)
+		memcpy(current_packet.wlan_src, sa, 6);
+	if (da != NULL)
+		memcpy(current_packet.wlan_dst, da, 6);
+	if (bssid!=NULL)
+		memcpy(current_packet.wlan_bssid, bssid, 6);
 
-	*buf = *buf + IEEE80211_HEADER_LEN;
-	return len - IEEE80211_HEADER_LEN;
+	if (sa != NULL)
+		DEBUG("SA    %s\n", ether_sprintf(sa));
+	if (da != NULL)
+		DEBUG("DA    %s\n", ether_sprintf(da));
+	if (bssid!=NULL)
+		DEBUG("BSSID %s\n", ether_sprintf(bssid));
+
+	*buf = *buf + hdrlen;
+	return len - hdrlen;
 }
+
 
 static int
 parse_ip_header(unsigned char** buf, int len)
@@ -334,13 +350,13 @@ parse_ip_header(unsigned char** buf, int len)
 	if (len < 6)
 		return -1;
 
-	/* check type in LLC header */	
+	/* check type in LLC header */
 	*buf = *buf + 6;
 
 	if (**buf != 0x08) /* not IP */
 		return -1;
 	(*buf)++;
-	
+
 	if (**buf != 0x00)
 		return -1;
 	(*buf)++;
@@ -397,12 +413,12 @@ parse_olsr_packet(unsigned char** buf, int len)
 
 	// TODO: more than one olsr messages can be in one packet
 	int msgtype = oh->olsr_msg[0].olsr_msgtype;
-	
+
 	DEBUG("OLSR msgtype: %d\n*** ", msgtype);
 
 	current_packet.pkt_types |= PKT_TYPE_OLSR;
 	current_packet.olsr_type = msgtype;
-	
+
 	if (msgtype == LQ_HELLO_MESSAGE || msgtype == LQ_TC_MESSAGE )
 		current_packet.pkt_types |= PKT_TYPE_OLSR_LQ;
 
@@ -432,7 +448,7 @@ parse_olsr_packet(unsigned char** buf, int len)
 		DEBUG("LQ_TC %d (%d)\n", number, (ntohs(oh->olsr_msg[0].olsr_msgsize)-16));
 		current_packet.olsr_tc = number;
 	}
-*/	
+*/
 	if (msgtype == HNA_MESSAGE) {
 		/* same here, but we assume that nodes which relay a HNA with a default gateway
 		know how to contact the gw, so have a indirect connection to a GW themselves */

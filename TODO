@@ -11,6 +11,7 @@ TODO:
  * remote client
  * timed out nodes are never reclaimed!
  * sig/noise WRT
+ * 96char breit
 
 -----------------
 feature requests:

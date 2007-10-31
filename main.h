@@ -30,9 +30,6 @@
 #define MAX_HISTORY 255
 #define MAX_ESSID_LEN 255
 
-#define PKT_TYPE_BEACON		0x01
-#define PKT_TYPE_PROBE_REQ	0x02
-#define PKT_TYPE_DATA		0x04
 #define PKT_TYPE_IP		0x08
 #define PKT_TYPE_OLSR		0x10
 #define PKT_TYPE_OLSR_LQ	0x20
@@ -115,6 +112,15 @@ struct history {
 };
 
 extern struct history hist;
+
+struct statistics {
+	unsigned int packets;
+	unsigned int pkts_per_rate[3];
+	unsigned int pkts_per_type[3];
+};
+
+extern struct statistics stat;
+
 
 extern int paused;
 extern int olsr_only;

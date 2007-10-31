@@ -37,6 +37,7 @@
 #include "network.h"
 #include "main.h"
 #include "util.h"
+#include "ieee80211.h"
 
 static int device_index(int fd, const char *if_name);
 static void device_promisc(int fd, const char *if_name, int on);
@@ -79,7 +80,7 @@ int arphrd;
 
 int node_timeout = NODE_TIMEOUT;
 
-/* may be better to integrate all this into kismet */
+
 int
 main(int argc, char** argv)
 {
@@ -342,9 +343,12 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		n->olsr_neigh = p->olsr_neigh;
 	if (p->pkt_types & PKT_TYPE_OLSR)
 		n->olsr_count++;
-	if (p->wlan_bssid[0] != 0xff)
+	if (p->wlan_bssid[0] != 0xff &&
+		! (p->wlan_bssid[0] == 0 && p->wlan_bssid[1] == 0 && p->wlan_bssid[2] == 0 &&
+		   p->wlan_bssid[3] == 0 && p->wlan_bssid[4] == 0 && p->wlan_bssid[5] == 0))
 		memcpy(n->wlan_bssid, p->wlan_bssid, 6);
-	if (p->pkt_types & PKT_TYPE_BEACON) {
+	if ((p->wlan_type & IEEE80211_FCTL_FTYPE) == IEEE80211_FTYPE_MGMT &&
+	    (p->wlan_type & IEEE80211_FCTL_STYPE) == IEEE80211_STYPE_BEACON) {
 		n->tsfl = *(unsigned long*)(&p->wlan_tsf[0]);
 		n->tsfh = *(unsigned long*)(&p->wlan_tsf[4]);
 	}
@@ -359,6 +363,10 @@ static int
 node_update(struct packet_info* pkt)
 {
 	int i;
+
+	if (pkt->wlan_src[0] == 0 && pkt->wlan_src[1] == 0 && pkt->wlan_src[2] == 0 &&
+	    pkt->wlan_src[3] == 0 && pkt->wlan_src[4] == 0 && pkt->wlan_src[5] == 0)
+		return -1;
 
 	for (i=0;i<MAX_NODES;i++) {
 		if (nodes[i].status == 1) {
@@ -387,7 +395,8 @@ check_ibss_split(struct packet_info* pkt, int pkt_node)
 	unsigned char* last_bssid = NULL;
 
 	/* only check beacons (XXX: what about PROBE?) */
-	if (pkt->pkt_types != PKT_TYPE_BEACON) {
+	if (!((pkt->wlan_type & IEEE80211_FCTL_FTYPE) == IEEE80211_FTYPE_MGMT &&
+	     (pkt->wlan_type & IEEE80211_FCTL_STYPE) == IEEE80211_STYPE_BEACON)) {
 		return;
 	}
 

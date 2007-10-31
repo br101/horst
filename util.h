@@ -41,4 +41,24 @@ convert_string_to_mac(const char* string, unsigned char* mac);
 inline int
 normalize(int val, float max_val, int max);
 
+char get_paket_type_char(int type);
+
+char* get_paket_type_name(int type);
+
+
+/* a list of packet type names defined in main.c */
+struct pkt_names {
+	char c;
+	char* name;
+};
+
+extern struct pkt_names mgmt_names[];
+extern struct pkt_names ctl_names[];
+extern struct pkt_names data_names[];
+
+#define DATA_NAME(_i) data_names[(_i)>>4]
+#define MGMT_NAME(_i) mgmt_names[(_i)>>4]
+#define CTL_NAME(_i) ctl_names[(_i)>>4]
+
+
 #endif

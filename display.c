@@ -26,7 +26,7 @@
 
 #include "display.h"
 #include "util.h"
-#include "ieee80211_header.h"
+#include "ieee80211.h"
 #include "olsr_header.h"
 
 WINDOW *dump_win = NULL;
@@ -54,7 +54,6 @@ extern int do_filter;
 
 struct node_info* sort_nodes[MAX_NODES];
 
-static char get_paket_type_char(int type, int subtype);
 
 static inline void print_centered(WINDOW* win, int line, int cols, char* str) {
 	mvwprintw(win, line, cols/2 - strlen(str)/2, str);
@@ -548,7 +547,7 @@ update_hist_win(void)
 
 		wattron(hist_win, CYAN);
 		mvwprintw(hist_win, TYPE_POS, col, "%c", \
-			get_paket_type_char(hist.type[i], hist.stype[i]));
+			get_paket_type_char(hist.type[i]));
 
 		/* make rate table smaller by joining some values */
 		switch (hist.rate[i]) {
@@ -642,178 +641,35 @@ update_dump_win(struct packet_info* pkt)
 	else if (pkt->pkt_types & PKT_TYPE_IP) {
 		wprintw(dump_win,"IP     %s ", ip_sprintf(pkt->ip_src));
 	}
-	else if (WLAN_FC_TYPE_MGMT == pkt->wlan_type) {
-		switch(pkt->wlan_stype) {
-			case WLAN_FC_STYPE_ASSOC_REQ:
-				wprintw(dump_win,"ASSOC_REQ");
+	else {
+		wprintw(dump_win,"%s", get_paket_type_name(pkt->wlan_type));
+
+		switch (pkt->wlan_type & IEEE80211_FCTL_FTYPE) {
+		case IEEE80211_FTYPE_DATA:
+			break;
+		case IEEE80211_FTYPE_CTL:
+			switch (pkt->wlan_type & IEEE80211_FCTL_STYPE) {
+			case IEEE80211_STYPE_CTS:
+			case IEEE80211_STYPE_RTS:
+			case IEEE80211_STYPE_ACK:
+				wprintw(dump_win," %s", ether_sprintf(pkt->wlan_dst));
 				break;
-			case WLAN_FC_STYPE_ASSOC_RESP:
-				wprintw(dump_win,"ASSOC_RESP");
-				break;
-			case WLAN_FC_STYPE_REASSOC_REQ:
-				wprintw(dump_win,"REASSOC_REQ");
-				break;
-			case WLAN_FC_STYPE_REASSOC_RESP:
-				wprintw(dump_win,"REASSOC_RESP");
-				break;
-			case WLAN_FC_STYPE_PROBE_REQ:
-				wprintw(dump_win,"PROBE_REQ");
-				break;
-			case WLAN_FC_STYPE_PROBE_RESP:
-				wprintw(dump_win,"PROBE_RESP");
-				break;
-			case WLAN_FC_STYPE_BEACON:
-				wprintw(dump_win,"BEACON '%s' %08x:%08x", pkt->wlan_essid,
+			}
+			break;
+		case IEEE80211_FTYPE_MGMT:
+			switch (current_packet.wlan_type & IEEE80211_FCTL_STYPE) {
+			case IEEE80211_STYPE_BEACON:
+				wprintw(dump_win," '%s' %08x:%08x", pkt->wlan_essid,
 					*(unsigned long*)(&pkt->wlan_tsf[4]),
 					*(unsigned long*)(&pkt->wlan_tsf[0]));
 				break;
-			case WLAN_FC_STYPE_ATIM:
-				wprintw(dump_win,"ATIM");
-				break;
-			case WLAN_FC_STYPE_DISASSOC:
-				wprintw(dump_win,"DISASSOC");
-				break;
-			case WLAN_FC_STYPE_AUTH:
-				wprintw(dump_win,"AUTH");
-				break;
-			case WLAN_FC_STYPE_DEAUTH:
-				wprintw(dump_win,"DEAUTH");
-				break;
-			default:
-				wprintw(dump_win,"MGMT(0x%02x)",pkt->wlan_stype);
-				break;
+			}
 		}
-	}
-	else if (WLAN_FC_TYPE_CTRL == pkt->wlan_type) {
-		switch(pkt->wlan_stype) {
-			case WLAN_FC_STYPE_PSPOLL:
-				wprintw(dump_win,"PSPOLL");
-				break;
-			case WLAN_FC_STYPE_RTS:
-				wprintw(dump_win,"RTS");
-				break;
-			case WLAN_FC_STYPE_CTS:
-				wprintw(dump_win,"CTS");
-				break;
-			case WLAN_FC_STYPE_ACK:
-				wprintw(dump_win,"ACK");
-				break;
-			case WLAN_FC_STYPE_CFEND:
-				wprintw(dump_win,"CFEND");
-				break;
-			case WLAN_FC_STYPE_CFENDACK:
-				wprintw(dump_win,"CFENDACK");
-				break;
-			default:
-				wprintw(dump_win,"CTRL(0x%02x)",pkt->wlan_stype);
-				break;
-		}
-	}
-	else if (WLAN_FC_TYPE_DATA == pkt->wlan_type) {
-		switch(pkt->wlan_stype) {
-			case WLAN_FC_STYPE_DATA:
-				wprintw(dump_win,"DATA");
-				break;
-			case WLAN_FC_STYPE_DATA_CFACK:
-				wprintw(dump_win,"DATA_CFACK");
-				break;
-			case WLAN_FC_STYPE_DATA_CFPOLL:
-				wprintw(dump_win,"DATA_CFPOLL");
-				break;
-			case WLAN_FC_STYPE_DATA_CFACKPOLL:
-				wprintw(dump_win,"DATA_CFACKPOLL");
-				break;
-			case WLAN_FC_STYPE_NULLFUNC:
-				wprintw(dump_win,"NULLFUNC");
-				break;
-			case WLAN_FC_STYPE_CFACK:
-				wprintw(dump_win,"CFACK");
-				break;
-			case WLAN_FC_STYPE_CFPOLL:
-				wprintw(dump_win,"CFPOLL");
-				break;
-			case WLAN_FC_STYPE_CFACKPOLL:
-				wprintw(dump_win,"CFACKPOLL");
-				break;
-			default:
-				wprintw(dump_win,"DATA(0x%02x)",pkt->wlan_stype);
-				break;
-		}
-	}
-	else {
-		wprintw(dump_win,"UNK(%x,%x)", pkt->wlan_stype, pkt->wlan_type);
 	}
 
 	wprintw(dump_win,"\n");
 	wattroff(dump_win,A_BOLD);
 	wrefresh(dump_win);
-}
-
-
-static char get_paket_type_char(int type, int subtype) {
-	if (WLAN_FC_TYPE_MGMT == type) {
-		switch(subtype) {
-		case WLAN_FC_STYPE_ASSOC_REQ:
-		case WLAN_FC_STYPE_REASSOC_REQ:
-			return 'a';
-		case WLAN_FC_STYPE_ASSOC_RESP:
-		case WLAN_FC_STYPE_REASSOC_RESP:
-			return 'A';
-		case WLAN_FC_STYPE_PROBE_REQ:
-			return 'p';
-		case WLAN_FC_STYPE_PROBE_RESP:
-			return 'P';
-		case WLAN_FC_STYPE_BEACON:
-			return 'B';
-		case WLAN_FC_STYPE_ATIM:
-			return 't';
-		case WLAN_FC_STYPE_DISASSOC:
-			return 'D';
-		case WLAN_FC_STYPE_AUTH:
-			return 'u';
-		case WLAN_FC_STYPE_DEAUTH:
-			return 'U';
-		default:
-			return 'm';
-		}
-	}
-	else if (WLAN_FC_TYPE_CTRL == type) {
-		switch(subtype) {
-		case WLAN_FC_STYPE_PSPOLL:
-			return 's';
-		case WLAN_FC_STYPE_RTS:
-			return 'R';
-		case WLAN_FC_STYPE_CTS:
-			return 'C';
-		case WLAN_FC_STYPE_ACK:
-			return 'K';
-		case WLAN_FC_STYPE_CFEND:
-		case WLAN_FC_STYPE_CFENDACK:
-			return 'f';
-		default:
-			return 'c';
-		}
-	}
-	else if (WLAN_FC_TYPE_DATA == type) {
-		switch(subtype) {
-		case WLAN_FC_STYPE_DATA:
-		case WLAN_FC_STYPE_DATA_CFACK:
-		case WLAN_FC_STYPE_DATA_CFPOLL:
-		case WLAN_FC_STYPE_DATA_CFACKPOLL:
-			return 'D';
-		case WLAN_FC_STYPE_NULLFUNC:
-			return '0';
-		case WLAN_FC_STYPE_CFACK:
-		case WLAN_FC_STYPE_CFPOLL:
-		case WLAN_FC_STYPE_CFACKPOLL:
-			return 'F';
-		default:
-			return 'd';
-		}
-	}
-	else {
-		return '?';
-	}
 }
 
 

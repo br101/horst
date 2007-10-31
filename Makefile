@@ -20,7 +20,7 @@ NAME=horst
 VERSION=1.3-pre
 DEBUG=0
 BUILDDATE=$(shell date +"%d.%m.%Y")
-OBJS=protocol_parser.o main.o display.o network.o util.o
+OBJS=protocol_parser.o main.o display.o network.o util.o ieee80211_util.o
 LIBS=-l ncurses
 CFLAGS+=-Wall -DVERSION=\"$(VERSION)\" -DBUILDDATE=\"$(BUILDDATE)\" -DDO_DEBUG=$(DEBUG)
 
@@ -28,8 +28,8 @@ buildstamp=.build_debug$(DEBUG)
 
 all: $(buildstamp) $(NAME)
 
-protocol_parser.o: ieee80211_header.h prism_header.h olsr_header.h
-main.o: main.h
+protocol_parser.o: ieee80211.h ieee80211_radiotap.h prism_header.h olsr_header.h
+main.o: main.h ieee80211.h
 display.o: display.h main.h
 network.o: network.h
 
