@@ -309,6 +309,7 @@ parse_80211_header(unsigned char** buf, int len)
 
 		switch (current_packet.wlan_type & IEEE80211_FCTL_STYPE) {
 		case IEEE80211_STYPE_BEACON:
+		case IEEE80211_STYPE_PROBE_RESP:
 			memcpy(current_packet.wlan_tsf, &whm->u.beacon.timestamp,8);
 			if (whm->u.beacon.variable[0] == 0) { /* ESSID */
 				memcpy(current_packet.wlan_essid, &whm->u.beacon.variable[2], whm->u.beacon.variable[1]);

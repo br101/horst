@@ -659,6 +659,7 @@ update_dump_win(struct packet_info* pkt)
 		case IEEE80211_FTYPE_MGMT:
 			switch (current_packet.wlan_type & IEEE80211_FCTL_STYPE) {
 			case IEEE80211_STYPE_BEACON:
+			case IEEE80211_STYPE_PROBE_RESP:
 				wprintw(dump_win," '%s' %08x:%08x", pkt->wlan_essid,
 					*(unsigned long*)(&pkt->wlan_tsf[4]),
 					*(unsigned long*)(&pkt->wlan_tsf[0]));
