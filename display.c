@@ -124,9 +124,10 @@ void update_display(struct packet_info* pkt, int node_number) {
 	struct timeval the_time;
 	gettimeofday( &the_time, NULL );
 
+	/* update only every 100ms (10 frames per sec should be enough) */
 	if (the_time.tv_sec == last_time.tv_sec &&
 	   (the_time.tv_usec - last_time.tv_usec) < 100000 ) {
-		/* just add the line to dump win, don't update */
+		/* just add the line to dump win so we dont loose it */
 		update_dump_win(pkt);
 		return;
 	}
@@ -141,8 +142,8 @@ void update_display(struct packet_info* pkt, int node_number) {
 		update_list_win();
 		update_stat_win(pkt, node_number);
 		update_dump_win(pkt);
-		wnoutrefresh(stdscr);
 	}
+	/* only one redraw */
 	doupdate();
 }
 
@@ -223,7 +224,7 @@ handle_user_input()
 				delwin(essid_win);
 				essid_win = NULL;
 			}
-			break;//return; // dont redraw
+			break;
 		case 'h': case 'H':
 			if (hist_win == NULL)
 				display_hist_win();
@@ -231,8 +232,7 @@ handle_user_input()
 				delwin(hist_win);
 				hist_win = NULL;
 			}
-			break;//return; // dont redraw
-
+			break;
 		case 'f': case 'F':
 			if (filter_win == NULL)
 				display_filter_win();
@@ -254,8 +254,7 @@ handle_user_input()
 		default:
 			return;
 	}
-	if (!paused)
-		update_display(NULL,-1);
+	update_display(NULL,-1);
 }
 
 
@@ -622,6 +621,8 @@ void
 update_dump_win(struct packet_info* pkt)
 {
 	if (!pkt) {
+		wprintw(dump_win, "\nPAUSED");
+		wnoutrefresh(dump_win);
 		return;
 	}
 
