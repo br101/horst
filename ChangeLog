@@ -22,6 +22,8 @@
 
 	* -t command line option to specify timeout
 
+	* optimized screen updates - saves CPU time
+
 2007-07-20  Sven-Ola aet gmx.de
 
 	* Added -e macaddr filter switch
