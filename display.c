@@ -325,14 +325,16 @@ compare_nodes_snr(const void *p1, const void *p2)
 }
 
 
-#define COL_IP 1
-#define COL_SNR 17
-#define COL_RATE 26
-#define COL_SOURCE 29
-#define COL_STA 47
-#define COL_BSSID 49
-#define COL_OLSR 69
-#define COL_TSF 80
+#define COL_IP 3
+#define COL_SNR 19
+#define COL_RATE 28
+#define COL_SOURCE 31
+#define COL_STA 49
+#define COL_BSSID 51
+#define COL_OLSR 71
+#define COL_TSF 82
+
+static char spin[4] = {'/', '-', '\\', '|'};
 
 static void
 print_list_line(int line, struct node_info* n, time_t now)
@@ -340,7 +342,7 @@ print_list_line(int line, struct node_info* n, time_t now)
 	struct packet_info* p = &n->last_pkt;
 
 	if (n->pkt_types & PKT_TYPE_OLSR)
-		wattron(list_win,A_UNDERLINE);
+		wattron(list_win, GREEN);
 	if (n->last_seen > now - node_timeout/2)
 		wattron(list_win,A_BOLD);
 	else
@@ -349,8 +351,11 @@ print_list_line(int line, struct node_info* n, time_t now)
 	if (essids[n->essid].split>0)
 		wattron(list_win,RED);
 
+	mvwprintw(list_win, line, 1, "%c",
+		spin[n->pkt_count%4]);
+
 	mvwprintw(list_win,line,COL_SNR,"%2d/%2d/%2d",
-		  p->snr, n->snr_max, n->snr_min);
+		p->snr, n->snr_max, n->snr_min);
 
 	if (n->wlan_mode == WLAN_MODE_AP )
 		mvwprintw(list_win,line,COL_STA,"A");
@@ -373,7 +378,7 @@ print_list_line(int line, struct node_info* n, time_t now)
 	mvwprintw(list_win,line,COL_TSF,"%08x", n->tsfh);
 
 	wattroff(list_win,A_BOLD);
-	wattroff(list_win,A_UNDERLINE);
+	wattroff(list_win,GREEN);
 	wattroff(list_win,RED);
 }
 
@@ -394,6 +399,7 @@ update_list_win(void)
 	mvwprintw(list_win,0,COL_SNR,"SN/MX/MI");
 	mvwprintw(list_win,0,COL_RATE,"RT");
 	mvwprintw(list_win,0,COL_SOURCE,"SOURCE");
+	mvwprintw(list_win,0,COL_STA,"T");
 	mvwprintw(list_win,0,COL_BSSID,"(BSSID)");
 	mvwprintw(list_win,0,COL_IP,"IP");
 	mvwprintw(list_win,0,COL_OLSR,"OLSR");
