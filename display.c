@@ -476,7 +476,7 @@ update_essid_win(void)
 		mvwprintw(essid_win, line, 2, "ESSID '%s'", essids[i].essid );
 		if (essids[i].split > 0) {
 			wattron(essid_win, RED);
-			wprintw(essid_win, "*** SPLIT!!! ***");
+			wprintw(essid_win, " *** SPLIT ***");
 		}
 		else
 			wattron(essid_win, GREEN);
