@@ -50,7 +50,7 @@ static int parse_olsr_packet(unsigned char** buf, int len);
 
 int ieee80211_get_hdrlen(u16 fc);
 u8 *ieee80211_get_bssid(struct ieee80211_hdr *hdr, size_t len);
-
+static void ieee802_11_parse_elems(unsigned char *start, int len, struct packet_info *pkt);
 
 /* return 1 if we parsed enough = min ieee header */
 int
@@ -157,6 +157,8 @@ parse_radiotap_header(unsigned char** buf, int len)
 
 	DEBUG("RADIOTAP HEADER\n");
 
+	DEBUG("len: %d\n", len);
+
 	if (len < sizeof(struct ieee80211_radiotap_header))
 		return -1;
 
@@ -251,6 +253,7 @@ static int
 parse_80211_header(unsigned char** buf, int len)
 {
 	struct ieee80211_hdr* wh;
+	struct ieee80211_mgmt* whm;
 	int hdrlen;
 	u8* sa = NULL;
 	u8* da = NULL;
@@ -300,9 +303,6 @@ parse_80211_header(unsigned char** buf, int len)
 		break;
 
 	case IEEE80211_FTYPE_MGMT:
-		if (len < sizeof(struct ieee80211_mgmt))
-			return -1;
-		struct ieee80211_mgmt* whm;
 		whm = (struct ieee80211_mgmt*)*buf;
 		sa = whm->sa;
 		da = whm->da;
@@ -310,11 +310,11 @@ parse_80211_header(unsigned char** buf, int len)
 		switch (current_packet.wlan_type & IEEE80211_FCTL_STYPE) {
 		case IEEE80211_STYPE_BEACON:
 		case IEEE80211_STYPE_PROBE_RESP:
-			memcpy(current_packet.wlan_tsf, &whm->u.beacon.timestamp,8);
-			if (whm->u.beacon.variable[0] == 0) { /* ESSID */
-				memcpy(current_packet.wlan_essid, &whm->u.beacon.variable[2], whm->u.beacon.variable[1]);
-				current_packet.wlan_essid[whm->u.beacon.variable[1]]='\0';
-			}
+			memcpy(current_packet.wlan_tsf, &whm->u.beacon.timestamp, 8);
+			ieee802_11_parse_elems(whm->u.beacon.variable,
+				len - sizeof(struct ieee80211_mgmt) - 4, &current_packet);
+			DEBUG("ESSID %s \n", current_packet.wlan_essid );
+			DEBUG("CHAN %d \n", current_packet.wlan_channel );
 			if (whm->u.beacon.capab_info & WLAN_CAPABILITY_IBSS)
 				current_packet.wlan_mode = WLAN_MODE_IBSS;
 			else if (whm->u.beacon.capab_info & WLAN_CAPABILITY_ESS)
@@ -466,4 +466,97 @@ parse_olsr_packet(unsigned char** buf, int len)
 	}
 
 	return 0;
+}
+
+
+/* from mac80211/ieee80211_sta.c, modified */
+static void
+ieee802_11_parse_elems(unsigned char *start, int len, struct packet_info *pkt)
+{
+	int left = len;
+	unsigned char *pos = start;
+
+	while (left >= 2) {
+		u8 id, elen;
+
+		id = *pos++;
+		elen = *pos++;
+		left -= 2;
+
+		if (elen > left)
+			return;
+
+		switch (id) {
+		case WLAN_EID_SSID:
+			memcpy(pkt->wlan_essid, pos, elen);
+			break;
+#if 0
+		case WLAN_EID_SUPP_RATES:
+			elems->supp_rates = pos;
+			elems->supp_rates_len = elen;
+			break;
+		case WLAN_EID_FH_PARAMS:
+			elems->fh_params = pos;
+			elems->fh_params_len = elen;
+			break;
+#endif
+		case WLAN_EID_DS_PARAMS:
+			pkt->wlan_channel = *pos;
+			break;
+#if 0
+		case WLAN_EID_CF_PARAMS:
+			elems->cf_params = pos;
+			elems->cf_params_len = elen;
+			break;
+		case WLAN_EID_TIM:
+			elems->tim = pos;
+			elems->tim_len = elen;
+			break;
+		case WLAN_EID_IBSS_PARAMS:
+			elems->ibss_params = pos;
+			elems->ibss_params_len = elen;
+			break;
+		case WLAN_EID_CHALLENGE:
+			elems->challenge = pos;
+			elems->challenge_len = elen;
+			break;
+		case WLAN_EID_WPA:
+			if (elen >= 4 && pos[0] == 0x00 && pos[1] == 0x50 &&
+			    pos[2] == 0xf2) {
+				/* Microsoft OUI (00:50:F2) */
+				if (pos[3] == 1) {
+					/* OUI Type 1 - WPA IE */
+					elems->wpa = pos;
+					elems->wpa_len = elen;
+				} else if (elen >= 5 && pos[3] == 2) {
+					if (pos[4] == 0) {
+						elems->wmm_info = pos;
+						elems->wmm_info_len = elen;
+					} else if (pos[4] == 1) {
+						elems->wmm_param = pos;
+						elems->wmm_param_len = elen;
+					}
+				}
+			}
+			break;
+		case WLAN_EID_RSN:
+			elems->rsn = pos;
+			elems->rsn_len = elen;
+			break;
+		case WLAN_EID_ERP_INFO:
+			elems->erp_info = pos;
+			elems->erp_info_len = elen;
+			break;
+		case WLAN_EID_EXT_SUPP_RATES:
+			elems->ext_supp_rates = pos;
+			elems->ext_supp_rates_len = elen;
+			break;
+#endif
+		default:
+			break;
+		}
+
+		left -= elen;
+		pos += elen;
+	}
 }

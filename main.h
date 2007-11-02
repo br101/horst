@@ -57,6 +57,7 @@ struct packet_info {
 	unsigned char wlan_tsf[8];
 	char wlan_essid[255];
 	int wlan_mode;
+	unsigned char wlan_channel;
 	unsigned int ip_src;
 	unsigned int ip_dst;
 	int olsr_type;
@@ -77,6 +78,7 @@ struct node_info {
 	int pkt_count;
 	int olsr_count;
 	unsigned char wlan_bssid[6];
+	int channel;
 	int wlan_mode;
 	unsigned long tsfl;
 	unsigned long tsfh;

@@ -357,6 +357,8 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		n->snr_max = p->snr;
 	if ((n->snr_min == 0 && p->snr > 0) || p->snr < n->snr_min)
 		n->snr_min = p->snr;
+	if (p->wlan_channel !=0)
+		n->channel = p->wlan_channel;
 }
 
 static int

@@ -376,6 +376,9 @@ print_list_line(int line, struct node_info* n, time_t now)
 		wprintw(list_win, "G");
 	mvwprintw(list_win,line,COL_TSF,"%08x", n->tsfh);
 
+	if (n->channel)
+		mvwprintw(list_win, line, COL_TSF+9, "%2d", n->channel );
+
 	wattroff(list_win,A_BOLD);
 	wattroff(list_win,GREEN);
 	wattroff(list_win,RED);
@@ -403,6 +406,7 @@ update_list_win(void)
 	mvwprintw(list_win,0,COL_IP,"IP");
 	mvwprintw(list_win,0,COL_OLSR,"OLSR");
 	mvwprintw(list_win,0,COL_TSF,"TSF High");
+	mvwprintw(list_win,0,COL_TSF+9,"CH");
 
 	/* reuse bottom line for information on other win */
 	mvwprintw(list_win, LINES/2, 1, "Si/Noi-RT-SOURCE");
@@ -484,6 +488,7 @@ update_essid_win(void)
 				ether_sprintf(node->last_pkt.wlan_src));
 			wprintw(essid_win, " BSSID (%s) ", ether_sprintf(node->wlan_bssid));
 			wprintw(essid_win,"TSF %08x:%08x", node->tsfh, node->tsfl);
+			wprintw(essid_win," CH %d", node->channel);
 			wprintw(essid_win," %ddB", node->snr);
 
 			line++;
