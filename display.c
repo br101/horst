@@ -695,18 +695,25 @@ update_dump_win(struct packet_info* pkt)
 }
 
 
+#define STAT_PACK_POS 11
+#define STAT_BYTE_POS STAT_PACK_POS+9
+#define STAT_BPP_POS STAT_BYTE_POS+9
+#define STAT_PP_POS STAT_BPP_POS+6
+#define STAT_BP_POS STAT_PP_POS+6
+#define STAT_AIR_POS STAT_BP_POS+6
+#define STAT_AIRG_POS STAT_AIR_POS+6
+
 static void
 update_statistics_win(void)
 {
 	int i;
 	int line;
 	float airtime;
-	int byte_perc;
 
 	werase(show_win);
 	wattron(show_win, WHITE);
 	box(show_win, 0 , 0);
-	print_centered(show_win, 0, COLS, " Statistics ");
+	print_centered(show_win, 0, COLS, " Packet Statistics ");
 
 	if (stats.packets == 0) {
 		wnoutrefresh(show_win);
@@ -718,9 +725,13 @@ update_statistics_win(void)
 	mvwprintw(show_win, 4, 2, "Average: ~%d B/Pkt", stats.bytes/stats.packets);
 
 	line = 6;
-	mvwprintw(show_win, line, 9, "Packets    Bytes  ~B/P  Pkts%%  Bytes%%");
+	mvwprintw(show_win, line, STAT_PACK_POS, " Packets");
+	mvwprintw(show_win, line, STAT_BYTE_POS, "   Bytes");
+	mvwprintw(show_win, line, STAT_BPP_POS, "~B/P");
+	mvwprintw(show_win, line, STAT_PP_POS, "Pkts%%");
+	mvwprintw(show_win, line, STAT_BP_POS, "Byte%%");
 	wattron(show_win, A_BOLD);
-	wprintw(show_win, " \"airtime%%\"");
+	mvwprintw(show_win, line, STAT_AIR_POS, "\"AirTime%%\"");
 	mvwprintw(show_win, line++, 2, "RATE");
 	wattroff(show_win, A_BOLD);
 	mvwhline(show_win, line++, 2, '-', COLS-4);
@@ -729,43 +740,51 @@ update_statistics_win(void)
 			wattron(show_win, A_BOLD);
 			mvwprintw(show_win, line, 4, "%2dM", i);
 			wattroff(show_win, A_BOLD);
-			wprintw(show_win, " %8d %8d",
-				stats.packets_per_rate[i], stats.bytes_per_rate[i]);
-			wprintw(show_win, "  %4d",
+			mvwprintw(show_win, line, STAT_PACK_POS, "%8d", stats.packets_per_rate[i]);
+			mvwprintw(show_win, line, STAT_BYTE_POS, "%8d", stats.bytes_per_rate[i]);
+			mvwprintw(show_win, line, STAT_BPP_POS, "%4d",
 				stats.bytes_per_rate[i]/stats.packets_per_rate[i]);
-			mvwprintw(show_win, line, 33, "%2.1f%%",
+			mvwprintw(show_win, line, STAT_PP_POS, "%2.1f",
 				(stats.packets_per_rate[i]*1.0/stats.packets)*100);
-			mvwprintw(show_win, line, 40, "%2.1f%%",
+			mvwprintw(show_win, line, STAT_BP_POS, "%2.1f",
 				(stats.bytes_per_rate[i]*1.0/stats.bytes)*100);
 			wattron(show_win, A_BOLD);
 			airtime = ((stats.bytes_per_rate[i]*1.0/stats.bytes)*100)/i;
-			mvwprintw(show_win, line, 47, "%2.1f%%", airtime);
-			mvwhline(show_win, line, 55, '*', fnormalize(airtime, 100.0, COLS-55-2));
+			mvwprintw(show_win, line, STAT_AIR_POS, "%2.1f", airtime);
+			mvwhline(show_win, line, STAT_AIRG_POS, '*', fnormalize(airtime, 100.0, COLS-55-2));
 			wattroff(show_win, A_BOLD);
 			line++;
 		}
 	}
 
 	line++;
-	mvwprintw(show_win, line, 16, "Packets    Bytes  ~B/P   Pkts%%");
+	mvwprintw(show_win, line, STAT_PACK_POS, " Packets");
+	mvwprintw(show_win, line, STAT_BYTE_POS, "   Bytes");
+	mvwprintw(show_win, line, STAT_BPP_POS, "~B/P");
+	mvwprintw(show_win, line, STAT_PP_POS, "Pkts%%");
+	mvwprintw(show_win, line, STAT_BP_POS, "Byte%%");
 	wattron(show_win, A_BOLD);
-	wprintw(show_win, "  Bytes%%");
-	mvwprintw(show_win, line++, 2, "PACKET TYPE");
+	mvwprintw(show_win, line, STAT_AIR_POS, "\"AirTime%%\"");
+	mvwprintw(show_win, line++, 2, "TYPE");
 	wattroff(show_win, A_BOLD);
 	mvwhline(show_win, line++, 2, '-', COLS-4);
 	for (i=0; i<MAX_FSTYPE; i++) {
 		if (stats.packets_per_type[i] > 0) {
 			wattron(show_win, A_BOLD);
-			mvwprintw(show_win, line, 4, "%-10s", get_packet_type_name(i));
+			mvwprintw(show_win, line, 4, "%s", get_packet_type_name(i));
 			wattroff(show_win, A_BOLD);
-			wprintw(show_win, " %8d %8d", stats.packets_per_type[i], stats.bytes_per_type[i]);
-			wprintw(show_win, "  %4d", stats.bytes_per_type[i]/stats.packets_per_type[i]);
-			mvwprintw(show_win, line, 41, "%2.1f%%",
+			mvwprintw(show_win, line, STAT_PACK_POS, "%8d", stats.packets_per_type[i]);
+			mvwprintw(show_win, line, STAT_BYTE_POS, "%8d", stats.bytes_per_type[i]);
+			mvwprintw(show_win, line, STAT_BPP_POS, "%4d",
+				stats.bytes_per_type[i]/stats.packets_per_type[i]);
+			mvwprintw(show_win, line, STAT_PP_POS, "%2.1f",
 				(stats.packets_per_type[i]*1.0/stats.packets)*100);
-			byte_perc = (stats.bytes_per_type[i]*1.0/stats.bytes)*100;
+			mvwprintw(show_win, line, STAT_BP_POS, "%2.1f",
+				(stats.bytes_per_type[i]*1.0/stats.bytes)*100);
 			wattron(show_win, A_BOLD);
-			mvwprintw(show_win, line, 48, "%2.1f%%", byte_perc);
-			mvwhline(show_win, line, 55, '*', fnormalize(byte_perc, 100.0, COLS-55-2));
+			airtime = (stats.airtime_per_type[i]*1.0/stats.airtimes)*100;
+			mvwprintw(show_win, line, STAT_AIR_POS, "%2.1f", airtime);
+			mvwhline(show_win, line, STAT_AIRG_POS, '*', fnormalize(airtime, 100.0, COLS-55-2));
 			wattroff(show_win, A_BOLD);
 			line++;
 		}

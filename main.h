@@ -121,11 +121,13 @@ extern struct history hist;
 struct statistics {
 	unsigned int packets;
 	unsigned int bytes;
+	unsigned int airtimes;
 	unsigned int packets_per_rate[MAX_RATES];
 	unsigned int bytes_per_rate[MAX_RATES];
 
 	unsigned int packets_per_type[MAX_FSTYPE];
 	unsigned int bytes_per_type[MAX_FSTYPE];
+	unsigned int airtime_per_type[MAX_FSTYPE];
 };
 
 extern struct statistics stat;

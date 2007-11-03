@@ -490,11 +490,14 @@ update_statistics(struct packet_info* p) {
 	stats.packets++;
 	stats.bytes += p->len;
 	if (p->rate >= 0 && p->rate < MAX_RATES) {
+		stats.airtimes += p->len / p->rate;
 		stats.packets_per_rate[p->rate]++;
 		stats.bytes_per_rate[p->rate] += p->len;
 	}
 	if (p->wlan_type >= 0 && p->wlan_type < MAX_FSTYPE) {
 		stats.packets_per_type[p->wlan_type]++;
 		stats.bytes_per_type[p->wlan_type] += p->len;
+		if (p->rate >= 0 && p->rate < MAX_RATES)
+			stats.airtime_per_type[p->wlan_type] += p->len / p->rate;
 	}
 }
