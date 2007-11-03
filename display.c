@@ -604,7 +604,7 @@ update_hist_win(void)
 
 		wattron(show_win, CYAN);
 		mvwprintw(show_win, TYPE_POS, col, "%c", \
-			get_paket_type_char(hist.type[i]));
+			get_packet_type_char(hist.type[i]));
 
 		/* make rate table smaller by joining some values */
 		switch (hist.rate[i]) {
@@ -665,7 +665,7 @@ update_dump_win(struct packet_info* pkt)
 		wprintw(dump_win,"%-7s%s ", "IP", ip_sprintf(pkt->ip_src));
 	}
 	else {
-		wprintw(dump_win,"%-7s", get_paket_type_name(pkt->wlan_type));
+		wprintw(dump_win,"%-7s", get_packet_type_name(pkt->wlan_type));
 
 		switch (pkt->wlan_type & IEEE80211_FCTL_FTYPE) {
 		case IEEE80211_FTYPE_DATA:

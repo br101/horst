@@ -27,9 +27,9 @@ buildstamp=.build_debug$(DEBUG)
 
 all: $(buildstamp) $(NAME)
 
-protocol_parser.o: ieee80211.h ieee80211_radiotap.h prism_header.h olsr_header.h
+protocol_parser.o: ieee80211.h ieee80211_radiotap.h prism_header.h olsr_header.h util.h
 main.o: main.h ieee80211.h
-display.o: display.h main.h
+display.o: display.h main.h util.h
 network.o: network.h
 
 $(NAME): $(OBJS)

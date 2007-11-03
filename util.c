@@ -23,6 +23,11 @@
 #include "ieee80211.h"
 
 
+struct pkt_names {
+	char c;
+	char* name;
+};
+
 /* a list of packet type names for easier indexing with padding */
 struct pkt_names mgmt_names[] = {
 	{ 'a', "ASOCRQ" },		/* IEEE80211_STYPE_ASSOC_REQ	0x0000 */
@@ -40,8 +45,7 @@ struct pkt_names mgmt_names[] = {
 	{ 'T', "ACTION" },		/* IEEE80211_STYPE_ACTION	0x00D0 */
 };
 
-struct pkt_names ctl_names[] = {
-	{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, /* let's waste some memory ;) */
+struct pkt_names ctrl_names[] = {
 	{ 's', "PSPOLL" },		/* IEEE80211_STYPE_PSPOLL	0x00A0 */
 	{ 'R', "RTS" },			/* IEEE80211_STYPE_RTS		0x00B0 */
 	{ 'C', "CTS" },			/* IEEE80211_STYPE_CTS		0x00C0 */
@@ -68,6 +72,10 @@ struct pkt_names data_names[] = {
 	{ 'f', "QCFPOLL" },		/* IEEE80211_STYPE_QOS_CFPOLL		0x00E0 */
 	{ 'f', "QCFACKPOLL" },	/* IEEE80211_STYPE_QOS_CFACKPOLL	0x00F0 */
 };
+
+#define DATA_NAME_INDEX(_i) (((_i) & IEEE80211_FCTL_STYPE)>>4)
+#define MGMT_NAME_INDEX(_i) (((_i) & IEEE80211_FCTL_STYPE)>>4)
+#define CTRL_NAME_INDEX(_i) ((((_i) & IEEE80211_FCTL_STYPE)>>4)-10)
 
 
 inline int
@@ -138,40 +146,54 @@ convert_string_to_mac(const char* string, unsigned char* mac)
 
 
 char
-get_paket_type_char(int type)
+get_packet_type_char(int type)
 {
 	switch (type & IEEE80211_FCTL_FTYPE) {
 	case IEEE80211_FTYPE_MGMT:
-		if (MGMT_NAME(type & IEEE80211_FCTL_STYPE).c)
-			return MGMT_NAME(type & IEEE80211_FCTL_STYPE).c;
-
+		if (MGMT_NAME_INDEX(type) < sizeof(mgmt_names)/sizeof(struct pkt_names)) {
+			if (mgmt_names[MGMT_NAME_INDEX(type)].c)
+				return mgmt_names[MGMT_NAME_INDEX(type)].c;
+		}
+		break;
 	case IEEE80211_FTYPE_CTL:
-		if (CTL_NAME(type & IEEE80211_FCTL_STYPE).c)
-			return CTL_NAME(type & IEEE80211_FCTL_STYPE).c;
-
+		if (CTRL_NAME_INDEX(type) < sizeof(ctrl_names)/sizeof(struct pkt_names)) {
+			if (ctrl_names[CTRL_NAME_INDEX(type)].c)
+				return ctrl_names[CTRL_NAME_INDEX(type)].c;
+		}
+		break;
 	case IEEE80211_FTYPE_DATA:
-		if (DATA_NAME(type & IEEE80211_FCTL_STYPE).c)
-			return DATA_NAME(type & IEEE80211_FCTL_STYPE).c;
+		if (DATA_NAME_INDEX(type) < sizeof(data_names)/sizeof(struct pkt_names)) {
+			if (data_names[DATA_NAME_INDEX(type)].c)
+				return data_names[DATA_NAME_INDEX(type)].c;
+		}
+		break;
 	}
 	return '?';
 }
 
 
 char*
-get_paket_type_name(int type)
+get_packet_type_name(int type)
 {
 	switch (type & IEEE80211_FCTL_FTYPE) {
 	case IEEE80211_FTYPE_MGMT:
-		if (MGMT_NAME(type & IEEE80211_FCTL_STYPE).name)
-			return MGMT_NAME(type & IEEE80211_FCTL_STYPE).name;
-
+		if (MGMT_NAME_INDEX(type) < sizeof(mgmt_names)/sizeof(struct pkt_names)) {
+			if (mgmt_names[MGMT_NAME_INDEX(type)].c)
+				return mgmt_names[MGMT_NAME_INDEX(type)].name;
+		}
+		break;
 	case IEEE80211_FTYPE_CTL:
-		if (CTL_NAME(type & IEEE80211_FCTL_STYPE).name)
-			return CTL_NAME(type & IEEE80211_FCTL_STYPE).name;
-
+		if (CTRL_NAME_INDEX(type) < sizeof(ctrl_names)/sizeof(struct pkt_names)) {
+			if (ctrl_names[CTRL_NAME_INDEX(type)].c)
+				return ctrl_names[CTRL_NAME_INDEX(type)].name;
+		}
+		break;
 	case IEEE80211_FTYPE_DATA:
-		if (DATA_NAME(type & IEEE80211_FCTL_STYPE).name)
-			return DATA_NAME(type & IEEE80211_FCTL_STYPE).name;
+		if (DATA_NAME_INDEX(type) < sizeof(data_names)/sizeof(struct pkt_names)) {
+			if (data_names[DATA_NAME_INDEX(type)].c)
+				return data_names[DATA_NAME_INDEX(type)].name;
+		}
+		break;
 	}
 	return "UNKNOW";
 }
