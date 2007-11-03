@@ -266,6 +266,7 @@ parse_80211_header(unsigned char** buf, int len)
 	if (len < hdrlen)
 		return -1;
 
+	current_packet.len = len;
 	current_packet.wlan_type = (wh->frame_control & (IEEE80211_FCTL_FTYPE | IEEE80211_FCTL_STYPE));
 
 	DEBUG("wlan_type %x - type %x - stype %x\n", wh->frame_control, wh->frame_control & IEEE80211_FCTL_FTYPE, wh->frame_control & IEEE80211_FCTL_STYPE );

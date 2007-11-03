@@ -92,6 +92,20 @@ normalize(int oval, float max_val, int max) {
 }
 
 
+inline float
+fnormalize(float oval, float max_val, float max) {
+	float val;
+	val=(oval/max_val)*max;
+	if (val>max) /* cap if still bigger */
+		val=max;
+	if (val==0 && oval > 0)
+		val=1;
+	if (val<0)
+		val=0;
+	return val;
+}
+
+
 void
 dump_packet(const unsigned char* buf, int len)
 {

@@ -31,6 +31,8 @@
 #define MAX_BSSIDS 255
 #define MAX_HISTORY 255
 #define MAX_ESSID_LEN 255
+#define MAX_RATES 55 /* 54M + 1 for array index */
+#define MAX_FSTYPE 0xff
 
 #define PKT_TYPE_IP		0x08
 #define PKT_TYPE_OLSR		0x10
@@ -48,6 +50,7 @@ struct packet_info {
 	int signal;
 	int noise;
 	int snr;
+	int len;
 	int rate;
 	int wlan_type;
 	unsigned char wlan_src[6];
@@ -117,8 +120,12 @@ extern struct history hist;
 
 struct statistics {
 	unsigned int packets;
-	unsigned int pkts_per_rate[3];
-	unsigned int pkts_per_type[3];
+	unsigned int bytes;
+	unsigned int packets_per_rate[MAX_RATES];
+	unsigned int bytes_per_rate[MAX_RATES];
+
+	unsigned int packets_per_type[MAX_FSTYPE];
+	unsigned int bytes_per_type[MAX_FSTYPE];
 };
 
 extern struct statistics stat;

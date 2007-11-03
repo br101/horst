@@ -48,6 +48,7 @@ static int node_update(struct packet_info* pkt);
 static void check_ibss_split(struct packet_info* pkt, int pkt_node);
 static int filter_packet(struct packet_info* pkt);
 static void update_history(struct packet_info* pkt);
+static void update_statistics(struct packet_info* pkt);
 
 struct packet_info current_packet;
 
@@ -57,6 +58,8 @@ struct node_info nodes[MAX_NODES];
 struct essid_info essids[MAX_ESSIDS];
 struct split_info splits;
 struct history hist;
+struct statistics stats;
+
 struct config conf = {
 	.node_timeout = NODE_TIMEOUT,
 	.ifname = "wlan0"
@@ -111,6 +114,7 @@ main(int argc, char** argv)
 			n = node_update(&current_packet);
 
 			update_history(&current_packet);
+			update_statistics(&current_packet);
 
 			check_ibss_split(&current_packet, n);
 
@@ -465,6 +469,7 @@ filter_packet(struct packet_info* pkt) {
 	return (conf.do_filter && 0 != memcmp(current_packet.wlan_src, conf.filtermac, sizeof(conf.filtermac)));
 }
 
+
 static void
 update_history(struct packet_info* p) {
 	if (p->signal == 0)
@@ -477,4 +482,19 @@ update_history(struct packet_info* p) {
 	hist.index++;
 	if (hist.index == MAX_HISTORY)
 		hist.index = 0;
+}
+
+
+static void
+update_statistics(struct packet_info* p) {
+	stats.packets++;
+	stats.bytes += p->len;
+	if (p->rate >= 0 && p->rate < MAX_RATES) {
+		stats.packets_per_rate[p->rate]++;
+		stats.bytes_per_rate[p->rate] += p->len;
+	}
+	if (p->wlan_type >= 0 && p->wlan_type < MAX_FSTYPE) {
+		stats.packets_per_type[p->wlan_type]++;
+		stats.bytes_per_type[p->wlan_type] += p->len;
+	}
 }

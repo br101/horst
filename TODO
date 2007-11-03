@@ -26,17 +26,6 @@ feature requests:
 
 ---
 
-Eine kleine Statistik, mit 2 Torten oder Balkendiags:
-
-1: empfangene Wifi Frames nach Typ, etwa
-    (typ 4-probereq sind 10%, typ 32-data sind 30%)
-
-2: empfangene Wifi Frames nach Speed, etwa
-    (10% auf 1mbit, 20% auf 5.5mbit etc am besten
-   die belegte "Luftzeit%" -also bytes*rate=time anzeigen)
-
----
-
 (eigentlich wünsche ich mir ein 3. horst-fenster am oberen rand,
   wie [scanCG.pl] als simpel-'SPECTRUM-analyser' mit life-NOISE, um
   CH-'belegung' u. nachbar-CH-'übersprechen' beurteilen zu können)

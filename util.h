@@ -41,6 +41,9 @@ convert_string_to_mac(const char* string, unsigned char* mac);
 inline int
 normalize(int val, float max_val, int max);
 
+inline float
+fnormalize(float val, float max_val, float max);
+
 char get_packet_type_char(int type);
 
 char* get_packet_type_name(int type);
