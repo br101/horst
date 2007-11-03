@@ -31,14 +31,6 @@
 #include "ieee80211.h"
 #include "olsr_header.h"
 
-WINDOW *dump_win = NULL;
-WINDOW *list_win = NULL;
-WINDOW *stat_win = NULL;
-WINDOW *filter_win = NULL;
-
-WINDOW *show_win = NULL;
-static char show_win_current;
-
 static void show_window(char which);
 static void display_filter_win(void);
 
@@ -52,15 +44,17 @@ static void update_statistics_win(void);
 static void update_help_win(void);
 static void update_detail_win(void);
 
+static WINDOW *dump_win = NULL;
+static WINDOW *list_win = NULL;
+static WINDOW *stat_win = NULL;
+static WINDOW *filter_win = NULL;
+static WINDOW *show_win = NULL;
+static char show_win_current;
 static int do_sort=0;
+static struct node_info* sort_nodes[MAX_NODES];
+static struct timeval last_time;
 
-extern char* ifname;
-extern unsigned char filtermac[6];
-extern int do_filter;
-
-struct node_info* sort_nodes[MAX_NODES];
-
-struct timeval last_time;
+extern struct config conf;
 
 
 static inline void print_centered(WINDOW* win, int line, int cols, char* str) {
@@ -101,14 +95,14 @@ init_display(void)
 	mvwhline(stdscr, LINES-1, 0, ' ', COLS);
 
 	mvwprintw(stdscr, LINES-1, 0, "[HORST] q:Quit p:Pause s:Sort f:Filter h:History e:ESSIDs a:Stats d:Details ?:Help");
-	if (arphrd == 803)
-		mvwprintw(stdscr, LINES-1, COLS-14, "%s: RADIOTAP", ifname);
-	else if (arphrd == 802)
-		mvwprintw(stdscr, LINES-1, COLS-14, "%s: PRISM2", ifname);
-	else if (arphrd == 801)
-		mvwprintw(stdscr, LINES-1, COLS-14, "%s: 802.11", ifname);
+	if (conf.arphrd == 803)
+		mvwprintw(stdscr, LINES-1, COLS-14, "%s: RADIOTAP", conf.ifname);
+	else if (conf.arphrd == 802)
+		mvwprintw(stdscr, LINES-1, COLS-14, "%s: PRISM2", conf.ifname);
+	else if (conf.arphrd == 801)
+		mvwprintw(stdscr, LINES-1, COLS-14, "%s: 802.11", conf.ifname);
 	else
-		mvwprintw(stdscr, LINES/2-1, COLS-14, "%s: UNSUPP", ifname);
+		mvwprintw(stdscr, LINES/2-1, COLS-14, "%s: UNSUPP", conf.ifname);
 
 	wattroff(stdscr, BLACKONWHITE);
 	refresh();
@@ -141,13 +135,13 @@ void filter_input(int c)
 	switch(c) {
 		case 'q': case '\r': case KEY_ENTER:
 			buffer[18] = '\0';
-			convert_string_to_mac(buffer, filtermac);
-			if (filtermac[0] || filtermac[1] || filtermac[2] ||
-				filtermac[3] || filtermac[4] || filtermac[5])
-				do_filter = 1;
+			convert_string_to_mac(buffer, conf.filtermac);
+			if (conf.filtermac[0] || conf.filtermac[1] || conf.filtermac[2] ||
+				conf.filtermac[3] || conf.filtermac[4] || conf.filtermac[5])
+				conf.do_filter = 1;
 			else
-				do_filter = 0;
-			paused = 0;
+				conf.do_filter = 0;
+			conf.paused = 0;
 			delwin(filter_win);
 			filter_win = NULL;
 			pos = 0;
@@ -182,13 +176,7 @@ handle_user_input()
 
 	switch(key) {
 		case ' ': case 'p': case 'P':
-			paused = paused ? 0 : 1;
-			break;
-		case 'c': case 'C':
-			no_ctrl = no_ctrl ? 0 : 1;
-			break;
-		case 'o': case 'O':
-			olsr_only = olsr_only ? 0 : 1;
+			conf.paused = conf.paused ? 0 : 1;
 			break;
 		case 'q': case 'Q':
 			finish_all(0);
@@ -249,12 +237,12 @@ static void
 display_filter_win()
 {
 	//char buf[255];
-	paused = 1;
+	conf.paused = 1;
 	filter_win = newwin(7, 25, LINES/2-2, COLS/2-15);
 	box(filter_win, 0 , 0);
 	mvwprintw(filter_win,0,2," Enter Filter MAC ");
-	if (do_filter)
-		mvwprintw(filter_win,2,2, "%s", ether_sprintf(filtermac));
+	if (conf.do_filter)
+		mvwprintw(filter_win,2,2, "%s", ether_sprintf(conf.filtermac));
 	else
 		mvwprintw(filter_win,2,2, "  :  :  :  :  :  ");
 	wmove(filter_win,2,2);
@@ -398,7 +386,7 @@ print_list_line(int line, struct node_info* n, time_t now)
 
 	if (n->pkt_types & PKT_TYPE_OLSR)
 		wattron(list_win, GREEN);
-	if (n->last_seen > now - node_timeout/2)
+	if (n->last_seen > now - conf.node_timeout/2)
 		wattron(list_win,A_BOLD);
 	else
 		wattron(list_win,A_NORMAL);
@@ -484,7 +472,7 @@ update_list_win(void)
 
 	for (i=0; i<num_nodes; i++) {
 		n = sort_nodes[i];
-		if (n->last_seen > now - node_timeout) {
+		if (n->last_seen > now - conf.node_timeout) {
 			line++;
 			/* Prevent overdraw of last line */
 			if (line < LINES/2)

@@ -28,7 +28,7 @@
 #include "main.h"
 #include "util.h"
 
-extern int quiet;
+extern struct config conf;
 
 struct sockaddr_in sock_in, cin;
 socklen_t cinlen;
@@ -46,9 +46,9 @@ int on = 1;
 void
 net_init_socket(int rport)
 {
-	if (!quiet)
+	if (!conf.quiet)
 		printf("using remote port %d\n",rport);
-	
+
 	sock_in.sin_family=AF_INET;
 	sock_in.sin_port=htons(rport);
 	sock_in.sin_addr.s_addr=htonl(INADDR_ANY);
@@ -65,7 +65,7 @@ net_init_socket(int rport)
 	if (listen(srv_fd, 5) < 0) {
 		err(1, "listen");
 	}
-} 
+}
 
 
 int
@@ -76,7 +76,7 @@ net_send_packet()
 	if (select(srv_fd+1,&rs,NULL,NULL,&to) && FD_ISSET(srv_fd,&rs))
 	{
 		cli_fd = accept(srv_fd,(struct sockaddr*)&cin,&cinlen);
-		if (!quiet)
+		if (!conf.quiet)
 			printf("horst: accepting client\n");
 		if (!cli_fd)
 			return -1;

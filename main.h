@@ -123,12 +123,20 @@ struct statistics {
 
 extern struct statistics stat;
 
+struct config {
+	char* ifname;
+	int rport;
+	int quiet;
+	int node_timeout;
+	unsigned char filtermac[6];
 
-extern int paused;
-extern int olsr_only;
-extern int no_ctrl;
-extern int arphrd; // the device ARP type
-extern int node_timeout;
+	/* this isnt exactly config, but... */
+	int arphrd; // the device ARP type
+	int paused;
+	int do_filter;
+};
+
+extern struct config conf;
 
 void
 finish_all(int sig);

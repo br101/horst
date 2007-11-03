@@ -54,32 +54,15 @@ struct packet_info current_packet;
 /* no, i dont want to implement a linked list now */
 
 struct node_info nodes[MAX_NODES];
-
 struct essid_info essids[MAX_ESSIDS];
-
 struct split_info splits;
-
 struct history hist;
-
-char* ifname = "wlan0";
-
-int paused = 0;
-int olsr_only = 0;
-int no_ctrl = 0;
-int do_filter = 0;
-
-unsigned char filtermac[6];
+struct config conf = {
+	.node_timeout = NODE_TIMEOUT,
+	.ifname = "wlan0"
+};
 
 static int mon; /* monitoring socket */
-
-int rport = 0;
-
-int quiet = 0;
-
-int arphrd;
-
-int node_timeout = NODE_TIMEOUT;
-
 
 int
 main(int argc, char** argv)
@@ -90,18 +73,18 @@ main(int argc, char** argv)
 
 	get_options(argc, argv);
 
-	if (!quiet)
-		printf("using interface %s\n", ifname);
+	if (!conf.quiet)
+		printf("using interface %s\n", conf.ifname);
 
 	signal(SIGINT, finish_all);
 
-	mon = init_packet_socket(ifname);
+	mon = init_packet_socket(conf.ifname);
 
 	if (mon < 0)
 		exit(0);
 
-	if (rport)
-		net_init_socket(rport);
+	if (conf.rport)
+		net_init_socket(conf.rport);
 #if !DO_DEBUG
 	else {
 		init_display();
@@ -112,7 +95,7 @@ main(int argc, char** argv)
 	{
 		handle_user_input();
 
-		if (!paused && len != -1) {
+		if (!conf.paused && len != -1) {
 #if DO_DEBUG
 			dump_packet(buffer, len);
 #endif
@@ -131,7 +114,7 @@ main(int argc, char** argv)
 
 			check_ibss_split(&current_packet, n);
 
-			if (rport) {
+			if (conf.rport) {
 				net_send_packet();
 				continue;
 			}
@@ -171,7 +154,7 @@ init_packet_socket(char* devname)
 		err(1, "bind failed");
 
 	device_promisc(fd, devname, 1);
-	arphrd = device_get_arptype(fd, devname);
+	conf.arphrd = device_get_arptype(fd, devname);
 
 	return fd;
 }
@@ -285,21 +268,21 @@ get_options(int argc, char** argv)
 	while((c = getopt(argc, argv, "hqi:t:p:e:")) > 0) {
 		switch (c) {
 			case 'p':
-				rport = atoi(optarg);
+				conf.rport = atoi(optarg);
 				break;
 			case 'q':
-				quiet = 1;
+				conf.quiet = 1;
 				break;
 			case 'i':
-				ifname = optarg;
+				conf.ifname = optarg;
 				break;
 			case 't':
-				node_timeout = atoi(optarg);
+				conf.node_timeout = atoi(optarg);
 				break;
 			case 'e':
-				do_filter = 1;
-				convert_string_to_mac(optarg, filtermac);
-				printf("%s\n",ether_sprintf(filtermac));
+				conf.do_filter = 1;
+				convert_string_to_mac(optarg, conf.filtermac);
+				printf("%s\n",ether_sprintf(conf.filtermac));
 				break;
 			case 'h':
 			default:
@@ -313,10 +296,10 @@ get_options(int argc, char** argv)
 void
 finish_all(int sig)
 {
-	device_promisc(mon, ifname, 0);
+	device_promisc(mon, conf.ifname, 0);
 	close(mon);
 #if !DO_DEBUG
-	if (rport)
+	if (conf.rport)
 		net_finish();
 	else
 		finish_display(sig);
@@ -479,7 +462,7 @@ check_ibss_split(struct packet_info* pkt, int pkt_node)
 static int
 filter_packet(struct packet_info* pkt) {
 	//TODO add filter for packet types: OLSR, BEACON, CONTROL
-	return (do_filter && 0 != memcmp(current_packet.wlan_src, filtermac, sizeof(filtermac)));
+	return (conf.do_filter && 0 != memcmp(current_packet.wlan_src, conf.filtermac, sizeof(conf.filtermac)));
 }
 
 static void

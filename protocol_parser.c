@@ -27,6 +27,7 @@
 #include "prism_header.h"
 #include "ieee80211_radiotap.h"
 #include "ieee80211.h"
+#include "ieee80211_util.h"
 #include "olsr_header.h"
 
 #include "protocol_parser.h"
@@ -48,28 +49,25 @@ static int parse_ip_header(unsigned char** buf, int len);
 static int parse_udp_header(unsigned char** buf, int len);
 static int parse_olsr_packet(unsigned char** buf, int len);
 
-int ieee80211_get_hdrlen(u16 fc);
-u8 *ieee80211_get_bssid(struct ieee80211_hdr *hdr, size_t len);
-static void ieee802_11_parse_elems(unsigned char *start, int len, struct packet_info *pkt);
 
 /* return 1 if we parsed enough = min ieee header */
 int
 parse_packet(unsigned char* buf, int len)
 {
-	if (arphrd == ARPHRD_IEEE80211_PRISM) {
+	if (conf.arphrd == ARPHRD_IEEE80211_PRISM) {
 		len = parse_prism_header(&buf, len);
 		if (len <= 0)
 			return 0;
 	}
-	else if (arphrd == ARPHRD_IEEE80211_RADIOTAP) {
+	else if (conf.arphrd == ARPHRD_IEEE80211_RADIOTAP) {
 		len = parse_radiotap_header(&buf, len);
 		if (len <= 0)
 			return 0;
 	}
 
-	if (arphrd == ARPHRD_IEEE80211 ||
-	    arphrd == ARPHRD_IEEE80211_PRISM ||
-	    arphrd == ARPHRD_IEEE80211_RADIOTAP) {
+	if (conf.arphrd == ARPHRD_IEEE80211 ||
+	    conf.arphrd == ARPHRD_IEEE80211_PRISM ||
+	    conf.arphrd == ARPHRD_IEEE80211_RADIOTAP) {
 		DEBUG("before parse 80211 len: %d\n", len);
 		len = parse_80211_header(&buf, len);
 		if (len < 0) /* couldnt parse */
@@ -466,97 +464,4 @@ parse_olsr_packet(unsigned char** buf, int len)
 	}
 
 	return 0;
-}
-
-
-/* from mac80211/ieee80211_sta.c, modified */
-static void
-ieee802_11_parse_elems(unsigned char *start, int len, struct packet_info *pkt)
-{
-	int left = len;
-	unsigned char *pos = start;
-
-	while (left >= 2) {
-		u8 id, elen;
-
-		id = *pos++;
-		elen = *pos++;
-		left -= 2;
-
-		if (elen > left)
-			return;
-
-		switch (id) {
-		case WLAN_EID_SSID:
-			memcpy(pkt->wlan_essid, pos, elen);
-			break;
-#if 0
-		case WLAN_EID_SUPP_RATES:
-			elems->supp_rates = pos;
-			elems->supp_rates_len = elen;
-			break;
-		case WLAN_EID_FH_PARAMS:
-			elems->fh_params = pos;
-			elems->fh_params_len = elen;
-			break;
-#endif
-		case WLAN_EID_DS_PARAMS:
-			pkt->wlan_channel = *pos;
-			break;
-#if 0
-		case WLAN_EID_CF_PARAMS:
-			elems->cf_params = pos;
-			elems->cf_params_len = elen;
-			break;
-		case WLAN_EID_TIM:
-			elems->tim = pos;
-			elems->tim_len = elen;
-			break;
-		case WLAN_EID_IBSS_PARAMS:
-			elems->ibss_params = pos;
-			elems->ibss_params_len = elen;
-			break;
-		case WLAN_EID_CHALLENGE:
-			elems->challenge = pos;
-			elems->challenge_len = elen;
-			break;
-		case WLAN_EID_WPA:
-			if (elen >= 4 && pos[0] == 0x00 && pos[1] == 0x50 &&
-			    pos[2] == 0xf2) {
-				/* Microsoft OUI (00:50:F2) */
-				if (pos[3] == 1) {
-					/* OUI Type 1 - WPA IE */
-					elems->wpa = pos;
-					elems->wpa_len = elen;
-				} else if (elen >= 5 && pos[3] == 2) {
-					if (pos[4] == 0) {
-						elems->wmm_info = pos;
-						elems->wmm_info_len = elen;
-					} else if (pos[4] == 1) {
-						elems->wmm_param = pos;
-						elems->wmm_param_len = elen;
-					}
-				}
-			}
-			break;
-		case WLAN_EID_RSN:
-			elems->rsn = pos;
-			elems->rsn_len = elen;
-			break;
-		case WLAN_EID_ERP_INFO:
-			elems->erp_info = pos;
-			elems->erp_info_len = elen;
-			break;
-		case WLAN_EID_EXT_SUPP_RATES:
-			elems->ext_supp_rates = pos;
-			elems->ext_supp_rates_len = elen;
-			break;
-#endif
-		default:
-			break;
-		}
-
-		left -= elen;
-		pos += elen;
-	}
 }
