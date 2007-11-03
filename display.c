@@ -750,7 +750,7 @@ update_statistics_win(void)
 	mvwprintw(show_win, line, 16, "Packets    Bytes  ~B/P   Pkts%%");
 	wattron(show_win, A_BOLD);
 	wprintw(show_win, "  Bytes%%");
-	mvwprintw(show_win, line++, 2, "TYPE");
+	mvwprintw(show_win, line++, 2, "PACKET TYPE");
 	wattroff(show_win, A_BOLD);
 	mvwhline(show_win, line++, 2, '-', COLS-4);
 	for (i=0; i<MAX_FSTYPE; i++) {
