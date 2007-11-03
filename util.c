@@ -25,16 +25,16 @@
 
 /* a list of packet type names for easier indexing with padding */
 struct pkt_names mgmt_names[] = {
-	{ 'a', "ASOC_RQ" },		/* IEEE80211_STYPE_ASSOC_REQ	0x0000 */
-	{ 'A', "ASOC_RS" },		/* IEEE80211_STYPE_ASSOC_RESP	0x0010 */
-	{ 'a', "REAS_RQ" },		/* IEEE80211_STYPE_REASSOC_REQ	0x0020 */
-	{ 'A', "REAS_RS" },	/* IEEE80211_STYPE_REASSOC_RESP	0x0030 */
-	{ 'p', "PROB_RQ" },		/* IEEE80211_STYPE_PROBE_REQ	0x0040 */
-	{ 'P', "PROB_RS" },		/* IEEE80211_STYPE_PROBE_RESP	0x0050 */
+	{ 'a', "ASOCRQ" },		/* IEEE80211_STYPE_ASSOC_REQ	0x0000 */
+	{ 'A', "ASOCRP" },		/* IEEE80211_STYPE_ASSOC_RESP	0x0010 */
+	{ 'a', "REASRQ" },		/* IEEE80211_STYPE_REASSOC_REQ	0x0020 */
+	{ 'A', "REASRP" },	/* IEEE80211_STYPE_REASSOC_RESP	0x0030 */
+	{ 'p', "PROBRQ" },		/* IEEE80211_STYPE_PROBE_REQ	0x0040 */
+	{ 'P', "PROBRP" },		/* IEEE80211_STYPE_PROBE_RESP	0x0050 */
 	{}, {}, 			/* unused */
 	{ 'B', "BEACON" },		/* IEEE80211_STYPE_BEACON	0x0080 */
 	{ 't', "ATIM" },		/* IEEE80211_STYPE_ATIM		0x0090 */
-	{ 'D', "DISASOC" },		/* IEEE80211_STYPE_DISASSOC	0x00A0 */
+	{ 'D', "DISASC" },		/* IEEE80211_STYPE_DISASSOC	0x00A0 */
 	{ 'u', "AUTH" },		/* IEEE80211_STYPE_AUTH		0x00B0 */
 	{ 'U', "DEAUTH" },		/* IEEE80211_STYPE_DEAUTH	0x00C0 */
 	{ 'T', "ACTION" },		/* IEEE80211_STYPE_ACTION	0x00D0 */
@@ -74,8 +74,8 @@ inline int
 normalize(int oval, float max_val, int max) {
 	int val;
 	val=(oval/max_val)*max;
-	if (val>max)
-		val=max; /* cap if still bigger */
+	if (val>max) /* cap if still bigger */
+		val=max;
 	if (val==0 && oval > 0)
 		val=1;
 	if (val<0)
@@ -142,13 +142,16 @@ get_paket_type_char(int type)
 {
 	switch (type & IEEE80211_FCTL_FTYPE) {
 	case IEEE80211_FTYPE_MGMT:
-		return MGMT_NAME(type & IEEE80211_FCTL_STYPE).c;
+		if (MGMT_NAME(type & IEEE80211_FCTL_STYPE).c)
+			return MGMT_NAME(type & IEEE80211_FCTL_STYPE).c;
 
 	case IEEE80211_FTYPE_CTL:
-		return CTL_NAME(type & IEEE80211_FCTL_STYPE).c;
+		if (CTL_NAME(type & IEEE80211_FCTL_STYPE).c)
+			return CTL_NAME(type & IEEE80211_FCTL_STYPE).c;
 
 	case IEEE80211_FTYPE_DATA:
-		return DATA_NAME(type & IEEE80211_FCTL_STYPE).c;
+		if (DATA_NAME(type & IEEE80211_FCTL_STYPE).c)
+			return DATA_NAME(type & IEEE80211_FCTL_STYPE).c;
 	}
 	return '?';
 }
@@ -159,13 +162,16 @@ get_paket_type_name(int type)
 {
 	switch (type & IEEE80211_FCTL_FTYPE) {
 	case IEEE80211_FTYPE_MGMT:
-		return MGMT_NAME(type & IEEE80211_FCTL_STYPE).name;
+		if (MGMT_NAME(type & IEEE80211_FCTL_STYPE).name)
+			return MGMT_NAME(type & IEEE80211_FCTL_STYPE).name;
 
 	case IEEE80211_FTYPE_CTL:
-		return CTL_NAME(type & IEEE80211_FCTL_STYPE).name;
+		if (CTL_NAME(type & IEEE80211_FCTL_STYPE).name)
+			return CTL_NAME(type & IEEE80211_FCTL_STYPE).name;
 
 	case IEEE80211_FTYPE_DATA:
-		return DATA_NAME(type & IEEE80211_FCTL_STYPE).name;
+		if (DATA_NAME(type & IEEE80211_FCTL_STYPE).name)
+			return DATA_NAME(type & IEEE80211_FCTL_STYPE).name;
 	}
-	return "UNK";
+	return "UNKNOW";
 }

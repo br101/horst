@@ -412,7 +412,7 @@ update_list_win(void)
 	mvwprintw(list_win, LINES/2, 1, "Si/Noi-RT-SOURCE");
 	mvwprintw(list_win, LINES/2, 29, "(BSSID)");
 	mvwprintw(list_win, LINES/2, 49, "TYPE");
-	mvwprintw(list_win, LINES/2, 57, "INFO");
+	mvwprintw(list_win, LINES/2, 56, "INFO");
 	mvwprintw(list_win, LINES/2, COLS-11, "Status");
 
 	/* create an array of node pointers to make sorting independent */
@@ -642,7 +642,7 @@ update_dump_win(struct packet_info* pkt)
 	wprintw(dump_win,"(%s) ", ether_sprintf(pkt->wlan_bssid));
 
 	if (pkt->pkt_types & PKT_TYPE_OLSR) {
-		wprintw(dump_win,"OLSR    %s ", ip_sprintf(pkt->ip_src));
+		wprintw(dump_win,"%-7s%s", "OLSR", ip_sprintf(pkt->ip_src));
 		switch (pkt->olsr_type) {
 			case HELLO_MESSAGE: wprintw(dump_win,"HELLO"); break;
 			case TC_MESSAGE: wprintw(dump_win,"TC"); break;
@@ -650,14 +650,14 @@ update_dump_win(struct packet_info* pkt)
 			case HNA_MESSAGE: wprintw(dump_win,"HNA"); break;
 			case LQ_HELLO_MESSAGE: wprintw(dump_win,"LQ_HELLO"); break;
 			case LQ_TC_MESSAGE: wprintw(dump_win,"LQ_TC"); break;
-			default: wprintw(dump_win,"OLSR(%d)",pkt->olsr_type);
+			default: wprintw(dump_win,"(%d)",pkt->olsr_type);
 		}
 	}
 	else if (pkt->pkt_types & PKT_TYPE_IP) {
-		wprintw(dump_win,"IP      %s ", ip_sprintf(pkt->ip_src));
+		wprintw(dump_win,"%-7s%s ", "IP", ip_sprintf(pkt->ip_src));
 	}
 	else {
-		wprintw(dump_win,"%-8s", get_paket_type_name(pkt->wlan_type));
+		wprintw(dump_win,"%-7s", get_paket_type_name(pkt->wlan_type));
 
 		switch (pkt->wlan_type & IEEE80211_FCTL_FTYPE) {
 		case IEEE80211_FTYPE_DATA:
