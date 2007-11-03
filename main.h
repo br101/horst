@@ -87,6 +87,7 @@ struct node_info {
 	int snr;
 	int snr_min;
 	int snr_max;
+	int sig_max;
 	int essid;
 };
 

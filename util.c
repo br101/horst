@@ -98,10 +98,10 @@ fnormalize(float oval, float max_val, float max) {
 	val=(oval/max_val)*max;
 	if (val>max) /* cap if still bigger */
 		val=max;
-	if (val==0 && oval > 0)
-		val=1;
-	if (val<0)
-		val=0;
+	if (val==0.0 && oval > 0.0)
+		val=1.0;
+	if (val<0.0)
+		val=0.0;
 	return val;
 }
 

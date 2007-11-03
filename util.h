@@ -44,6 +44,9 @@ normalize(int val, float max_val, int max);
 inline float
 fnormalize(float val, float max_val, float max);
 
+#define normalize_db(val, max) \
+	normalize(val-20, 80.0, (max))
+
 char get_packet_type_char(int type);
 
 char* get_packet_type_name(int type);
