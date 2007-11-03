@@ -20,7 +20,7 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
-#define VERSION "1.3-pre2"
+#define VERSION "2.0-pre1"
 
 #ifndef DO_DEBUG
 #define DO_DEBUG 0
