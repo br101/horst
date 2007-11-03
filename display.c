@@ -248,6 +248,7 @@ show_window(char which)
 static void
 display_filter_win()
 {
+	//char buf[255];
 	paused = 1;
 	filter_win = newwin(7, 25, LINES/2-2, COLS/2-15);
 	box(filter_win, 0 , 0);
@@ -257,7 +258,17 @@ display_filter_win()
 	else
 		mvwprintw(filter_win,2,2, "  :  :  :  :  :  ");
 	wmove(filter_win,2,2);
+
 	scrollok(filter_win,FALSE);
+
+#if 0
+	echo();
+	nodelay(filter_win,FALSE);
+	getnstr(buf,255);
+	mvwprintw(filter_win,1,20,"%s",buf);
+	nodelay(filter_win,TRUE);
+	noecho();
+#endif
 	wrefresh(filter_win);
 }
 
