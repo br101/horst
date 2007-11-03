@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <curses.h>
 #include <string.h>
+#include <ctype.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <time.h>
@@ -33,18 +34,23 @@
 WINDOW *dump_win = NULL;
 WINDOW *list_win = NULL;
 WINDOW *stat_win = NULL;
-WINDOW *essid_win = NULL;
 WINDOW *filter_win = NULL;
-WINDOW *hist_win = NULL;
+
+WINDOW *show_win = NULL;
+static char show_win_current;
+
+static void show_window(char which);
+static void display_filter_win(void);
 
 static void update_dump_win(struct packet_info* pkt);
 static void update_stat_win(struct packet_info* pkt, int node_number);
 static void update_list_win(void);
+static void update_show_win(void);
 static void update_essid_win(void);
 static void update_hist_win(void);
-static void display_essid_win(void);
-static void display_filter_win(void);
-static void display_hist_win(void);
+static void update_statistics_win(void);
+static void update_help_win(void);
+static void update_detail_win(void);
 
 static int do_sort=0;
 
@@ -94,7 +100,7 @@ init_display(void)
 	wattron(stdscr, BLACKONWHITE);
 	mvwhline(stdscr, LINES-1, 0, ' ', COLS);
 
-	mvwprintw(stdscr, LINES-1, 0, "[HORST] q:Quit p:Pause s:Sort f:Filter h:History e:ESSIDs a:Stats i:Info ?:Help");
+	mvwprintw(stdscr, LINES-1, 0, "[HORST] q:Quit p:Pause s:Sort f:Filter h:History e:ESSIDs a:Stats d:Details ?:Help");
 	if (arphrd == 803)
 		mvwprintw(stdscr, LINES-1, COLS-14, "%s: RADIOTAP", ifname);
 	else if (arphrd == 802)
@@ -117,34 +123,6 @@ init_display(void)
 	scrollok(dump_win,TRUE);
 
 	update_display(NULL,-1);
-}
-
-
-void update_display(struct packet_info* pkt, int node_number) {
-	struct timeval the_time;
-	gettimeofday( &the_time, NULL );
-
-	/* update only every 100ms (10 frames per sec should be enough) */
-	if (the_time.tv_sec == last_time.tv_sec &&
-	   (the_time.tv_usec - last_time.tv_usec) < 100000 ) {
-		/* just add the line to dump win so we dont loose it */
-		update_dump_win(pkt);
-		return;
-	}
-
-	last_time = the_time;
-
-	if (essid_win!=NULL)
-		update_essid_win();
-	else if (hist_win!=NULL)
-		update_hist_win();
-	else {
-		update_list_win();
-		update_stat_win(pkt, node_number);
-		update_dump_win(pkt);
-	}
-	/* only one redraw */
-	doupdate();
 }
 
 
@@ -218,20 +196,11 @@ handle_user_input()
 			do_sort = do_sort ? 0 : 1;
 			break;
 		case 'e': case 'E':
-			if (essid_win == NULL)
-				display_essid_win();
-			else {
-				delwin(essid_win);
-				essid_win = NULL;
-			}
-			break;
 		case 'h': case 'H':
-			if (hist_win == NULL)
-				display_hist_win();
-			else {
-				delwin(hist_win);
-				hist_win = NULL;
-			}
+		case 'd': case 'D':
+		case 'a': case 'A':
+		case '?':
+			show_window(tolower(key));
 			break;
 		case 'f': case 'F':
 			if (filter_win == NULL)
@@ -240,7 +209,7 @@ handle_user_input()
 				delwin(filter_win);
 				filter_win = NULL;
 			}
-			return; // dont redraw
+			break;
 		/* not yet:
 		case 'c': case 'C':
 			pause = 1;
@@ -255,6 +224,82 @@ handle_user_input()
 			return;
 	}
 	update_display(NULL,-1);
+}
+
+
+static void
+show_window(char which)
+{
+	if (show_win != NULL && show_win_current == which) {
+		delwin(show_win);
+		show_win = NULL;
+		show_win_current = 0;
+		return;
+	}
+	if (show_win == NULL) {
+		show_win = newwin(LINES-1, COLS, 0, 0);
+		scrollok(show_win, FALSE);
+	}
+	show_win_current = which;
+	update_show_win();
+}
+
+
+static void
+display_filter_win()
+{
+	paused = 1;
+	filter_win = newwin(7, 25, LINES/2-2, COLS/2-15);
+	box(filter_win, 0 , 0);
+	mvwprintw(filter_win,0,2," Enter Filter MAC ");
+	if (do_filter)
+		mvwprintw(filter_win,2,2, "%s", ether_sprintf(filtermac));
+	else
+		mvwprintw(filter_win,2,2, "  :  :  :  :  :  ");
+	wmove(filter_win,2,2);
+	scrollok(filter_win,FALSE);
+	wrefresh(filter_win);
+}
+
+
+void update_display(struct packet_info* pkt, int node_number) {
+	struct timeval the_time;
+	gettimeofday( &the_time, NULL );
+
+	/* update only every 100ms (10 frames per sec should be enough) */
+	if (the_time.tv_sec == last_time.tv_sec &&
+	   (the_time.tv_usec - last_time.tv_usec) < 100000 ) {
+		/* just add the line to dump win so we dont loose it */
+		update_dump_win(pkt);
+		return;
+	}
+
+	last_time = the_time;
+
+	if (show_win != NULL)
+		update_show_win();
+	else {
+		update_list_win();
+		update_stat_win(pkt, node_number);
+		update_dump_win(pkt);
+	}
+	/* only one redraw */
+	doupdate();
+}
+
+
+static void
+update_show_win() {
+	if (show_win_current == 'e')
+		update_essid_win();
+	else if (show_win_current == 'h')
+		update_hist_win();
+	else if (show_win_current == 'a')
+		update_statistics_win();
+	else if (show_win_current == '?')
+		update_help_win();
+	else if (show_win_current == 'd')
+		update_detail_win();
 }
 
 
@@ -449,16 +494,6 @@ update_list_win(void)
 }
 
 
-
-static void
-display_essid_win()
-{
-	essid_win = newwin(LINES-1, 90, 0, 0);
-	scrollok(essid_win,FALSE);
-	update_essid_win();
-}
-
-
 static void
 update_essid_win(void)
 {
@@ -466,45 +501,36 @@ update_essid_win(void)
 	int line=1;
 	struct node_info* node;
 
-	werase(essid_win);
-	wattron(essid_win, WHITE);
-	box(essid_win, 0 , 0);
-	print_centered(essid_win, 0, 85, " ESSIDs ");
+	werase(show_win);
+	wattron(show_win, WHITE);
+	box(show_win, 0 , 0);
+	print_centered(show_win, 0, COLS, " ESSIDs ");
 
 	for (i=0; i<MAX_ESSIDS && essids[i].num_nodes>0; i++) {
-		wattron(essid_win, WHITE);
-		mvwprintw(essid_win, line, 2, "ESSID '%s'", essids[i].essid );
+		wattron(show_win, WHITE);
+		mvwprintw(show_win, line, 2, "ESSID '%s'", essids[i].essid );
 		if (essids[i].split > 0) {
-			wattron(essid_win, RED);
-			wprintw(essid_win, " *** SPLIT ***");
+			wattron(show_win, RED);
+			wprintw(show_win, " *** SPLIT ***");
 		}
 		else
-			wattron(essid_win, GREEN);
+			wattron(show_win, GREEN);
 		line++;
 		for (n=0; n<essids[i].num_nodes && n<MAX_NODES; n++) {
 			node = &nodes[essids[i].nodes[n]];
-			mvwprintw(essid_win, line, 3, "%2d. %s %s", n+1,
+			mvwprintw(show_win, line, 3, "%2d. %s %s", n+1,
 				node->wlan_mode == WLAN_MODE_AP ? "AP  " : "IBSS",
 				ether_sprintf(node->last_pkt.wlan_src));
-			wprintw(essid_win, " BSSID (%s) ", ether_sprintf(node->wlan_bssid));
-			wprintw(essid_win,"TSF %08x:%08x", node->tsfh, node->tsfl);
-			wprintw(essid_win," CH %d", node->channel);
-			wprintw(essid_win," %ddB", node->snr);
+			wprintw(show_win, " BSSID (%s) ", ether_sprintf(node->wlan_bssid));
+			wprintw(show_win,"TSF %08x:%08x", node->tsfh, node->tsfl);
+			wprintw(show_win," CH %d", node->channel);
+			wprintw(show_win," %ddB", node->snr);
 
 			line++;
 		}
 		line++;
 	}
-	wnoutrefresh(essid_win);
-}
-
-
-static void
-display_hist_win()
-{
-	hist_win = newwin(LINES-1, COLS, 0, 0);
-	scrollok(hist_win,FALSE);
-	update_hist_win();
+	wnoutrefresh(show_win);
 }
 
 
@@ -525,44 +551,44 @@ update_hist_win(void)
 	if (col>MAX_HISTORY)
 		col = 4+MAX_HISTORY;
 
-	werase(hist_win);
-	wattron(hist_win, WHITE);
-	box(hist_win, 0 , 0);
-	print_centered(hist_win, 0, COLS, " Signal/Noise/Rate History ");
-	mvwhline(hist_win, SIGN_POS, 1, ACS_HLINE, col);
-	mvwhline(hist_win, SIGN_POS+2, 1, ACS_HLINE, col);
-	mvwvline(hist_win, 1, 4, ACS_VLINE, LINES-3);
+	werase(show_win);
+	wattron(show_win, WHITE);
+	box(show_win, 0 , 0);
+	print_centered(show_win, 0, COLS, " Signal/Noise/Rate History ");
+	mvwhline(show_win, SIGN_POS, 1, ACS_HLINE, col);
+	mvwhline(show_win, SIGN_POS+2, 1, ACS_HLINE, col);
+	mvwvline(show_win, 1, 4, ACS_VLINE, LINES-3);
 
-	mvwprintw(hist_win, 1, 1, "dBm");
-	mvwprintw(hist_win, normalize_db(30), 1, "-30");
-	mvwprintw(hist_win, normalize_db(40), 1, "-40");
-	mvwprintw(hist_win, normalize_db(50), 1, "-50");
-	mvwprintw(hist_win, normalize_db(60), 1, "-60");
-	mvwprintw(hist_win, normalize_db(70), 1, "-70");
-	mvwprintw(hist_win, normalize_db(80), 1, "-80");
-	mvwprintw(hist_win, normalize_db(90), 1, "-90");
-	mvwprintw(hist_win, SIGN_POS-1, 1, "-99");
+	mvwprintw(show_win, 1, 1, "dBm");
+	mvwprintw(show_win, normalize_db(30), 1, "-30");
+	mvwprintw(show_win, normalize_db(40), 1, "-40");
+	mvwprintw(show_win, normalize_db(50), 1, "-50");
+	mvwprintw(show_win, normalize_db(60), 1, "-60");
+	mvwprintw(show_win, normalize_db(70), 1, "-70");
+	mvwprintw(show_win, normalize_db(80), 1, "-80");
+	mvwprintw(show_win, normalize_db(90), 1, "-90");
+	mvwprintw(show_win, SIGN_POS-1, 1, "-99");
 
-	wattron(hist_win, GREEN);
-	mvwprintw(hist_win, 1, col-6, "Signal");
-	wattron(hist_win, RED);
-	mvwprintw(hist_win, 2, col-5, "Noise");
+	wattron(show_win, GREEN);
+	mvwprintw(show_win, 1, col-6, "Signal");
+	wattron(show_win, RED);
+	mvwprintw(show_win, 2, col-5, "Noise");
 
-	wattron(hist_win, CYAN);
-	mvwprintw(hist_win, TYPE_POS, 1, "TYP");
-	mvwprintw(hist_win, 3, col-11, "Packet Type");
+	wattron(show_win, CYAN);
+	mvwprintw(show_win, TYPE_POS, 1, "TYP");
+	mvwprintw(show_win, 3, col-11, "Packet Type");
 
-	wattron(hist_win, BLUE);
-	mvwprintw(hist_win, 4, col-4, "Rate");
-	mvwprintw(hist_win, RATE_POS-9, 1, "54M");
-	mvwprintw(hist_win, RATE_POS-8, 1, "48M");
-	mvwprintw(hist_win, RATE_POS-7, 1, "36M");
-	mvwprintw(hist_win, RATE_POS-6, 1, "24M");
-	mvwprintw(hist_win, RATE_POS-5, 1, "18M");
-	mvwprintw(hist_win, RATE_POS-4, 1, "11M");
-	mvwprintw(hist_win, RATE_POS-3, 1, " 5M");
-	mvwprintw(hist_win, RATE_POS-2, 1, " 2M");
-	mvwprintw(hist_win, RATE_POS-1, 1, " 1M");
+	wattron(show_win, BLUE);
+	mvwprintw(show_win, 4, col-4, "Rate");
+	mvwprintw(show_win, RATE_POS-9, 1, "54M");
+	mvwprintw(show_win, RATE_POS-8, 1, "48M");
+	mvwprintw(show_win, RATE_POS-7, 1, "36M");
+	mvwprintw(show_win, RATE_POS-6, 1, "24M");
+	mvwprintw(show_win, RATE_POS-5, 1, "18M");
+	mvwprintw(show_win, RATE_POS-4, 1, "11M");
+	mvwprintw(show_win, RATE_POS-3, 1, " 5M");
+	mvwprintw(show_win, RATE_POS-2, 1, " 2M");
+	mvwprintw(show_win, RATE_POS-1, 1, " 1M");
 
 	i = hist.index-1;
 
@@ -571,14 +597,14 @@ update_hist_win(void)
 		sig = normalize_db(-hist.signal[i]);
 		noi = normalize_db(-hist.noise[i]);
 
-		wattron(hist_win, GREEN);
-		mvwvline(hist_win, sig, col, ACS_BLOCK, SIGN_POS-sig);
+		wattron(show_win, GREEN);
+		mvwvline(show_win, sig, col, ACS_BLOCK, SIGN_POS-sig);
 
-		wattron(hist_win, RED);
-		mvwvline(hist_win, noi, col, ACS_BLOCK, SIGN_POS-noi);
+		wattron(show_win, RED);
+		mvwvline(show_win, noi, col, ACS_BLOCK, SIGN_POS-noi);
 
-		wattron(hist_win, CYAN);
-		mvwprintw(hist_win, TYPE_POS, col, "%c", \
+		wattron(show_win, CYAN);
+		mvwprintw(show_win, TYPE_POS, col, "%c", \
 			get_paket_type_char(hist.type[i]));
 
 		/* make rate table smaller by joining some values */
@@ -593,32 +619,15 @@ update_hist_win(void)
 			case 2: rat = 2; break;
 			case 1: rat = 1; break;
 		}
-		wattron(hist_win, BLUE);
-		mvwvline(hist_win, RATE_POS-rat, col, 'x', rat);
+		wattron(show_win, BLUE);
+		mvwvline(show_win, RATE_POS-rat, col, 'x', rat);
 
 		i--;
 		col--;
 		if (i < 0)
 			i = MAX_HISTORY-1;
 	}
-	wnoutrefresh(hist_win);
-}
-
-
-static void
-display_filter_win()
-{
-	paused = 1;
-	filter_win = newwin(7, 25, LINES/2-2, COLS/2-15);
-	box(filter_win, 0 , 0);
-	mvwprintw(filter_win,0,2," Enter Filter MAC ");
-	if (do_filter)
-		mvwprintw(filter_win,2,2, "%s", ether_sprintf(filtermac));
-	else
-		mvwprintw(filter_win,2,2, "  :  :  :  :  :  ");
-	wmove(filter_win,2,2);
-	scrollok(filter_win,FALSE);
-	wrefresh(filter_win);
+	wnoutrefresh(show_win);
 }
 
 
@@ -686,26 +695,45 @@ update_dump_win(struct packet_info* pkt)
 }
 
 
-#if 0 /* not used yet */
 static void
-show_channel_win()
+update_statistics_win(void)
 {
-	char buf[255];
+	werase(show_win);
+	wattron(show_win, WHITE);
+	box(show_win, 0 , 0);
+	print_centered(show_win, 0, COLS, " Statistics ");
 
-	WINDOW* chan_win = newwin(3, 30, LINES/2-5, COLS/2-10);
-	box(chan_win, 0 , 0);
-	mvwprintw(chan_win,1,2,"enter channel number: ");
-	wrefresh(chan_win);
-
-	echo();
-	nodelay(stdscr,FALSE);
-	getnstr(buf,255);
-	mvwprintw(chan_win,1,20,"%s",buf);
-	nodelay(stdscr,TRUE);
-	noecho();
-
-	wrefresh(chan_win);
-	delwin(chan_win);
-	paused = 0;
+	wnoutrefresh(show_win);
 }
-#endif
+
+
+static void
+update_help_win(void)
+{
+	werase(show_win);
+	wattron(show_win, WHITE);
+	box(show_win, 0 , 0);
+	print_centered(show_win, 0, COLS, " Help ");
+
+	print_centered(show_win, 2, COLS, "HORST - Horsts OLSR Radio Scanning Tool");
+	print_centered(show_win, 3, COLS, "Version " VERSION " (build date " BUILDDATE ")");
+
+	print_centered(show_win, 5, COLS, "(C) 2005-2007 Bruno Randolf");
+
+	print_centered(show_win, 6, COLS, "Licensed under the GPL");
+
+	wnoutrefresh(show_win);
+}
+
+
+static void
+update_detail_win(void)
+{
+	werase(show_win);
+	wattron(show_win, WHITE);
+	box(show_win, 0 , 0);
+	print_centered(show_win, 0, COLS, " Detailed Node List ");
+
+
+	wnoutrefresh(show_win);
+}
