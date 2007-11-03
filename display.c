@@ -718,7 +718,7 @@ update_statistics_win(void)
 	mvwprintw(show_win, 4, 2, "Average: ~%d B/Pkt", stats.bytes/stats.packets);
 
 	line = 6;
-	mvwprintw(show_win, line, 9, "Packets    Bytes  ~B/P   Pkts%%  Bytes%%");
+	mvwprintw(show_win, line, 9, "Packets    Bytes  ~B/P  Pkts%%  Bytes%%");
 	wattron(show_win, A_BOLD);
 	wprintw(show_win, " \"airtime%%\"");
 	mvwprintw(show_win, line++, 2, "RATE");
@@ -749,7 +749,7 @@ update_statistics_win(void)
 	line++;
 	mvwprintw(show_win, line, 16, "Packets    Bytes  ~B/P   Pkts%%");
 	wattron(show_win, A_BOLD);
-	wprintw(show_win, "   Bytes%%");
+	wprintw(show_win, "  Bytes%%");
 	mvwprintw(show_win, line++, 2, "TYPE");
 	wattroff(show_win, A_BOLD);
 	mvwhline(show_win, line++, 2, '-', COLS-4);
