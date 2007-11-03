@@ -50,7 +50,6 @@ struct packet_info {
 	int snr;
 	int rate;
 	int wlan_type;
-	int wlan_stype;
 	unsigned char wlan_src[6];
 	unsigned char wlan_dst[6];
 	unsigned char wlan_bssid[6];
@@ -111,7 +110,6 @@ struct history {
 	int noise[MAX_HISTORY];
 	int rate[MAX_HISTORY];
 	int type[MAX_HISTORY];
-	int stype[MAX_HISTORY];
 	int index;
 };
 
