@@ -477,7 +477,7 @@ update_list_win(void)
 	mvwprintw(list_win, LINES/2, 29, "(BSSID)");
 	mvwprintw(list_win, LINES/2, 49, "TYPE");
 	mvwprintw(list_win, LINES/2, 56, "INFO");
-	mvwprintw(list_win, LINES/2, COLS-9, "Status");
+	mvwprintw(list_win, LINES/2, COLS-10, "LiveStatus");
 
 	/* create an array of node pointers to make sorting independent */
 	for (i = 0; i < MAX_NODES && nodes[i].status == 1; i++)
