@@ -106,13 +106,13 @@ parse_prism_header(unsigned char** buf, int len)
 	 * let's make sure here that SNR is always positive, so we
 	 * don't have do handle special cases later
 	*/
-	if (((int)ph->noise.data)<0) {
+	if (((int)ph->noise.data) < 0) {
 		/* new madwifi */
 		current_packet.signal = ph->signal.data;
 		current_packet.noise = ph->noise.data;
 		current_packet.snr = ph->rssi.data;
 	}
-	else if (((int)ph->rssi.data)<0) {
+	else if (((int)ph->rssi.data) < 0) {
 		/* broadcom hack */
 		current_packet.signal = ph->rssi.data;
 		current_packet.noise = -95;
@@ -126,12 +126,12 @@ parse_prism_header(unsigned char** buf, int len)
 	}
 
 	/* just in case...*/
-	if (current_packet.snr<0)
+	if (current_packet.snr < 0)
 		current_packet.snr = -current_packet.snr;
-	if (current_packet.snr>99)
+	if (current_packet.snr > 99)
 		current_packet.snr = 99;
 
-	current_packet.rate = ph->rate.data/2;
+	current_packet.rate = ph->rate.data / 2;
 
 	DEBUG("devname: %s\n", ph->devname);
 	DEBUG("signal: %d -> %d\n", ph->signal.data, current_packet.signal);
@@ -167,19 +167,20 @@ parse_radiotap_header(unsigned char** buf, int len)
 	DEBUG("%08x\n", present);
 
 	/* check for header extension - ignore for now, just advance current position */
-	while (present & 0x80000000  && b-*buf < rh->it_len) {
+	while (present & 0x80000000  && b - *buf < rh->it_len) {
 		DEBUG("extension\n");
 		b = b + 4;
 		present = *(__le32*)b;
 	}
-	present = rh->it_present; // in case it move
+	present = rh->it_present; // in case it moved
+
 	/* radiotap bitmap has 32 bit, but we are only interrested until
 	 * bit 12 (IEEE80211_RADIOTAP_DB_ANTSIGNAL) => i<13 */
-	for (i=0; i<13 && b-*buf < rh->it_len; i++) {
+	for (i = 0; i < 13 && b - *buf < rh->it_len; i++) {
 		if ((present >> i) & 1) {
 			DEBUG("1");
 			switch (i) {
-				/* just ignore the following (advance position only): */
+				/* just ignore the following (advance position only) */
 				case IEEE80211_RADIOTAP_TSFT:
 					DEBUG("[+8]");
 					b = b + 8;
@@ -209,7 +210,7 @@ parse_radiotap_header(unsigned char** buf, int len)
 				/* we are only interrested in these: */
 				case IEEE80211_RADIOTAP_RATE:
 					DEBUG("[rate %0x]", *b);
-					current_packet.rate = (*b)/2;
+					current_packet.rate = (*b) / 2;
 					b++;
 					break;
 				case IEEE80211_RADIOTAP_DBM_ANTSIGNAL:
@@ -234,7 +235,7 @@ parse_radiotap_header(unsigned char** buf, int len)
 		}
 	}
 
-	if (current_packet.snr>99)
+	if (current_packet.snr > 99)
 		current_packet.snr = 99;
 
 	DEBUG("\nrate: %d\n", current_packet.rate);
@@ -311,7 +312,7 @@ parse_80211_header(unsigned char** buf, int len)
 		case IEEE80211_STYPE_PROBE_RESP:
 			memcpy(current_packet.wlan_tsf, &whm->u.beacon.timestamp, 8);
 			ieee802_11_parse_elems(whm->u.beacon.variable,
-				len - sizeof(struct ieee80211_mgmt) - 4, &current_packet);
+				len - sizeof(struct ieee80211_mgmt) - 4 /* FCS */, &current_packet);
 			DEBUG("ESSID %s \n", current_packet.wlan_essid );
 			DEBUG("CHAN %d \n", current_packet.wlan_channel );
 			if (whm->u.beacon.capab_info & WLAN_CAPABILITY_IBSS)
@@ -323,22 +324,25 @@ parse_80211_header(unsigned char** buf, int len)
 		break;
 	}
 
-	if (sa != NULL)
+	if (sa != NULL) {
 		memcpy(current_packet.wlan_src, sa, 6);
-	if (da != NULL)
-		memcpy(current_packet.wlan_dst, da, 6);
-	if (bssid!=NULL)
-		memcpy(current_packet.wlan_bssid, bssid, 6);
-
-	if (sa != NULL)
 		DEBUG("SA    %s\n", ether_sprintf(sa));
-	if (da != NULL)
+	}
+	if (da != NULL) {
+		memcpy(current_packet.wlan_dst, da, 6);
 		DEBUG("DA    %s\n", ether_sprintf(da));
-	if (bssid!=NULL)
+	}
+	if (bssid!=NULL) {
+		memcpy(current_packet.wlan_bssid, bssid, 6);
 		DEBUG("BSSID %s\n", ether_sprintf(bssid));
+	}
 
-	*buf = *buf + hdrlen;
-	return len - hdrlen;
+	/* only data frames contain more info, otherwise stop parsing */
+	if ((current_packet.wlan_type & IEEE80211_FCTL_FTYPE) == IEEE80211_FTYPE_DATA) {
+		*buf = *buf + hdrlen;
+		return len - hdrlen;
+	}
+	return 0;
 }
 
 
@@ -352,11 +356,9 @@ parse_ip_header(unsigned char** buf, int len)
 
 	/* check type in LLC header */
 	*buf = *buf + 6;
-
 	if (**buf != 0x08) /* not IP */
 		return -1;
 	(*buf)++;
-
 	if (**buf != 0x00)
 		return -1;
 	(*buf)++;
@@ -376,8 +378,8 @@ parse_ip_header(unsigned char** buf, int len)
 	if (ih->protocol != 17) /* UDP */
 		return 0;
 
-	*buf = *buf + ih->ihl*4;
-	return len - ih->ihl*4;
+	*buf = *buf + ih->ihl * 4;
+	return len - ih->ihl * 4;
 }
 
 
@@ -423,20 +425,20 @@ parse_olsr_packet(unsigned char** buf, int len)
 		current_packet.pkt_types |= PKT_TYPE_OLSR_LQ;
 
 	if (msgtype == HELLO_MESSAGE) {
-		number = (ntohs(oh->olsr_msg[0].olsr_msgsize)-12) / sizeof(struct hellomsg);
+		number = (ntohs(oh->olsr_msg[0].olsr_msgsize) - 12) / sizeof(struct hellomsg);
 		DEBUG("HELLO %d\n", number);
 		current_packet.olsr_neigh = number;
 	}
 
 	if (msgtype == LQ_HELLO_MESSAGE) {
-		number = (ntohs(oh->olsr_msg[0].olsr_msgsize)-16) / 12;
-		DEBUG("LQ_HELLO %d (%d)\n", number, (ntohs(oh->olsr_msg[0].olsr_msgsize)-16));
+		number = (ntohs(oh->olsr_msg[0].olsr_msgsize) - 16) / 12;
+		DEBUG("LQ_HELLO %d (%d)\n", number, (ntohs(oh->olsr_msg[0].olsr_msgsize) - 16));
 		current_packet.olsr_neigh = number;
 	}
-
+#if 0
 /*	XXX: tc messages are relayed. so we would have to find the originating node (IP)
 	and store the information there. skip for now */
-/*
+
 	if (msgtype == TC_MESSAGE) {
 		number = (ntohs(oh->olsr_msg[0].olsr_msgsize)-12) / sizeof(struct tcmsg);
 		DEBUG("TC %d\n", number);
@@ -448,21 +450,22 @@ parse_olsr_packet(unsigned char** buf, int len)
 		DEBUG("LQ_TC %d (%d)\n", number, (ntohs(oh->olsr_msg[0].olsr_msgsize)-16));
 		current_packet.olsr_tc = number;
 	}
-*/
+#endif
 	if (msgtype == HNA_MESSAGE) {
 		/* same here, but we assume that nodes which relay a HNA with a default gateway
 		know how to contact the gw, so have a indirect connection to a GW themselves */
 		struct hnapair* hna;
-		number = (ntohs(oh->olsr_msg[0].olsr_msgsize)-12) / sizeof(struct hnapair);
-		DEBUG("HNA NUM: %d (%d) [%d]\n", number, ntohs(oh->olsr_msg[0].olsr_msgsize),sizeof(struct hnapair) );
-		for (i=0; i<number; i++) {
+		number = (ntohs(oh->olsr_msg[0].olsr_msgsize) - 12) / sizeof(struct hnapair);
+		DEBUG("HNA NUM: %d (%d) [%d]\n", number, ntohs(oh->olsr_msg[0].olsr_msgsize),
+			sizeof(struct hnapair) );
+		for (i = 0; i < number; i++) {
 			hna = &(oh->olsr_msg[0].message.hna.hna_net[i]);
 			DEBUG("HNA %s", ip_sprintf(hna->addr));
 			DEBUG("/%s\n", ip_sprintf(hna->netmask));
-			if (hna->addr==0 && hna->netmask==0)
+			if (hna->addr == 0 && hna->netmask == 0)
 				current_packet.pkt_types |= PKT_TYPE_OLSR_GW;
 		}
 	}
-
+	/* done for good */
 	return 0;
 }

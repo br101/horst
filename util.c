@@ -33,7 +33,7 @@ struct pkt_names mgmt_names[] = {
 	{ 'a', "ASOCRQ" },		/* IEEE80211_STYPE_ASSOC_REQ	0x0000 */
 	{ 'A', "ASOCRP" },		/* IEEE80211_STYPE_ASSOC_RESP	0x0010 */
 	{ 'a', "REASRQ" },		/* IEEE80211_STYPE_REASSOC_REQ	0x0020 */
-	{ 'A', "REASRP" },	/* IEEE80211_STYPE_REASSOC_RESP	0x0030 */
+	{ 'A', "REASRP" },		/* IEEE80211_STYPE_REASSOC_RESP	0x0030 */
 	{ 'p', "PROBRQ" },		/* IEEE80211_STYPE_PROBE_REQ	0x0040 */
 	{ 'P', "PROBRP" },		/* IEEE80211_STYPE_PROBE_RESP	0x0050 */
 	{}, {}, 			/* unused */
@@ -79,15 +79,15 @@ struct pkt_names data_names[] = {
 
 
 inline int
-normalize(float oval, float max_val, float max) {
+normalize(float oval, int max_val, int max) {
 	int val;
-	val=(oval/max_val)*max;
-	if (val>max) /* cap if still bigger */
-		val=max;
-	if (val==0 && oval > 0)
-		val=1;
-	if (val<0)
-		val=0;
+	val= (oval / max_val) * max;
+	if (val > max) /* cap if still bigger */
+		val = max;
+	if (val == 0 && oval > 0)
+		val = 1;
+	if (val < 0)
+		val = 0;
 	return val;
 }
 
@@ -97,9 +97,9 @@ dump_packet(const unsigned char* buf, int len)
 {
 	int i;
 	for (i = 0; i < len; i++) {
-		if ((i%2) == 0)
+		if ((i % 2) == 0)
 			DEBUG(" ");
-		if ((i%16) == 0)
+		if ((i % 16) == 0)
 			DEBUG("\n");
 		DEBUG("%02x", buf[i]);
 	}
@@ -132,7 +132,7 @@ void
 convert_string_to_mac(const char* string, unsigned char* mac)
 {
 	int c;
-	for(c=0; c < 6 && string; c++)
+	for(c = 0; c < 6 && string; c++)
 	{
 		int x = 0;
 		if (string)

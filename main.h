@@ -26,13 +26,13 @@
 #define DO_DEBUG 0
 #endif
 
-#define MAX_NODES 255
-#define MAX_ESSIDS 255
-#define MAX_BSSIDS 255
-#define MAX_HISTORY 255
-#define MAX_ESSID_LEN 255
-#define MAX_RATES 55 /* 54M + 1 for array index */
-#define MAX_FSTYPE 0xff
+#define MAX_NODES		255
+#define MAX_ESSIDS		255
+#define MAX_BSSIDS		255
+#define MAX_HISTORY		255
+#define MAX_ESSID_LEN		255
+#define MAX_RATES		55	/* 54M + 1 for array index */
+#define MAX_FSTYPE		0xff
 
 #define PKT_TYPE_IP		0x08
 #define PKT_TYPE_OLSR		0x10
@@ -43,7 +43,7 @@
 #define WLAN_MODE_IBSS		0x02
 #define WLAN_MODE_STA		0x04
 
-#define NODE_TIMEOUT 60 /* seconds */
+#define NODE_TIMEOUT		60 /* seconds */
 
 struct packet_info {
 	int pkt_types;
@@ -140,7 +140,7 @@ struct config {
 	int node_timeout;
 	unsigned char filtermac[6];
 
-	/* this isnt exactly config, but... */
+	/* this isn't exactly config, but wtf... */
 	int arphrd; // the device ARP type
 	int paused;
 	int do_filter;

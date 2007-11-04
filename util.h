@@ -39,10 +39,10 @@ void
 convert_string_to_mac(const char* string, unsigned char* mac);
 
 inline int
-normalize(float val, float max_val, float max);
+normalize(float val, int max_val, int max);
 
-#define normalize_db(val, max) \
-	normalize(val-20, 80, (max))
+#define normalize_db(_val, _max) \
+	normalize((_val) - 20, 80, (_max))
 
 char get_packet_type_char(int type);
 

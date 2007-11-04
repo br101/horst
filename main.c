@@ -53,7 +53,6 @@ static void update_statistics(struct packet_info* pkt);
 struct packet_info current_packet;
 
 /* no, i dont want to implement a linked list now */
-
 struct node_info nodes[MAX_NODES];
 struct essid_info essids[MAX_ESSIDS];
 struct split_info splits;
@@ -66,6 +65,7 @@ struct config conf = {
 };
 
 static int mon; /* monitoring socket */
+
 
 int
 main(int argc, char** argv)
@@ -98,40 +98,40 @@ main(int argc, char** argv)
 	{
 		handle_user_input();
 
-		if (!conf.paused && len != -1) {
-#if DO_DEBUG
-			dump_packet(buffer, len);
-#endif
-			memset(&current_packet,0,sizeof(current_packet));
-			if (!parse_packet(buffer, len)) {
-				DEBUG("parsing failed\n");
-				continue;
-			}
-
-			if (filter_packet(&current_packet))
-				continue;
-
-			n = node_update(&current_packet);
-
-			update_history(&current_packet);
-			update_statistics(&current_packet);
-
-			check_ibss_split(&current_packet, n);
-
-			if (conf.rport) {
-				net_send_packet();
-				continue;
-			}
-
-#if !DO_DEBUG
-			update_display(&current_packet, n);
-#endif
-		}
-		else
+		if (conf.paused || len == -1) {
+			/* no packet received or paused: just wait 100ms */
 			usleep(100000);
+			continue;
+		}
+#if DO_DEBUG
+		dump_packet(buffer, len);
+#endif
+		memset(&current_packet,0,sizeof(current_packet));
+		if (!parse_packet(buffer, len)) {
+			DEBUG("parsing failed\n");
+			continue;
+		}
+
+		if (filter_packet(&current_packet))
+			continue;
+
+		n = node_update(&current_packet);
+
+		update_history(&current_packet);
+		update_statistics(&current_packet);
+		check_ibss_split(&current_packet, n);
+
+		if (conf.rport) {
+			net_send_packet();
+			continue;
+		}
+#if !DO_DEBUG
+		update_display(&current_packet, n);
+#endif
 	}
 	return 0;
 }
+
 
 static int
 init_packet_socket(char* devname)
@@ -140,7 +140,6 @@ init_packet_socket(char* devname)
 	int fd;
 	int ifindex;
 
-	/* an alternative could be to use the pcap library */
 	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 	if (fd < 0)
 		err(1, "could not create socket");
@@ -162,22 +161,6 @@ init_packet_socket(char* devname)
 
 	return fd;
 }
-
-
-#if 0
-static void
-device_address(int fd, const char *if_name)
-{
-	struct ifreq req;
-
-	strncpy(req.ifr_name, if_name, IFNAMSIZ);
-	req.ifr_addr.sa_family = AF_INET;
-
-	ioctl(fd, SIOCGIFHWADDR, &req);
-	// ioctl(fd, SIOCGIFADDR, &req);
-	DEBUG("hw %s\n", ether_sprintf((const unsigned char *)&req.ifr_hwaddr.sa_data));
-}
-#endif
 
 
 static int
@@ -231,7 +214,7 @@ device_promisc(int fd, const char *if_name, int on)
 static int
 device_get_arptype(int fd, const char *device)
 {
-	struct ifreq    ifr;
+	struct ifreq ifr;
 
 	memset(&ifr, 0, sizeof(ifr));
 	strncpy(ifr.ifr_name, device, sizeof(ifr.ifr_name));
@@ -286,7 +269,7 @@ get_options(int argc, char** argv)
 			case 'e':
 				conf.do_filter = 1;
 				convert_string_to_mac(optarg, conf.filtermac);
-				printf("%s\n",ether_sprintf(conf.filtermac));
+				printf("%s\n", ether_sprintf(conf.filtermac));
 				break;
 			case 'h':
 			default:
@@ -296,6 +279,7 @@ get_options(int argc, char** argv)
 		}
 	}
 }
+
 
 void
 finish_all(int sig)
@@ -310,6 +294,7 @@ finish_all(int sig)
 #endif
 	exit(0);
 }
+
 
 static void
 copy_nodeinfo(struct node_info* n, struct packet_info* p)
@@ -332,8 +317,9 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		n->olsr_count++;
 	if (p->wlan_bssid[0] != 0xff &&
 		! (p->wlan_bssid[0] == 0 && p->wlan_bssid[1] == 0 && p->wlan_bssid[2] == 0 &&
-		   p->wlan_bssid[3] == 0 && p->wlan_bssid[4] == 0 && p->wlan_bssid[5] == 0))
+		   p->wlan_bssid[3] == 0 && p->wlan_bssid[4] == 0 && p->wlan_bssid[5] == 0)) {
 		memcpy(n->wlan_bssid, p->wlan_bssid, 6);
+	}
 	if ((p->wlan_type & IEEE80211_FCTL_FTYPE) == IEEE80211_FTYPE_MGMT &&
 	    (p->wlan_type & IEEE80211_FCTL_STYPE) == IEEE80211_STYPE_BEACON) {
 		n->tsfl = *(unsigned long*)(&p->wlan_tsf[0]);
@@ -350,20 +336,21 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		n->channel = p->wlan_channel;
 }
 
+
 static int
 node_update(struct packet_info* pkt)
 {
 	int i;
 
 	if (pkt->wlan_src[0] == 0 && pkt->wlan_src[1] == 0 && pkt->wlan_src[2] == 0 &&
-	    pkt->wlan_src[3] == 0 && pkt->wlan_src[4] == 0 && pkt->wlan_src[5] == 0)
+	    pkt->wlan_src[3] == 0 && pkt->wlan_src[4] == 0 && pkt->wlan_src[5] == 0) {
 		return -1;
+	}
 
-	for (i=0;i<MAX_NODES;i++) {
+	for (i = 0; i < MAX_NODES; i++) {
 		if (nodes[i].status == 1) {
 			/* check existing node */
 			if (memcmp(pkt->wlan_src, nodes[i].last_pkt.wlan_src, 6) == 0) {
-				//wprintw(list_win,"found");
 				copy_nodeinfo(&nodes[i], pkt);
 				return i;
 			}
@@ -396,7 +383,7 @@ check_ibss_split(struct packet_info* pkt, int pkt_node)
 	DEBUG("bssid %s\n", ether_sprintf(pkt->wlan_bssid));
 
 	/* find essid */
-	for (i=0; i<MAX_ESSIDS; i++) {
+	for (i = 0; i < MAX_ESSIDS; i++) {
 		if (essids[i].num_nodes == 0) {
 			/* unused entry */
 			break;
@@ -409,33 +396,33 @@ check_ibss_split(struct packet_info* pkt, int pkt_node)
 	}
 
 	/* find node if already recorded */
-	for (n=0; n<essids[i].num_nodes && n<MAX_NODES; n++) {
+	for (n = 0; n < essids[i].num_nodes && n < MAX_NODES; n++) {
 		if (essids[i].nodes[n] == pkt_node) {
 			DEBUG("SPLIT   node found %d\n", n);
 			break;
 		}
 	}
 
-	DEBUG("SPLIT   at essid %d count %d node %d\n",i, essids[i].num_nodes, n);
+	DEBUG("SPLIT   at essid %d count %d node %d\n", i, essids[i].num_nodes, n);
 
 	/* new essid */
-	if (essids[i].num_nodes==0) {
-		DEBUG("SPLIT   new essid '%s'\n",pkt->wlan_essid);
+	if (essids[i].num_nodes == 0) {
+		DEBUG("SPLIT   new essid '%s'\n", pkt->wlan_essid);
 		strncpy(essids[i].essid, pkt->wlan_essid, MAX_ESSID_LEN);
 	}
 
 	/* new node */
-	if (essids[i].num_nodes==0 || essids[i].nodes[n] != pkt_node) {
+	if (essids[i].num_nodes == 0 || essids[i].nodes[n] != pkt_node) {
 		DEBUG("SPLIT   recorded new node nr %d %d %s\n", n, pkt_node,
 			ether_sprintf(pkt->wlan_src) );
 		essids[i].nodes[n] = pkt_node;
-		essids[i].num_nodes = n+1;
+		essids[i].num_nodes = n + 1;
 		nodes[pkt_node].essid = i;
 	}
 
 	/* check for split */
 	essids[i].split = 0;
-	for (n=0; n<essids[i].num_nodes && n<MAX_NODES; n++) {
+	for (n = 0; n < essids[i].num_nodes && n < MAX_NODES; n++) {
 		node = &nodes[essids[i].nodes[n]];
 		DEBUG("SPLIT      %d. node %d src %s", n,
 			essids[i].nodes[n], ether_sprintf(node->last_pkt.wlan_src));
@@ -444,17 +431,15 @@ check_ibss_split(struct packet_info* pkt, int pkt_node)
 		if (node->wlan_mode == WLAN_MODE_AP)
 			continue;
 
-		if (last_bssid && memcmp(last_bssid,node->wlan_bssid,6) != 0) {
+		if (last_bssid && memcmp(last_bssid, node->wlan_bssid, 6) != 0) {
 			essids[i].split = 1;
-			//XXX count number of different bssids
-			DEBUG("SPLIT *** DETECTED!!! %d different bssids\n", essids[i].split);
+			DEBUG("SPLIT *** DETECTED!!!\n");
 		}
 		last_bssid = node->wlan_bssid;
 	}
 
 	/* if a split occurred on this essid, record it */
-	//XXX record a list of all split essids
-	if (essids[i].split>0) {
+	if (essids[i].split > 0) {
 		DEBUG("SPLIT *** new record %d\n", i);
 		splits.count = 1;
 		splits.essid[0] = i;
@@ -466,9 +451,10 @@ check_ibss_split(struct packet_info* pkt, int pkt_node)
 
 
 static int
-filter_packet(struct packet_info* pkt) {
+filter_packet(struct packet_info* pkt)
+{
 	//TODO add filter for packet types: OLSR, BEACON, CONTROL
-	return (conf.do_filter && 0 != memcmp(current_packet.wlan_src, conf.filtermac, sizeof(conf.filtermac)));
+	return (conf.do_filter && memcmp(current_packet.wlan_src, conf.filtermac, sizeof(conf.filtermac)) != 0);
 }
 
 
@@ -491,7 +477,7 @@ static void
 update_statistics(struct packet_info* p) {
 	stats.packets++;
 	stats.bytes += p->len;
-	if (p->rate >= 0 && p->rate < MAX_RATES) {
+	if (p->rate > 0 && p->rate < MAX_RATES) {
 		stats.airtimes += p->len / p->rate;
 		stats.packets_per_rate[p->rate]++;
 		stats.bytes_per_rate[p->rate] += p->len;
@@ -499,7 +485,7 @@ update_statistics(struct packet_info* p) {
 	if (p->wlan_type >= 0 && p->wlan_type < MAX_FSTYPE) {
 		stats.packets_per_type[p->wlan_type]++;
 		stats.bytes_per_type[p->wlan_type] += p->len;
-		if (p->rate >= 0 && p->rate < MAX_RATES)
+		if (p->rate > 0 && p->rate < MAX_RATES)
 			stats.airtime_per_type[p->wlan_type] += p->len / p->rate;
 	}
 }
