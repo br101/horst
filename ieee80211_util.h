@@ -20,7 +20,7 @@
 #ifndef _IEEE80211_UTIL_H_
 #define _IEEE80211_UTIL_H_
 
-#include "main.h"
+struct packet_info;
 
 int
 ieee80211_get_hdrlen(u16 fc);
