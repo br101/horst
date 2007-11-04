@@ -473,7 +473,7 @@ update_list_win(void)
 	mvwprintw(list_win, 0, COL_TSF+9, "CH");
 
 	/* reuse bottom line for information on other win */
-	mvwprintw(list_win, LINES/2, 1, "Si/Noi-RT-SOURCE");
+	mvwprintw(list_win, LINES/2, 0, "Sig/Noi-RT-SOURCE");
 	mvwprintw(list_win, LINES/2, 29, "(BSSID)");
 	mvwprintw(list_win, LINES/2, 49, "TYPE");
 	mvwprintw(list_win, LINES/2, 56, "INFO");
