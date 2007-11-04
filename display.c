@@ -98,16 +98,27 @@ init_display(void)
 	init_pair(4, COLOR_CYAN, COLOR_BLACK);
 	init_pair(5, COLOR_BLUE, COLOR_BLACK);
 	init_pair(6, COLOR_BLACK, COLOR_WHITE);
+	init_pair(7, COLOR_MAGENTA, COLOR_BLACK);
+
+	init_pair(8, COLOR_BLACK, COLOR_GREEN);
+	init_pair(9, COLOR_BLACK, COLOR_RED);
+	init_pair(10, COLOR_BLACK, COLOR_BLUE);
+	init_pair(11, COLOR_BLACK, COLOR_CYAN);
 
 	/* COLOR_BLACK COLOR_RED COLOR_GREEN COLOR_YELLOW COLOR_BLUE
 	COLOR_MAGENTA COLOR_CYAN COLOR_WHITE */
 
-#define WHITE	COLOR_PAIR(1)
-#define GREEN	COLOR_PAIR(2)
-#define RED	COLOR_PAIR(3)
-#define CYAN	COLOR_PAIR(4)
-#define BLUE	COLOR_PAIR(5)
+#define WHITE		COLOR_PAIR(1)
+#define GREEN		COLOR_PAIR(2)
+#define RED		COLOR_PAIR(3)
+#define CYAN		COLOR_PAIR(4)
+#define BLUE		COLOR_PAIR(5)
 #define BLACKONWHITE	COLOR_PAIR(6)
+#define MAGENTA		COLOR_PAIR(7)
+#define GREENBACK	COLOR_PAIR(8)
+#define REDBACK		COLOR_PAIR(9)
+#define BLUEBACK	COLOR_PAIR(10)
+#define CYANBACK	COLOR_PAIR(11)
 
 	erase();
 
@@ -348,27 +359,31 @@ update_stat_win(struct packet_info* pkt, int node_number)
 
 		wattron(stat_win, GREEN);
 		mvwprintw(stat_win, 0, 1, "SN:%03d/", pkt->signal);
-		mvwvline(stat_win, sig + 3, 2, ACS_BLOCK, MAX_STAT_BAR + 3 - sig);
-		mvwvline(stat_win, sig + 3, 3, ACS_BLOCK, MAX_STAT_BAR + 3 - sig);
 		if (max > 1)
 			mvwprintw(stat_win, max, 2, "--");
+		wattron(stat_win, GREENBACK);
+		mvwvline(stat_win, sig + 3, 2, ' ', MAX_STAT_BAR + 3 - sig);
+		mvwvline(stat_win, sig + 3, 3, ' ', MAX_STAT_BAR + 3 - sig);
 
 		wattron(stat_win, RED);
 		mvwprintw(stat_win, 0, 8, "%03d", pkt->noise);
-		mvwvline(stat_win, noi + 3, 2, ACS_BLOCK, MAX_STAT_BAR + 3 - noi);
-		mvwvline(stat_win, noi + 3, 3, ACS_BLOCK, MAX_STAT_BAR + 3 - noi);
+		wattron(stat_win, REDBACK);
+		mvwvline(stat_win, noi + 3, 2, ' ', MAX_STAT_BAR + 3 - noi);
+		mvwvline(stat_win, noi + 3, 3, ' ', MAX_STAT_BAR + 3 - noi);
 
 		wattron(stat_win, BLUE);
 		mvwprintw(stat_win, 1, 1, "RATE: %3dM", pkt->rate);
-		mvwvline(stat_win, MAX_STAT_BAR + 3 - rate, 5, ACS_BLOCK, rate);
-		mvwvline(stat_win, MAX_STAT_BAR + 3 - rate, 6, ACS_BLOCK, rate);
+		wattron(stat_win, BLUEBACK);
+		mvwvline(stat_win, MAX_STAT_BAR + 3 - rate, 5, ' ', rate);
+		mvwvline(stat_win, MAX_STAT_BAR + 3 - rate, 6, ' ', rate);
 	}
 
 	wattron(stat_win, CYAN);
 	mvwprintw(stat_win, 2, 1, "bps:%6s", kilo_mega_ize(bps));
-	mvwvline(stat_win, MAX_STAT_BAR + 3 - bpsn, 8, ACS_BLOCK, bpsn);
-	mvwvline(stat_win, MAX_STAT_BAR + 3 - bpsn, 9, ACS_BLOCK, bpsn);
-	wattroff(stat_win, CYAN);
+	wattron(stat_win, CYANBACK);
+	mvwvline(stat_win, MAX_STAT_BAR + 3 - bpsn, 8, ' ', bpsn);
+	mvwvline(stat_win, MAX_STAT_BAR + 3 - bpsn, 9, ' ', bpsn);
+	wattroff(stat_win, CYANBACK);
 
 	wattroff(stat_win, A_BOLD);
 
