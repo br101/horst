@@ -44,8 +44,13 @@ normalize(float val, int max_val, int max);
 #define normalize_db(_val, _max) \
 	normalize((_val) - 20, 80, (_max))
 
-char get_packet_type_char(int type);
+char
+get_packet_type_char(int type);
 
-char* get_packet_type_name(int type);
+const char*
+get_packet_type_name(int type);
+
+const char*
+kilo_mega_ize(unsigned int val);
 
 #endif

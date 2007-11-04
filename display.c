@@ -359,13 +359,13 @@ update_stat_win(struct packet_info* pkt, int node_number)
 		mvwvline(stat_win, noi + 3, 3, ACS_BLOCK, MAX_STAT_BAR + 3 - noi);
 
 		wattron(stat_win, BLUE);
-		mvwprintw(stat_win, 1, 1, "RATE: %2dM", pkt->rate);
+		mvwprintw(stat_win, 1, 1, "RATE: %3dM", pkt->rate);
 		mvwvline(stat_win, MAX_STAT_BAR + 3 - rate, 5, ACS_BLOCK, rate);
 		mvwvline(stat_win, MAX_STAT_BAR + 3 - rate, 6, ACS_BLOCK, rate);
 	}
 
 	wattron(stat_win, CYAN);
-	mvwprintw(stat_win, 2, 1, "bps: %.d", bps);
+	mvwprintw(stat_win, 2, 1, "bps:%6s", kilo_mega_ize(bps));
 	mvwvline(stat_win, MAX_STAT_BAR + 3 - bpsn, 8, ACS_BLOCK, bpsn);
 	mvwvline(stat_win, MAX_STAT_BAR + 3 - bpsn, 9, ACS_BLOCK, bpsn);
 	wattroff(stat_win, CYAN);
@@ -726,6 +726,7 @@ update_statistics_win(void)
 	int i;
 	int line;
 	float airtime;
+	int bps;
 
 	werase(show_win);
 	wattron(show_win, WHITE);
@@ -740,7 +741,9 @@ update_statistics_win(void)
 	mvwprintw(show_win, 2, 2, "Packets: %d", stats.packets );
 	mvwprintw(show_win, 3, 2, "Bytes:   %d", stats.bytes );
 	mvwprintw(show_win, 4, 2, "Average: ~%d B/Pkt", stats.bytes/stats.packets);
-	mvwprintw(show_win, 5, 2, "Bps:     %d", bytes_per_second(stats.bytes));
+
+	bps = bytes_per_second(stats.bytes);
+	mvwprintw(show_win, 5, 2, "bit/sec: %d (%s)", bps, kilo_mega_ize(bps));
 
 	line = 7;
 	mvwprintw(show_win, line, STAT_PACK_POS, " Packets");

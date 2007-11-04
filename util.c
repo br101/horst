@@ -25,7 +25,7 @@
 
 struct pkt_names {
 	char c;
-	char* name;
+	const char* name;
 };
 
 /* a list of packet type names for easier indexing with padding */
@@ -132,8 +132,7 @@ void
 convert_string_to_mac(const char* string, unsigned char* mac)
 {
 	int c;
-	for(c = 0; c < 6 && string; c++)
-	{
+	for(c = 0; c < 6 && string; c++) {
 		int x = 0;
 		if (string)
 			sscanf(string, "%x", &x);
@@ -172,7 +171,7 @@ get_packet_type_char(int type)
 }
 
 
-char*
+const char*
 get_packet_type_name(int type)
 {
 	switch (type & IEEE80211_FCTL_FTYPE) {
@@ -196,4 +195,27 @@ get_packet_type_name(int type)
 		break;
 	}
 	return "UNKNOW";
+}
+
+
+const char*
+kilo_mega_ize(unsigned int val) {
+	static char buf[20];
+	char c = 0;
+	int rest;
+	if (val >= 1024) { /* kilo */
+		rest = (val & 1023) / 102.4; /* only one digit */
+		val = val >> 10;
+		c = 'k';
+	}
+	if (val >= 1024) { /* mega */
+		rest = (val & 1023) / 102.4; /* only one digit */
+		val = val >> 10;
+		c = 'M';
+	}
+	if (c)
+		snprintf(buf, sizeof(buf), "%d.%d%c", val, rest, c);
+	else
+		snprintf(buf, sizeof(buf), "%d", val);
+	return buf;
 }
