@@ -342,7 +342,7 @@ update_stat_win(struct packet_info* pkt, int node_number)
 	mvwvline(stat_win, 0, 0, ACS_VLINE, LINES/2);
 	mvwvline(stat_win, 0, 14, ACS_VLINE, LINES/2);
 
-	bps = bytes_per_second(stats.bytes);
+	bps = bytes_per_second(stats.bytes) * 8;
 	bpsn = normalize(bps, 5000, MAX_STAT_BAR); //XXX: 54000000
 
 	if (pkt != NULL)
@@ -753,7 +753,7 @@ update_statistics_win(void)
 	mvwprintw(show_win, 3, 2, "Bytes:   %d", stats.bytes );
 	mvwprintw(show_win, 4, 2, "Average: ~%d B/Pkt", stats.bytes/stats.packets);
 
-	bps = bytes_per_second(stats.bytes);
+	bps = bytes_per_second(stats.bytes) * 8;
 	mvwprintw(show_win, 5, 2, "bit/sec: %d (%s)", bps, kilo_mega_ize(bps));
 
 	line = 7;
