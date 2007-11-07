@@ -76,6 +76,21 @@ bytes_per_second(unsigned int bytes) {
 }
 
 
+static inline int
+air_per_second(unsigned int air) {
+	static unsigned int last_air;
+	static struct timeval last;
+	static int aps;
+	/* reacalculate only every second or more */
+	if (the_time.tv_sec > last.tv_sec) {
+		aps = (1.0*(air - last_air)) / (int)(the_time.tv_sec - last.tv_sec);
+		last.tv_sec = the_time.tv_sec;
+		last_air = air;
+	}
+	return aps;
+}
+
+
 static inline void
 print_centered(WINDOW* win, int line, int cols, char* str) {
 	mvwprintw(win, line, cols / 2 - strlen(str) / 2, str);
@@ -104,6 +119,8 @@ init_display(void)
 	init_pair(9, COLOR_RED, COLOR_RED);
 	init_pair(10, COLOR_BLUE, COLOR_BLUE);
 	init_pair(11, COLOR_CYAN, COLOR_CYAN);
+	init_pair(12, COLOR_YELLOW, COLOR_BLACK);
+	init_pair(13, COLOR_YELLOW, COLOR_YELLOW);
 
 	/* COLOR_BLACK COLOR_RED COLOR_GREEN COLOR_YELLOW COLOR_BLUE
 	COLOR_MAGENTA COLOR_CYAN COLOR_WHITE */
@@ -115,10 +132,12 @@ init_display(void)
 #define BLUE		COLOR_PAIR(5)
 #define BLACKONWHITE	COLOR_PAIR(6)
 #define MAGENTA		COLOR_PAIR(7)
-#define GREENBACK	COLOR_PAIR(8)
-#define REDBACK		COLOR_PAIR(9)
-#define BLUEBACK	COLOR_PAIR(10)
-#define CYANBACK	COLOR_PAIR(11)
+#define ALLGREEN	COLOR_PAIR(8)
+#define ALLRED		COLOR_PAIR(9)
+#define ALLBLUE		COLOR_PAIR(10)
+#define ALLCYAN		COLOR_PAIR(11)
+#define YELLOW		COLOR_PAIR(12)
+#define ALLYELLOW	COLOR_PAIR(13)
 
 	erase();
 
@@ -141,10 +160,10 @@ init_display(void)
 	list_win = newwin(LINES/2+1, COLS, 0, 0);
 	scrollok(list_win,FALSE);
 
-	stat_win = newwin(LINES/2-2, 11, LINES/2+1, COLS-11);
+	stat_win = newwin(LINES/2-2, 14, LINES/2+1, COLS-14);
 	scrollok(stat_win,FALSE);
 
-	dump_win = newwin(LINES/2-2, COLS-11, LINES/2+1, 0);
+	dump_win = newwin(LINES/2-2, COLS-14, LINES/2+1, 0);
 	scrollok(dump_win,TRUE);
 
 	update_display(NULL,-1);
@@ -330,12 +349,12 @@ update_show_win()
 }
 
 
-#define MAX_STAT_BAR LINES/2-5
+#define MAX_STAT_BAR LINES/2-6
 
 static void
 update_stat_win(struct packet_info* pkt, int node_number)
 {
-	int sig, noi, max, rate, bpsn, bps;
+	int sig, noi, max, rate, bps, bpsn, air, airn;
 
 	werase(stat_win);
 	wattron(stat_win, WHITE);
@@ -343,7 +362,10 @@ update_stat_win(struct packet_info* pkt, int node_number)
 	mvwvline(stat_win, 0, 14, ACS_VLINE, LINES/2);
 
 	bps = bytes_per_second(stats.bytes) * 8;
-	bpsn = normalize(bps, 25000000, MAX_STAT_BAR); //XXX: 54000000
+	bpsn = normalize(bps, 27000000, MAX_STAT_BAR); //theoretical: 54000000
+
+	air = air_per_second(stats.airtimes) * 1.0 / 1000000 * 100; /* 1Mbps, in percent */
+	airn = normalize(air, 100, MAX_STAT_BAR);
 
 	if (pkt != NULL)
 	{
@@ -356,32 +378,38 @@ update_stat_win(struct packet_info* pkt, int node_number)
 		}
 
 		wattron(stat_win, GREEN);
-		mvwprintw(stat_win, 0, 1, "SN:%03d/", pkt->signal);
+		mvwprintw(stat_win, 0, 1, "SN:  %03d/", pkt->signal);
 		if (max > 1)
 			mvwprintw(stat_win, max, 2, "--");
-		wattron(stat_win, GREENBACK);
-		mvwvline(stat_win, sig + 3, 2, ACS_BLOCK, MAX_STAT_BAR + 3 - sig);
-		mvwvline(stat_win, sig + 3, 3, ACS_BLOCK, MAX_STAT_BAR + 3 - sig);
+		wattron(stat_win, ALLGREEN);
+		mvwvline(stat_win, sig + 4, 2, ACS_BLOCK, MAX_STAT_BAR + 3 - sig);
+		mvwvline(stat_win, sig + 4, 3, ACS_BLOCK, MAX_STAT_BAR + 3 - sig);
 
 		wattron(stat_win, RED);
-		mvwprintw(stat_win, 0, 8, "%03d", pkt->noise);
-		wattron(stat_win, REDBACK);
-		mvwvline(stat_win, noi + 3, 2, ACS_BLOCK, MAX_STAT_BAR + 3 - noi);
-		mvwvline(stat_win, noi + 3, 3, ACS_BLOCK, MAX_STAT_BAR + 3 - noi);
+		mvwprintw(stat_win, 0, 10, "%03d", pkt->noise);
+		wattron(stat_win, ALLRED);
+		mvwvline(stat_win, noi + 4, 2, ACS_BLOCK, MAX_STAT_BAR + 3 - noi);
+		mvwvline(stat_win, noi + 4, 3, ACS_BLOCK, MAX_STAT_BAR + 3 - noi);
 
 		wattron(stat_win, BLUE);
-		mvwprintw(stat_win, 1, 1, "RATE: %3dM", pkt->rate);
-		wattron(stat_win, BLUEBACK);
-		mvwvline(stat_win, MAX_STAT_BAR + 3 - rate, 5, ACS_BLOCK, rate);
-		mvwvline(stat_win, MAX_STAT_BAR + 3 - rate, 6, ACS_BLOCK, rate);
+		mvwprintw(stat_win, 1, 1, "PhyRate:  %2dM", pkt->rate);
+		wattron(stat_win, ALLBLUE);
+		mvwvline(stat_win, MAX_STAT_BAR + 4 - rate, 5, ACS_BLOCK, rate);
+		mvwvline(stat_win, MAX_STAT_BAR + 4 - rate, 6, ACS_BLOCK, rate);
 	}
 
 	wattron(stat_win, CYAN);
-	mvwprintw(stat_win, 2, 1, "bps:%6s", kilo_mega_ize(bps));
-	wattron(stat_win, CYANBACK);
-	mvwvline(stat_win, MAX_STAT_BAR + 3 - bpsn, 8, ACS_BLOCK, bpsn);
-	mvwvline(stat_win, MAX_STAT_BAR + 3 - bpsn, 9, ACS_BLOCK, bpsn);
-	wattroff(stat_win, CYANBACK);
+	mvwprintw(stat_win, 2, 1, "b/sec: %6s", kilo_mega_ize(bps));
+	wattron(stat_win, ALLCYAN);
+	mvwvline(stat_win, MAX_STAT_BAR + 4 - bpsn, 8, ACS_BLOCK, bpsn);
+	mvwvline(stat_win, MAX_STAT_BAR + 4 - bpsn, 9, ACS_BLOCK, bpsn);
+
+	wattron(stat_win, YELLOW);
+	mvwprintw(stat_win, 3, 1, "Usage:   %3d%%", air);
+	wattron(stat_win, ALLYELLOW);
+	mvwvline(stat_win, MAX_STAT_BAR + 4 - airn, 11, ACS_BLOCK, airn);
+	mvwvline(stat_win, MAX_STAT_BAR + 4 - airn, 12, ACS_BLOCK, airn);
+	wattroff(stat_win, ALLYELLOW);
 
 	wnoutrefresh(stat_win);
 }
@@ -488,7 +516,7 @@ update_list_win(void)
 	mvwprintw(list_win, LINES/2, 29, "(BSSID)");
 	mvwprintw(list_win, LINES/2, 49, "TYPE");
 	mvwprintw(list_win, LINES/2, 56, "INFO");
-	mvwprintw(list_win, LINES/2, COLS-10, "LiveStatus");
+	mvwprintw(list_win, LINES/2, COLS-12, "LiveStatus");
 
 	/* create an array of node pointers to make sorting independent */
 	for (i = 0; i < MAX_NODES && nodes[i].status == 1; i++)
@@ -623,10 +651,10 @@ update_hist_win(void)
 		sig = normalize_db(-hist.signal[i], SIGN_POS);
 		noi = normalize_db(-hist.noise[i], SIGN_POS);
 
-		wattron(show_win, GREENBACK);
+		wattron(show_win, ALLGREEN);
 		mvwvline(show_win, sig, col, ACS_BLOCK, SIGN_POS-sig);
 
-		wattron(show_win, REDBACK);
+		wattron(show_win, ALLRED);
 		mvwvline(show_win, noi, col, ACS_BLOCK, SIGN_POS-noi);
 
 		wattron(show_win, CYAN);
@@ -753,7 +781,7 @@ update_statistics_win(void)
 	int i;
 	int line;
 	float airtime;
-	int bps;
+	int bps, aps;
 
 	werase(show_win);
 	wattron(show_win, WHITE);
@@ -772,7 +800,10 @@ update_statistics_win(void)
 	bps = bytes_per_second(stats.bytes) * 8;
 	mvwprintw(show_win, 5, 2, "bit/sec: %d (%s)", bps, kilo_mega_ize(bps));
 
-	line = 7;
+	aps = air_per_second(stats.airtimes) * 1.0 / 1000000 * 100; /* 1Mbps, in percent */
+	mvwprintw(show_win, 6, 2, "Usage:   %d%%", aps );
+
+	line = 8;
 	mvwprintw(show_win, line, STAT_PACK_POS, " Packets");
 	mvwprintw(show_win, line, STAT_BYTE_POS, "   Bytes");
 	mvwprintw(show_win, line, STAT_BPP_POS, "~B/P");
@@ -797,7 +828,7 @@ update_statistics_win(void)
 			mvwprintw(show_win, line, STAT_BP_POS, "%2.1f",
 				(stats.bytes_per_rate[i] * 1.0 / stats.bytes) * 100);
 			wattron(show_win, A_BOLD);
-			airtime = ((stats.bytes_per_rate[i] * 1.0 / stats.bytes) * 100) / i;
+			airtime = ((stats.bytes_per_rate[i] * 8.0 / i) / stats.airtimes) * 100;
 			mvwprintw(show_win, line, STAT_AIR_POS, "%2.1f", airtime);
 			mvwhline(show_win, line, STAT_AIRG_POS, '*',
 				normalize(airtime, 100, COLS - STAT_AIRG_POS - 2));
@@ -832,7 +863,7 @@ update_statistics_win(void)
 				(stats.bytes_per_type[i] * 1.0 / stats.bytes) * 100);
 			wattron(show_win, A_BOLD);
 			if (stats.airtimes != 0)
-				airtime = (stats.airtime_per_type[i] * 1.0 / stats.airtimes) * 100;
+				airtime = (stats.airtime_per_type[i] * 8.0 / stats.airtimes) * 100;
 			else
 				airtime = 100.0;
 			mvwprintw(show_win, line, STAT_AIR_POS, "%2.1f", airtime);
