@@ -63,7 +63,7 @@ extern struct statistics stats;
 
 static inline int
 bytes_per_second(unsigned int bytes) {
-	static unsigned int last_bytes;
+	static unsigned long last_bytes;
 	static struct timeval last_bps;
 	static int bps;
 	/* reacalculate only every second or more */
@@ -78,7 +78,7 @@ bytes_per_second(unsigned int bytes) {
 
 static inline int
 air_per_second(unsigned int air) {
-	static unsigned int last_air;
+	static unsigned long last_air;
 	static struct timeval last;
 	static int aps;
 	/* reacalculate only every second or more */
@@ -793,17 +793,17 @@ update_statistics_win(void)
 		return; /* avoid floating point exceptions */
 	}
 
-	mvwprintw(show_win, 2, 2, "Packets: %d", stats.packets );
-	mvwprintw(show_win, 3, 2, "Bytes:   %d", stats.bytes );
+	mvwprintw(show_win, 2, 2, "Packets: %d",stats.packets );
+	mvwprintw(show_win, 3, 2, "Bytes:   %s (%d)",  kilo_mega_ize(stats.bytes), stats.bytes );
 	mvwprintw(show_win, 4, 2, "Average: ~%d B/Pkt", stats.bytes/stats.packets);
 
 	bps = bytes_per_second(stats.bytes) * 8;
-	mvwprintw(show_win, 5, 2, "bit/sec: %d (%s)", bps, kilo_mega_ize(bps));
+	mvwprintw(show_win, 2, 40, "bit/sec: %s (%d)", kilo_mega_ize(bps), bps);
 
-	aps = air_per_second(stats.airtimes) * 1.0 / 1000000 * 100; /* 1Mbps, in percent */
-	mvwprintw(show_win, 6, 2, "Usage:   %d%%", aps );
+	aps = air_per_second(stats.airtimes);
+	mvwprintw(show_win, 3, 40, "Usage:   %3.1f%% (%d)", aps * 1.0 / 10000, aps );
 
-	line = 8;
+	line = 6;
 	mvwprintw(show_win, line, STAT_PACK_POS, " Packets");
 	mvwprintw(show_win, line, STAT_BYTE_POS, "   Bytes");
 	mvwprintw(show_win, line, STAT_BPP_POS, "~B/P");
@@ -819,8 +819,10 @@ update_statistics_win(void)
 			wattron(show_win, A_BOLD);
 			mvwprintw(show_win, line, 4, "%2dM", i);
 			wattroff(show_win, A_BOLD);
-			mvwprintw(show_win, line, STAT_PACK_POS, "%8d", stats.packets_per_rate[i]);
-			mvwprintw(show_win, line, STAT_BYTE_POS, "%8d", stats.bytes_per_rate[i]);
+			mvwprintw(show_win, line, STAT_PACK_POS, "%8d",
+				stats.packets_per_rate[i]);
+			mvwprintw(show_win, line, STAT_BYTE_POS, "%8s",
+				kilo_mega_ize(stats.bytes_per_rate[i]));
 			mvwprintw(show_win, line, STAT_BPP_POS, "%4d",
 				stats.bytes_per_rate[i] / stats.packets_per_rate[i]);
 			mvwprintw(show_win, line, STAT_PP_POS, "%2.1f",
@@ -853,8 +855,10 @@ update_statistics_win(void)
 			wattron(show_win, A_BOLD);
 			mvwprintw(show_win, line, 4, "%s", get_packet_type_name(i));
 			wattroff(show_win, A_BOLD);
-			mvwprintw(show_win, line, STAT_PACK_POS, "%8d", stats.packets_per_type[i]);
-			mvwprintw(show_win, line, STAT_BYTE_POS, "%8d", stats.bytes_per_type[i]);
+			mvwprintw(show_win, line, STAT_PACK_POS, "%8d",
+				stats.packets_per_type[i]);
+			mvwprintw(show_win, line, STAT_BYTE_POS, "%8s",
+				kilo_mega_ize(stats.bytes_per_type[i]));
 			mvwprintw(show_win, line, STAT_BPP_POS, "%4d",
 				stats.bytes_per_type[i] / stats.packets_per_type[i]);
 			mvwprintw(show_win, line, STAT_PP_POS, "%2.1f",
