@@ -884,6 +884,9 @@ update_statistics_win(void)
 static void
 update_help_win(void)
 {
+	int i, l;
+	char c;
+
 	werase(show_win);
 	wattron(show_win, WHITE);
 	box(show_win, 0 , 0);
@@ -895,6 +898,29 @@ update_help_win(void)
 
 	print_centered(show_win, 6, COLS, "Licensed under the GPL");
 
+	mvwprintw(show_win, 8, 2, "Known IEEE802.11 Packet Types");
+	l = 10;
+	/* this is weird but it works */
+	mvwprintw(show_win, l++, 2, "MANAGEMENT FRAMES");
+	for (i = 0x00; i <= 0xD0; i = i + 0x10) {
+		c = get_packet_type_char(i);
+		if (c != '?')
+			mvwprintw(show_win, l++, 4, "%c %s", c, get_packet_type_name(i));
+	}
+	l++;
+	mvwprintw(show_win, l++, 2, "CONTROL FRAMES");
+	for (i = 0xa4; i <= 0xF4; i = i + 0x10) {
+		c = get_packet_type_char(i);
+		if (c != '?')
+			mvwprintw(show_win, l++, 4, "%c %s", c, get_packet_type_name(i));
+	}
+	l = 10;
+	mvwprintw(show_win, l++, 30, "DATA FRAMES");
+	for (i = 0x08; i <+ 0xF8; i = i + 0x10) {
+		c = get_packet_type_char(i);
+		if (c != '?')
+			mvwprintw(show_win, l++, 32, "%c %s", c, get_packet_type_name(i));
+	}
 	wnoutrefresh(show_win);
 }
 
