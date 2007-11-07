@@ -61,7 +61,9 @@ struct statistics stats;
 
 struct config conf = {
 	.node_timeout = NODE_TIMEOUT,
-	.ifname = "wlan0"
+	.ifname = "wlan0",
+	.display_interval = DISPLAY_UPDATE_INTERVAL,
+	.sleep_time = SLEEP_TIME,
 };
 
 static int mon; /* monitoring socket */
@@ -99,8 +101,12 @@ main(int argc, char** argv)
 		handle_user_input();
 
 		if (conf.paused || len == -1) {
-			/* no packet received or paused: just wait 100ms */
-			usleep(100000);
+			/*
+			 * no packet received or paused: just wait a few ms
+			 * if we wait too long here we will loose packets
+			 * if we don't sleep there will be 100% system load
+			 */
+			usleep(conf.sleep_time);
 			continue;
 		}
 #if DO_DEBUG
@@ -252,7 +258,7 @@ get_options(int argc, char** argv)
 {
 	int c;
 
-	while((c = getopt(argc, argv, "hqi:t:p:e:")) > 0) {
+	while((c = getopt(argc, argv, "hqi:t:p:e:d:w:")) > 0) {
 		switch (c) {
 			case 'p':
 				conf.rport = atoi(optarg);
@@ -266,6 +272,15 @@ get_options(int argc, char** argv)
 			case 't':
 				conf.node_timeout = atoi(optarg);
 				break;
+			case 's':
+				/* reserved for spectro meter */
+				break;
+			case 'd':
+				conf.display_interval = atoi(optarg);
+				break;
+			case 'w':
+				conf.sleep_time = atoi(optarg);
+				break;
 			case 'e':
 				conf.do_filter = 1;
 				convert_string_to_mac(optarg, conf.filtermac);
@@ -273,7 +288,17 @@ get_options(int argc, char** argv)
 				break;
 			case 'h':
 			default:
-				printf("usage: %s [-q] [-i <interface>] [-t timeout] [-p <remote port>] -e <filtermac>\n\n", argv[0]);
+				printf("usage: %s [-h] [-q] [-i interface] [-t sec] [-p port] [-e mac] [-d usec] [-w usec]\n\n"
+					"Options (default value)\n"
+					"  -h\t\tthis help\n"
+					"  -q\t\tquiet [basically useless]\n"
+					"  -i <intf>\tinterface (wlan0)\n"
+					"  -t <sec>\tnode timeout (60)\n"
+					"  -p <port>\tuse port\n"
+					"  -e <mac>\tfilter all macs ecxept this\n"
+					"  -d <usec>\tdisplay update interval (100000 = 100ms = 10fps)\n"
+					"  -w <usec>\twait loop (1000 = 1ms)\n\n",
+					argv[0]);
 				exit(0);
 				break;
 		}

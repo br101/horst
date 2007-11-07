@@ -292,9 +292,9 @@ update_display(struct packet_info* pkt, int node_number)
 {
 	gettimeofday(&the_time, NULL);
 
-	/* update only every 100ms ("10 frames per sec should be enough for everyone" ;)) */
+	/* update only in specific intervals to save CPU time */
 	if (the_time.tv_sec == last_time.tv_sec &&
-	   (the_time.tv_usec - last_time.tv_usec) < 100000 ) {
+	   (the_time.tv_usec - last_time.tv_usec) < conf.display_interval ) {
 		/* just add the line to dump win so we dont loose it */
 		update_dump_win(pkt);
 		return;
@@ -343,7 +343,7 @@ update_stat_win(struct packet_info* pkt, int node_number)
 	mvwvline(stat_win, 0, 14, ACS_VLINE, LINES/2);
 
 	bps = bytes_per_second(stats.bytes) * 8;
-	bpsn = normalize(bps, 5000, MAX_STAT_BAR); //XXX: 54000000
+	bpsn = normalize(bps, 25000000, MAX_STAT_BAR); //XXX: 54000000
 
 	if (pkt != NULL)
 	{

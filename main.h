@@ -48,7 +48,12 @@
 #define WLAN_MODE_IBSS		0x02
 #define WLAN_MODE_STA		0x04
 
-#define NODE_TIMEOUT		60 /* seconds */
+#define NODE_TIMEOUT		60	/* seconds */
+
+/* update display every 100ms - "10 frames per sec should be enough for everyone" ;) */
+#define DISPLAY_UPDATE_INTERVAL 100000	/* usec */
+
+#define SLEEP_TIME		1000	/* usec */
 
 struct packet_info {
 	int pkt_types;
@@ -143,6 +148,8 @@ struct config {
 	int rport;
 	int quiet;
 	int node_timeout;
+	int display_interval;
+	int sleep_time;
 	unsigned char filtermac[6];
 
 	/* this isn't exactly config, but wtf... */
