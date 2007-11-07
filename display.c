@@ -690,8 +690,24 @@ update_dump_win(struct packet_info* pkt)
 			default: wprintw(dump_win, "(%d)", pkt->olsr_type);
 		}
 	}
+	else if (pkt->pkt_types & PKT_TYPE_UDP) {
+		wprintw(dump_win, "%-7s%s", "UDP", ip_sprintf(pkt->ip_src));
+		wprintw(dump_win, " -> %s", ip_sprintf(pkt->ip_dst));
+	}
+	else if (pkt->pkt_types & PKT_TYPE_TCP) {
+		wprintw(dump_win, "%-7s%s", "TCP", ip_sprintf(pkt->ip_src));
+		wprintw(dump_win, " -> %s", ip_sprintf(pkt->ip_dst));
+	}
+	else if (pkt->pkt_types & PKT_TYPE_ICMP) {
+		wprintw(dump_win, "%-7s%s", "PING", ip_sprintf(pkt->ip_src));
+		wprintw(dump_win, " -> %s", ip_sprintf(pkt->ip_dst));
+	}
 	else if (pkt->pkt_types & PKT_TYPE_IP) {
-		wprintw(dump_win, "%-7s%s ", "IP", ip_sprintf(pkt->ip_src));
+		wprintw(dump_win, "%-7s%s", "IP", ip_sprintf(pkt->ip_src));
+		wprintw(dump_win, " -> %s", ip_sprintf(pkt->ip_dst));
+	}
+	else if (pkt->pkt_types & PKT_TYPE_ARP) {
+		wprintw(dump_win, "%-7s", "ARP", ip_sprintf(pkt->ip_src));
 	}
 	else {
 		wprintw(dump_win, "%-7s", get_packet_type_name(pkt->wlan_type));

@@ -375,8 +375,13 @@ parse_ip_header(unsigned char** buf, int len)
 	current_packet.pkt_types |= PKT_TYPE_IP;
 
 	DEBUG("IP proto: %d\n", ih->protocol);
-	if (ih->protocol != 17) /* UDP */
-		return 0;
+	switch (ih->protocol) {
+	case IPPROTO_UDP: current_packet.pkt_types |= PKT_TYPE_UDP; break;
+	/* all others set the type and return. no more parsing */
+	case IPPROTO_ICMP: current_packet.pkt_types |= PKT_TYPE_ICMP; return 0;
+	case IPPROTO_TCP: current_packet.pkt_types |= PKT_TYPE_TCP; return 0;
+	}
+
 
 	*buf = *buf + ih->ihl * 4;
 	return len - ih->ihl * 4;

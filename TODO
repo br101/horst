@@ -11,6 +11,11 @@ TODO:
  * remote client
  * timed out nodes are never reclaimed!
  * sig/noise WRT
+ * essid timeout
+ * Open/Crypted.in ESSID
+ * IP in ESSID
+ * detaildenster sortiert nach ESSID
+ * datum/time-stamp
 
 -----------------
 feature requests:

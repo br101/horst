@@ -34,10 +34,15 @@
 #define MAX_RATES		55	/* 54M + 1 for array index */
 #define MAX_FSTYPE		0xff
 
-#define PKT_TYPE_IP		0x08
-#define PKT_TYPE_OLSR		0x10
-#define PKT_TYPE_OLSR_LQ	0x20
-#define PKT_TYPE_OLSR_GW	0x40
+#define PKT_TYPE_ARP		0x001
+#define PKT_TYPE_IP		0x002
+#define PKT_TYPE_ICMP		0x004
+#define PKT_TYPE_UDP		0x008
+#define PKT_TYPE_TCP		0x010
+#define PKT_TYPE_OLSR		0x020
+#define PKT_TYPE_OLSR_LQ	0x040
+#define PKT_TYPE_OLSR_GW	0x080
+#define PKT_TYPE_BATMAN		0x100
 
 #define WLAN_MODE_AP		0x01
 #define WLAN_MODE_IBSS		0x02
