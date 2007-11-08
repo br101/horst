@@ -465,7 +465,7 @@ print_list_line(int line, struct node_info* n)
 		mvwprintw(list_win, line, COL_STA,"A");
 	else if (n->wlan_mode == WLAN_MODE_IBSS )
 		mvwprintw(list_win, line, COL_STA, "I");
-	else
+	else if (n->wlan_mode == WLAN_MODE_STA )
 		mvwprintw(list_win, line, COL_STA, "S");
 
 	mvwprintw(list_win, line, COL_RATE, "%2d", p->rate);
