@@ -359,6 +359,10 @@ parse_ip_header(unsigned char** buf, int len)
 	if (**buf != 0x08) /* not IP */
 		return -1;
 	(*buf)++;
+	if (**buf == 0x06) { /* ARP */
+		current_packet.pkt_types |= PKT_TYPE_ARP;
+		return 0;
+	}
 	if (**buf != 0x00)
 		return -1;
 	(*buf)++;
