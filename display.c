@@ -759,6 +759,9 @@ update_dump_win(struct packet_info* pkt)
 				wprintw(dump_win, "'%s' :%08x", pkt->wlan_essid,
 					*(unsigned long*)(&pkt->wlan_tsf[0]));
 				break;
+			case IEEE80211_STYPE_PROBE_REQ:
+				wprintw(dump_win, "'%s'", pkt->wlan_essid);
+				break;
 			}
 		}
 	}

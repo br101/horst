@@ -320,6 +320,11 @@ parse_80211_header(unsigned char** buf, int len)
 			else if (whm->u.beacon.capab_info & WLAN_CAPABILITY_ESS)
 				current_packet.wlan_mode = WLAN_MODE_AP;
 			break;
+		case IEEE80211_STYPE_PROBE_REQ:
+			ieee802_11_parse_elems(whm->u.probe_req.variable,
+				len - 24 - 4 /* FCS */,
+				&current_packet);
+			break;
 		}
 		break;
 	}
