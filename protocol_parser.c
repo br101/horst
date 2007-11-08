@@ -45,6 +45,7 @@
 static int parse_prism_header(unsigned char** buf, int len);
 static int parse_radiotap_header(unsigned char** buf, int len);
 static int parse_80211_header(unsigned char** buf, int len);
+static int inline parse_llc(unsigned char** buf, int len);
 static int parse_ip_header(unsigned char** buf, int len);
 static int parse_udp_header(unsigned char** buf, int len);
 static int parse_olsr_packet(unsigned char** buf, int len);
@@ -75,6 +76,10 @@ parse_packet(unsigned char* buf, int len)
 		else if (len == 0)
 			return 1;
 	}
+
+	len = parse_llc(&buf, len);
+	if (len <= 0)
+		return 1;
 
 	len = parse_ip_header(&buf, len);
 	if (len <= 0)
@@ -364,26 +369,33 @@ parse_80211_header(unsigned char** buf, int len)
 }
 
 
-static int
-parse_ip_header(unsigned char** buf, int len)
+static inline int
+parse_llc(unsigned char ** buf, int len)
 {
-	struct iphdr* ih;
-
 	if (len < 6)
 		return -1;
 
 	/* check type in LLC header */
 	*buf = *buf + 6;
-	if (**buf != 0x08) /* not IP */
+	if (**buf != 0x08)
 		return -1;
 	(*buf)++;
 	if (**buf == 0x06) { /* ARP */
 		current_packet.pkt_types |= PKT_TYPE_ARP;
 		return 0;
 	}
-	if (**buf != 0x00)
+	if (**buf != 0x00)  /* not IP */
 		return -1;
 	(*buf)++;
+
+	return len - 8;
+}
+
+
+static int
+parse_ip_header(unsigned char** buf, int len)
+{
+	struct iphdr* ih;
 
 	if (len < sizeof(struct iphdr))
 		return -1;
