@@ -280,6 +280,7 @@ parse_80211_header(unsigned char** buf, int len)
 	case IEEE80211_FTYPE_DATA:
 		sa = ieee80211_get_SA(wh);
 		da = ieee80211_get_DA(wh);
+		/* AP, STA or IBSS */
 		if ((wh->frame_control & IEEE80211_FCTL_FROMDS) == 0 &&
 		(wh->frame_control & IEEE80211_FCTL_TODS) == 0)
 			current_packet.wlan_mode = WLAN_MODE_IBSS;
@@ -287,6 +288,9 @@ parse_80211_header(unsigned char** buf, int len)
 			current_packet.wlan_mode = WLAN_MODE_AP;
 		else if (wh->frame_control & IEEE80211_FCTL_TODS)
 			current_packet.wlan_mode = WLAN_MODE_STA;
+		/* WEP */
+		if (wh->frame_control & IEEE80211_FCTL_PROTECTED)
+			current_packet.wlan_wep = 1;
 		break;
 
 	case IEEE80211_FTYPE_CTL:
@@ -326,6 +330,8 @@ parse_80211_header(unsigned char** buf, int len)
 				current_packet.wlan_mode = WLAN_MODE_IBSS;
 			else if (whm->u.beacon.capab_info & WLAN_CAPABILITY_ESS)
 				current_packet.wlan_mode = WLAN_MODE_AP;
+			if (whm->u.beacon.capab_info & WLAN_CAPABILITY_PRIVACY)
+				current_packet.wlan_wep = 1;
 			break;
 		case IEEE80211_STYPE_PROBE_REQ:
 			ieee802_11_parse_elems(whm->u.probe_req.variable,

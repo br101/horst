@@ -70,6 +70,7 @@ struct packet_info {
 	char wlan_essid[255];
 	int wlan_mode;
 	unsigned char wlan_channel;
+	int wlan_wep;
 	unsigned int ip_src;
 	unsigned int ip_dst;
 	int olsr_type;
@@ -99,6 +100,7 @@ struct node_info {
 	int snr_max;
 	int sig_max;
 	int essid;
+	int wep;
 };
 
 extern struct node_info nodes[MAX_NODES];

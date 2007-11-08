@@ -435,9 +435,9 @@ compare_nodes_snr(const void *p1, const void *p2)
 #define COL_RATE 28
 #define COL_SOURCE 31
 #define COL_STA 49
-#define COL_BSSID 51
-#define COL_OLSR 71
-#define COL_TSF 82
+#define COL_BSSID 52
+#define COL_OLSR 72
+#define COL_TSF 83
 
 static char spin[4] = {'/', '-', '\\', '|'};
 
@@ -467,6 +467,9 @@ print_list_line(int line, struct node_info* n)
 		mvwprintw(list_win, line, COL_STA, "I");
 	else if (n->wlan_mode == WLAN_MODE_STA )
 		mvwprintw(list_win, line, COL_STA, "S");
+
+	if (n->wep)
+		wprintw(list_win, "W");
 
 	mvwprintw(list_win, line, COL_RATE, "%2d", p->rate);
 	mvwprintw(list_win, line, COL_SOURCE, "%s", ether_sprintf(p->wlan_src));
@@ -504,7 +507,7 @@ update_list_win(void)
 	mvwprintw(list_win, 0, COL_SNR, "SN/MX/MI");
 	mvwprintw(list_win, 0, COL_RATE, "RT");
 	mvwprintw(list_win, 0, COL_SOURCE, "SOURCE");
-	mvwprintw(list_win, 0, COL_STA, "T");
+	mvwprintw(list_win, 0, COL_STA, "TW");
 	mvwprintw(list_win, 0, COL_BSSID, "(BSSID)");
 	mvwprintw(list_win, 0, COL_IP, "IP");
 	mvwprintw(list_win, 0, COL_OLSR, "OLSR");
@@ -581,6 +584,7 @@ update_essid_win(void)
 			wprintw(show_win, "TSF %08x:%08x", node->tsfh, node->tsfl);
 			wprintw(show_win, " CH %d", node->channel);
 			wprintw(show_win, " %ddB", node->snr);
+			wprintw(show_win, " %s", node->wep ? "WEP" : "OPEN");
 			line++;
 		}
 		line++;

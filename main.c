@@ -359,6 +359,7 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		n->snr_min = p->snr;
 	if (p->wlan_channel !=0)
 		n->channel = p->wlan_channel;
+	n->wep = p->wlan_wep;
 }
 
 
