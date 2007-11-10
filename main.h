@@ -47,6 +47,7 @@
 #define WLAN_MODE_AP		0x01
 #define WLAN_MODE_IBSS		0x02
 #define WLAN_MODE_STA		0x04
+#define WLAN_MODE_PROBE		0x08
 
 #define NODE_TIMEOUT		60	/* seconds */
 

@@ -342,6 +342,7 @@ parse_80211_header(unsigned char** buf, int len)
 			ieee802_11_parse_elems(whm->u.probe_req.variable,
 				len - 24 - 4 /* FCS */,
 				&current_packet);
+			current_packet.wlan_mode |= WLAN_MODE_PROBE;
 			break;
 		}
 		break;

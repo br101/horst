@@ -523,9 +523,11 @@ print_list_line(int line, struct node_info* n)
 		mvwprintw(list_win, line, COL_STA, "I");
 	else if (n->wlan_mode == WLAN_MODE_STA )
 		mvwprintw(list_win, line, COL_STA, "S");
+	else if (n->wlan_mode == WLAN_MODE_PROBE )
+		mvwprintw(list_win, line, COL_STA, "P");
 
 	if (n->wep)
-		wprintw(list_win, "W");
+		wprintw(list_win, "e");
 
 	mvwprintw(list_win, line, COL_RATE, "%2d", p->rate);
 	mvwprintw(list_win, line, COL_SOURCE, "%s", ether_sprintf(p->wlan_src));
@@ -563,7 +565,7 @@ update_list_win(void)
 	mvwprintw(list_win, 0, COL_SNR, "SN/MX/MI");
 	mvwprintw(list_win, 0, COL_RATE, "RT");
 	mvwprintw(list_win, 0, COL_SOURCE, "SOURCE");
-	mvwprintw(list_win, 0, COL_STA, "TW");
+	mvwprintw(list_win, 0, COL_STA, "Te");
 	mvwprintw(list_win, 0, COL_BSSID, "(BSSID)");
 	mvwprintw(list_win, 0, COL_IP, "IP");
 	mvwprintw(list_win, 0, COL_OLSR, "OLSR");
