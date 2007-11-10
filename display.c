@@ -32,6 +32,8 @@
 #include "olsr_header.h"
 
 static void show_window(char which);
+static void show_sort_win(void);
+
 static void display_filter_win(void);
 
 static void update_dump_win(struct packet_info* pkt);
@@ -49,9 +51,10 @@ static WINDOW *list_win = NULL;
 static WINDOW *stat_win = NULL;
 static WINDOW *filter_win = NULL;
 static WINDOW *show_win = NULL;
+static WINDOW *small_win = NULL;
 
 static char show_win_current;
-static int do_sort=0;
+static int do_sort = 'n';
 static struct node_info* sort_nodes[MAX_NODES];
 
 static struct timeval last_time;
@@ -214,47 +217,70 @@ filter_input(int c)
 
 
 void
+sort_input(int c)
+{
+	switch(c) {
+	case 'n': case 'N':
+	case 's': case 'S':
+	case 't': case 'T':
+		do_sort = c;
+		delwin(small_win);
+		small_win = NULL;
+		conf.paused = 0;
+		update_display(NULL, -1);
+		break;
+	}
+}
+
+
+void
 handle_user_input()
 {
 	int key;
 
 	key = getch();
 
-	if (filter_win!=NULL) {
+	if (filter_win != NULL) {
 		filter_input(key);
 		return;
 	}
 
+	if (small_win != NULL) {
+		sort_input(key);
+		return;
+	}
+
 	switch(key) {
-		case ' ': case 'p': case 'P':
-			conf.paused = conf.paused ? 0 : 1;
-			break;
-		case 'q': case 'Q':
-			finish_all(0);
-		case 's': case 'S':
-			do_sort = do_sort ? 0 : 1;
-			break;
-		case 'e': case 'E':
-		case 'h': case 'H':
-		case 'd': case 'D':
-		case 'a': case 'A':
-		case '?':
-			show_window(tolower(key));
-			break;
-		case 'f': case 'F':
-			if (filter_win == NULL)
-				display_filter_win();
-			else {
-				delwin(filter_win);
-				filter_win = NULL;
-			}
-			break;
-		case KEY_RESIZE: /* xterm window resize event */
-			endwin();
-			init_display();
-			return;
-		default:
-			return;
+	case ' ': case 'p': case 'P':
+		conf.paused = conf.paused ? 0 : 1;
+		break;
+	case 'q': case 'Q':
+		finish_all(0);
+	case 's': case 'S':
+		conf.paused = 1;
+		show_sort_win();
+		break;
+	case 'e': case 'E':
+	case 'h': case 'H':
+	case 'd': case 'D':
+	case 'a': case 'A':
+	case '?':
+		show_window(tolower(key));
+		break;
+	case 'f': case 'F':
+		if (filter_win == NULL)
+			display_filter_win();
+		else {
+			delwin(filter_win);
+			filter_win = NULL;
+		}
+		break;
+	case KEY_RESIZE: /* xterm window resize event */
+		endwin();
+		init_display();
+		return;
+	default:
+		return;
 	}
 	update_display(NULL, -1);
 }
@@ -275,6 +301,19 @@ show_window(char which)
 	}
 	show_win_current = which;
 	update_show_win();
+}
+
+
+static void
+show_sort_win(void)
+{
+	if (small_win == NULL) {
+		small_win = newwin(1, COLS, LINES-2, 0);
+		wattron(small_win, BLACKONWHITE);
+		mvwhline(small_win, 0, 0, ' ', COLS);
+		mvwprintw(small_win, 0, 0, " -> Sort by s:SNR t:Time n:Don't sort [current: %c]", do_sort);
+		wrefresh(small_win);
+	}
 }
 
 
@@ -323,6 +362,8 @@ update_display(struct packet_info* pkt, int node_number)
 
 	if (show_win != NULL)
 		update_show_win();
+	else if (small_win != NULL)
+		wnoutrefresh(small_win);
 	else {
 		update_list_win();
 		update_stat_win(pkt, node_number);
@@ -430,6 +471,21 @@ compare_nodes_snr(const void *p1, const void *p2)
 }
 
 
+static int
+compare_nodes_time(const void *p1, const void *p2)
+{
+	struct node_info* n1 = *(struct node_info**)p1;
+	struct node_info* n2 = *(struct node_info**)p2;
+
+	if (n1->last_seen > n2->last_seen)
+		return -1;
+	else if (n1->last_seen == n2->last_seen)
+		return 0;
+	else
+		return 1;
+}
+
+
 #define COL_IP 3
 #define COL_SNR 19
 #define COL_RATE 28
@@ -527,10 +583,10 @@ update_list_win(void)
 
 	num_nodes = i;
 
-	if (do_sort) {
-		/* sort by SNR */
+	if (do_sort == 's') /* sort by SNR */
 		qsort(sort_nodes, num_nodes, sizeof(struct node_info*), compare_nodes_snr);
-	}
+	else if (do_sort == 't')  /* sort by last seen */
+		qsort(sort_nodes, num_nodes, sizeof(struct node_info*), compare_nodes_time);
 
 	for (i = 0; i < num_nodes; i++) {
 		n = sort_nodes[i];
@@ -695,7 +751,7 @@ void
 update_dump_win(struct packet_info* pkt)
 {
 	if (!pkt) {
-		wprintw(dump_win, "\nPAUSED");
+		wprintw(dump_win, "\n%s", conf.paused ? "- PAUSED -" : "- RESUME -");
 		wnoutrefresh(dump_win);
 		return;
 	}
