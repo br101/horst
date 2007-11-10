@@ -26,6 +26,8 @@
 #define DO_DEBUG 0
 #endif
 
+#define MAC_LEN			6
+
 #define MAX_NODES		255
 #define MAX_ESSIDS		255
 #define MAX_BSSIDS		255
@@ -33,16 +35,36 @@
 #define MAX_ESSID_LEN		255
 #define MAX_RATES		55	/* 54M + 1 for array index */
 #define MAX_FSTYPE		0xff
+#define MAX_FILTERMAC		6
 
-#define PKT_TYPE_ARP		0x001
-#define PKT_TYPE_IP		0x002
-#define PKT_TYPE_ICMP		0x004
-#define PKT_TYPE_UDP		0x008
-#define PKT_TYPE_TCP		0x010
-#define PKT_TYPE_OLSR		0x020
-#define PKT_TYPE_OLSR_LQ	0x040
-#define PKT_TYPE_OLSR_GW	0x080
-#define PKT_TYPE_BATMAN		0x100
+/* packet types we actually care about, e.g filter */
+#define PKT_TYPE_CTRL		0x000001
+#define PKT_TYPE_MGMT		0x000002
+#define PKT_TYPE_DATA		0x000004
+
+#define PKT_TYPE_BEACON		0x000010
+#define PKT_TYPE_PROBE		0x000020
+#define PKT_TYPE_ASSOC		0x000040
+#define PKT_TYPE_AUTH		0x000080
+#define PKT_TYPE_RTS		0x000100
+#define PKT_TYPE_CTS		0x000200
+#define PKT_TYPE_ACK		0x000400
+#define PKT_TYPE_NULL		0x000800
+
+#define PKT_TYPE_ARP		0x001000
+#define PKT_TYPE_IP		0x002000
+#define PKT_TYPE_ICMP		0x004000
+#define PKT_TYPE_UDP		0x008000
+#define PKT_TYPE_TCP		0x010000
+#define PKT_TYPE_OLSR		0x020000
+#define PKT_TYPE_OLSR_LQ	0x040000
+#define PKT_TYPE_OLSR_GW	0x080000
+#define PKT_TYPE_BATMAN		0x100000
+
+#define PKT_TYPE_ALL_MGMT	(PKT_TYPE_BEACON | PKT_TYPE_PROBE | PKT_TYPE_ASSOC | PKT_TYPE_AUTH)
+#define PKT_TYPE_ALL_CTRL	(PKT_TYPE_RTS | PKT_TYPE_CTS | PKT_TYPE_ACK)
+#define PKT_TYPE_ALL_DATA	(PKT_TYPE_NULL | PKT_TYPE_ARP | PKT_TYPE_ICMP | PKT_TYPE_IP | \
+				 PKT_TYPE_UDP | PKT_TYPE_TCP | PKT_TYPE_OLSR | PKT_TYPE_BATMAN)
 
 #define WLAN_MODE_AP		0x01
 #define WLAN_MODE_IBSS		0x02
@@ -153,12 +175,13 @@ struct config {
 	int node_timeout;
 	int display_interval;
 	int sleep_time;
-	unsigned char filtermac[6];
+	unsigned char filtermac[MAX_FILTERMAC][6];
+	int filter_pkt;
 
 	/* this isn't exactly config, but wtf... */
 	int arphrd; // the device ARP type
 	int paused;
-	int do_filter;
+	int do_macfilter;
 };
 
 extern struct config conf;

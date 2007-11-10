@@ -64,6 +64,7 @@ struct config conf = {
 	.ifname = "wlan0",
 	.display_interval = DISPLAY_UPDATE_INTERVAL,
 	.sleep_time = SLEEP_TIME,
+	.filter_pkt = 0xffffff,
 };
 
 static int mon; /* monitoring socket */
@@ -282,9 +283,9 @@ get_options(int argc, char** argv)
 				conf.sleep_time = atoi(optarg);
 				break;
 			case 'e':
-				conf.do_filter = 1;
-				convert_string_to_mac(optarg, conf.filtermac);
-				printf("%s\n", ether_sprintf(conf.filtermac));
+				conf.do_macfilter = 1;
+				convert_string_to_mac(optarg, conf.filtermac[0]);
+				printf("%s\n", ether_sprintf(conf.filtermac[0]));
 				break;
 			case 'h':
 			default:
@@ -479,8 +480,18 @@ check_ibss_split(struct packet_info* pkt, int pkt_node)
 static int
 filter_packet(struct packet_info* pkt)
 {
-	//TODO add filter for packet types: OLSR, BEACON, CONTROL
-	return (conf.do_filter && memcmp(current_packet.wlan_src, conf.filtermac, sizeof(conf.filtermac)) != 0);
+	int i;
+
+	if (!(pkt->pkt_types & conf.filter_pkt))
+		return 1;
+
+	if (conf.do_macfilter) {
+		for (i = 0; i < MAX_FILTERMAC; i++) {
+			if (memcmp(current_packet.wlan_src, conf.filtermac[i], MAC_LEN) == 0)
+				return 0;
+		}
+	}
+	return 1;
 }
 
 

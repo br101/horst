@@ -283,6 +283,12 @@ parse_80211_header(unsigned char** buf, int len)
 
 	switch (current_packet.wlan_type & IEEE80211_FCTL_FTYPE) {
 	case IEEE80211_FTYPE_DATA:
+		current_packet.pkt_types = PKT_TYPE_DATA;
+		switch (current_packet.wlan_type & IEEE80211_FCTL_STYPE) {
+		case IEEE80211_STYPE_NULLFUNC:
+			current_packet.pkt_types |= PKT_TYPE_NULL;
+			break;
+		}
 		sa = ieee80211_get_SA(wh);
 		da = ieee80211_get_DA(wh);
 		/* AP, STA or IBSS */
@@ -299,18 +305,28 @@ parse_80211_header(unsigned char** buf, int len)
 		break;
 
 	case IEEE80211_FTYPE_CTL:
+		current_packet.pkt_types = PKT_TYPE_CTRL;
 		switch (current_packet.wlan_type & IEEE80211_FCTL_STYPE) {
 		case IEEE80211_STYPE_RTS:
+			current_packet.pkt_types |= PKT_TYPE_RTS;
 			sa = wh->addr2;
 			da = wh->addr1;
 			break;
+
 		case IEEE80211_STYPE_CTS:
-		case IEEE80211_STYPE_ACK:
+			current_packet.pkt_types |= PKT_TYPE_CTS;
 			da = wh->addr1;
 			break;
+
+		case IEEE80211_STYPE_ACK:
+			current_packet.pkt_types |= PKT_TYPE_ACK;
+			da = wh->addr1;
+			break;
+
 		case IEEE80211_STYPE_PSPOLL:
 			sa = wh->addr2;
 			break;
+
 		case IEEE80211_STYPE_CFEND:
 		case IEEE80211_STYPE_CFENDACK:
 			/* dont know, dont care */
@@ -319,13 +335,14 @@ parse_80211_header(unsigned char** buf, int len)
 		break;
 
 	case IEEE80211_FTYPE_MGMT:
+		current_packet.pkt_types = PKT_TYPE_MGMT;
 		whm = (struct ieee80211_mgmt*)*buf;
 		sa = whm->sa;
 		da = whm->da;
 
 		switch (current_packet.wlan_type & IEEE80211_FCTL_STYPE) {
 		case IEEE80211_STYPE_BEACON:
-		case IEEE80211_STYPE_PROBE_RESP:
+			current_packet.pkt_types |= PKT_TYPE_BEACON;
 			memcpy(current_packet.wlan_tsf, &whm->u.beacon.timestamp, 8);
 			ieee802_11_parse_elems(whm->u.beacon.variable,
 				len - sizeof(struct ieee80211_mgmt) - 4 /* FCS */, &current_packet);
@@ -338,11 +355,41 @@ parse_80211_header(unsigned char** buf, int len)
 			if (whm->u.beacon.capab_info & WLAN_CAPABILITY_PRIVACY)
 				current_packet.wlan_wep = 1;
 			break;
+
+		case IEEE80211_STYPE_PROBE_RESP:
+			current_packet.pkt_types |= PKT_TYPE_PROBE;
+			memcpy(current_packet.wlan_tsf, &whm->u.beacon.timestamp, 8);
+			ieee802_11_parse_elems(whm->u.beacon.variable,
+				len - sizeof(struct ieee80211_mgmt) - 4 /* FCS */, &current_packet);
+			DEBUG("ESSID %s \n", current_packet.wlan_essid );
+			DEBUG("CHAN %d \n", current_packet.wlan_channel );
+			if (whm->u.beacon.capab_info & WLAN_CAPABILITY_IBSS)
+				current_packet.wlan_mode = WLAN_MODE_IBSS;
+			else if (whm->u.beacon.capab_info & WLAN_CAPABILITY_ESS)
+				current_packet.wlan_mode = WLAN_MODE_AP;
+			if (whm->u.beacon.capab_info & WLAN_CAPABILITY_PRIVACY)
+				current_packet.wlan_wep = 1;
+			break;
+
 		case IEEE80211_STYPE_PROBE_REQ:
+			current_packet.pkt_types |= PKT_TYPE_PROBE;
 			ieee802_11_parse_elems(whm->u.probe_req.variable,
 				len - 24 - 4 /* FCS */,
 				&current_packet);
 			current_packet.wlan_mode |= WLAN_MODE_PROBE;
+			break;
+
+		case IEEE80211_STYPE_ASSOC_REQ:
+		case IEEE80211_STYPE_ASSOC_RESP:
+		case IEEE80211_STYPE_REASSOC_REQ:
+		case IEEE80211_STYPE_REASSOC_RESP:
+		case IEEE80211_STYPE_DISASSOC:
+			current_packet.pkt_types |= PKT_TYPE_ASSOC;
+			break;
+
+		case IEEE80211_STYPE_AUTH:
+		case IEEE80211_STYPE_DEAUTH:
+			current_packet.pkt_types |= PKT_TYPE_AUTH;
 			break;
 		}
 		break;

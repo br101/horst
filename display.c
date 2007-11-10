@@ -33,7 +33,8 @@
 
 static void show_window(char which);
 static void show_sort_win(void);
-static void show_filter_win(void);
+
+static void update_filter_win(void);
 
 static void update_dump_win(struct packet_info* pkt);
 static void update_stat_win(struct packet_info* pkt, int node_number);
@@ -107,7 +108,7 @@ init_display(void)
 	keypad(stdscr, TRUE);
 	nonl();         /* tell curses not to do NL->CR/NL on output */
 	cbreak();       /* take input chars one at a time, no wait for \n */
-	noecho();         /* echo input - in color */
+	noecho();
 	nodelay(stdscr,TRUE);
 	init_pair(1, COLOR_WHITE, COLOR_BLACK);
 	init_pair(2, COLOR_GREEN, COLOR_BLACK);
@@ -182,36 +183,72 @@ finish_display(int sig)
 void
 filter_input(int c)
 {
-	static int pos = 0;
-	static char buffer[18];
+	char buf[18];
+	int i;
 
-	switch(c) {
-		case 'q': case '\r': case KEY_ENTER:
-			buffer[18] = '\0';
-			convert_string_to_mac(buffer, conf.filtermac);
-			if (conf.filtermac[0] || conf.filtermac[1] || conf.filtermac[2] ||
-				conf.filtermac[3] || conf.filtermac[4] || conf.filtermac[5])
-				conf.do_filter = 1;
-			else
-				conf.do_filter = 0;
-			conf.paused = 0;
-			delwin(filter_win);
-			filter_win = NULL;
-			pos = 0;
-			update_display(NULL,-1);
-			break;
-		case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':case '0':
-		case 'A': case 'B': case 'C': case 'D': case 'E': case 'F':
-		case 'a': case 'b': case 'c': case 'd': case 'e': case 'f': case ':':
-			if (pos<18) {
-				buffer[pos] = c;
-				pos++;
-				wechochar(filter_win, c);
-			}
-			break;
-		case KEY_BACKSPACE:
-			break;
+	switch (c) {
+	case 'm':
+		TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_MGMT);
+		conf.filter_pkt |= PKT_TYPE_ALL_MGMT;
+		break;
+	case 'b': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_BEACON); break;
+	case 'p': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_PROBE); break;
+	case 'a': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ASSOC); break;
+	case 'u': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_AUTH); break;
+	case 'c':
+		TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_CTRL);
+		conf.filter_pkt |= PKT_TYPE_ALL_CTRL;
+		break;
+	case 'r': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_CTS | PKT_TYPE_RTS); break;
+	case 'k': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ACK); break;
+	case 'd':
+		TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_DATA);
+		conf.filter_pkt |= PKT_TYPE_ALL_DATA;
+		break;
+	case 'n': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_NULL); break;
+	case 'R': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ARP); break;
+	case 'P': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ICMP); break;
+	case 'I': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_IP); break;
+	case 'U': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_UDP); break;
+	case 'T': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_TCP); break;
+	case 'O': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_OLSR); break;
+	case 'B': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_BATMAN); break;
+	case 'q': case 'Q':
+		finish_all(0);
+	case '\r': case KEY_ENTER:
+		conf.paused = 0;
+		delwin(filter_win);
+		filter_win = NULL;
+		update_display(NULL, -1);
+		return;
+	case '1': case '2': case '3': case '4': case '5': case '6':
+		i = c - '1';
+		echo();
+		mvwprintw(filter_win, 34, 2, "[ Enter new MAC %d and ENTER ]", i+1);
+		mvwgetnstr(filter_win, 26 + i, 9, buf, 17);
+		noecho();
+		convert_string_to_mac(buf, conf.filtermac[i]);
 	}
+
+	/* sanity checks */
+	/* if one of the individual mgmt frames is deselected we dont want to see all mgmt frames */
+	if ((conf.filter_pkt & PKT_TYPE_ALL_MGMT) != PKT_TYPE_ALL_MGMT)
+		conf.filter_pkt = conf.filter_pkt & ~PKT_TYPE_MGMT;
+	/* same for ctl */
+	if ((conf.filter_pkt & PKT_TYPE_ALL_CTRL) != PKT_TYPE_ALL_CTRL)
+		conf.filter_pkt = conf.filter_pkt & ~PKT_TYPE_CTRL;
+	/* same for data */
+	if ((conf.filter_pkt & PKT_TYPE_ALL_DATA) != PKT_TYPE_ALL_DATA)
+		conf.filter_pkt = conf.filter_pkt & ~PKT_TYPE_DATA;
+
+	/* recalculate filter flag */
+	conf.do_macfilter = 0;
+	for (i = 0; i < MAX_FILTERMAC; i++) {
+		if (MAC_NOT_EMPTY(conf.filtermac[i]))
+			conf.do_macfilter = 1;
+	}
+
+	update_filter_win();
 }
 
 
@@ -271,8 +308,12 @@ handle_user_input()
 		show_window(tolower(key));
 		break;
 	case 'f': case 'F':
-		if (filter_win == NULL)
-			show_filter_win();
+		if (filter_win == NULL) {
+			conf.paused = 1;
+			filter_win = newwin(35, 35, LINES/2-15, COLS/2-15);
+			scrollok(filter_win, FALSE);
+			update_filter_win();
+		}
 		break;
 	case KEY_RESIZE: /* xterm window resize event */
 		endwin();
@@ -316,30 +357,58 @@ show_sort_win(void)
 }
 
 
+#define CHECKED(_x) (conf.filter_pkt & (_x)) ? '*' : ' '
+#define CHECK_ETHER(_mac) MAC_NOT_EMPTY(_mac) ? '*' : ' '
+
 static void
-show_filter_win()
+update_filter_win()
 {
-	//char buf[255];
-	conf.paused = 1;
-	filter_win = newwin(7, 25, LINES/2-2, COLS/2-15);
+	int l, i;
+
 	box(filter_win, 0 , 0);
-	mvwprintw(filter_win,0,2," Enter Filter MAC ");
-	if (conf.do_filter)
-		mvwprintw(filter_win,2,2, "%s", ether_sprintf(conf.filtermac));
-	else
-		mvwprintw(filter_win,2,2, "  :  :  :  :  :  ");
-	wmove(filter_win,2,2);
+	print_centered(filter_win, 0, 35, " Edit Packet Filter ");
 
-	scrollok(filter_win,FALSE);
+	mvwprintw(filter_win, 2, 2, "Show these Packet Types");
 
-#if 0
-	echo();
-	nodelay(filter_win,FALSE);
-	getnstr(buf,255);
-	mvwprintw(filter_win,1,20,"%s",buf);
-	nodelay(filter_win,TRUE);
-	noecho();
-#endif
+	l = 4;
+	wattron(filter_win, A_BOLD);
+	mvwprintw(filter_win, l++, 2, "m: [%c] MANAGEMENT FRAMES", CHECKED(PKT_TYPE_MGMT));
+	wattroff(filter_win, A_BOLD);
+	mvwprintw(filter_win, l++, 2, "b: [%c] Beacons", CHECKED(PKT_TYPE_BEACON));
+	mvwprintw(filter_win, l++, 2, "p: [%c] Probe Request/Response", CHECKED(PKT_TYPE_PROBE));
+	mvwprintw(filter_win, l++, 2, "a: [%c] Association", CHECKED(PKT_TYPE_ASSOC));
+	mvwprintw(filter_win, l++, 2, "u: [%c] Authentication", CHECKED(PKT_TYPE_AUTH));
+	l++;
+	wattron(filter_win, A_BOLD);
+	mvwprintw(filter_win, l++, 2, "c: [%c] CONTROL FRAMES", CHECKED(PKT_TYPE_CTRL));
+	wattroff(filter_win, A_BOLD);
+	mvwprintw(filter_win, l++, 2, "r: [%c] CTS/RTS", CHECKED(PKT_TYPE_CTS | PKT_TYPE_RTS));
+	mvwprintw(filter_win, l++, 2, "k: [%c] ACK", CHECKED(PKT_TYPE_ACK));
+	l++;
+	wattron(filter_win, A_BOLD);
+	mvwprintw(filter_win, l++, 2, "d: [%c] DATA FRAMES", CHECKED(PKT_TYPE_DATA));
+	wattroff(filter_win, A_BOLD);
+	mvwprintw(filter_win, l++, 2, "n: [%c] Null Data", CHECKED(PKT_TYPE_NULL));
+	mvwprintw(filter_win, l++, 2, "R: [%c] ARP", CHECKED(PKT_TYPE_ARP));
+	mvwprintw(filter_win, l++, 2, "P: [%c] ICMP/PING", CHECKED(PKT_TYPE_ICMP));
+	mvwprintw(filter_win, l++, 2, "I: [%c] IP", CHECKED(PKT_TYPE_IP));
+	mvwprintw(filter_win, l++, 2, "U: [%c] UDP", CHECKED(PKT_TYPE_UDP));
+	mvwprintw(filter_win, l++, 2, "T: [%c] TCP", CHECKED(PKT_TYPE_TCP));
+	mvwprintw(filter_win, l++, 2, "O: [%c] OLSR", CHECKED(PKT_TYPE_OLSR));
+	mvwprintw(filter_win, l++, 2, "B: [%c] BATMAN", CHECKED(PKT_TYPE_BATMAN));
+	l++;
+	mvwprintw(filter_win, l++, 2, "Show only these");
+	wattron(filter_win, A_BOLD);
+	mvwprintw(filter_win, l++, 2, "Source MAC ADDRESSES");
+	wattroff(filter_win, A_BOLD);
+
+	for (i = 0; i < MAX_FILTERMAC; i++) {
+		mvwprintw(filter_win, l++, 2, "%d: [%c] %s", i+1,
+			CHECK_ETHER(conf.filtermac[i]), ether_sprintf(conf.filtermac[i]));
+	}
+
+	print_centered(filter_win, 34, 35, "[ Press key or ENTER ]");
+
 	wrefresh(filter_win);
 }
 
@@ -363,6 +432,8 @@ update_display(struct packet_info* pkt, int node_number)
 		update_show_win();
 	else if (small_win != NULL)
 		wnoutrefresh(small_win);
+	else if (filter_win != NULL)
+		wnoutrefresh(filter_win);
 	else {
 		update_list_win();
 		update_stat_win(pkt, node_number);

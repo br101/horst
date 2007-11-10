@@ -4,9 +4,6 @@ TODO:
 
  * batman support
  * IP auswertung
- * pause/run glitches
- * filter eingabe (pkt types, readline?)
- * filter per command line (zumindest olsr only)
  * dump info into file
  * remote client
  * timed out nodes are never reclaimed!
