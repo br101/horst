@@ -490,8 +490,9 @@ filter_packet(struct packet_info* pkt)
 			if (memcmp(current_packet.wlan_src, conf.filtermac[i], MAC_LEN) == 0)
 				return 0;
 		}
+		return 1;
 	}
-	return 1;
+	return 0;
 }
 
 
