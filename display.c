@@ -229,6 +229,8 @@ sort_input(int c)
 		conf.paused = 0;
 		update_display(NULL, -1);
 		break;
+	case 'q': case 'Q':
+		finish_all(0);
 	}
 }
 
@@ -257,8 +259,10 @@ handle_user_input()
 	case 'q': case 'Q':
 		finish_all(0);
 	case 's': case 'S':
-		conf.paused = 1;
-		show_sort_win();
+		if (show_win == NULL) { /* sort only makes sense in the main win */
+			conf.paused = 1;
+			show_sort_win();
+		}
 		break;
 	case 'e': case 'E':
 	case 'h': case 'H':
