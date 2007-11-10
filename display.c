@@ -33,8 +33,7 @@
 
 static void show_window(char which);
 static void show_sort_win(void);
-
-static void display_filter_win(void);
+static void show_filter_win(void);
 
 static void update_dump_win(struct packet_info* pkt);
 static void update_stat_win(struct packet_info* pkt, int node_number);
@@ -273,11 +272,7 @@ handle_user_input()
 		break;
 	case 'f': case 'F':
 		if (filter_win == NULL)
-			display_filter_win();
-		else {
-			delwin(filter_win);
-			filter_win = NULL;
-		}
+			show_filter_win();
 		break;
 	case KEY_RESIZE: /* xterm window resize event */
 		endwin();
@@ -322,7 +317,7 @@ show_sort_win(void)
 
 
 static void
-display_filter_win()
+show_filter_win()
 {
 	//char buf[255];
 	conf.paused = 1;
@@ -963,11 +958,10 @@ update_help_win(void)
 	print_centered(show_win, 2, COLS, "HORST - Horsts OLSR Radio Scanning Tool");
 	print_centered(show_win, 3, COLS, "Version " VERSION " (build date " BUILDDATE ")");
 
-	print_centered(show_win, 5, COLS, "(C) 2005-2007 Bruno Randolf");
+	mvwprintw(show_win, 5, 2, "(C) 2005-2007 Bruno Randolf, Licensed under the GPLv2");
+	mvwprintw(show_win, 6, 2, "For more info read the README or check http://br1.einfach.org/horst/");
 
-	print_centered(show_win, 6, COLS, "Licensed under the GPL");
-
-	mvwprintw(show_win, 8, 2, "Known IEEE802.11 Packet Types");
+	mvwprintw(show_win, 8, 2, "Known IEEE802.11 Packet Types:");
 	l = 10;
 	/* this is weird but it works */
 	mvwprintw(show_win, l++, 2, "MANAGEMENT FRAMES");
@@ -976,19 +970,19 @@ update_help_win(void)
 		if (c != '?')
 			mvwprintw(show_win, l++, 4, "%c %s", c, get_packet_type_name(i));
 	}
-	l++;
-	mvwprintw(show_win, l++, 2, "CONTROL FRAMES");
+	l = 10;
+	mvwprintw(show_win, l++, 25, "CONTROL FRAMES");
 	for (i = 0xa4; i <= 0xF4; i = i + 0x10) {
 		c = get_packet_type_char(i);
 		if (c != '?')
-			mvwprintw(show_win, l++, 4, "%c %s", c, get_packet_type_name(i));
+			mvwprintw(show_win, l++, 27, "%c %s", c, get_packet_type_name(i));
 	}
 	l = 10;
-	mvwprintw(show_win, l++, 30, "DATA FRAMES");
+	mvwprintw(show_win, l++, 50, "DATA FRAMES");
 	for (i = 0x08; i <+ 0xF8; i = i + 0x10) {
 		c = get_packet_type_char(i);
 		if (c != '?')
-			mvwprintw(show_win, l++, 32, "%c %s", c, get_packet_type_name(i));
+			mvwprintw(show_win, l++, 52, "%c %s", c, get_packet_type_name(i));
 	}
 	wnoutrefresh(show_win);
 }
