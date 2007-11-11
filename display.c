@@ -717,6 +717,8 @@ update_essid_win(void)
 			wprintw(show_win, " CH %d", node->channel);
 			wprintw(show_win, " %ddB", node->snr);
 			wprintw(show_win, " %s", node->wep ? "WEP" : "OPEN");
+			if (node->pkt_types & PKT_TYPE_IP)
+				wprintw(show_win, " %s", ip_sprintf(node->ip_src));
 			line++;
 		}
 		line++;

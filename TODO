@@ -10,7 +10,6 @@ TODO:
  * timed out nodes are never reclaimed!
  * sig/noise WRT
  * essid timeout
- * IP in ESSID
  * detaildenster sortiert nach ESSID
  * datum/time-stamp
 
