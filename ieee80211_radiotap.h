@@ -1,3 +1,5 @@
+/* copied from madwifi net80211/ieee80211_radiotap.h */
+
 /* $FreeBSD: src/sys/net80211/ieee80211_radiotap.h,v 1.5 2005/01/22 20:12:05 sam Exp $ */
 /* $NetBSD: ieee80211_radiotap.h,v 1.17 2007/03/26 04:32:14 dyoung Exp $ */
 

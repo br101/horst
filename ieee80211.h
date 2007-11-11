@@ -1,3 +1,5 @@
+/* copied from linux wireless-2.6/linux/ieee80211.h */
+
 /*
  * IEEE 802.11 defines
  *
@@ -11,8 +13,6 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
-
-/* from wireless-2.6 */
 
 #ifndef IEEE80211_H
 #define IEEE80211_H

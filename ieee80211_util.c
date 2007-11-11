@@ -1,3 +1,5 @@
+/* copied from linux wireless-2.6/net/mac80211/util.c */
+
 /*
  * Copyright 2002-2005, Instant802 Networks, Inc.
  * Copyright 2005-2006, Devicescape Software, Inc.
@@ -10,8 +12,6 @@
  *
  * utilities for mac80211
  */
-
-/* from wireless-2.6/net/mac80211/util.c */
 
 #include <stddef.h>
 #include <string.h>
