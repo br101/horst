@@ -27,10 +27,13 @@ buildstamp=.build_debug$(DEBUG)
 
 all: $(buildstamp) $(NAME)
 
-protocol_parser.o: ieee80211.h ieee80211_radiotap.h prism_header.h olsr_header.h util.h main.h
-main.o: main.h ieee80211.h
-display.o: display.h main.h util.h
-network.o: network.h
+# include dependencies
+protocol_parser.o: protocol_parser.h ieee80211.h ieee80211_radiotap.h ieee80211_util.h \
+		   prism_header.h olsr_header.h batman_header.h util.h main.h
+main.o: main.h ieee80211.h protocol_parser.h display.h network.h util.h
+display.o: display.h main.h util.h ieee80211.h olsr_header.h
+network.o: network.h main.h util.h
+util.o: util.h ieee80211.h
 
 $(NAME): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
