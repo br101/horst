@@ -831,7 +831,7 @@ update_hist_win(void)
 		mvwvline(show_win, sig, col, ACS_BLOCK, SIGN_POS-sig);
 
 		wattron(show_win, ALLRED);
-		mvwvline(show_win, noi, col, ACS_BLOCK, SIGN_POS-noi);
+		mvwvline(show_win, noi, col, '=', SIGN_POS-noi);
 
 		wattron(show_win, CYAN);
 		mvwprintw(show_win, TYPE_POS, col, "%c", \
