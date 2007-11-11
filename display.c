@@ -880,6 +880,8 @@ update_dump_win(struct packet_info* pkt)
 
 		switch (pkt->wlan_type & IEEE80211_FCTL_FTYPE) {
 		case IEEE80211_FTYPE_DATA:
+			if ( current_packet.wlan_wep == 1)
+				wprintw(dump_win, "ENCRYPTED");
 			break;
 		case IEEE80211_FTYPE_CTL:
 			switch (pkt->wlan_type & IEEE80211_FCTL_STYPE) {

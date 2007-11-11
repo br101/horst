@@ -278,7 +278,7 @@ parse_80211_header(unsigned char** buf, int len)
 
 	DEBUG("wlan_type %x - type %x - stype %x\n", wh->frame_control, wh->frame_control & IEEE80211_FCTL_FTYPE, wh->frame_control & IEEE80211_FCTL_STYPE );
 
-	DEBUG("%s\n", get_paket_type_name(wh->frame_control));
+	DEBUG("%s\n", get_packet_type_name(wh->frame_control));
 
 	bssid = ieee80211_get_bssid(wh, len);
 
@@ -410,7 +410,8 @@ parse_80211_header(unsigned char** buf, int len)
 	}
 
 	/* only data frames contain more info, otherwise stop parsing */
-	if ((current_packet.wlan_type & IEEE80211_FCTL_FTYPE) == IEEE80211_FTYPE_DATA) {
+	if ((current_packet.wlan_type & IEEE80211_FCTL_FTYPE) == IEEE80211_FTYPE_DATA &&
+	     current_packet.wlan_wep != 1) {
 		*buf = *buf + hdrlen;
 		return len - hdrlen;
 	}
@@ -421,6 +422,8 @@ parse_80211_header(unsigned char** buf, int len)
 static inline int
 parse_llc(unsigned char ** buf, int len)
 {
+	DEBUG("* parse LLC\n");
+
 	if (len < 6)
 		return -1;
 
@@ -437,6 +440,8 @@ parse_llc(unsigned char ** buf, int len)
 		return -1;
 	(*buf)++;
 
+	DEBUG("* parse LLC left %d\n", len - 8);
+
 	return len - 8;
 }
 
@@ -445,6 +450,8 @@ static int
 parse_ip_header(unsigned char** buf, int len)
 {
 	struct iphdr* ih;
+
+	DEBUG("* parse IP\n");
 
 	if (len < sizeof(struct iphdr))
 		return -1;
