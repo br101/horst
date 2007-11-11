@@ -2,7 +2,8 @@
 TODO:
 -----
 
- * batman support
+ * better batman support
+ * OLSR ETX auswertung
  * IP auswertung
  * dump info into file
  * remote client

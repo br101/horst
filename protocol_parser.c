@@ -29,6 +29,7 @@
 #include "ieee80211.h"
 #include "ieee80211_util.h"
 #include "olsr_header.h"
+#include "batman_header.h"
 
 #include "protocol_parser.h"
 #include "main.h"
@@ -49,6 +50,7 @@ static int inline parse_llc(unsigned char** buf, int len);
 static int parse_ip_header(unsigned char** buf, int len);
 static int parse_udp_header(unsigned char** buf, int len);
 static int parse_olsr_packet(unsigned char** buf, int len);
+static int parse_batman_packet(unsigned char** buf, int len);
 
 
 /* return 1 if we parsed enough = min ieee header */
@@ -89,7 +91,6 @@ parse_packet(unsigned char* buf, int len)
 	if (len <= 0)
 		return 1;
 
-	len = parse_olsr_packet(&buf, len);
 	return 1;
 }
 
@@ -481,10 +482,17 @@ parse_udp_header(unsigned char** buf, int len)
 	uh = (struct udphdr*)*buf;
 
 	DEBUG("UPD dest port: %d\n", ntohs(uh->dest));
-	if (ntohs(uh->dest) != 698) /* OLSR */
-		return 0;
+
 	*buf = *buf + 8;
-	return len - 8;
+	len = len - 8;
+
+	if (ntohs(uh->dest) == 698) /* OLSR */
+		return parse_olsr_packet(buf, len);
+
+	if (ntohs(uh->dest) == BAT_PORT) /* batman */
+		return parse_batman_packet(buf, len);
+
+	return 0;
 }
 
 
@@ -554,5 +562,14 @@ parse_olsr_packet(unsigned char** buf, int len)
 		}
 	}
 	/* done for good */
+	return 0;
+}
+
+
+static int
+parse_batman_packet(unsigned char** buf, int len)
+{
+	current_packet.pkt_types |= PKT_TYPE_BATMAN;
+
 	return 0;
 }

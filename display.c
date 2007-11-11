@@ -610,6 +610,10 @@ print_list_line(int line, struct node_info* n)
 		wprintw(list_win, "L");
 	if (n->pkt_types & PKT_TYPE_OLSR_GW)
 		wprintw(list_win, "G");
+
+	if (n->pkt_types & PKT_TYPE_BATMAN)
+		wprintw(list_win, " B");
+
 	mvwprintw(list_win, line, COL_TSF, "%08x", n->tsfh);
 
 	if (n->channel)

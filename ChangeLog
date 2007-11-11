@@ -33,6 +33,8 @@
 
 	* improved packet parsing
 
+	* initial B.A.T.M.A.N support
+
 2007-07-20  Sven-Ola aet gmx.de
 
 	* Added -e macaddr filter switch
