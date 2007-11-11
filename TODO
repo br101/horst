@@ -5,7 +5,6 @@ TODO:
  * better batman support
  * OLSR ETX auswertung
  * IP auswertung
- * dump info into file
  * remote client
  * timed out nodes are never reclaimed!
  * sig/noise WRT

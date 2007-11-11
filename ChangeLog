@@ -35,6 +35,8 @@
 
 	* initial B.A.T.M.A.N support
 
+	* -o option to write packet infos into file
+
 2007-07-20  Sven-Ola aet gmx.de
 
 	* Added -e macaddr filter switch

@@ -179,6 +179,7 @@ struct config {
 	int sleep_time;
 	unsigned char filtermac[MAX_FILTERMAC][6];
 	int filter_pkt;
+	char* dumpfile;
 
 	/* this isn't exactly config, but wtf... */
 	int arphrd; // the device ARP type

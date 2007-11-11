@@ -49,6 +49,7 @@ static void check_ibss_split(struct packet_info* pkt, int pkt_node);
 static int filter_packet(struct packet_info* pkt);
 static void update_history(struct packet_info* pkt);
 static void update_statistics(struct packet_info* pkt);
+static void write_to_file(struct packet_info* pkt);
 
 struct packet_info current_packet;
 
@@ -68,6 +69,7 @@ struct config conf = {
 };
 
 static int mon; /* monitoring socket */
+static FILE* DF = NULL;
 
 
 int
@@ -80,7 +82,7 @@ main(int argc, char** argv)
 	get_options(argc, argv);
 
 	if (!conf.quiet)
-		printf("using interface %s\n", conf.ifname);
+		printf("horst: using monitoring interface %s\n", conf.ifname);
 
 	signal(SIGINT, finish_all);
 
@@ -88,6 +90,12 @@ main(int argc, char** argv)
 
 	if (mon < 0)
 		exit(0);
+
+	if (conf.dumpfile != NULL) {
+		DF = fopen(conf.dumpfile, "w");
+		if (DF == NULL)
+			err(1, "couldn't open dump file");
+	}
 
 	if (conf.rport)
 		net_init_socket(conf.rport);
@@ -122,6 +130,9 @@ main(int argc, char** argv)
 		if (filter_packet(&current_packet))
 			continue;
 
+		if (conf.dumpfile != NULL)
+			write_to_file(&current_packet);
+
 		n = node_update(&current_packet);
 
 		update_history(&current_packet);
@@ -136,6 +147,7 @@ main(int argc, char** argv)
 		update_display(&current_packet, n);
 #endif
 	}
+	/* will never */
 	return 0;
 }
 
@@ -259,7 +271,7 @@ get_options(int argc, char** argv)
 {
 	int c;
 
-	while((c = getopt(argc, argv, "hqi:t:p:e:d:w:")) > 0) {
+	while((c = getopt(argc, argv, "hqi:t:p:e:d:w:o:")) > 0) {
 		switch (c) {
 			case 'p':
 				conf.rport = atoi(optarg);
@@ -269,6 +281,9 @@ get_options(int argc, char** argv)
 				break;
 			case 'i':
 				conf.ifname = optarg;
+				break;
+			case 'o':
+				conf.dumpfile = optarg;
 				break;
 			case 't':
 				conf.node_timeout = atoi(optarg);
@@ -289,7 +304,7 @@ get_options(int argc, char** argv)
 				break;
 			case 'h':
 			default:
-				printf("usage: %s [-h] [-q] [-i interface] [-t sec] [-p port] [-e mac] [-d usec] [-w usec]\n\n"
+				printf("usage: %s [-h] [-q] [-i interface] [-t sec] [-p port] [-e mac] [-d usec] [-w usec] [-o file]\n\n"
 					"Options (default value)\n"
 					"  -h\t\tthis help\n"
 					"  -q\t\tquiet [basically useless]\n"
@@ -298,7 +313,9 @@ get_options(int argc, char** argv)
 					"  -p <port>\tuse port\n"
 					"  -e <mac>\tfilter all macs ecxept this\n"
 					"  -d <usec>\tdisplay update interval (100000 = 100ms = 10fps)\n"
-					"  -w <usec>\twait loop (1000 = 1ms)\n\n",
+					"  -w <usec>\twait loop (1000 = 1ms)\n"
+					"  -o <filename>\twrite info into file\n"
+					"\n",
 					argv[0]);
 				exit(0);
 				break;
@@ -312,6 +329,10 @@ finish_all(int sig)
 {
 	device_promisc(mon, conf.ifname, 0);
 	close(mon);
+	
+	if (DF != NULL)
+		fclose(DF);
+
 #if !DO_DEBUG
 	if (conf.rport)
 		net_finish();
@@ -500,7 +521,8 @@ filter_packet(struct packet_info* pkt)
 
 
 static void
-update_history(struct packet_info* p) {
+update_history(struct packet_info* p)
+{
 	if (p->signal == 0)
 		return;
 
@@ -515,7 +537,8 @@ update_history(struct packet_info* p) {
 
 
 static void
-update_statistics(struct packet_info* p) {
+update_statistics(struct packet_info* p)
+{
 	stats.packets++;
 	stats.bytes += p->len;
 	if (p->rate > 0 && p->rate < MAX_RATES) {
@@ -530,4 +553,23 @@ update_statistics(struct packet_info* p) {
 		if (p->rate > 0 && p->rate < MAX_RATES)
 			stats.airtime_per_type[p->wlan_type] += p->len / p->rate;
 	}
+}
+
+
+static void 
+write_to_file(struct packet_info* pkt)
+{
+	fprintf(DF, "%s, %s, ",
+		get_packet_type_name(pkt->wlan_type), ether_sprintf(pkt->wlan_src));
+	fprintf(DF, "%s, ", ether_sprintf(pkt->wlan_dst));
+	fprintf(DF, "%s, ", ether_sprintf(pkt->wlan_bssid));
+	fprintf(DF, "%x, %d, %d, %d, %d, %d, ",
+		pkt->pkt_types, pkt->signal, pkt->noise, pkt->snr, pkt->len, pkt->rate);
+	fprintf(DF, "%08lx:%08lx, ",
+		*(unsigned long*)(&pkt->wlan_tsf[4]), *(unsigned long*)(&pkt->wlan_tsf[0]));
+	fprintf(DF, "%s, %d, %d, %d, ",
+		pkt->wlan_essid, pkt->wlan_mode, pkt->wlan_channel, pkt->wlan_wep);
+	fprintf(DF, "%s, ", ip_sprintf(pkt->ip_src));
+	fprintf(DF, "%s, ", ip_sprintf(pkt->ip_dst));
+	fprintf(DF, "%d, %d, %d\n", pkt->olsr_type, pkt->olsr_neigh, pkt->olsr_tc);
 }
