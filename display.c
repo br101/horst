@@ -254,6 +254,8 @@ sort_input(int c)
 	case 's': case 'S':
 	case 't': case 'T':
 		do_sort = c;
+		/* fall thru */
+	case '\r': case KEY_ENTER:
 		delwin(small_win);
 		small_win = NULL;
 		conf.paused = 0;
@@ -423,8 +425,9 @@ update_display(struct packet_info* pkt, int node_number)
 	gettimeofday(&the_time, NULL);
 
 	/* update only in specific intervals to save CPU time */
-	if (the_time.tv_sec == last_time.tv_sec &&
-	   (the_time.tv_usec - last_time.tv_usec) < conf.display_interval ) {
+	if (show_win == NULL &&
+	    the_time.tv_sec == last_time.tv_sec &&
+	    (the_time.tv_usec - last_time.tv_usec) < conf.display_interval ) {
 		/* just add the line to dump win so we dont loose it */
 		update_dump_win(pkt);
 		return;

@@ -314,7 +314,7 @@ get_options(int argc, char** argv)
 					"  -e <mac>\tfilter all macs ecxept this\n"
 					"  -d <usec>\tdisplay update interval (100000 = 100ms = 10fps)\n"
 					"  -w <usec>\twait loop (1000 = 1ms)\n"
-					"  -o <filename>\twrite info into file\n"
+					"  -o <filename>\twrite packet info into file\n"
 					"\n",
 					argv[0]);
 				exit(0);
