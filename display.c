@@ -149,7 +149,7 @@ init_display(void)
 
 	mvwprintw(stdscr, LINES-1, 0, "[HORST] q:Quit p:Pause s:Sort f:Filter h:History e:ESSIDs a:Stats d:Details ?:Help");
 
-	mvwprintw(stdscr, LINES-1, COLS-12, "%s", conf.ifname);
+	mvwprintw(stdscr, LINES-1, COLS-13, "%s", conf.ifname);
 
 	wattroff(stdscr, BLACKONWHITE);
 	refresh();
@@ -412,7 +412,7 @@ void update_time(time_t* sec)
 	static char buf[9];
 	strftime(buf, 9, "%H:%M:%S", localtime(sec));
 	wattron(stdscr, BLACKONWHITE);
-	mvwprintw(stdscr, LINES-1, COLS-8, "|%s", buf);
+	mvwprintw(stdscr, LINES-1, COLS-9, "|%s", buf);
 	wattroff(stdscr, BLACKONWHITE);
 }
 
