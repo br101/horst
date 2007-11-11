@@ -1,6 +1,42 @@
-/* XXX: need to search for original license and copyright
+/*
+ * The olsr.org Optimized Link-State Routing daemon(olsrd)
+ * Copyright (c) 2004, Andreas T�nnesen(andreto@olsr.org)
+ * All rights reserved.
  *
- * Copyright (C) 2005  Bruno Randolf
+ * Redistribution and use in source and binary forms, with or without 
+ * modification, are permitted provided that the following conditions 
+ * are met:
+ *
+ * * Redistributions of source code must retain the above copyright 
+ *   notice, this list of conditions and the following disclaimer.
+ * * Redistributions in binary form must reproduce the above copyright 
+ *   notice, this list of conditions and the following disclaimer in 
+ *   the documentation and/or other materials provided with the 
+ *   distribution.
+ * * Neither the name of olsr.org, olsrd nor the names of its 
+ *   contributors may be used to endorse or promote products derived 
+ *   from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER 
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN 
+ * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Visit http://www.olsr.org for more information.
+ *
+ * If you find this software useful feel free to make a donation
+ * to the project. For more information see the website or contact
+ * the copyright holders.
+ *
+ * $Id: olsr_protocol.h,v 1.23 2007/11/08 22:47:41 bernd67 Exp $
  */
 
 #ifndef _OLSR_HEADER_H_
@@ -18,7 +54,6 @@ typedef u_int32_t olsr_u32_t;
 /***********************************************
  *           OLSR packet definitions           *
  ***********************************************/
-
 
 /*
  *Hello info
@@ -40,26 +75,6 @@ struct hellomsg
 } __attribute__ ((packed));
 
 /*
- *IPv6
- */
-
-struct hellinfo6
-{
-  olsr_u8_t       link_code;
-  olsr_u8_t       reserved;
-  olsr_u16_t      size;
-  struct in6_addr neigh_addr[1]; /* neighbor IP address(es) */
-} __attribute__ ((packed));
-
-struct hellomsg6
-{
-  olsr_u16_t         reserved;
-  olsr_u8_t          htime;
-  olsr_u8_t          willingness;
-  struct hellinfo6   hell_info[1];
-} __attribute__ ((packed));
-
-/*
  * Topology Control packet
  */
 
@@ -76,29 +91,6 @@ struct tcmsg
   struct neigh_info neigh[1];
 } __attribute__ ((packed));
 
-
-
-/*
- *IPv6
- */
-
-struct neigh_info6
-{
-  struct in6_addr      addr;
-} __attribute__ ((packed));
-
-
-struct tcmsg6
-{
-  olsr_u16_t           ansn;
-  olsr_u16_t           reserved;
-  struct neigh_info6   neigh[1];
-} __attribute__ ((packed));
-
-
-
-
-
 /*
  *Multiple Interface Declaration message
  */
@@ -113,31 +105,10 @@ struct midaddr
   olsr_u32_t addr;
 } __attribute__ ((packed));
 
-
 struct midmsg 
 {
   struct midaddr mid_addr[1];
 } __attribute__ ((packed));
-
-
-/*
- *IPv6
- */
-struct midaddr6
-{
-  struct in6_addr addr;
-} __attribute__ ((packed));
-
-
-struct midmsg6
-{
-  struct midaddr6 mid_addr[1];
-} __attribute__ ((packed));
-
-
-
-
-
 
 /*
  * Host and Network Association message
@@ -152,25 +123,6 @@ struct hnamsg
 {
   struct hnapair hna_net[1];
 } __attribute__ ((packed));
-
-/*
- *IPv6
- */
-
-struct hnapair6
-{
-  struct in6_addr   addr;
-  struct in6_addr   netmask;
-} __attribute__ ((packed));
-
-struct hnamsg6
-{
-  struct hnapair6 hna_net[1];
-} __attribute__ ((packed));
-
-
-
-
 
 /*
  * OLSR message (several can exist in one OLSR packet)
@@ -197,32 +149,6 @@ struct olsrmsg
 } __attribute__ ((packed));
 
 /*
- *IPv6
- */
-
-struct olsrmsg6
-{
-  olsr_u8_t        olsr_msgtype;
-  olsr_u8_t        olsr_vtime;
-  olsr_u16_t       olsr_msgsize;
-  struct in6_addr  originator;
-  olsr_u8_t        ttl;
-  olsr_u8_t        hopcnt;
-  olsr_u16_t       seqno;
-
-  union 
-  {
-    struct hellomsg6 hello;
-    struct tcmsg6    tc;
-    struct hnamsg6   hna;
-    struct midmsg6   mid;
-  } message;
-
-} __attribute__ ((packed));
-
-
-
-/*
  * Generic OLSR packet
  */
 
@@ -231,29 +157,6 @@ struct olsr
   olsr_u16_t	  olsr_packlen;		/* packet length */
   olsr_u16_t	  olsr_seqno;
   struct olsrmsg  olsr_msg[1];          /* variable messages */
-} __attribute__ ((packed));
-
-
-struct olsr6
-{
-  olsr_u16_t	    olsr_packlen;        /* packet length */
-  olsr_u16_t	    olsr_seqno;
-  struct olsrmsg6   olsr_msg[1];         /* variable messages */
-} __attribute__ ((packed));
-
-
-/* IPv4 <-> IPv6 compability */
-
-union olsr_message
-{
-  struct olsrmsg  v4;
-  struct olsrmsg6 v6;
-} __attribute__ ((packed));
-
-union olsr_packet
-{
-  struct olsr  v4;
-  struct olsr6 v6;
 } __attribute__ ((packed));
 
 /*
@@ -267,6 +170,7 @@ union olsr_packet
 
 #define LQ_HELLO_MESSAGE      201
 #define LQ_TC_MESSAGE         202
+
 /*
  *Link Types
  */
@@ -294,8 +198,6 @@ union olsr_packet
 #define NOT_SYM               0
 #define SYM                   1
 
-
-
 // serialized IPv4 OLSR header
 
 struct olsr_header_v4
@@ -307,19 +209,6 @@ struct olsr_header_v4
   olsr_u8_t  ttl;
   olsr_u8_t  hops;
   olsr_u16_t seqno;
-};
-
-// serialized IPv6 OLSR header
-
-struct olsr_header_v6
-{
-  olsr_u8_t     type;
-  olsr_u8_t     vtime;
-  olsr_u16_t    size;
-  unsigned char orig[16];
-  olsr_u8_t     ttl;
-  olsr_u8_t     hops;
-  olsr_u16_t    seqno;
 };
 
 // serialized LQ_HELLO
