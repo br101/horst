@@ -453,11 +453,11 @@ update_display(struct packet_info* pkt, int node_number)
 	gettimeofday(&the_time, NULL);
 
 	/* update only in specific intervals to save CPU time */
-	if (show_win == NULL &&
-	    the_time.tv_sec == last_time.tv_sec &&
+	if (the_time.tv_sec == last_time.tv_sec &&
 	    (the_time.tv_usec - last_time.tv_usec) < conf.display_interval ) {
-		/* just add the line to dump win so we dont loose it */
-		update_dump_win(pkt);
+		if (show_win == NULL)
+			/* just add the line to dump win so we dont loose it */
+			update_dump_win(pkt);
 		return;
 	}
 
