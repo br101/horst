@@ -148,14 +148,6 @@ init_display(void)
 	mvwhline(stdscr, LINES-1, 0, ' ', COLS);
 
 	mvwprintw(stdscr, LINES-1, 0, "[HORST] q:Quit p:Pause s:Sort f:Filter h:History e:ESSIDs a:Stats d:Details ?:Help");
-	if (conf.arphrd == 803)
-		mvwprintw(stdscr, LINES-1, COLS-14, "%s: RADIOTAP", conf.ifname);
-	else if (conf.arphrd == 802)
-		mvwprintw(stdscr, LINES-1, COLS-14, "%s: PRISM2", conf.ifname);
-	else if (conf.arphrd == 801)
-		mvwprintw(stdscr, LINES-1, COLS-14, "%s: 802.11", conf.ifname);
-	else
-		mvwprintw(stdscr, LINES/2-1, COLS-14, "%s: UNSUPP", conf.ifname);
 
 	wattroff(stdscr, BLACKONWHITE);
 	refresh();
@@ -413,6 +405,16 @@ update_filter_win()
 }
 
 
+void show_time(time_t* sec)
+{
+	static char buf[9];
+	strftime(buf, 9, "%H:%M:%S", localtime(sec));
+	wattron(stdscr, BLACKONWHITE);
+	mvwprintw(stdscr, LINES-1, COLS-8, "%s", buf);
+	wattroff(stdscr, BLACKONWHITE);
+}
+
+
 void
 update_display(struct packet_info* pkt, int node_number)
 {
@@ -425,6 +427,9 @@ update_display(struct packet_info* pkt, int node_number)
 		update_dump_win(pkt);
 		return;
 	}
+
+	if (the_time.tv_sec > last_time.tv_sec)
+		show_time(&the_time.tv_sec);
 
 	last_time = the_time;
 
@@ -642,7 +647,7 @@ update_list_win(void)
 	mvwprintw(list_win, 0, COL_STA, "Te");
 	mvwprintw(list_win, 0, COL_BSSID, "(BSSID)");
 	mvwprintw(list_win, 0, COL_IP, "IP");
-	mvwprintw(list_win, 0, COL_OLSR, "OLSR");
+	mvwprintw(list_win, 0, COL_OLSR, "MESH");
 	mvwprintw(list_win, 0, COL_TSF, "TSF High");
 	mvwprintw(list_win, 0, COL_TSF+9, "CH");
 
