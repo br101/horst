@@ -174,6 +174,8 @@ finish_display(int sig)
 }
 
 
+#define MAC_COL 30
+
 void
 filter_input(int c)
 {
@@ -207,21 +209,33 @@ filter_input(int c)
 	case 'T': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_TCP); break;
 	case 'O': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_OLSR); break;
 	case 'B': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_BATMAN); break;
+
 	case 'q': case 'Q':
 		finish_all(0);
+
 	case '\r': case KEY_ENTER:
 		conf.paused = 0;
 		delwin(filter_win);
 		filter_win = NULL;
 		update_display(NULL, -1);
-		return;
-	case '1': case '2': case '3': case '4': case '5': case '6':
+		return
+;
+	case 's':
+		echo();
+		print_centered(filter_win, 24, 56, "[ Enter new BSSID and ENTER ]");
+		mvwgetnstr(filter_win, 5, MAC_COL + 7, buf, 17);
+		noecho();
+		convert_string_to_mac(buf, conf.filterbssid);
+		break;
+
+	case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
 		i = c - '1';
 		echo();
-		mvwprintw(filter_win, 34, 2, "[ Enter new MAC %d and ENTER ]", i+1);
-		mvwgetnstr(filter_win, 26 + i, 9, buf, 17);
+		mvwprintw(filter_win, 24, 15, "[ Enter new MAC %d and ENTER ]", i+1);
+		mvwgetnstr(filter_win, 9 + i, MAC_COL + 7, buf, 17);
 		noecho();
 		convert_string_to_mac(buf, conf.filtermac[i]);
+		break;
 	}
 
 	/* sanity checks */
@@ -288,14 +302,17 @@ handle_user_input()
 	case ' ': case 'p': case 'P':
 		conf.paused = conf.paused ? 0 : 1;
 		break;
+
 	case 'q': case 'Q':
 		finish_all(0);
+
 	case 's': case 'S':
 		if (show_win == NULL) { /* sort only makes sense in the main win */
 			conf.paused = 1;
 			show_sort_win();
 		}
 		break;
+
 	case 'e': case 'E':
 	case 'h': case 'H':
 	case 'd': case 'D':
@@ -303,18 +320,21 @@ handle_user_input()
 	case '?':
 		show_window(tolower(key));
 		break;
+
 	case 'f': case 'F':
 		if (filter_win == NULL) {
 			conf.paused = 1;
-			filter_win = newwin(35, 35, LINES/2-15, COLS/2-15);
+			filter_win = newwin(25, 56, LINES/2-15, COLS/2-15);
 			scrollok(filter_win, FALSE);
 			update_filter_win();
 		}
 		break;
+
 	case KEY_RESIZE: /* xterm window resize event */
 		endwin();
 		init_display();
 		return;
+
 	default:
 		return;
 	}
@@ -362,7 +382,7 @@ update_filter_win()
 	int l, i;
 
 	box(filter_win, 0 , 0);
-	print_centered(filter_win, 0, 35, " Edit Packet Filter ");
+	print_centered(filter_win, 0, 56, " Edit Packet Filter ");
 
 	mvwprintw(filter_win, 2, 2, "Show these Packet Types");
 
@@ -371,7 +391,7 @@ update_filter_win()
 	mvwprintw(filter_win, l++, 2, "m: [%c] MANAGEMENT FRAMES", CHECKED(PKT_TYPE_MGMT));
 	wattroff(filter_win, A_BOLD);
 	mvwprintw(filter_win, l++, 2, "b: [%c] Beacons", CHECKED(PKT_TYPE_BEACON));
-	mvwprintw(filter_win, l++, 2, "p: [%c] Probe Request/Response", CHECKED(PKT_TYPE_PROBE));
+	mvwprintw(filter_win, l++, 2, "p: [%c] Probe Req/Resp", CHECKED(PKT_TYPE_PROBE));
 	mvwprintw(filter_win, l++, 2, "a: [%c] Association", CHECKED(PKT_TYPE_ASSOC));
 	mvwprintw(filter_win, l++, 2, "u: [%c] Authentication", CHECKED(PKT_TYPE_AUTH));
 	l++;
@@ -392,18 +412,26 @@ update_filter_win()
 	mvwprintw(filter_win, l++, 2, "T: [%c] TCP", CHECKED(PKT_TYPE_TCP));
 	mvwprintw(filter_win, l++, 2, "O: [%c] OLSR", CHECKED(PKT_TYPE_OLSR));
 	mvwprintw(filter_win, l++, 2, "B: [%c] BATMAN", CHECKED(PKT_TYPE_BATMAN));
-	l++;
-	mvwprintw(filter_win, l++, 2, "Show only these");
+
+	l = 4;
 	wattron(filter_win, A_BOLD);
-	mvwprintw(filter_win, l++, 2, "Source MAC ADDRESSES");
+	mvwprintw(filter_win, l++, MAC_COL, "BSSID");
+	wattroff(filter_win, A_BOLD);
+	mvwprintw(filter_win, l++, MAC_COL, "s: [%c] %s",
+		CHECK_ETHER(conf.filterbssid), ether_sprintf(conf.filterbssid));
+
+	l++;
+	mvwprintw(filter_win, l++, MAC_COL, "Show only these");
+	wattron(filter_win, A_BOLD);
+	mvwprintw(filter_win, l++, MAC_COL, "Source MAC ADDRESSES");
 	wattroff(filter_win, A_BOLD);
 
 	for (i = 0; i < MAX_FILTERMAC; i++) {
-		mvwprintw(filter_win, l++, 2, "%d: [%c] %s", i+1,
+		mvwprintw(filter_win, l++, MAC_COL, "%d: [%c] %s", i+1,
 			CHECK_ETHER(conf.filtermac[i]), ether_sprintf(conf.filtermac[i]));
 	}
 
-	print_centered(filter_win, 34, 35, "[ Press key or ENTER ]");
+	print_centered(filter_win, 24, 56, "[ Press key or ENTER ]");
 
 	wrefresh(filter_win);
 }

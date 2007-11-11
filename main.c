@@ -508,6 +508,12 @@ filter_packet(struct packet_info* pkt)
 		return 1;
 	}
 
+	if (MAC_NOT_EMPTY(conf.filterbssid) &&
+	    memcmp(current_packet.wlan_bssid, conf.filterbssid, MAC_LEN) != 0) {
+		stats.filtered_packets++;
+		return 1;
+	}
+
 	if (conf.do_macfilter) {
 		for (i = 0; i < MAX_FILTERMAC; i++) {
 			if (memcmp(current_packet.wlan_src, conf.filtermac[i], MAC_LEN) == 0)

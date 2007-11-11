@@ -35,7 +35,7 @@
 #define MAX_ESSID_LEN		255
 #define MAX_RATES		55	/* 54M + 1 for array index */
 #define MAX_FSTYPE		0xff
-#define MAX_FILTERMAC		6
+#define MAX_FILTERMAC		9
 
 /* packet types we actually care about, e.g filter */
 #define PKT_TYPE_CTRL		0x000001
@@ -86,9 +86,9 @@ struct packet_info {
 	int len;
 	int rate;
 	int wlan_type;
-	unsigned char wlan_src[6];
-	unsigned char wlan_dst[6];
-	unsigned char wlan_bssid[6];
+	unsigned char wlan_src[MAC_LEN];
+	unsigned char wlan_dst[MAC_LEN];
+	unsigned char wlan_bssid[MAC_LEN];
 	unsigned char wlan_tsf[8];
 	char wlan_essid[255];
 	int wlan_mode;
@@ -113,7 +113,7 @@ struct node_info {
 	int olsr_tc;
 	int pkt_count;
 	int olsr_count;
-	unsigned char wlan_bssid[6];
+	unsigned char wlan_bssid[MAC_LEN];
 	int channel;
 	int wlan_mode;
 	unsigned long tsfl;
@@ -177,9 +177,11 @@ struct config {
 	int node_timeout;
 	int display_interval;
 	int sleep_time;
-	unsigned char filtermac[MAX_FILTERMAC][6];
-	int filter_pkt;
 	char* dumpfile;
+
+	unsigned char filtermac[MAX_FILTERMAC][MAC_LEN];
+	unsigned char filterbssid[MAC_LEN];
+	int filter_pkt;
 
 	/* this isn't exactly config, but wtf... */
 	int arphrd; // the device ARP type
