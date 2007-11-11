@@ -182,6 +182,7 @@ struct config {
 	unsigned char filtermac[MAX_FILTERMAC][MAC_LEN];
 	unsigned char filterbssid[MAC_LEN];
 	int filter_pkt;
+	int do_filter;
 
 	/* this isn't exactly config, but wtf... */
 	int arphrd; // the device ARP type

@@ -503,6 +503,9 @@ filter_packet(struct packet_info* pkt)
 {
 	int i;
 
+	if (!conf.do_filter)
+		return 0;
+
 	if (!(pkt->pkt_types & conf.filter_pkt)) {
 		stats.filtered_packets++;
 		return 1;

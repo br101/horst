@@ -185,7 +185,10 @@ filter_input(int c)
 	switch (c) {
 	case 'm':
 		TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_MGMT);
-		conf.filter_pkt |= PKT_TYPE_ALL_MGMT;
+		if (conf.filter_pkt & PKT_TYPE_MGMT)
+			conf.filter_pkt |= PKT_TYPE_ALL_MGMT;
+		else
+			conf.filter_pkt &= ~PKT_TYPE_ALL_MGMT;
 		break;
 	case 'b': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_BEACON); break;
 	case 'p': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_PROBE); break;
@@ -193,13 +196,19 @@ filter_input(int c)
 	case 'u': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_AUTH); break;
 	case 'c':
 		TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_CTRL);
-		conf.filter_pkt |= PKT_TYPE_ALL_CTRL;
+		if (conf.filter_pkt & PKT_TYPE_CTRL)
+			conf.filter_pkt |= PKT_TYPE_ALL_CTRL;
+		else
+			conf.filter_pkt &= ~PKT_TYPE_ALL_CTRL;
 		break;
 	case 'r': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_CTS | PKT_TYPE_RTS); break;
 	case 'k': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ACK); break;
 	case 'd':
 		TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_DATA);
-		conf.filter_pkt |= PKT_TYPE_ALL_DATA;
+		if (conf.filter_pkt & PKT_TYPE_DATA)
+			conf.filter_pkt |= PKT_TYPE_ALL_DATA;
+		else
+			conf.filter_pkt &= ~PKT_TYPE_ALL_DATA;
 		break;
 	case 'n': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_NULL); break;
 	case 'R': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ARP); break;
@@ -222,7 +231,7 @@ filter_input(int c)
 ;
 	case 's':
 		echo();
-		print_centered(filter_win, 24, 56, "[ Enter new BSSID and ENTER ]");
+		print_centered(filter_win, 24, 57, "[ Enter new BSSID and ENTER ]");
 		mvwgetnstr(filter_win, 5, MAC_COL + 7, buf, 17);
 		noecho();
 		convert_string_to_mac(buf, conf.filterbssid);
@@ -235,6 +244,10 @@ filter_input(int c)
 		mvwgetnstr(filter_win, 9 + i, MAC_COL + 7, buf, 17);
 		noecho();
 		convert_string_to_mac(buf, conf.filtermac[i]);
+		break;
+
+	case 'o':
+		conf.do_filter = conf.do_filter ? 0 : 1;
 		break;
 	}
 
@@ -324,7 +337,7 @@ handle_user_input()
 	case 'f': case 'F':
 		if (filter_win == NULL) {
 			conf.paused = 1;
-			filter_win = newwin(25, 56, LINES/2-15, COLS/2-15);
+			filter_win = newwin(25, 57, LINES/2-15, COLS/2-15);
 			scrollok(filter_win, FALSE);
 			update_filter_win();
 		}
@@ -382,7 +395,7 @@ update_filter_win()
 	int l, i;
 
 	box(filter_win, 0 , 0);
-	print_centered(filter_win, 0, 56, " Edit Packet Filter ");
+	print_centered(filter_win, 0, 57, " Edit Packet Filter ");
 
 	mvwprintw(filter_win, 2, 2, "Show these Packet Types");
 
@@ -431,7 +444,12 @@ update_filter_win()
 			CHECK_ETHER(conf.filtermac[i]), ether_sprintf(conf.filtermac[i]));
 	}
 
-	print_centered(filter_win, 24, 56, "[ Press key or ENTER ]");
+	l++;
+	wattron(filter_win, A_BOLD);
+	mvwprintw(filter_win, l++, MAC_COL, "o: [%c] All Filters On/Off", conf.do_filter ? '*' : ' ' );
+	wattroff(filter_win, A_BOLD);
+
+	print_centered(filter_win, 24, 57, "[ Press key or ENTER ]");
 
 	wrefresh(filter_win);
 }
@@ -455,8 +473,8 @@ update_display(struct packet_info* pkt, int node_number)
 	/* update only in specific intervals to save CPU time */
 	if (the_time.tv_sec == last_time.tv_sec &&
 	    (the_time.tv_usec - last_time.tv_usec) < conf.display_interval ) {
+		/* just add the line to dump win so we dont loose it */
 		if (show_win == NULL)
-			/* just add the line to dump win so we dont loose it */
 			update_dump_win(pkt);
 		return;
 	}
