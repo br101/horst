@@ -537,8 +537,8 @@ update_stat_win(struct packet_info* pkt, int node_number)
 		wattron(stat_win, RED);
 		mvwprintw(stat_win, 0, 10, "%03d", pkt->noise);
 		wattron(stat_win, ALLRED);
-		mvwvline(stat_win, noi + 4, 2, ACS_BLOCK, MAX_STAT_BAR + 3 - noi);
-		mvwvline(stat_win, noi + 4, 3, ACS_BLOCK, MAX_STAT_BAR + 3 - noi);
+		mvwvline(stat_win, noi + 4, 2, '=', MAX_STAT_BAR + 3 - noi);
+		mvwvline(stat_win, noi + 4, 3, '=', MAX_STAT_BAR + 3 - noi);
 
 		wattron(stat_win, BLUE);
 		mvwprintw(stat_win, 1, 1, "PhyRate:  %2dM", pkt->rate);
