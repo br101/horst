@@ -482,14 +482,17 @@ filter_packet(struct packet_info* pkt)
 {
 	int i;
 
-	if (!(pkt->pkt_types & conf.filter_pkt))
+	if (!(pkt->pkt_types & conf.filter_pkt)) {
+		stats.filtered_packets++;
 		return 1;
+	}
 
 	if (conf.do_macfilter) {
 		for (i = 0; i < MAX_FILTERMAC; i++) {
 			if (memcmp(current_packet.wlan_src, conf.filtermac[i], MAC_LEN) == 0)
 				return 0;
 		}
+		stats.filtered_packets++;
 		return 1;
 	}
 	return 0;
