@@ -29,6 +29,7 @@
 #include <string.h>
 #include <getopt.h>
 #include <signal.h>
+#include <sys/time.h>
 #include <time.h>
 #include <err.h>
 
@@ -85,6 +86,8 @@ main(int argc, char** argv)
 		printf("horst: using monitoring interface %s\n", conf.ifname);
 
 	signal(SIGINT, finish_all);
+
+	gettimeofday(&stats.stats_time, NULL);
 
 	mon = init_packet_socket(conf.ifname);
 

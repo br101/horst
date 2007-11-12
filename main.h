@@ -64,7 +64,8 @@
 #define PKT_TYPE_ALL_MGMT	(PKT_TYPE_BEACON | PKT_TYPE_PROBE | PKT_TYPE_ASSOC | PKT_TYPE_AUTH)
 #define PKT_TYPE_ALL_CTRL	(PKT_TYPE_RTS | PKT_TYPE_CTS | PKT_TYPE_ACK)
 #define PKT_TYPE_ALL_DATA	(PKT_TYPE_NULL | PKT_TYPE_ARP | PKT_TYPE_ICMP | PKT_TYPE_IP | \
-				 PKT_TYPE_UDP | PKT_TYPE_TCP | PKT_TYPE_OLSR | PKT_TYPE_BATMAN)
+				 PKT_TYPE_UDP | PKT_TYPE_TCP | PKT_TYPE_OLSR | PKT_TYPE_OLSR_LQ | \
+				 PKT_TYPE_OLSR_GW | PKT_TYPE_BATMAN)
 
 #define WLAN_MODE_AP		0x01
 #define WLAN_MODE_IBSS		0x02
@@ -166,6 +167,8 @@ struct statistics {
 	unsigned long airtime_per_type[MAX_FSTYPE];
 
 	unsigned long filtered_packets;
+
+	struct timeval stats_time;
 };
 
 extern struct statistics stat;

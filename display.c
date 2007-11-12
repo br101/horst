@@ -37,7 +37,7 @@ static void show_sort_win(void);
 static void update_filter_win(void);
 
 static void update_dump_win(struct packet_info* pkt);
-static void update_stat_win(struct packet_info* pkt, int node_number);
+static void update_status_win(struct packet_info* pkt, int node_number);
 static void update_list_win(void);
 static void update_show_win(void);
 static void update_essid_win(void);
@@ -147,8 +147,7 @@ init_display(void)
 	wattron(stdscr, BLACKONWHITE);
 	mvwhline(stdscr, LINES-1, 0, ' ', COLS);
 
-	mvwprintw(stdscr, LINES-1, 0, "[HORST] q:Quit p:Pause s:Sort f:Filter h:History e:ESSIDs a:Stats d:Details ?:Help");
-
+	mvwprintw(stdscr, LINES-1, 0, "[HORST] q:Quit p:Pause s:Sort f:Filter h:History e:ESSIDs a:Stats r:Reset d:Details ?:Help");
 	mvwprintw(stdscr, LINES-1, COLS-13, "%s", conf.ifname);
 
 	wattroff(stdscr, BLACKONWHITE);
@@ -216,7 +215,7 @@ filter_input(int c)
 	case 'I': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_IP); break;
 	case 'U': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_UDP); break;
 	case 'T': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_TCP); break;
-	case 'O': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_OLSR); break;
+	case 'O': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_OLSR|PKT_TYPE_OLSR_LQ|PKT_TYPE_OLSR_GW); break;
 	case 'B': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_BATMAN); break;
 
 	case 'q': case 'Q':
@@ -324,6 +323,11 @@ handle_user_input()
 			conf.paused = 1;
 			show_sort_win();
 		}
+		break;
+
+	case 'r': case 'R':
+		memset(&stats, 0, sizeof(stats));
+		gettimeofday(&stats.stats_time, NULL);
 		break;
 
 	case 'e': case 'E':
@@ -492,7 +496,7 @@ update_display(struct packet_info* pkt, int node_number)
 		wnoutrefresh(filter_win);
 	else {
 		update_list_win();
-		update_stat_win(pkt, node_number);
+		update_status_win(pkt, node_number);
 		update_dump_win(pkt);
 	}
 	/* only one redraw */
@@ -519,7 +523,7 @@ update_show_win()
 #define MAX_STAT_BAR LINES/2-6
 
 static void
-update_stat_win(struct packet_info* pkt, int node_number)
+update_status_win(struct packet_info* pkt, int node_number)
 {
 	int sig, noi, max, rate, bps, bpsn, air, airn;
 
@@ -901,7 +905,7 @@ update_dump_win(struct packet_info* pkt)
 	wprintw(dump_win, "(%s) ", ether_sprintf(pkt->wlan_bssid));
 
 	if (pkt->pkt_types & PKT_TYPE_OLSR) {
-		wprintw(dump_win, "%-7s%s", "OLSR", ip_sprintf(pkt->ip_src));
+		wprintw(dump_win, "%-7s%s ", "OLSR", ip_sprintf(pkt->ip_src));
 		switch (pkt->olsr_type) {
 			case HELLO_MESSAGE: wprintw(dump_win, "HELLO"); break;
 			case TC_MESSAGE: wprintw(dump_win, "TC"); break;
