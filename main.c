@@ -20,12 +20,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <net/if.h>
-#include <netpacket/packet.h>
-#include <net/ethernet.h>
-#include <sys/ioctl.h>
 #include <string.h>
 #include <getopt.h>
 #include <signal.h>
@@ -37,13 +31,10 @@
 #include "display.h"
 #include "network.h"
 #include "main.h"
+#include "capture.h"
 #include "util.h"
 #include "ieee80211.h"
 
-static int device_index(int fd, const char *if_name);
-static void device_promisc(int fd, const char *if_name, int on);
-static int device_get_arptype(int fd, const char *device);
-static int init_packet_socket(char* devname);
 static void get_options(int argv, char** argc);
 static int node_update(struct packet_info* pkt);
 static void check_ibss_split(struct packet_info* pkt, int pkt_node);
@@ -89,10 +80,9 @@ main(int argc, char** argv)
 
 	gettimeofday(&stats.stats_time, NULL);
 
-	mon = init_packet_socket(conf.ifname);
-
+	mon = open_packet_socket(conf.ifname, sizeof(buffer), &conf.arphrd);
 	if (mon < 0)
-		exit(0);
+		err(1, "couldn't open packet socket");
 
 	if (conf.dumpfile != NULL) {
 		DF = fopen(conf.dumpfile, "w");
@@ -108,7 +98,7 @@ main(int argc, char** argv)
 	}
 #endif
 
-	while ((len = recv(mon, buffer, 8192, MSG_DONTWAIT)))
+	while ((len = recv_packet(buffer, sizeof(buffer))))
 	{
 		handle_user_input();
 
@@ -153,120 +143,6 @@ main(int argc, char** argv)
 	/* will never */
 	return 0;
 }
-
-
-static int
-init_packet_socket(char* devname)
-{
-	int ret;
-	int fd;
-	int ifindex;
-
-	fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-	if (fd < 0)
-		err(1, "could not create socket");
-
-	/* bind only to one interface */
-	ifindex = device_index(fd, devname);
-
-	struct sockaddr_ll sall;
-	sall.sll_ifindex = ifindex;
-	sall.sll_family = AF_PACKET;
-	sall.sll_protocol = htons(ETH_P_ALL);
-
-	ret = bind(fd, (struct sockaddr*)&sall, sizeof(sall));
-	if (ret != 0)
-		err(1, "bind failed");
-
-	device_promisc(fd, devname, 1);
-	conf.arphrd = device_get_arptype(fd, devname);
-
-	return fd;
-}
-
-
-static int
-device_index(int fd, const char *if_name)
-{
-	struct ifreq req;
-
-	strncpy(req.ifr_name, if_name, IFNAMSIZ);
-	req.ifr_addr.sa_family = AF_INET;
-
-	if (ioctl(fd, SIOCGIFINDEX, &req) < 0)
-		err(1, "interface %s not found", if_name);
-
-	if (req.ifr_ifindex<0) {
-		err(1, "interface %s not found", if_name);
-	}
-	DEBUG("index %d\n", req.ifr_ifindex);
-	return req.ifr_ifindex;
-}
-
-
-static void
-device_promisc(int fd, const char *if_name, int on)
-{
-	struct ifreq req;
-
-	strncpy(req.ifr_name, if_name, IFNAMSIZ);
-	req.ifr_addr.sa_family = AF_INET;
-
-	if (ioctl(fd, SIOCGIFFLAGS, &req) < 0) {
-		err(1, "could not get device flags for %s", if_name);
-	}
-
-	/* put interface up in any case */
-	req.ifr_flags |= IFF_UP;
-
-	if (on)
-		req.ifr_flags |= IFF_PROMISC;
-	else
-		req.ifr_flags &= ~IFF_PROMISC;
-
-	if (ioctl(fd, SIOCSIFFLAGS, &req) < 0) {
-		err(1, "could not set promisc mode for %s", if_name);
-	}
-}
-
-
-/*
- *  Get the hardware type of the given interface as ARPHRD_xxx constant.
- */
-static int
-device_get_arptype(int fd, const char *device)
-{
-	struct ifreq ifr;
-
-	memset(&ifr, 0, sizeof(ifr));
-	strncpy(ifr.ifr_name, device, sizeof(ifr.ifr_name));
-
-	if (ioctl(fd, SIOCGIFHWADDR, &ifr) < 0) {
-		err(1, "could not get arptype");
-	}
-	DEBUG("ARPTYPE %d\n", ifr.ifr_hwaddr.sa_family);
-	return ifr.ifr_hwaddr.sa_family;
-}
-
-
-#if 0
-static void
-device_wireless_channel(int fd, const char* if_name, int chan)
-{
-	struct iwreq iwr;
-	int ret = 0;
-
-	memset(&iwr, 0, sizeof(iwr));
-	strncpy(iwr.ifr_name, if_name, IFNAMSIZ);
-	iwr.u.freq.m = chan * 100000;
-	iwr.u.freq.e = 1;
-
-	if (ioctl(fd, SIOCSIWFREQ, &iwr) < 0) {
-		perror("ioctl[SIOCSIWFREQ]");
-		ret = -1;
-	}
-}
-#endif
 
 
 void
@@ -330,8 +206,7 @@ get_options(int argc, char** argv)
 void
 finish_all(int sig)
 {
-	device_promisc(mon, conf.ifname, 0);
-	close(mon);
+	close_packet_socket(conf.ifname);
 	
 	if (DF != NULL)
 		fclose(DF);
