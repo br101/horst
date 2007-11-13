@@ -171,6 +171,31 @@ device_get_arptype(int fd, const char *device)
 }
 
 
+void
+set_receive_buffer(int fd, int sockbufsize)
+{
+	int ret;
+
+	/* the maximum allowed value is set by the rmem_max sysctl */
+	FILE* PF = fopen("/proc/sys/net/core/rmem_max", "w");
+	fprintf(PF, "%d", sockbufsize);
+	fclose(PF);
+
+	ret = setsockopt (fd, SOL_SOCKET, SO_RCVBUF, &sockbufsize, sizeof(sockbufsize));
+	if (ret != 0)
+		err(1, "setsockopt failed");
+
+#if DO_DEBUG
+	socklen_t size = sizeof(sockbufsize);
+	sockbufsize = 0;
+	ret = getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &sockbufsize, &size);
+	if (ret != 0)
+		err(1, "getsockopt failed");
+	DEBUG("socket receive buffer size %d\n", sockbufsize);
+#endif
+}
+
+
 int
 open_packet_socket(char* devname, size_t bufsize, int* device_arp_type)
 {
@@ -194,11 +219,13 @@ open_packet_socket(char* devname, size_t bufsize, int* device_arp_type)
 		err(1, "bind failed");
 
 	device_promisc(mon_fd, devname, 1);
-	if (NULL != device_arp_type) {
+	if (device_arp_type != NULL) {
 		*device_arp_type = device_get_arptype(mon_fd, devname);
 	}
 
-	return (0 <= mon_fd);
+	set_receive_buffer(mon_fd, 6750000); /* 54Mbps in byte */
+
+	return (mon_fd >= 0);
 }
 
 
