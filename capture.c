@@ -219,9 +219,8 @@ open_packet_socket(char* devname, size_t bufsize, int* device_arp_type)
 		err(1, "bind failed");
 
 	device_promisc(mon_fd, devname, 1);
-	if (device_arp_type != NULL) {
+	if (device_arp_type != NULL)
 		*device_arp_type = device_get_arptype(mon_fd, devname);
-	}
 
 	set_receive_buffer(mon_fd, 6750000); /* 54Mbps in byte */
 
