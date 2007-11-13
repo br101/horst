@@ -94,6 +94,21 @@ air_per_second(unsigned int air) {
 }
 
 
+static inline int
+symbols_per_second(unsigned int symbols) {
+	static unsigned long last_symbols;
+	static struct timeval last;
+	static int sps;
+	/* reacalculate only every second or more */
+	if (the_time.tv_sec > last.tv_sec) {
+		sps = (1.0*(symbols - last_symbols)) / (int)(the_time.tv_sec - last.tv_sec);
+		last.tv_sec = the_time.tv_sec;
+		last_symbols = symbols;
+	}
+	return sps;
+}
+
+
 static inline void
 print_centered(WINDOW* win, int line, int cols, char* str) {
 	mvwprintw(win, line, cols / 2 - strlen(str) / 2, str);
@@ -984,7 +999,7 @@ update_statistics_win(void)
 	int i;
 	int line;
 	float airtime;
-	int bps, aps;
+	int bps, aps, sps;
 
 	werase(show_win);
 	wattron(show_win, WHITE);
@@ -1004,7 +1019,10 @@ update_statistics_win(void)
 	mvwprintw(show_win, 2, 40, "bit/sec: %s (%d)", kilo_mega_ize(bps), bps);
 
 	aps = air_per_second(stats.airtimes);
-	mvwprintw(show_win, 3, 40, "Usage:   %3.1f%% (%d)", aps * 1.0 / 10000, aps );
+	mvwprintw(show_win, 3, 40, "AirUsage:   %3.1f%% (%d)", aps * 1.0 / 10000, aps ); /* 1Mbps */
+
+	sps = symbols_per_second(stats.symbols);
+	mvwprintw(show_win, 4, 40, "Symbols:   %3.1f%% (%d)", sps * 1.0 / 2500, sps ); /* 250.000 symbols per sec */
 
 	line = 6;
 	mvwprintw(show_win, line, STAT_PACK_POS, " Packets");
