@@ -985,7 +985,7 @@ update_dump_win(struct packet_info* pkt)
 }
 
 
-#define STAT_PACK_POS 11
+#define STAT_PACK_POS 9
 #define STAT_BYTE_POS (STAT_PACK_POS + 9)
 #define STAT_BPP_POS (STAT_BYTE_POS + 9)
 #define STAT_PP_POS (STAT_BPP_POS + 6)
@@ -1038,7 +1038,7 @@ update_statistics_win(void)
 	for (i = 1; i < MAX_RATES; i++) {
 		if (stats.packets_per_rate[i] > 0) {
 			wattron(show_win, A_BOLD);
-			mvwprintw(show_win, line, 4, "%2dM", i);
+			mvwprintw(show_win, line, 2, "%3dM", i);
 			wattroff(show_win, A_BOLD);
 			mvwprintw(show_win, line, STAT_PACK_POS, "%8d",
 				stats.packets_per_rate[i]);
@@ -1074,7 +1074,7 @@ update_statistics_win(void)
 	for (i = 0; i < MAX_FSTYPE; i++) {
 		if (stats.packets_per_type[i] > 0) {
 			wattron(show_win, A_BOLD);
-			mvwprintw(show_win, line, 4, "%s", get_packet_type_name(i));
+			mvwprintw(show_win, line, 2, "%s", get_packet_type_name(i));
 			wattroff(show_win, A_BOLD);
 			mvwprintw(show_win, line, STAT_PACK_POS, "%8d",
 				stats.packets_per_type[i]);
