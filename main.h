@@ -72,12 +72,14 @@
 #define WLAN_MODE_STA		0x04
 #define WLAN_MODE_PROBE		0x08
 
+/* default config vlaues */
+#define INTERFACE_NAME		"wlan0"
 #define NODE_TIMEOUT		60	/* seconds */
-
 /* update display every 100ms - "10 frames per sec should be enough for everyone" ;) */
 #define DISPLAY_UPDATE_INTERVAL 100000	/* usec */
-
 #define SLEEP_TIME		1000	/* usec */
+#define RECV_BUFFER_SIZE	6750000 /* 54Mbps in byte */
+
 
 struct packet_info {
 	int pkt_types;
@@ -184,6 +186,7 @@ struct config {
 	int display_interval;
 	int sleep_time;
 	char* dumpfile;
+	int recv_buffer_size;
 
 	unsigned char filtermac[MAX_FILTERMAC][MAC_LEN];
 	unsigned char filterbssid[MAC_LEN];

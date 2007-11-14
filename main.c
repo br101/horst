@@ -54,10 +54,11 @@ struct statistics stats;
 
 struct config conf = {
 	.node_timeout = NODE_TIMEOUT,
-	.ifname = "wlan0",
+	.ifname = INTERFACE_NAME,
 	.display_interval = DISPLAY_UPDATE_INTERVAL,
 	.sleep_time = SLEEP_TIME,
 	.filter_pkt = 0xffffff,
+	.recv_buffer_size = RECV_BUFFER_SIZE,
 };
 
 static int mon; /* monitoring socket */
@@ -80,9 +81,11 @@ main(int argc, char** argv)
 
 	gettimeofday(&stats.stats_time, NULL);
 
-	mon = open_packet_socket(conf.ifname, sizeof(buffer), &conf.arphrd);
+	mon = open_packet_socket(conf.ifname, sizeof(buffer), conf.recv_buffer_size);
 	if (mon < 0)
 		err(1, "couldn't open packet socket");
+
+	conf.arphrd = device_get_arptype();
 
 	if (conf.dumpfile != NULL) {
 		DF = fopen(conf.dumpfile, "w");
@@ -150,7 +153,7 @@ get_options(int argc, char** argv)
 {
 	int c;
 
-	while((c = getopt(argc, argv, "hqi:t:p:e:d:w:o:")) > 0) {
+	while((c = getopt(argc, argv, "hqi:t:p:e:d:w:o:b:")) > 0) {
 		switch (c) {
 			case 'p':
 				conf.rport = atoi(optarg);
@@ -166,6 +169,9 @@ get_options(int argc, char** argv)
 				break;
 			case 't':
 				conf.node_timeout = atoi(optarg);
+				break;
+			case 'b':
+				conf.recv_buffer_size = atoi(optarg);
 				break;
 			case 's':
 				/* reserved for spectro meter */
@@ -194,6 +200,7 @@ get_options(int argc, char** argv)
 					"  -d <usec>\tdisplay update interval (100000 = 100ms = 10fps)\n"
 					"  -w <usec>\twait loop (1000 = 1ms)\n"
 					"  -o <filename>\twrite packet info into file\n"
+					"  -b <bytes>\treceive buffer size (6750000)\n"
 					"\n",
 					argv[0]);
 				exit(0);
@@ -206,7 +213,7 @@ get_options(int argc, char** argv)
 void
 finish_all(int sig)
 {
-	close_packet_socket(conf.ifname);
+	close_packet_socket();
 	
 	if (DF != NULL)
 		fclose(DF);

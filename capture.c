@@ -56,27 +56,31 @@ void handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes)
 
 
 int
-open_packet_socket(char* devname, size_t bufsize, int* device_arp_type)
+open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size)
 {
 	char error[PCAP_ERRBUF_SIZE];
 	if (NULL == (pcap_fp = pcap_open_live(devname, bufsize, 1, PCAP_TIMEOUT, error)))
 	{
 		return -1;
 	}
-	if (NULL != device_arp_type) {
-		switch (pcap_datalink(pcap_fp)) {
-			case DLT_IEEE802_11_RADIO:
-				*device_arp_type = 803;
-				break;
-			case DLT_PRISM_HEADER:
-				*device_arp_type = 802;
-				break;
-			default:
-				*device_arp_type = 801;
-				break;
-		} // switch
-	}
 	return 0;
+}
+
+
+int
+device_get_arptype(void)
+{
+	if (pcap_fp != NULL) {
+		switch (pcap_datalink(pcap_fp)) {
+		case DLT_IEEE802_11_RADIO:
+			return 803;
+		case DLT_PRISM_HEADER:
+			return 802;
+		default:
+			return 801;
+		}
+	}
+	return -1;
 }
 
 
@@ -95,7 +99,7 @@ recv_packet(unsigned char* buffer, size_t bufsize)
 
 
 void
-close_packet_socket(char* devname)
+close_packet_socket(void)
 {
 	pcap_close(pcap_fp);
 }
@@ -105,6 +109,7 @@ close_packet_socket(char* devname)
 
 
 static int mon_fd = 0;
+static char* mon_ifname;
 
 
 static int
@@ -118,7 +123,7 @@ device_index(int fd, const char *devname)
 	if (ioctl(fd, SIOCGIFINDEX, &req) < 0)
 		err(1, "interface %s not found", devname);
 
-	if (req.ifr_ifindex<0) {
+	if (req.ifr_ifindex < 0) {
 		err(1, "interface %s not found", devname);
 	}
 	DEBUG("index %d\n", req.ifr_ifindex);
@@ -155,15 +160,15 @@ device_promisc(int fd, const char *devname, int on)
 /*
  *  Get the hardware type of the given interface as ARPHRD_xxx constant.
  */
-static int
-device_get_arptype(int fd, const char *device)
+int
+device_get_arptype(void)
 {
 	struct ifreq ifr;
 
 	memset(&ifr, 0, sizeof(ifr));
-	strncpy(ifr.ifr_name, device, sizeof(ifr.ifr_name));
+	strncpy(ifr.ifr_name, mon_ifname, sizeof(ifr.ifr_name));
 
-	if (ioctl(fd, SIOCGIFHWADDR, &ifr) < 0) {
+	if (ioctl(mon_fd, SIOCGIFHWADDR, &ifr) < 0) {
 		err(1, "could not get arptype");
 	}
 	DEBUG("ARPTYPE %d\n", ifr.ifr_hwaddr.sa_family);
@@ -197,10 +202,12 @@ set_receive_buffer(int fd, int sockbufsize)
 
 
 int
-open_packet_socket(char* devname, size_t bufsize, int* device_arp_type)
+open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size)
 {
 	int ret;
 	int ifindex;
+
+	mon_ifname = devname;
 
 	mon_fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 	if (mon_fd < 0)
@@ -219,10 +226,8 @@ open_packet_socket(char* devname, size_t bufsize, int* device_arp_type)
 		err(1, "bind failed");
 
 	device_promisc(mon_fd, devname, 1);
-	if (device_arp_type != NULL)
-		*device_arp_type = device_get_arptype(mon_fd, devname);
 
-	set_receive_buffer(mon_fd, 6750000); /* 54Mbps in byte */
+	set_receive_buffer(mon_fd, recv_buffer_size);
 
 	return (mon_fd >= 0);
 }
@@ -236,9 +241,9 @@ recv_packet(unsigned char* buffer, size_t bufsize)
 
 
 void
-close_packet_socket(char* devname)
+close_packet_socket(void)
 {
-	device_promisc(mon_fd, devname, 0);
+	device_promisc(mon_fd, mon_ifname, 0);
 	close(mon_fd);
 }
 

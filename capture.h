@@ -21,12 +21,15 @@
 #define _CAPTURE_H_
 
 int
-open_packet_socket(char* devname, size_t bufsize, int* device_arp_type);
+open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size);
 
 int
 recv_packet(unsigned char* buffer, size_t bufsize);
 
 void
-close_packet_socket(char* devname);
+close_packet_socket(void);
+
+int
+device_get_arptype(void);
 
 #endif // _CAPTURE_H_
