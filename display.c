@@ -548,7 +548,7 @@ update_status_win(struct packet_info* pkt, int node_number)
 	mvwvline(stat_win, 0, 14, ACS_VLINE, LINES/2);
 
 	bps = bytes_per_second(stats.bytes) * 8;
-	bpsn = normalize(bps, 27000000, MAX_STAT_BAR); //theoretical: 54000000
+	bpsn = normalize(bps, 32000000, MAX_STAT_BAR); //theoretical: 54000000
 
 	air = air_per_second(stats.airtimes) * 1.0 / 1000000 * 100; /* 1Mbps, in percent */
 	airn = normalize(air, 100, MAX_STAT_BAR);
