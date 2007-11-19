@@ -1113,7 +1113,7 @@ update_help_win(void)
 	box(show_win, 0 , 0);
 	print_centered(show_win, 0, COLS, " Help ");
 	print_centered(show_win, 2, COLS, "HORST - Horsts OLSR Radio Scanning Tool");
-	print_centered(show_win, 3, COLS, "Version " VERSION " (build date " BUILDDATE ")");
+	print_centered(show_win, 3, COLS, "Version " VERSION " (build date " __DATE__ " " __TIME__ ")");
 
 	mvwprintw(show_win, 5, 2, "(C) 2005-2007 Bruno Randolf, Licensed under the GPLv2");
 

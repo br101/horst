@@ -19,10 +19,9 @@
 NAME=horst
 DEBUG=0
 PCAP=0
-BUILDDATE=$(shell date +"%d.%m.%Y")
 OBJS=protocol_parser.o main.o capture.o display.o network.o util.o ieee80211_util.o
 LIBS=-lncurses
-CFLAGS+=-Wall -DBUILDDATE=\"$(BUILDDATE)\" -DDO_DEBUG=$(DEBUG)
+CFLAGS+=-Wall -DDO_DEBUG=$(DEBUG)
 
 ifeq ($(PCAP),1)
 CFLAGS+=-DPCAP
