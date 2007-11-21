@@ -345,11 +345,13 @@ handle_user_input()
 		gettimeofday(&stats.stats_time, NULL);
 		break;
 
+	case '?':
+		conf.paused = conf.paused ? 0 : 1;
+		/* fall thru */
 	case 'e': case 'E':
 	case 'h': case 'H':
 	case 'd': case 'D':
 	case 'a': case 'A':
-	case '?':
 		show_window(tolower(key));
 		break;
 
@@ -388,6 +390,7 @@ show_window(char which)
 		scrollok(show_win, FALSE);
 	}
 	show_win_current = which;
+
 	update_show_win();
 }
 
@@ -714,7 +717,7 @@ update_list_win(void)
 	mvwprintw(list_win, 0, COL_SNR, "SN/MX/MI");
 	mvwprintw(list_win, 0, COL_RATE, "RT");
 	mvwprintw(list_win, 0, COL_SOURCE, "SOURCE");
-	mvwprintw(list_win, 0, COL_STA, "Te");
+	mvwprintw(list_win, 0, COL_STA, "Me");
 	mvwprintw(list_win, 0, COL_BSSID, "(BSSID)");
 	mvwprintw(list_win, 0, COL_IP, "IP");
 	mvwprintw(list_win, 0, COL_OLSR, "MESH");
@@ -1143,7 +1146,7 @@ update_help_win(void)
 
 	mvwprintw(show_win, ++l, 2, "For more info read the README or check http://br1.einfach.org/horst/");
 
-	wnoutrefresh(show_win);
+	wrefresh(show_win);
 }
 
 
