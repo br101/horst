@@ -45,6 +45,7 @@ static void update_hist_win(void);
 static void update_statistics_win(void);
 static void update_help_win(void);
 static void update_detail_win(void);
+static void update_mini_status(void);
 
 static WINDOW *dump_win = NULL;
 static WINDOW *list_win = NULL;
@@ -174,7 +175,7 @@ init_display(void)
 	attron(KEYMARK); printw("R"); attroff(KEYMARK); printw("eset ");
 	attron(KEYMARK); printw("D"); attroff(KEYMARK); printw("etails ");
 	attron(KEYMARK); printw("?"); attroff(KEYMARK); printw("Help");
-
+#undef KEYMARK
 	mvwprintw(stdscr, LINES-1, COLS-13, "%s", conf.ifname);
 
 	wattroff(stdscr, BLACKONWHITE);
@@ -384,6 +385,7 @@ handle_user_input()
 	default:
 		return;
 	}
+	update_mini_status();
 	update_display(NULL, -1);
 }
 
@@ -489,12 +491,23 @@ update_filter_win()
 }
 
 
-void update_time(time_t* sec)
+static void
+update_time(time_t* sec)
 {
 	static char buf[9];
 	strftime(buf, 9, "%H:%M:%S", localtime(sec));
 	wattron(stdscr, BLACKONWHITE);
 	mvwprintw(stdscr, LINES-1, COLS-9, "|%s", buf);
+	wattroff(stdscr, BLACKONWHITE);
+}
+
+
+static void
+update_mini_status(void)
+{
+	wattron(stdscr, BLACKONWHITE);
+	mvwprintw(stdscr, LINES-1, COLS-17, conf.paused ? "P" : " ");
+	mvwprintw(stdscr, LINES-1, COLS-15, conf.do_filter ? "F" : " ");
 	wattroff(stdscr, BLACKONWHITE);
 }
 
