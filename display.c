@@ -162,7 +162,19 @@ init_display(void)
 	wattron(stdscr, BLACKONWHITE);
 	mvwhline(stdscr, LINES-1, 0, ' ', COLS);
 
-	mvwprintw(stdscr, LINES-1, 0, "[HORST] q:Quit p:Pause s:Sort f:Filter h:History e:ESSIDs a:Stats r:Reset d:Details ?:Help");
+	mvwprintw(stdscr, LINES-1, 0, "[HORST] ");
+#define KEYMARK A_UNDERLINE
+	attron(KEYMARK); printw("Q"); attroff(KEYMARK); printw("uit ");
+	attron(KEYMARK); printw("P"); attroff(KEYMARK); printw("ause ");
+	attron(KEYMARK); printw("S"); attroff(KEYMARK); printw("ort ");
+	attron(KEYMARK); printw("F"); attroff(KEYMARK); printw("ilter ");
+	attron(KEYMARK); printw("H"); attroff(KEYMARK); printw("istory ");
+	attron(KEYMARK); printw("E"); attroff(KEYMARK); printw("SSIDs St");
+	attron(KEYMARK); printw("a"); attroff(KEYMARK); printw("ts ");
+	attron(KEYMARK); printw("R"); attroff(KEYMARK); printw("eset ");
+	attron(KEYMARK); printw("D"); attroff(KEYMARK); printw("etails ");
+	attron(KEYMARK); printw("?"); attroff(KEYMARK); printw("Help");
+
 	mvwprintw(stdscr, LINES-1, COLS-13, "%s", conf.ifname);
 
 	wattroff(stdscr, BLACKONWHITE);
