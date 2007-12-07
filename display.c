@@ -581,7 +581,7 @@ update_show_win()
 static void
 update_status_win(struct packet_info* pkt, int node_number)
 {
-	int sig, noi, max, rate, bps, bpsn, air, airn;
+	int sig, noi, max, rate, bps, bpsn, use, usen;
 
 	werase(stat_win);
 	wattron(stat_win, WHITE);
@@ -591,8 +591,8 @@ update_status_win(struct packet_info* pkt, int node_number)
 	bps = bytes_per_second(stats.bytes) * 8;
 	bpsn = normalize(bps, 32000000, MAX_STAT_BAR); //theoretical: 54000000
 
-	air = air_per_second(stats.airtimes) * 1.0 / 1000000 * 100; /* 1Mbps, in percent */
-	airn = normalize(air, 100, MAX_STAT_BAR);
+	use = duration_per_second(stats.duration) * 1.0 / 10000; /* usec, in percent */
+	usen = normalize(use, 100, MAX_STAT_BAR);
 
 	if (pkt != NULL)
 	{
@@ -632,10 +632,10 @@ update_status_win(struct packet_info* pkt, int node_number)
 	mvwvline(stat_win, MAX_STAT_BAR + 4 - bpsn, 9, ACS_BLOCK, bpsn);
 
 	wattron(stat_win, YELLOW);
-	mvwprintw(stat_win, 3, 1, "Usage:   %3d%%", air);
+	mvwprintw(stat_win, 3, 1, "Usage:   %3d%%", use);
 	wattron(stat_win, ALLYELLOW);
-	mvwvline(stat_win, MAX_STAT_BAR + 4 - airn, 11, ACS_BLOCK, airn);
-	mvwvline(stat_win, MAX_STAT_BAR + 4 - airn, 12, ACS_BLOCK, airn);
+	mvwvline(stat_win, MAX_STAT_BAR + 4 - usen, 11, ACS_BLOCK, usen);
+	mvwvline(stat_win, MAX_STAT_BAR + 4 - usen, 12, ACS_BLOCK, usen);
 	wattroff(stat_win, ALLYELLOW);
 
 	wnoutrefresh(stat_win);
