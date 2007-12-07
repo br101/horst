@@ -19,6 +19,7 @@
 #include "ieee80211.h"
 #include "ieee80211_radiotap.h"
 #include "main.h"
+#include "util.h"
 
 #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
 
@@ -227,7 +228,10 @@ ieee80211_frame_duration(int phymode, size_t len,
 	 * DIV_ROUND_UP() operations.
 	 */
 
+	DEBUG("mode %d, len %d, rate %d, shortpre %d\n", phymode, len, rate, short_preamble);
+
 	if (phymode == PHY_FLAG_A || erp) {
+		DEBUG("OFDM\n");
 		/*
 		 * OFDM:
 		 *
@@ -247,6 +251,7 @@ ieee80211_frame_duration(int phymode, size_t len,
 		dur += 4 * DIV_ROUND_UP((16 + 8 * (len + 4) + 6) * 10,
 					4 * rate); /* T_SYM x N_SYM */
 	} else {
+		DEBUG("B\n");
 		/*
 		 * 802.11b or 802.11g with 802.11b compatibility:
 		 * 18.3.4: TXTIME = PreambleLength + PLCPHeaderTime +

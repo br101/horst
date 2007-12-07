@@ -267,9 +267,21 @@ parse_radiotap_header(unsigned char** buf, int len)
 			DEBUG("0");
 		}
 	}
+	DEBUG("\n");
 
+	/* sanitize */
 	if (current_packet.snr > 99)
 		current_packet.snr = 99;
+	if (current_packet.rate == 0 || current_packet.rate > 108) {
+		/* assume min rate for mode */
+		DEBUG("*** fixing wrong rate\n");
+		if (current_packet.phy_flags & PHY_FLAG_A)
+			current_packet.rate = 12; /* 6 * 2 */
+		if (current_packet.phy_flags & PHY_FLAG_B)
+			current_packet.rate = 2; /* 1 * 2 */
+		if (current_packet.phy_flags & PHY_FLAG_G)
+			current_packet.rate = 12; /* 6 * 2 */
+	}
 
 	DEBUG("\nrate: %d\n", current_packet.rate);
 	DEBUG("signal: %d\n", current_packet.signal);

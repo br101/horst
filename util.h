@@ -20,6 +20,8 @@
 #ifndef _UTIL_H_
 #define _UTIL_H_
 
+#include <stdio.h>
+
 #if DO_DEBUG
 #define DEBUG(...) printf(__VA_ARGS__)
 #else
