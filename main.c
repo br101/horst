@@ -455,7 +455,7 @@ update_statistics(struct packet_info* p)
 	stats.bytes += p->len;
 	if (p->rate > 0 && p->rate < MAX_RATES) {
 		/* this basically normalizes everything to 1Mbit per sec */
-		stats.airtimes += (p->len * 8) / p->rate / 2;
+		stats.airtimes += (p->len * 8) / (p->rate / 2);
 		stats.symbols += symbols;
 		stats.duration += duration;
 		stats.packets_per_rate[p->rate]++;
@@ -465,7 +465,7 @@ update_statistics(struct packet_info* p)
 		stats.packets_per_type[p->wlan_type]++;
 		stats.bytes_per_type[p->wlan_type] += p->len;
 		if (p->rate > 0 && p->rate < MAX_RATES) {
-			stats.airtime_per_type[p->wlan_type] += p->len / p->rate / 2;
+			stats.airtime_per_type[p->wlan_type] += p->len / (p->rate / 2);
 			stats.symbols_per_type[p->wlan_type] += symbols;
 		}
 	}

@@ -1096,7 +1096,7 @@ update_statistics_win(void)
 			mvwprintw(show_win, line, STAT_BP_POS, "%2.1f",
 				(stats.bytes_per_rate[i] * 1.0 / stats.bytes) * 100);
 			wattron(show_win, A_BOLD);
-			airtime = ((stats.bytes_per_rate[i] * 8.0 / i / 2) / stats.airtimes) * 100;
+			airtime = ((stats.bytes_per_rate[i] * 8.0 / (i / 2)) / stats.airtimes) * 100;
 			mvwprintw(show_win, line, STAT_AIR_POS, "%2.1f", airtime);
 			mvwhline(show_win, line, STAT_AIRG_POS, '*',
 				normalize(airtime, 100, COLS - STAT_AIRG_POS - 2));
