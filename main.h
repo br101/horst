@@ -33,7 +33,7 @@
 #define MAX_BSSIDS		255
 #define MAX_HISTORY		255
 #define MAX_ESSID_LEN		255
-#define MAX_RATES		55	/* 54M + 1 for array index */
+#define MAX_RATES		109	/* in 500kbps steps: 54 * 2 + 1 for array index */
 #define MAX_FSTYPE		0xff
 #define MAX_FILTERMAC		9
 

@@ -598,7 +598,7 @@ update_status_win(struct packet_info* pkt, int node_number)
 	{
 		sig = normalize_db(-pkt->signal, MAX_STAT_BAR);
 		noi = normalize_db(-pkt->noise, MAX_STAT_BAR);
-		rate = normalize(pkt->rate, 54, MAX_STAT_BAR);
+		rate = normalize(pkt->rate, 108, MAX_STAT_BAR);
 
 		if (node_number >= 0 && nodes[node_number].sig_max < 0) {
 			max = normalize_db(-nodes[node_number].sig_max, MAX_STAT_BAR);
@@ -619,7 +619,7 @@ update_status_win(struct packet_info* pkt, int node_number)
 		mvwvline(stat_win, noi + 4, 3, '=', MAX_STAT_BAR + 3 - noi);
 
 		wattron(stat_win, BLUE);
-		mvwprintw(stat_win, 1, 1, "PhyRate:  %2dM", pkt->rate);
+		mvwprintw(stat_win, 1, 1, "PhyRate:  %2dM", pkt->rate/2);
 		wattron(stat_win, ALLBLUE);
 		mvwvline(stat_win, MAX_STAT_BAR + 4 - rate, 5, ACS_BLOCK, rate);
 		mvwvline(stat_win, MAX_STAT_BAR + 4 - rate, 6, ACS_BLOCK, rate);
@@ -715,7 +715,7 @@ print_list_line(int line, struct node_info* n)
 	if (n->wep)
 		wprintw(list_win, "e");
 
-	mvwprintw(list_win, line, COL_RATE, "%2d", p->rate);
+	mvwprintw(list_win, line, COL_RATE, "%2d", p->rate/2);
 	mvwprintw(list_win, line, COL_SOURCE, "%s", ether_sprintf(p->wlan_src));
 	mvwprintw(list_win, line, COL_BSSID, "(%s)", ether_sprintf(n->wlan_bssid));
 	if (n->pkt_types & PKT_TYPE_IP)
@@ -916,7 +916,7 @@ update_hist_win(void)
 			get_packet_type_char(hist.type[i]));
 
 		/* make rate table smaller by joining some values */
-		switch (hist.rate[i]) {
+		switch (hist.rate[i]/2) {
 			case 54: rat = 9; break;
 			case 48: rat = 8; break;
 			case 36: rat = 7; break;
@@ -926,6 +926,7 @@ update_hist_win(void)
 			case 6: case 5: rat = 3; break;
 			case 2: rat = 2; break;
 			case 1: rat = 1; break;
+			default: rat = 0;
 		}
 		wattron(show_win, A_BOLD);
 		wattron(show_win, BLUE);
@@ -956,7 +957,7 @@ update_dump_win(struct packet_info* pkt)
 		wattron(dump_win, A_BOLD);
 
 	wprintw(dump_win, "\n%03d/%03d ", pkt->signal, pkt->noise);
-	wprintw(dump_win, "%2d ", pkt->rate);
+	wprintw(dump_win, "%2d ", pkt->rate/2);
 	wprintw(dump_win, "%s ", ether_sprintf(pkt->wlan_src));
 	wprintw(dump_win, "(%s) ", ether_sprintf(pkt->wlan_bssid));
 
@@ -1082,7 +1083,7 @@ update_statistics_win(void)
 	for (i = 1; i < MAX_RATES; i++) {
 		if (stats.packets_per_rate[i] > 0) {
 			wattron(show_win, A_BOLD);
-			mvwprintw(show_win, line, 2, "%3dM", i);
+			mvwprintw(show_win, line, 2, "%3dM", i/2);
 			wattroff(show_win, A_BOLD);
 			mvwprintw(show_win, line, STAT_PACK_POS, "%8d",
 				stats.packets_per_rate[i]);
@@ -1095,7 +1096,7 @@ update_statistics_win(void)
 			mvwprintw(show_win, line, STAT_BP_POS, "%2.1f",
 				(stats.bytes_per_rate[i] * 1.0 / stats.bytes) * 100);
 			wattron(show_win, A_BOLD);
-			airtime = ((stats.bytes_per_rate[i] * 8.0 / i) / stats.airtimes) * 100;
+			airtime = ((stats.bytes_per_rate[i] * 8.0 / i / 2) / stats.airtimes) * 100;
 			mvwprintw(show_win, line, STAT_AIR_POS, "%2.1f", airtime);
 			mvwhline(show_win, line, STAT_AIRG_POS, '*',
 				normalize(airtime, 100, COLS - STAT_AIRG_POS - 2));

@@ -434,12 +434,8 @@ update_history(struct packet_info* p)
 static inline int
 used_symbols(int bytes, int rate)
 {
-	/*
-	 * we dont use the rate as reported in 500kbps steps, but divide it by two
-	 * to get a more easily human readable form. this means 5.5 is truncated to 5
-	 * and 0.5 to 0. maybe we should internally use 500k steps?
-	 */
-	rate *= 4;
+	/* rate is in 500kbps steps */
+	rate *= 2;
 	switch (rate) {
 		case 0:
 		case 10: rate += 2;
@@ -454,12 +450,12 @@ update_statistics(struct packet_info* p)
 	int symbols, duration;
 	symbols = used_symbols(p->len, p->rate);
 	duration = ieee80211_frame_duration(p->phy_flags & PHY_FLAG_MODE_MASK, p->len,
-			p->rate * 10, p->phy_flags & PHY_FLAG_SHORTPRE);
+			p->rate * 5, p->phy_flags & PHY_FLAG_SHORTPRE);
 	stats.packets++;
 	stats.bytes += p->len;
 	if (p->rate > 0 && p->rate < MAX_RATES) {
 		/* this basically normalizes everything to 1Mbit per sec */
-		stats.airtimes += (p->len * 8) / p->rate;
+		stats.airtimes += (p->len * 8) / p->rate / 2;
 		stats.symbols += symbols;
 		stats.duration += duration;
 		stats.packets_per_rate[p->rate]++;
@@ -469,7 +465,7 @@ update_statistics(struct packet_info* p)
 		stats.packets_per_type[p->wlan_type]++;
 		stats.bytes_per_type[p->wlan_type] += p->len;
 		if (p->rate > 0 && p->rate < MAX_RATES) {
-			stats.airtime_per_type[p->wlan_type] += p->len / p->rate;
+			stats.airtime_per_type[p->wlan_type] += p->len / p->rate / 2;
 			stats.symbols_per_type[p->wlan_type] += symbols;
 		}
 	}

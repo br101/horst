@@ -137,7 +137,7 @@ parse_prism_header(unsigned char** buf, int len)
 	if (current_packet.snr > 99)
 		current_packet.snr = 99;
 
-	current_packet.rate = ph->rate.data / 2;
+	current_packet.rate = ph->rate.data;
 
 	DEBUG("devname: %s\n", ph->devname);
 	DEBUG("signal: %d -> %d\n", ph->signal.data, current_packet.signal);
@@ -214,7 +214,7 @@ parse_radiotap_header(unsigned char** buf, int len)
 				/* we are only interrested in these: */
 				case IEEE80211_RADIOTAP_RATE:
 					DEBUG("[rate %0x]", *b);
-					current_packet.rate = (*b) / 2;
+					current_packet.rate = (*b);
 					b++;
 					break;
 				case IEEE80211_RADIOTAP_DBM_ANTSIGNAL:
