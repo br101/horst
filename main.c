@@ -34,6 +34,7 @@
 #include "capture.h"
 #include "util.h"
 #include "ieee80211.h"
+#include "ieee80211_util.h"
 
 static void get_options(int argv, char** argc);
 static int node_update(struct packet_info* pkt);
@@ -450,13 +451,17 @@ used_symbols(int bytes, int rate)
 static void
 update_statistics(struct packet_info* p)
 {
-	int symbols = used_symbols(p->len, p->rate);
+	int symbols, duration;
+	symbols = used_symbols(p->len, p->rate);
+	duration = ieee80211_frame_duration(p->phy_flags & PHY_FLAG_MODE_MASK, p->len,
+			p->rate * 10, p->phy_flags & PHY_FLAG_SHORTPRE);
 	stats.packets++;
 	stats.bytes += p->len;
 	if (p->rate > 0 && p->rate < MAX_RATES) {
 		/* this basically normalizes everything to 1Mbit per sec */
 		stats.airtimes += (p->len * 8) / p->rate;
 		stats.symbols += symbols;
+		stats.duration += duration;
 		stats.packets_per_rate[p->rate]++;
 		stats.bytes_per_rate[p->rate] += p->len;
 	}

@@ -26,9 +26,13 @@ feature requests:
 
 ---
 
+specci:
+
 (eigentlich wünsche ich mir ein 3. horst-fenster am oberen rand,
   wie [scanCG.pl] als simpel-'SPECTRUM-analyser' mit life-NOISE, um
   CH-'belegung' u. nachbar-CH-'übersprechen' beurteilen zu können)
+
+AirMagnet mit atheros card: 250ms pro channel
 
 ---
 

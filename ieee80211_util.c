@@ -17,8 +17,10 @@
 #include <string.h>
 
 #include "ieee80211.h"
+#include "ieee80211_radiotap.h"
 #include "main.h"
 
+#define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
 
 u8*
 ieee80211_get_bssid(struct ieee80211_hdr *hdr, int len)
@@ -184,4 +186,82 @@ ieee802_11_parse_elems(unsigned char *start, int len, struct packet_info *pkt)
 		left -= elen;
 		pos += elen;
 	}
+}
+
+/* from mac80211/ieee80211_i.c, slightly modified */
+
+/**
+ * ieee80211_is_erp_rate - Check if a rate is an ERP rate
+ * @phymode: The PHY-mode for this rate (MODE_IEEE80211...)
+ * @rate: Transmission rate to check, in 100 kbps
+ *
+ * Check if a given rate is an Extended Rate PHY (ERP) rate.
+ */
+static inline int
+ieee80211_is_erp_rate(int phymode, int rate)
+{
+	if (phymode == IEEE80211_CHAN_G) {
+		if (rate != 10 && rate != 20 &&
+		    rate != 55 && rate != 110)
+			return 1;
+	}
+	return 0;
+}
+
+/* from mac80211/util.c, slightly modified */
+int
+ieee80211_frame_duration(int phymode, size_t len,
+			     int rate, int short_preamble)
+{
+	int dur;
+	int erp;
+
+	erp = ieee80211_is_erp_rate(phymode, rate);
+
+	/* calculate duration (in microseconds, rounded up to next higher
+	 * integer if it includes a fractional microsecond) to send frame of
+	 * len bytes (does not include FCS) at the given rate. Duration will
+	 * also include SIFS.
+	 *
+	 * rate is in 100 kbps, so divident is multiplied by 10 in the
+	 * DIV_ROUND_UP() operations.
+	 */
+
+	if (phymode == PHY_FLAG_A || erp) {
+		/*
+		 * OFDM:
+		 *
+		 * N_DBPS = DATARATE x 4
+		 * N_SYM = Ceiling((16+8xLENGTH+6) / N_DBPS)
+		 *	(16 = SIGNAL time, 6 = tail bits)
+		 * TXTIME = T_PREAMBLE + T_SIGNAL + T_SYM x N_SYM + Signal Ext
+		 *
+		 * T_SYM = 4 usec
+		 * 802.11a - 17.5.2: aSIFSTime = 16 usec
+		 * 802.11g - 19.8.4: aSIFSTime = 10 usec +
+		 *	signal ext = 6 usec
+		 */
+		dur = 16; /* SIFS + signal ext */
+		dur += 16; /* 17.3.2.3: T_PREAMBLE = 16 usec */
+		dur += 4; /* 17.3.2.3: T_SIGNAL = 4 usec */
+		dur += 4 * DIV_ROUND_UP((16 + 8 * (len + 4) + 6) * 10,
+					4 * rate); /* T_SYM x N_SYM */
+	} else {
+		/*
+		 * 802.11b or 802.11g with 802.11b compatibility:
+		 * 18.3.4: TXTIME = PreambleLength + PLCPHeaderTime +
+		 * Ceiling(((LENGTH+PBCC)x8)/DATARATE). PBCC=0.
+		 *
+		 * 802.11 (DS): 15.3.3, 802.11b: 18.3.4
+		 * aSIFSTime = 10 usec
+		 * aPreambleLength = 144 usec or 72 usec with short preamble
+		 * aPLCPHeaderLength = 48 usec or 24 usec with short preamble
+		 */
+		dur = 10; /* aSIFSTime = 10 usec */
+		dur += short_preamble ? (72 + 24) : (144 + 48);
+
+		dur += DIV_ROUND_UP(8 * (len + 4) * 10, rate);
+	}
+
+	return dur;
 }

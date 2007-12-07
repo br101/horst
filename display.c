@@ -109,6 +109,19 @@ symbols_per_second(unsigned int symbols) {
 	return sps;
 }
 
+static inline int
+duration_per_second(unsigned int duration) {
+	static unsigned long last_dur;
+	static struct timeval last;
+	static int dps;
+	/* reacalculate only every second or more */
+	if (the_time.tv_sec > last.tv_sec) {
+		dps = (1.0*(duration - last_dur)) / (int)(the_time.tv_sec - last.tv_sec);
+		last.tv_sec = the_time.tv_sec;
+		last_dur = duration;
+	}
+	return dps;
+}
 
 static inline void
 print_centered(WINDOW* win, int line, int cols, char* str) {
@@ -1027,7 +1040,7 @@ update_statistics_win(void)
 	int i;
 	int line;
 	float airtime;
-	int bps, aps, sps;
+	int bps, aps, sps, dps;
 
 	werase(show_win);
 	wattron(show_win, WHITE);
@@ -1051,6 +1064,9 @@ update_statistics_win(void)
 
 	sps = symbols_per_second(stats.symbols);
 	mvwprintw(show_win, 4, 40, "Symbols:   %3.1f%% (%d)", sps * 1.0 / 2500, sps ); /* 250.000 symbols per sec */
+
+	dps = duration_per_second(stats.duration);
+	mvwprintw(show_win, 5, 40, "Duration:   %3.1f%% (%d)", dps * 1.0 / 10000, dps ); /* usec in % */
 
 	line = 6;
 	mvwprintw(show_win, line, STAT_PACK_POS, " Packets");

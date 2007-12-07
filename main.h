@@ -72,6 +72,12 @@
 #define WLAN_MODE_STA		0x04
 #define WLAN_MODE_PROBE		0x08
 
+#define PHY_FLAG_SHORTPRE	0x0001
+#define PHY_FLAG_A		0x0010
+#define PHY_FLAG_B		0x0020
+#define PHY_FLAG_G		0x0040
+#define PHY_FLAG_MODE_MASK	0x00f0
+
 /* default config vlaues */
 #define INTERFACE_NAME		"wlan0"
 #define NODE_TIMEOUT		60	/* seconds */
@@ -88,6 +94,8 @@ struct packet_info {
 	int snr;
 	int len;
 	int rate;
+	int phy_freq;
+	int phy_flags;
 	int wlan_type;
 	unsigned char wlan_src[MAC_LEN];
 	unsigned char wlan_dst[MAC_LEN];
@@ -162,6 +170,7 @@ struct statistics {
 	unsigned long bytes;
 	unsigned long airtimes;
 	unsigned long symbols;
+	unsigned long duration;
 
 	unsigned long packets_per_rate[MAX_RATES];
 	unsigned long bytes_per_rate[MAX_RATES];

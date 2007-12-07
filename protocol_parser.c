@@ -195,11 +195,9 @@ parse_radiotap_header(unsigned char** buf, int len)
 				case IEEE80211_RADIOTAP_ANTENNA:
 				case IEEE80211_RADIOTAP_RTS_RETRIES:
 				case IEEE80211_RADIOTAP_DATA_RETRIES:
-				case IEEE80211_RADIOTAP_FLAGS:
 					DEBUG("[+1]");
 					b++;
 					break;
-				case IEEE80211_RADIOTAP_CHANNEL:
 				case IEEE80211_RADIOTAP_EXT:
 					DEBUG("[+4]");
 					b = b + 4;
@@ -233,6 +231,35 @@ parse_radiotap_header(unsigned char** buf, int len)
 					DEBUG("[snr %0x]", *b);
 					current_packet.snr = *b;
 					b++;
+					break;
+				case IEEE80211_RADIOTAP_FLAGS:
+					/* short preamble */
+					DEBUG("[flags %0x", *b);
+					if (*b & IEEE80211_RADIOTAP_F_SHORTPRE) {
+						current_packet.phy_flags |= PHY_FLAG_SHORTPRE;
+						DEBUG(" shortpre");
+					}
+					DEBUG("]");
+					b++;
+					break;
+				case IEEE80211_RADIOTAP_CHANNEL:
+					/* channel & channel type */
+					current_packet.phy_freq = *(u_int16_t*)b;
+					DEBUG("[chan %d ", current_packet.phy_freq);
+					b = b + 2;
+					if (*(u_int16_t*)b & IEEE80211_CHAN_A) {
+						current_packet.phy_flags |= PHY_FLAG_A;
+						DEBUG("A]");
+					}
+					else if (*(u_int16_t*)b & IEEE80211_CHAN_G) {
+						current_packet.phy_flags |= PHY_FLAG_G;
+						DEBUG("G]");
+					}
+					else if (*(u_int16_t*)b & IEEE80211_CHAN_B) {
+						current_packet.phy_flags |= PHY_FLAG_B;
+						DEBUG("B]");
+					}
+					b = b + 2;
 					break;
 			}
 		}
