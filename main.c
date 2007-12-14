@@ -54,12 +54,12 @@ struct history hist;
 struct statistics stats;
 
 struct config conf = {
-	.node_timeout = NODE_TIMEOUT,
-	.ifname = INTERFACE_NAME,
-	.display_interval = DISPLAY_UPDATE_INTERVAL,
-	.sleep_time = SLEEP_TIME,
-	.filter_pkt = 0xffffff,
-	.recv_buffer_size = RECV_BUFFER_SIZE,
+	.node_timeout		= NODE_TIMEOUT,
+	.ifname			= INTERFACE_NAME,
+	.display_interval	= DISPLAY_UPDATE_INTERVAL,
+	.sleep_time		= SLEEP_TIME,
+	.filter_pkt		= 0xffffff,
+	.recv_buffer_size	= RECV_BUFFER_SIZE,
 };
 
 static int mon; /* monitoring socket */
@@ -397,7 +397,7 @@ filter_packet(struct packet_info* pkt)
 {
 	int i;
 
-	if (!conf.do_filter)
+	if (conf.filter_off)
 		return 0;
 
 	if (!(pkt->pkt_types & conf.filter_pkt)) {

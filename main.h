@@ -211,24 +211,24 @@ struct statistics {
 extern struct statistics stat;
 
 struct config {
-	char* ifname;
-	int rport;
-	int quiet;
-	int node_timeout;
-	int display_interval;
-	int sleep_time;
-	char* dumpfile;
-	int recv_buffer_size;
+	char*		ifname;
+	int		rport;
+	int		quiet;
+	int		node_timeout;
+	int		display_interval;
+	int		sleep_time;
+	char*		dumpfile;
+	int		recv_buffer_size;
 
-	unsigned char filtermac[MAX_FILTERMAC][MAC_LEN];
-	unsigned char filterbssid[MAC_LEN];
-	int filter_pkt;
-	int do_filter;
+	unsigned char	filtermac[MAX_FILTERMAC][MAC_LEN];
+	unsigned char	filterbssid[MAC_LEN];
+	int		filter_pkt;
+	int		filter_off:1,
+			do_macfilter:1;
 
 	/* this isn't exactly config, but wtf... */
-	int arphrd; // the device ARP type
-	int paused;
-	int do_macfilter;
+	int		arphrd; // the device ARP type
+	int		paused;
 };
 
 extern struct config conf;

@@ -159,7 +159,7 @@ init_display(void)
 	attron(KEYMARK); printw("D"); attroff(KEYMARK); printw("etails ");
 	attron(KEYMARK); printw("?"); attroff(KEYMARK); printw("Help");
 #undef KEYMARK
-	mvwprintw(stdscr, LINES-1, COLS-13, "%s", conf.ifname);
+	mvwprintw(stdscr, LINES-1, COLS-14, "|%s", conf.ifname);
 
 	wattroff(stdscr, BLACKONWHITE);
 	refresh();
@@ -237,6 +237,7 @@ filter_input(int c)
 		delwin(filter_win);
 		filter_win = NULL;
 		update_display(NULL, -1);
+		update_mini_status();
 		return;
 
 	case 's':
@@ -257,7 +258,7 @@ filter_input(int c)
 		break;
 
 	case 'o':
-		conf.do_filter = conf.do_filter ? 0 : 1;
+		conf.filter_off = conf.filter_off ? 0 : 1;
 		break;
 	}
 
@@ -469,7 +470,7 @@ update_filter_win()
 
 	l++;
 	wattron(filter_win, A_BOLD);
-	mvwprintw(filter_win, l++, MAC_COL, "o: [%c] All Filters On/Off", conf.do_filter ? '*' : ' ' );
+	mvwprintw(filter_win, l++, MAC_COL, "o: [%c] All Filters Off", conf.filter_off ? '*' : ' ' );
 	wattroff(filter_win, A_BOLD);
 
 	print_centered(filter_win, 24, 57, "[ Press key or ENTER ]");
@@ -493,8 +494,11 @@ static void
 update_mini_status(void)
 {
 	wattron(stdscr, BLACKONWHITE);
-	mvwprintw(stdscr, LINES-1, COLS-17, conf.paused ? "P" : " ");
-	mvwprintw(stdscr, LINES-1, COLS-15, conf.do_filter ? "F" : " ");
+	mvwprintw(stdscr, LINES-1, COLS-22, conf.paused ? "|PAU" : "|   ");
+	if (!conf.filter_off && (conf.do_macfilter || conf.filter_pkt != 0xffffff))
+		mvwprintw(stdscr, LINES-1, COLS-18, "|FIL");
+	else
+		mvwprintw(stdscr, LINES-1, COLS-18, "|   ");
 	wattroff(stdscr, BLACKONWHITE);
 }
 
