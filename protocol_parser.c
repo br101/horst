@@ -285,10 +285,12 @@ parse_radiotap_header(unsigned char** buf, int len)
 		DEBUG("*** fixing wrong rate\n");
 		if (current_packet.phy_flags & PHY_FLAG_A)
 			current_packet.rate = 12; /* 6 * 2 */
-		if (current_packet.phy_flags & PHY_FLAG_B)
+		else if (current_packet.phy_flags & PHY_FLAG_B)
 			current_packet.rate = 2; /* 1 * 2 */
-		if (current_packet.phy_flags & PHY_FLAG_G)
+		else if (current_packet.phy_flags & PHY_FLAG_G)
 			current_packet.rate = 12; /* 6 * 2 */
+		else
+			current_packet.rate = 2;
 	}
 
 	DEBUG("\nrate: %d\n", current_packet.rate);
