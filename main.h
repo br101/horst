@@ -193,17 +193,15 @@ extern struct history hist;
 struct statistics {
 	unsigned long packets;
 	unsigned long bytes;
-	unsigned long airtimes;
-	unsigned long symbols;
 	unsigned long duration;
 
 	unsigned long packets_per_rate[MAX_RATES];
 	unsigned long bytes_per_rate[MAX_RATES];
+	unsigned long duration_per_rate[MAX_RATES];
 
 	unsigned long packets_per_type[MAX_FSTYPE];
 	unsigned long bytes_per_type[MAX_FSTYPE];
-	unsigned long airtime_per_type[MAX_FSTYPE];
-	unsigned long symbols_per_type[MAX_FSTYPE];
+	unsigned long duration_per_type[MAX_FSTYPE];
 
 	unsigned long filtered_packets;
 

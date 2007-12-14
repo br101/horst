@@ -435,43 +435,27 @@ update_history(struct packet_info* p)
 }
 
 
-static inline int
-used_symbols(int bytes, int rate)
-{
-	/* rate is in 500kbps steps */
-	rate *= 2;
-	switch (rate) {
-		case 0:
-		case 20: rate += 2;
-	}
-	return (bytes * 8 + rate - 1) / rate;
-}
-
-
 static void
 update_statistics(struct packet_info* p)
 {
-	int symbols, duration;
-	symbols = used_symbols(p->len, p->rate);
-	duration = ieee80211_frame_duration(p->phy_flags & PHY_FLAG_MODE_MASK, p->len,
-			p->rate * 5, p->phy_flags & PHY_FLAG_SHORTPRE);
+	int duration;
+	duration = ieee80211_frame_duration(p->phy_flags & PHY_FLAG_MODE_MASK,
+			p->len, p->rate * 5, p->phy_flags & PHY_FLAG_SHORTPRE);
+
 	stats.packets++;
 	stats.bytes += p->len;
+
 	if (p->rate > 0 && p->rate < MAX_RATES) {
-		/* this basically normalizes everything to 1Mbit per sec */
-		stats.airtimes += (p->len * 8) / (p->rate / 2);
-		stats.symbols += symbols;
 		stats.duration += duration;
 		stats.packets_per_rate[p->rate]++;
 		stats.bytes_per_rate[p->rate] += p->len;
+		stats.duration_per_rate[p->rate] += duration;
 	}
 	if (p->wlan_type >= 0 && p->wlan_type < MAX_FSTYPE) {
 		stats.packets_per_type[p->wlan_type]++;
 		stats.bytes_per_type[p->wlan_type] += p->len;
-		if (p->rate > 0 && p->rate < MAX_RATES) {
-			stats.airtime_per_type[p->wlan_type] += p->len / (p->rate / 2);
-			stats.symbols_per_type[p->wlan_type] += symbols;
-		}
+		if (p->rate > 0 && p->rate < MAX_RATES)
+			stats.duration_per_type[p->wlan_type] += duration;
 	}
 }
 

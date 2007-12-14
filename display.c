@@ -79,36 +79,6 @@ bytes_per_second(unsigned int bytes) {
 	return bps;
 }
 
-
-static inline int
-air_per_second(unsigned int air) {
-	static unsigned long last_air;
-	static struct timeval last;
-	static int aps;
-	/* reacalculate only every second or more */
-	if (the_time.tv_sec > last.tv_sec) {
-		aps = (1.0*(air - last_air)) / (int)(the_time.tv_sec - last.tv_sec);
-		last.tv_sec = the_time.tv_sec;
-		last_air = air;
-	}
-	return aps;
-}
-
-
-static inline int
-symbols_per_second(unsigned int symbols) {
-	static unsigned long last_symbols;
-	static struct timeval last;
-	static int sps;
-	/* reacalculate only every second or more */
-	if (the_time.tv_sec > last.tv_sec) {
-		sps = (1.0*(symbols - last_symbols)) / (int)(the_time.tv_sec - last.tv_sec);
-		last.tv_sec = the_time.tv_sec;
-		last_symbols = symbols;
-	}
-	return sps;
-}
-
 static inline int
 duration_per_second(unsigned int duration) {
 	static unsigned long last_dur;
@@ -1044,8 +1014,8 @@ update_statistics_win(void)
 {
 	int i;
 	int line;
-	float airtime;
-	int bps, aps, sps, dps;
+	int bps, dps;
+	float duration;
 
 	werase(show_win);
 	wattron(show_win, WHITE);
@@ -1064,14 +1034,8 @@ update_statistics_win(void)
 	bps = bytes_per_second(stats.bytes) * 8;
 	mvwprintw(show_win, 2, 40, "bit/sec: %s (%d)", kilo_mega_ize(bps), bps);
 
-	aps = air_per_second(stats.airtimes);
-	mvwprintw(show_win, 3, 40, "AirUsage:   %3.1f%% (%d)", aps * 1.0 / 10000, aps ); /* 1Mbps */
-
-	sps = symbols_per_second(stats.symbols);
-	mvwprintw(show_win, 4, 40, "Symbols:   %3.1f%% (%d)", sps * 1.0 / 2500, sps ); /* 250.000 symbols per sec */
-
 	dps = duration_per_second(stats.duration);
-	mvwprintw(show_win, 5, 40, "Duration:   %3.1f%% (%d)", dps * 1.0 / 10000, dps ); /* usec in % */
+	mvwprintw(show_win, 3, 40, "Duration:   %3.1f%% (%d)", dps * 1.0 / 10000, dps ); /* usec in % */
 
 	line = 6;
 	mvwprintw(show_win, line, STAT_PACK_POS, " Packets");
@@ -1080,7 +1044,7 @@ update_statistics_win(void)
 	mvwprintw(show_win, line, STAT_PP_POS, "Pkts%%");
 	mvwprintw(show_win, line, STAT_BP_POS, "Byte%%");
 	wattron(show_win, A_BOLD);
-	mvwprintw(show_win, line, STAT_AIR_POS, "\"AirTime%%\"");
+	mvwprintw(show_win, line, STAT_AIR_POS, "Duration%%");
 	mvwprintw(show_win, line++, 2, "RATE");
 	wattroff(show_win, A_BOLD);
 	mvwhline(show_win, line++, 2, '-', COLS-4);
@@ -1096,14 +1060,14 @@ update_statistics_win(void)
 			mvwprintw(show_win, line, STAT_BPP_POS, "%4d",
 				stats.bytes_per_rate[i] / stats.packets_per_rate[i]);
 			mvwprintw(show_win, line, STAT_PP_POS, "%2.1f",
-				(stats.packets_per_rate[i] * 1.0 / stats.packets) * 100);
+				stats.packets_per_rate[i] * 100.0 / stats.packets);
 			mvwprintw(show_win, line, STAT_BP_POS, "%2.1f",
-				(stats.bytes_per_rate[i] * 1.0 / stats.bytes) * 100);
+				stats.bytes_per_rate[i] * 100.0 / stats.bytes);
 			wattron(show_win, A_BOLD);
-			airtime = ((stats.bytes_per_rate[i] * 8.0 / (i / 2)) / stats.airtimes) * 100;
-			mvwprintw(show_win, line, STAT_AIR_POS, "%2.1f", airtime);
+			duration = stats.duration_per_rate[i] * 100.0 / stats.duration;
+			mvwprintw(show_win, line, STAT_AIR_POS, "%2.1f", duration);
 			mvwhline(show_win, line, STAT_AIRG_POS, '*',
-				normalize(airtime, 100, COLS - STAT_AIRG_POS - 2));
+				normalize(duration, 100, COLS - STAT_AIRG_POS - 2));
 			wattroff(show_win, A_BOLD);
 			line++;
 		}
@@ -1116,7 +1080,7 @@ update_statistics_win(void)
 	mvwprintw(show_win, line, STAT_PP_POS, "Pkts%%");
 	mvwprintw(show_win, line, STAT_BP_POS, "Byte%%");
 	wattron(show_win, A_BOLD);
-	mvwprintw(show_win, line, STAT_AIR_POS, "\"AirTime%%\"");
+	mvwprintw(show_win, line, STAT_AIR_POS, "Duration%%");
 	mvwprintw(show_win, line++, 2, "TYPE");
 	wattroff(show_win, A_BOLD);
 	mvwhline(show_win, line++, 2, '-', COLS - 4);
@@ -1132,17 +1096,17 @@ update_statistics_win(void)
 			mvwprintw(show_win, line, STAT_BPP_POS, "%4d",
 				stats.bytes_per_type[i] / stats.packets_per_type[i]);
 			mvwprintw(show_win, line, STAT_PP_POS, "%2.1f",
-				(stats.packets_per_type[i] * 1.0 / stats.packets) * 100);
+				stats.packets_per_type[i] * 100.0 / stats.packets);
 			mvwprintw(show_win, line, STAT_BP_POS, "%2.1f",
-				(stats.bytes_per_type[i] * 1.0 / stats.bytes) * 100);
+				stats.bytes_per_type[i] * 100.0 / stats.bytes);
 			wattron(show_win, A_BOLD);
-			if (stats.airtimes != 0)
-				airtime = (stats.airtime_per_type[i] * 8.0 / stats.airtimes) * 100;
+			if (stats.duration > 0)
+				duration = stats.duration_per_type[i] * 100.0 / stats.duration;
 			else
-				airtime = 100.0;
-			mvwprintw(show_win, line, STAT_AIR_POS, "%2.1f", airtime);
+				duration = 100.0;
+			mvwprintw(show_win, line, STAT_AIR_POS, "%2.1f", duration);
 			mvwhline(show_win, line, STAT_AIRG_POS, '*',
-				normalize(airtime, 100, COLS - STAT_AIRG_POS - 2));
+				normalize(duration, 100, COLS - STAT_AIRG_POS - 2));
 			wattroff(show_win, A_BOLD);
 			line++;
 		}

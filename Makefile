@@ -21,7 +21,7 @@ DEBUG=0
 PCAP=0
 OBJS=protocol_parser.o main.o capture.o display.o network.o util.o ieee80211_util.o
 LIBS=-lncurses
-CFLAGS+=-Wall -DDO_DEBUG=$(DEBUG)
+CFLAGS+=-Wall -DDO_DEBUG=$(DEBUG) # -g
 
 ifeq ($(PCAP),1)
 CFLAGS+=-DPCAP
