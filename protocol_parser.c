@@ -35,14 +35,6 @@
 #include "main.h"
 #include "util.h"
 
-#ifndef ARPHRD_IEEE80211_RADIOTAP
-#define ARPHRD_IEEE80211_RADIOTAP 803    /* IEEE 802.11 + radiotap header */
-#endif
-
-#ifndef ARPHRD_IEEE80211_PRISM
-#define ARPHRD_IEEE80211_PRISM 802      /* IEEE 802.11 + Prism2 header  */
-#endif
-
 static int parse_prism_header(unsigned char** buf, int len);
 static int parse_radiotap_header(unsigned char** buf, int len);
 static int parse_80211_header(unsigned char** buf, int len);

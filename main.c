@@ -87,6 +87,11 @@ main(int argc, char** argv)
 		err(1, "couldn't open packet socket");
 
 	conf.arphrd = device_get_arptype();
+	if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
+	    conf.arphrd != ARPHRD_IEEE80211_RADIOTAP) {
+		printf("wrong monitor type. please use radiotap or prism2 headers\n");
+		exit(1);
+	}
 
 	if (conf.dumpfile != NULL) {
 		DF = fopen(conf.dumpfile, "w");
