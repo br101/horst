@@ -704,10 +704,8 @@ print_list_line(int line, struct node_info* n)
 	if (n->pkt_types & PKT_TYPE_BATMAN)
 		wprintw(list_win, " B");
 
-	mvwprintw(list_win, line, COL_TSF, "%08x", n->tsf >> 32);
-
 	if (n->channel)
-		mvwprintw(list_win, line, COL_TSF + 9, "%2d", n->channel );
+		mvwprintw(list_win, line, COL_TSF, "%2d", n->channel );
 
 	wattroff(list_win, A_BOLD);
 	wattroff(list_win, GREEN);
@@ -733,8 +731,7 @@ update_list_win(void)
 	mvwprintw(list_win, 0, COL_BSSID, "(BSSID)");
 	mvwprintw(list_win, 0, COL_IP, "IP");
 	mvwprintw(list_win, 0, COL_OLSR, "MESH");
-	mvwprintw(list_win, 0, COL_TSF, "TSF High");
-	mvwprintw(list_win, 0, COL_TSF+9, "CH");
+	mvwprintw(list_win, 0, COL_TSF, "CH");
 
 	/* reuse bottom line for information on other win */
 	mvwprintw(list_win, LINES/2, 0, "Sig/Noi-RT-SOURCE");
