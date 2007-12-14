@@ -158,6 +158,7 @@ void
 get_options(int argc, char** argv)
 {
 	int c;
+	static int n;
 
 	while((c = getopt(argc, argv, "hqi:t:p:e:d:w:o:b:")) > 0) {
 		switch (c) {
@@ -189,9 +190,12 @@ get_options(int argc, char** argv)
 				conf.sleep_time = atoi(optarg);
 				break;
 			case 'e':
+				if (n >= MAX_FILTERMAC)
+					break;
 				conf.do_macfilter = 1;
-				convert_string_to_mac(optarg, conf.filtermac[0]);
-				printf("%s\n", ether_sprintf(conf.filtermac[0]));
+				convert_string_to_mac(optarg, conf.filtermac[n]);
+				printf("%s\n", ether_sprintf(conf.filtermac[n]));
+				n++;
 				break;
 			case 'h':
 			default:
