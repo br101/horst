@@ -260,8 +260,7 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 	}
 	if ((p->wlan_type & IEEE80211_FCTL_FTYPE) == IEEE80211_FTYPE_MGMT &&
 	    (p->wlan_type & IEEE80211_FCTL_STYPE) == IEEE80211_STYPE_BEACON) {
-		n->tsfl = *(unsigned long*)(&p->wlan_tsf[0]);
-		n->tsfh = *(unsigned long*)(&p->wlan_tsf[4]);
+		n->tsf = p->wlan_tsf;
 	}
 	n->snr = p->snr;
 	if (p->snr > n->snr_max)
@@ -486,8 +485,7 @@ write_to_file(struct packet_info* pkt)
 	fprintf(DF, "%s, ", ether_sprintf(pkt->wlan_bssid));
 	fprintf(DF, "%x, %d, %d, %d, %d, %d, ",
 		pkt->pkt_types, pkt->signal, pkt->noise, pkt->snr, pkt->len, pkt->rate);
-	fprintf(DF, "%08lx:%08lx, ",
-		*(unsigned long*)(&pkt->wlan_tsf[4]), *(unsigned long*)(&pkt->wlan_tsf[0]));
+	fprintf(DF, "%016llx, ", pkt->wlan_tsf);
 	fprintf(DF, "%s, %d, %d, %d, ",
 		pkt->wlan_essid, pkt->wlan_mode, pkt->wlan_channel, pkt->wlan_wep);
 	fprintf(DF, "%s, ", ip_sprintf(pkt->ip_src));

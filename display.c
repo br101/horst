@@ -734,7 +734,7 @@ print_list_line(int line, struct node_info* n)
 	if (n->pkt_types & PKT_TYPE_BATMAN)
 		wprintw(list_win, " B");
 
-	mvwprintw(list_win, line, COL_TSF, "%08x", n->tsfh);
+	mvwprintw(list_win, line, COL_TSF, "%08x", n->tsf >> 32);
 
 	if (n->channel)
 		mvwprintw(list_win, line, COL_TSF + 9, "%2d", n->channel );
@@ -833,7 +833,7 @@ update_essid_win(void)
 				node->wlan_mode == WLAN_MODE_AP ? "AP  " : "IBSS",
 				ether_sprintf(node->last_pkt.wlan_src));
 			wprintw(show_win, " BSSID (%s) ", ether_sprintf(node->wlan_bssid));
-			wprintw(show_win, "TSF %08x:%08x", node->tsfh, node->tsfl);
+			wprintw(show_win, "TSF %016llx", node->tsf);
 			wprintw(show_win, " CH %d", node->channel);
 			wprintw(show_win, " %ddB", node->snr);
 			wprintw(show_win, " %s", node->wep ? "WEP" : "OPEN");
@@ -1017,8 +1017,8 @@ update_dump_win(struct packet_info* pkt)
 			switch (current_packet.wlan_type & IEEE80211_FCTL_STYPE) {
 			case IEEE80211_STYPE_BEACON:
 			case IEEE80211_STYPE_PROBE_RESP:
-				wprintw(dump_win, "'%s' :%08x", pkt->wlan_essid,
-					*(unsigned long*)(&pkt->wlan_tsf[0]));
+				wprintw(dump_win, "'%s' %llx", pkt->wlan_essid,
+					pkt->wlan_tsf);
 				break;
 			case IEEE80211_STYPE_PROBE_REQ:
 				wprintw(dump_win, "'%s'", pkt->wlan_essid);

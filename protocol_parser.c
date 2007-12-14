@@ -391,7 +391,7 @@ parse_80211_header(unsigned char** buf, int len)
 		switch (current_packet.wlan_type & IEEE80211_FCTL_STYPE) {
 		case IEEE80211_STYPE_BEACON:
 			current_packet.pkt_types |= PKT_TYPE_BEACON;
-			memcpy(current_packet.wlan_tsf, &whm->u.beacon.timestamp, 8);
+			current_packet.wlan_tsf = whm->u.beacon.timestamp;
 			ieee802_11_parse_elems(whm->u.beacon.variable,
 				len - sizeof(struct ieee80211_mgmt) - 4 /* FCS */, &current_packet);
 			DEBUG("ESSID %s \n", current_packet.wlan_essid );
@@ -406,7 +406,7 @@ parse_80211_header(unsigned char** buf, int len)
 
 		case IEEE80211_STYPE_PROBE_RESP:
 			current_packet.pkt_types |= PKT_TYPE_PROBE;
-			memcpy(current_packet.wlan_tsf, &whm->u.beacon.timestamp, 8);
+			current_packet.wlan_tsf = whm->u.beacon.timestamp;
 			ieee802_11_parse_elems(whm->u.beacon.variable,
 				len - sizeof(struct ieee80211_mgmt) - 4 /* FCS */, &current_packet);
 			DEBUG("ESSID %s \n", current_packet.wlan_essid );

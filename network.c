@@ -99,7 +99,7 @@ net_send_packet()
 			strcpy(src_eth,ether_sprintf(nodes[i].last_pkt.wlan_src));
 			if (nodes[i].status == 1) {
 				/* ip sig noise snr source bssid lq gw neigh olsrcount count tsf */
-				llen=snprintf(line,sizeof(line)-1,"%s %d %d %d %s %s %d %d %d %d %d %08lx\r\n",
+				llen=snprintf(line,sizeof(line)-1,"%s %d %d %d %s %s %d %d %d %d %d %016llx\r\n",
 					ip_sprintf(nodes[i].ip_src),
 					nodes[i].last_pkt.signal,nodes[i].last_pkt.noise,nodes[i].last_pkt.snr,
 					src_eth,
@@ -108,7 +108,7 @@ net_send_packet()
 					nodes[i].pkt_types & PKT_TYPE_OLSR_GW,
 					nodes[i].olsr_neigh,
 					nodes[i].olsr_count, nodes[i].pkt_count,
-					nodes[i].tsfh);
+					nodes[i].tsf);
 				write(cli_fd,line,llen);
 			}
 		}

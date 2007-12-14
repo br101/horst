@@ -109,7 +109,7 @@ struct packet_info {
 	unsigned char wlan_src[MAC_LEN];
 	unsigned char wlan_dst[MAC_LEN];
 	unsigned char wlan_bssid[MAC_LEN];
-	unsigned char wlan_tsf[8];
+	u_int64_t wlan_tsf;
 	char wlan_essid[255];
 	int wlan_mode;
 	unsigned char wlan_channel;
@@ -124,26 +124,35 @@ struct packet_info {
 extern struct packet_info current_packet;
 
 struct node_info {
-	int status;
-	int pkt_types;
-	unsigned int ip_src;
-	struct packet_info last_pkt;
-	time_t last_seen;
-	int olsr_neigh;
-	int olsr_tc;
-	int pkt_count;
-	int olsr_count;
-	unsigned char wlan_bssid[MAC_LEN];
-	int channel;
-	int wlan_mode;
-	unsigned long tsfl;
-	unsigned long tsfh;
+	/* housekeeping */
+	int status; 			/* used for array: 1 means used */
+	time_t last_seen;		/* timestamp */
+
+	/* general packet info */
+	int pkt_types;			/* bitmask of packet types we've seen */
+	int pkt_count;			/* nr of packets seen */
+
+	/* wlan phy (from radiotap) */
 	int snr;
 	int snr_min;
 	int snr_max;
 	int sig_max;
+
+	/* wlan mac */
+	unsigned char wlan_bssid[MAC_LEN]; /* well... bssid */
+	int channel;			/* channel from beacon, probe frames */
+	int wlan_mode;			/* AP, STA or IBSS */
+	u_int64_t tsf;
+	int wep;			/* WEP active? */
 	int essid;
-	int wep;
+
+	/* IP */
+	unsigned int ip_src;		/* IP address (if known) */
+	int olsr_count;			/* number of OLSR packets */
+	int olsr_neigh;			/* number if OLSR neighbours */
+	int olsr_tc;			/* unused */
+
+	struct packet_info last_pkt;
 };
 
 extern struct node_info nodes[MAX_NODES];
