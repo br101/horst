@@ -376,6 +376,9 @@ parse_80211_header(unsigned char** buf, int len)
 			break;
 
 		case IEEE80211_STYPE_CFEND:
+			da = wh->addr1;
+			sa = wh->addr2;
+			break;
 		case IEEE80211_STYPE_CFENDACK:
 			/* dont know, dont care */
 			break;
