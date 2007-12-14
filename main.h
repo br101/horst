@@ -97,23 +97,30 @@
 
 
 struct packet_info {
-	int pkt_types;
-	int signal;
-	int noise;
-	int snr;
-	int len;
-	int rate;
-	int phy_freq;
-	int phy_flags;
-	int wlan_type;
+	/* general */
+	int pkt_types;			/* bitmask of packet types in this pkt */
+	int len;			/* packet length */
+
+	/* wlan phy (from radiotap) */
+	int signal;			/* signal strength (usually dBm) */
+	int noise;			/* noise level (usually dBm) */
+	int snr;			/* signal to noise ratio */
+	int rate;			/* physical rate */
+	int phy_freq;			/* frequency (unused) */
+	int phy_flags;			/* A, B, G, shortpre */
+
+	/* wlan mac */
+	int wlan_type;			/* frame control field */
 	unsigned char wlan_src[MAC_LEN];
 	unsigned char wlan_dst[MAC_LEN];
 	unsigned char wlan_bssid[MAC_LEN];
-	u_int64_t wlan_tsf;
 	char wlan_essid[255];
-	int wlan_mode;
-	unsigned char wlan_channel;
-	int wlan_wep;
+	u_int64_t wlan_tsf;		/* timestamp from beacon */
+	int wlan_mode;			/* AP, STA or IBSS */
+	unsigned char wlan_channel;	/* channel from beacon, probe */
+	int wlan_wep;			/* WEP on/off */
+
+	/* IP */
 	unsigned int ip_src;
 	unsigned int ip_dst;
 	int olsr_type;
