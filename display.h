@@ -26,7 +26,7 @@ void
 update_display(struct packet_info* pkg, int node_number);
 
 void
-handle_user_input();
+handle_user_input(void);
 
 void
 init_display(void);

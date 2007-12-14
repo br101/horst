@@ -69,7 +69,7 @@ net_init_socket(int rport)
 
 
 int
-net_send_packet()
+net_send_packet(void)
 {
 	FD_ZERO(&rs);
 	FD_SET(srv_fd,&rs);
@@ -119,6 +119,6 @@ net_send_packet()
 
 
 void
-net_finish() {
+net_finish(void) {
 	close(srv_fd);
 }
