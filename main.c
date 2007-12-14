@@ -443,7 +443,7 @@ used_symbols(int bytes, int rate)
 	rate *= 2;
 	switch (rate) {
 		case 0:
-		case 10: rate += 2;
+		case 20: rate += 2;
 	}
 	return (bytes * 8 + rate - 1) / rate;
 }

@@ -267,8 +267,8 @@ filter_input(int c)
 		delwin(filter_win);
 		filter_win = NULL;
 		update_display(NULL, -1);
-		return
-;
+		return;
+
 	case 's':
 		echo();
 		print_centered(filter_win, 24, 57, "[ Enter new BSSID and ENTER ]");
@@ -426,7 +426,7 @@ static void
 show_sort_win(void)
 {
 	if (small_win == NULL) {
-		small_win = newwin(1, COLS, LINES-2, 0);
+		small_win = newwin(1, COLS-2, LINES / 2 - 1, 1);
 		wattron(small_win, BLACKONWHITE);
 		mvwhline(small_win, 0, 0, ' ', COLS);
 		mvwprintw(small_win, 0, 0, " -> Sort by s:SNR t:Time n:Don't sort [current: %c]", do_sort);
