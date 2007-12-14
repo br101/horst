@@ -131,13 +131,29 @@ parse_prism_header(unsigned char** buf, int len)
 		current_packet.snr = ph->signal.data - ph->noise.data; //XXX rssi?
 	}
 
+	current_packet.rate = ph->rate.data;
+
 	/* just in case...*/
 	if (current_packet.snr < 0)
 		current_packet.snr = -current_packet.snr;
 	if (current_packet.snr > 99)
 		current_packet.snr = 99;
+	if (current_packet.rate == 0 || current_packet.rate > 108) {
+		/* assume min rate, guess mode from channel */
+		DEBUG("*** fixing wrong rate\n");
+		if (ph->channel.data > 14)
+			current_packet.rate = 12; /* 6 * 2 */
+		else
+			current_packet.rate = 2; /* 1 * 2 */
+	}
 
-	current_packet.rate = ph->rate.data;
+	/* guess phy mode */
+	if (ph->channel.data > 14)
+		current_packet.phy_flags |= PHY_FLAG_A;
+	else
+		current_packet.phy_flags |= PHY_FLAG_G;
+	/* always assume shortpre */
+	current_packet.phy_flags |= PHY_FLAG_SHORTPRE;
 
 	DEBUG("devname: %s\n", ph->devname);
 	DEBUG("signal: %d -> %d\n", ph->signal.data, current_packet.signal);

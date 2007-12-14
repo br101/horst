@@ -201,11 +201,14 @@ ieee802_11_parse_elems(unsigned char *start, int len, struct packet_info *pkt)
 static inline int
 ieee80211_is_erp_rate(int phymode, int rate)
 {
-	if (phymode == IEEE80211_CHAN_G) {
+	if (phymode & PHY_FLAG_G) {
 		if (rate != 10 && rate != 20 &&
-		    rate != 55 && rate != 110)
+		    rate != 55 && rate != 110) {
+			DEBUG("erp\n");
 			return 1;
+		}
 	}
+	DEBUG("no erp\n");
 	return 0;
 }
 
@@ -251,7 +254,7 @@ ieee80211_frame_duration(int phymode, size_t len,
 		dur += 4 * DIV_ROUND_UP((16 + 8 * (len + 4) + 6) * 10,
 					4 * rate); /* T_SYM x N_SYM */
 	} else {
-		DEBUG("B\n");
+		DEBUG("CCK\n");
 		/*
 		 * 802.11b or 802.11g with 802.11b compatibility:
 		 * 18.3.4: TXTIME = PreambleLength + PLCPHeaderTime +
