@@ -367,6 +367,10 @@ handle_user_input()
 		break;
 
 	case 'r': case 'R':
+		memset(&nodes, 0, sizeof(nodes));
+		memset(&essids, 0, sizeof(essids));
+		memset(&splits, 0, sizeof(splits));
+		memset(&hist, 0, sizeof(hist));
 		memset(&stats, 0, sizeof(stats));
 		gettimeofday(&stats.stats_time, NULL);
 		break;
