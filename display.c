@@ -673,7 +673,7 @@ print_list_line(int line, struct node_info* n)
 	else
 		wattron(list_win, A_NORMAL);
 
-	if (essids[n->essid].split > 0)
+	if (n->essid != NULL && n->essid->split > 0)
 		wattron(list_win, RED);
 
 	mvwprintw(list_win, line, 1, "%c", spin[n->pkt_count % 4]);
@@ -799,7 +799,7 @@ update_essid_win(void)
 			wattron(show_win, GREEN);
 		line++;
 		for (n = 0; n < essids[i].num_nodes && n < MAX_NODES; n++) {
-			node = &nodes[essids[i].nodes[n]];
+			node = essids[i].nodes[n];
 			mvwprintw(show_win, line, 3, "%2d. %s %s", n+1,
 				node->wlan_mode == WLAN_MODE_AP ? "AP  " : "IBSS",
 				ether_sprintf(node->last_pkt.wlan_src));

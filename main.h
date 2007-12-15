@@ -130,6 +130,8 @@ struct packet_info {
 
 extern struct packet_info current_packet;
 
+struct essid_info;
+
 struct node_info {
 	/* housekeeping */
 	int		status; 	/* used for array: 1 means used */
@@ -151,7 +153,7 @@ struct node_info {
 	int		wlan_mode;	/* AP, STA or IBSS */
 	u_int64_t	tsf;
 	int		wep;		/* WEP active? */
-	int		essid;
+	struct essid_info*	essid;
 
 	/* IP */
 	unsigned int	ip_src;		/* IP address (if known) */
@@ -166,7 +168,7 @@ extern struct node_info nodes[MAX_NODES];
 
 struct essid_info {
 	char		essid[MAX_ESSID_LEN];
-	int		nodes[MAX_NODES];
+	struct node_info* nodes[MAX_NODES];
 	int		num_nodes;
 	int		split;
 };

@@ -38,7 +38,7 @@
 
 static void get_options(int argv, char** argc);
 static int node_update(struct packet_info* pkt);
-static void check_ibss_split(struct packet_info* pkt, int pkt_node);
+static void check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node);
 static int filter_packet(struct packet_info* pkt);
 static void update_history(struct packet_info* pkt);
 static void update_statistics(struct packet_info* pkt);
@@ -139,7 +139,7 @@ main(int argc, char** argv)
 
 		update_history(&current_packet);
 		update_statistics(&current_packet);
-		check_ibss_split(&current_packet, n);
+		check_ibss_split(&current_packet, &nodes[n]);
 
 		if (conf.rport) {
 			net_send_packet();
@@ -299,7 +299,7 @@ node_update(struct packet_info* pkt)
 		} else {
 			/* past all used nodes: create new node */
 			copy_nodeinfo(&nodes[i], pkt);
-			nodes[i].essid = -1;
+			nodes[i].essid = NULL;
 			return i;
 		}
 	}
@@ -308,7 +308,7 @@ node_update(struct packet_info* pkt)
 
 
 static void
-check_ibss_split(struct packet_info* pkt, int pkt_node)
+check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node)
 {
 	int i, n;
 	struct node_info* node;
@@ -355,19 +355,19 @@ check_ibss_split(struct packet_info* pkt, int pkt_node)
 
 	/* new node */
 	if (essids[i].num_nodes == 0 || essids[i].nodes[n] != pkt_node) {
-		DEBUG("SPLIT   recorded new node nr %d %d %s\n", n, pkt_node,
+		DEBUG("SPLIT   recorded new node nr %d %p %s\n", n, pkt_node,
 			ether_sprintf(pkt->wlan_src) );
 		essids[i].nodes[n] = pkt_node;
 		essids[i].num_nodes = n + 1;
-		nodes[pkt_node].essid = i;
+		pkt_node->essid = &essids[i];
 	}
 
 	/* check for split */
 	essids[i].split = 0;
 	for (n = 0; n < essids[i].num_nodes && n < MAX_NODES; n++) {
-		node = &nodes[essids[i].nodes[n]];
-		DEBUG("SPLIT      %d. node %d src %s", n,
-			essids[i].nodes[n], ether_sprintf(node->last_pkt.wlan_src));
+		node = essids[i].nodes[n];
+		DEBUG("SPLIT      %d. node %p src %s", n,
+			node, ether_sprintf(node->last_pkt.wlan_src));
 		DEBUG(" bssid %s\n", ether_sprintf(node->wlan_bssid));
 
 		if (node->wlan_mode == WLAN_MODE_AP)
