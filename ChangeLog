@@ -24,7 +24,8 @@
 
 	* optimized screen updates - saves CPU time
 
-	* packet statistics, AirTime, Usage
+	* packet statistics, AirTime, Usage, added "duration" calculation to
+          estimate the usage of the channel
 
 	* better filter framework
 

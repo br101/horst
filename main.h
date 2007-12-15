@@ -98,66 +98,66 @@
 
 struct packet_info {
 	/* general */
-	int pkt_types;			/* bitmask of packet types in this pkt */
-	int len;			/* packet length */
+	int		pkt_types;	/* bitmask of packet types in this pkt */
+	int		len;		/* packet length */
 
 	/* wlan phy (from radiotap) */
-	int signal;			/* signal strength (usually dBm) */
-	int noise;			/* noise level (usually dBm) */
-	int snr;			/* signal to noise ratio */
-	int rate;			/* physical rate */
-	int phy_freq;			/* frequency (unused) */
-	int phy_flags;			/* A, B, G, shortpre */
+	int		signal;		/* signal strength (usually dBm) */
+	int		noise;		/* noise level (usually dBm) */
+	int		snr;		/* signal to noise ratio */
+	int		rate;		/* physical rate */
+	int		phy_freq;	/* frequency (unused) */
+	int		phy_flags;	/* A, B, G, shortpre */
 
 	/* wlan mac */
-	int wlan_type;			/* frame control field */
-	unsigned char wlan_src[MAC_LEN];
-	unsigned char wlan_dst[MAC_LEN];
-	unsigned char wlan_bssid[MAC_LEN];
-	char wlan_essid[255];
-	u_int64_t wlan_tsf;		/* timestamp from beacon */
-	int wlan_mode;			/* AP, STA or IBSS */
-	unsigned char wlan_channel;	/* channel from beacon, probe */
-	int wlan_wep;			/* WEP on/off */
+	int		wlan_type;	/* frame control field */
+	unsigned char	wlan_src[MAC_LEN];
+	unsigned char	wlan_dst[MAC_LEN];
+	unsigned char	wlan_bssid[MAC_LEN];
+	char		wlan_essid[255];
+	u_int64_t	wlan_tsf;	/* timestamp from beacon */
+	int		wlan_mode;	/* AP, STA or IBSS */
+	unsigned char	wlan_channel;	/* channel from beacon, probe */
+	int		wlan_wep;	/* WEP on/off */
 
 	/* IP */
-	unsigned int ip_src;
-	unsigned int ip_dst;
-	int olsr_type;
-	int olsr_neigh;
-	int olsr_tc;
+	unsigned int	ip_src;
+	unsigned int	ip_dst;
+	int		olsr_type;
+	int		olsr_neigh;
+	int		olsr_tc;
 };
 
 extern struct packet_info current_packet;
 
 struct node_info {
 	/* housekeeping */
-	int status; 			/* used for array: 1 means used */
-	time_t last_seen;		/* timestamp */
+	int		status; 	/* used for array: 1 means used */
+	time_t		last_seen;	/* timestamp */
 
 	/* general packet info */
-	int pkt_types;			/* bitmask of packet types we've seen */
-	int pkt_count;			/* nr of packets seen */
+	int		pkt_types;	/* bitmask of packet types we've seen */
+	int		pkt_count;	/* nr of packets seen */
 
 	/* wlan phy (from radiotap) */
-	int snr;
-	int snr_min;
-	int snr_max;
-	int sig_max;
+	int		snr;
+	int		snr_min;
+	int		snr_max;
+	int		sig_max;
 
 	/* wlan mac */
-	unsigned char wlan_bssid[MAC_LEN]; /* well... bssid */
-	int channel;			/* channel from beacon, probe frames */
-	int wlan_mode;			/* AP, STA or IBSS */
-	u_int64_t tsf;
-	int wep;			/* WEP active? */
-	int essid;
+	unsigned char	wlan_bssid[MAC_LEN]; /* well... bssid */
+	int		channel;	/* channel from beacon, probe frames */
+	int		wlan_mode;	/* AP, STA or IBSS */
+	u_int64_t	tsf;
+	int		wep;		/* WEP active? */
+	int		essid;
 
 	/* IP */
-	unsigned int ip_src;		/* IP address (if known) */
-	int olsr_count;			/* number of OLSR packets */
-	int olsr_neigh;			/* number if OLSR neighbours */
-	int olsr_tc;			/* unused */
+	unsigned int	ip_src;		/* IP address (if known) */
+	int		olsr_count;	/* number of OLSR packets */
+	int		olsr_neigh;	/* number if OLSR neighbours */
+	int		olsr_tc;	/* unused */
 
 	struct packet_info last_pkt;
 };
@@ -165,47 +165,47 @@ struct node_info {
 extern struct node_info nodes[MAX_NODES];
 
 struct essid_info {
-	char essid[MAX_ESSID_LEN];
-	int nodes[MAX_NODES];
-	int num_nodes;
-	int split;
+	char		essid[MAX_ESSID_LEN];
+	int		nodes[MAX_NODES];
+	int		num_nodes;
+	int		split;
 };
 
 extern struct essid_info essids[MAX_ESSIDS];
 
 struct split_info {
-	int essid[MAX_ESSIDS];
-	int count;
+	int		essid[MAX_ESSIDS];
+	int		count;
 };
 
 extern struct split_info splits;
 
 struct history {
-	int signal[MAX_HISTORY];
-	int noise[MAX_HISTORY];
-	int rate[MAX_HISTORY];
-	int type[MAX_HISTORY];
-	int index;
+	int		signal[MAX_HISTORY];
+	int		noise[MAX_HISTORY];
+	int		rate[MAX_HISTORY];
+	int		type[MAX_HISTORY];
+	int		index;
 };
 
 extern struct history hist;
 
 struct statistics {
-	unsigned long packets;
-	unsigned long bytes;
-	unsigned long duration;
+	unsigned long	packets;
+	unsigned long	bytes;
+	unsigned long	duration;
 
-	unsigned long packets_per_rate[MAX_RATES];
-	unsigned long bytes_per_rate[MAX_RATES];
-	unsigned long duration_per_rate[MAX_RATES];
+	unsigned long	packets_per_rate[MAX_RATES];
+	unsigned long	bytes_per_rate[MAX_RATES];
+	unsigned long	duration_per_rate[MAX_RATES];
 
-	unsigned long packets_per_type[MAX_FSTYPE];
-	unsigned long bytes_per_type[MAX_FSTYPE];
-	unsigned long duration_per_type[MAX_FSTYPE];
+	unsigned long	packets_per_type[MAX_FSTYPE];
+	unsigned long	bytes_per_type[MAX_FSTYPE];
+	unsigned long	duration_per_type[MAX_FSTYPE];
 
-	unsigned long filtered_packets;
+	unsigned long	filtered_packets;
 
-	struct timeval stats_time;
+	struct timeval	stats_time;
 };
 
 extern struct statistics stat;
