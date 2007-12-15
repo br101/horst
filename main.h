@@ -176,8 +176,8 @@ struct essid_info {
 extern struct essid_info essids[MAX_ESSIDS];
 
 struct split_info {
-	int		essid[MAX_ESSIDS];
-	int		count;
+	struct essid_info* essid;
+	int		active;
 };
 
 extern struct split_info splits;

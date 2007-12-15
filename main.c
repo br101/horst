@@ -382,12 +382,12 @@ check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node)
 
 	/* if a split occurred on this essid, record it */
 	if (essids[i].split > 0) {
-		DEBUG("SPLIT *** new record %d\n", i);
-		splits.count = 1;
-		splits.essid[0] = i;
+		DEBUG("SPLIT *** active %d\n", i);
+		splits.active = 1;
+		splits.essid = &essids[i];
 	}
 	else {
-		splits.count = 0;
+		splits.active = 0;
 	}
 }
 

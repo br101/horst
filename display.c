@@ -765,11 +765,11 @@ update_list_win(void)
 		}
 	}
 
-	if (splits.count > 0) {
+	if (splits.active > 0) {
 		wattron(list_win, RED);
 		mvwprintw(list_win, LINES / 2 - 2, 10, " *** IBSS SPLIT DETECTED!!! ESSID ");
-		wprintw(list_win, "'%s' ", essids[splits.essid[0]].essid);
-		wprintw(list_win, "%d nodes *** ", essids[splits.essid[0]].num_nodes);
+		wprintw(list_win, "'%s' ", splits.essid->essid);
+		wprintw(list_win, "%d nodes *** ", splits.essid->num_nodes);
 		wattroff(list_win, RED);
 	}
 	wnoutrefresh(list_win);
