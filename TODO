@@ -4,13 +4,11 @@ TODO:
 
  * better batman support
  * OLSR ETX auswertung
+ * list sort
  * IP auswertung
  * remote client
- * timed out nodes are never reclaimed!
  * sig/noise WRT
- * essid timeout
  * detaildenster sortiert nach ESSID
- * pause/run bei help
 
 -----------------
 feature requests:
