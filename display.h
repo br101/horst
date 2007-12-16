@@ -23,7 +23,7 @@
 #include "main.h"
 
 void
-update_display(struct packet_info* pkg, int node_number);
+update_display(struct packet_info* pkg, struct node_info* node);
 
 void
 handle_user_input(void);

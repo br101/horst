@@ -136,7 +136,7 @@ struct essid_info;
 
 struct node_info {
 	/* housekeeping */
-	int			status; 	/* used for array: 1 means used */
+	struct list_head	list;
 	time_t			last_seen;	/* timestamp */
 
 	/* general packet info */
@@ -166,7 +166,7 @@ struct node_info {
 	struct packet_info	last_pkt;
 };
 
-extern struct node_info nodes[MAX_NODES];
+extern struct list_head nodes;
 
 struct node_ptr_list {
 	struct list_head	list;

@@ -37,7 +37,7 @@
 #include "ieee80211_util.h"
 
 static void get_options(int argv, char** argc);
-static int node_update(struct packet_info* pkt);
+static struct node_info* node_update(struct packet_info* pkt);
 static void check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node);
 static int filter_packet(struct packet_info* pkt);
 static void update_history(struct packet_info* pkt);
@@ -46,12 +46,10 @@ static void write_to_file(struct packet_info* pkt);
 
 struct packet_info current_packet;
 
-/* no, i dont want to implement a linked list now */
-struct node_info nodes[MAX_NODES];
+struct list_head nodes;
+struct essid_meta_info essids;
 struct history hist;
 struct statistics stats;
-
-struct essid_meta_info essids;
 
 struct config conf = {
 	.node_timeout		= NODE_TIMEOUT,
@@ -71,7 +69,7 @@ main(int argc, char** argv)
 {
 	unsigned char buffer[8192];
 	int len;
-	int n;
+	struct node_info* node;
 
 	get_options(argc, argv);
 
@@ -100,6 +98,7 @@ main(int argc, char** argv)
 	}
 
 	INIT_LIST_HEAD(&essids.list);
+	INIT_LIST_HEAD(&nodes);
 
 	if (conf.rport)
 		net_init_socket(conf.rport);
@@ -125,7 +124,7 @@ main(int argc, char** argv)
 #if DO_DEBUG
 		dump_packet(buffer, len);
 #endif
-		memset(&current_packet,0,sizeof(current_packet));
+		memset(&current_packet, 0, sizeof(current_packet));
 		if (!parse_packet(buffer, len)) {
 			DEBUG("parsing failed\n");
 			continue;
@@ -137,18 +136,18 @@ main(int argc, char** argv)
 		if (conf.dumpfile != NULL)
 			write_to_file(&current_packet);
 
-		n = node_update(&current_packet);
+		node = node_update(&current_packet);
 
 		update_history(&current_packet);
 		update_statistics(&current_packet);
-		check_ibss_split(&current_packet, &nodes[n]);
+		check_ibss_split(&current_packet, node);
 
 		if (conf.rport) {
 			net_send_packet();
 			continue;
 		}
 #if !DO_DEBUG
-		update_display(&current_packet, n);
+		update_display(&current_packet, node);
 #endif
 	}
 	/* will never */
@@ -227,7 +226,16 @@ free_lists(void)
 {
 	struct essid_info *e, *f;
 	struct node_ptr_list *n, *m;
+	struct node_info *ni, *mi;
 
+	/* free node list */
+	list_for_each_entry_safe(ni, mi, &nodes, list) {
+		DEBUG("free node %s\n", ether_sprintf(ni->last_pkt.wlan_src));
+		list_del(&ni->list);
+		free(ni);
+	}
+
+	/* free essids and their node references */
 	list_for_each_entry_safe(e, f, &essids.list, list) {
 		DEBUG("free essid '%s'\n", e->essid);
 		list_for_each_entry_safe(n, m, &e->nodes, list) {
@@ -265,9 +273,8 @@ static void
 copy_nodeinfo(struct node_info* n, struct packet_info* p)
 {
 	memcpy(&(n->last_pkt), p, sizeof(struct packet_info));
-	// update timestamp + status
+	// update timestamp
 	n->last_seen = time(NULL);
-	n->status=1;
 	n->pkt_count++;
 	n->pkt_types |= p->pkt_types;
 	if (p->ip_src)
@@ -302,31 +309,35 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 }
 
 
-static int
+static struct node_info*
 node_update(struct packet_info* pkt)
 {
-	int i;
+	struct node_info* n;
 
 	if (pkt->wlan_src[0] == 0 && pkt->wlan_src[1] == 0 && pkt->wlan_src[2] == 0 &&
 	    pkt->wlan_src[3] == 0 && pkt->wlan_src[4] == 0 && pkt->wlan_src[5] == 0) {
-		return -1;
+		return NULL;
 	}
 
-	for (i = 0; i < MAX_NODES; i++) {
-		if (nodes[i].status == 1) {
-			/* check existing node */
-			if (memcmp(pkt->wlan_src, nodes[i].last_pkt.wlan_src, MAC_LEN) == 0) {
-				copy_nodeinfo(&nodes[i], pkt);
-				return i;
-			}
-		} else {
-			/* past all used nodes: create new node */
-			copy_nodeinfo(&nodes[i], pkt);
-			nodes[i].essid = NULL;
-			return i;
+	/* find node by wlan source address */
+	list_for_each_entry(n, &nodes, list) {
+		if (memcmp(pkt->wlan_src, n->last_pkt.wlan_src, MAC_LEN) == 0) {
+			DEBUG("node found %p\n", n);
+			break;
 		}
 	}
-	return -1;
+
+	/* not found */
+	if (&n->list == &nodes) {
+		n = malloc(sizeof(struct node_info));
+		memset(n, 0, sizeof(struct node_info));
+		n->essid = NULL;
+		list_add_tail(&n->list, &nodes);
+	}
+
+	copy_nodeinfo(n, pkt);
+
+	return n;
 }
 
 static struct node_ptr_list*

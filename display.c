@@ -37,7 +37,7 @@ static void show_sort_win(void);
 static void update_filter_win(void);
 
 static void update_dump_win(struct packet_info* pkt);
-static void update_status_win(struct packet_info* pkt, int node_number);
+static void update_status_win(struct packet_info* pkt, struct node_info* node);
 static void update_list_win(void);
 static void update_show_win(void);
 static void update_essid_win(void);
@@ -56,7 +56,6 @@ static WINDOW *small_win = NULL;
 
 static char show_win_current;
 static int do_sort = 'n';
-static struct node_info* sort_nodes[MAX_NODES];
 
 static struct timeval last_time;
 static struct timeval the_time;
@@ -173,7 +172,7 @@ init_display(void)
 	dump_win = newwin(LINES/2-2, COLS-14, LINES/2+1, 0);
 	scrollok(dump_win,TRUE);
 
-	update_display(NULL,-1);
+	update_display(NULL, NULL);
 }
 
 
@@ -236,7 +235,7 @@ filter_input(int c)
 		conf.paused = 0;
 		delwin(filter_win);
 		filter_win = NULL;
-		update_display(NULL, -1);
+		update_display(NULL, NULL);
 		update_mini_status();
 		return;
 
@@ -297,7 +296,7 @@ sort_input(int c)
 		delwin(small_win);
 		small_win = NULL;
 		conf.paused = 0;
-		update_display(NULL, -1);
+		update_display(NULL, NULL);
 		break;
 	case 'q': case 'Q':
 		finish_all(0);
@@ -375,7 +374,7 @@ handle_user_input()
 		return;
 	}
 	update_mini_status();
-	update_display(NULL, -1);
+	update_display(NULL, NULL);
 }
 
 
@@ -505,7 +504,7 @@ update_mini_status(void)
 
 
 void
-update_display(struct packet_info* pkt, int node_number)
+update_display(struct packet_info* pkt, struct node_info* node)
 {
 	gettimeofday(&the_time, NULL);
 
@@ -531,7 +530,7 @@ update_display(struct packet_info* pkt, int node_number)
 		wnoutrefresh(filter_win);
 	else {
 		update_list_win();
-		update_status_win(pkt, node_number);
+		update_status_win(pkt, node);
 		update_dump_win(pkt);
 	}
 	/* only one redraw */
@@ -558,7 +557,7 @@ update_show_win()
 #define MAX_STAT_BAR LINES/2-6
 
 static void
-update_status_win(struct packet_info* pkt, int node_number)
+update_status_win(struct packet_info* pkt, struct node_info* node)
 {
 	int sig, noi, max, rate, bps, bpsn, use, usen;
 
@@ -579,8 +578,8 @@ update_status_win(struct packet_info* pkt, int node_number)
 		noi = normalize_db(-pkt->noise, MAX_STAT_BAR);
 		rate = normalize(pkt->rate, 108, MAX_STAT_BAR);
 
-		if (node_number >= 0 && nodes[node_number].sig_max < 0) {
-			max = normalize_db(-nodes[node_number].sig_max, MAX_STAT_BAR);
+		if (node != NULL && node->sig_max < 0) {
+			max = normalize_db(-node->sig_max, MAX_STAT_BAR);
 		}
 
 		wattron(stat_win, GREEN);
@@ -621,6 +620,7 @@ update_status_win(struct packet_info* pkt, int node_number)
 }
 
 
+#if 0
 static int
 compare_nodes_snr(const void *p1, const void *p2)
 {
@@ -649,6 +649,7 @@ compare_nodes_time(const void *p1, const void *p2)
 	else
 		return 1;
 }
+#endif
 
 
 #define COL_IP 3
@@ -721,8 +722,6 @@ print_list_line(int line, struct node_info* n)
 static void
 update_list_win(void)
 {
-	int i;
-	int num_nodes;
 	struct node_info* n;
 	int line = 0;
 
@@ -745,6 +744,7 @@ update_list_win(void)
 	mvwprintw(list_win, LINES/2, 56, "INFO");
 	mvwprintw(list_win, LINES/2, COLS-12, "LiveStatus");
 
+#if 0
 	/* create an array of node pointers to make sorting independent */
 	for (i = 0; i < MAX_NODES && nodes[i].status == 1; i++)
 		sort_nodes[i] = &nodes[i];
@@ -755,9 +755,9 @@ update_list_win(void)
 		qsort(sort_nodes, num_nodes, sizeof(struct node_info*), compare_nodes_snr);
 	else if (do_sort == 't')  /* sort by last seen */
 		qsort(sort_nodes, num_nodes, sizeof(struct node_info*), compare_nodes_time);
+#endif
 
-	for (i = 0; i < num_nodes; i++) {
-		n = sort_nodes[i];
+	list_for_each_entry(n, &nodes, list) {
 		if (n->last_seen > (the_time.tv_sec - conf.node_timeout)) {
 			line++;
 			/* Prevent overdraw of last line */
