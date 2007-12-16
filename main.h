@@ -20,6 +20,8 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
+#include "list.h"
+
 #define VERSION "2.0-pre1"
 
 #ifndef DO_DEBUG
@@ -166,21 +168,26 @@ struct node_info {
 
 extern struct node_info nodes[MAX_NODES];
 
+struct node_ptr_list {
+	struct list_head	list;
+	struct node_info*	node;
+};
+
 struct essid_info {
+	struct list_head	list;
 	char			essid[MAX_ESSID_LEN];
-	struct node_info*	nodes[MAX_NODES];
+	struct list_head	nodes;
 	int			num_nodes;
 	int			split;
 };
 
-extern struct essid_info essids[MAX_ESSIDS];
-
-struct split_info {
-	struct essid_info*	essid;
-	int			active;
+struct essid_meta_info {
+	struct list_head	list;
+	struct essid_info*	split_essid;
+	int			split_active;
 };
 
-extern struct split_info splits;
+extern struct essid_meta_info essids;
 
 struct history {
 	int			signal[MAX_HISTORY];
@@ -235,7 +242,11 @@ struct config {
 
 extern struct config conf;
 
+
 void
 finish_all(int sig);
+
+void
+free_lists(void);
 
 #endif

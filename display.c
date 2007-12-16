@@ -339,8 +339,9 @@ handle_user_input()
 
 	case 'r': case 'R':
 		memset(&nodes, 0, sizeof(nodes));
-		memset(&essids, 0, sizeof(essids));
-		memset(&splits, 0, sizeof(splits));
+		free_lists();
+		essids.split_active = 0;
+		essids.split_essid = NULL;
 		memset(&hist, 0, sizeof(hist));
 		memset(&stats, 0, sizeof(stats));
 		gettimeofday(&stats.stats_time, NULL);
@@ -765,13 +766,14 @@ update_list_win(void)
 		}
 	}
 
-	if (splits.active > 0) {
+	if (essids.split_active > 0) {
 		wattron(list_win, RED);
 		mvwprintw(list_win, LINES / 2 - 2, 10, " *** IBSS SPLIT DETECTED!!! ESSID ");
-		wprintw(list_win, "'%s' ", splits.essid->essid);
-		wprintw(list_win, "%d nodes *** ", splits.essid->num_nodes);
+		wprintw(list_win, "'%s' ", essids.split_essid->essid);
+		wprintw(list_win, "%d nodes *** ", essids.split_essid->num_nodes);
 		wattroff(list_win, RED);
 	}
+
 	wnoutrefresh(list_win);
 }
 
@@ -779,8 +781,10 @@ update_list_win(void)
 static void
 update_essid_win(void)
 {
-	int i, n;
+	int i;
 	int line = 1;
+	struct essid_info* e;
+	struct node_ptr_list* n;
 	struct node_info* node;
 
 	werase(show_win);
@@ -788,19 +792,21 @@ update_essid_win(void)
 	box(show_win, 0 , 0);
 	print_centered(show_win, 0, COLS, " ESSIDs ");
 
-	for (i = 0; i < MAX_ESSIDS && essids[i].num_nodes > 0; i++) {
+	list_for_each_entry(e, &essids.list, list) {
 		wattron(show_win, WHITE);
-		mvwprintw(show_win, line, 2, "ESSID '%s'", essids[i].essid );
-		if (essids[i].split > 0) {
+		mvwprintw(show_win, line, 2, "ESSID '%s'", e->essid );
+		if (e->split > 0) {
 			wattron(show_win, RED);
 			wprintw(show_win, " *** SPLIT ***");
 		}
 		else
 			wattron(show_win, GREEN);
 		line++;
-		for (n = 0; n < essids[i].num_nodes && n < MAX_NODES; n++) {
-			node = essids[i].nodes[n];
-			mvwprintw(show_win, line, 3, "%2d. %s %s", n+1,
+
+		i = 1;
+		list_for_each_entry(n, &e->nodes, list) {
+			node = n->node;
+			mvwprintw(show_win, line, 3, "%2d. %s %s", i++,
 				node->wlan_mode == WLAN_MODE_AP ? "AP  " : "IBSS",
 				ether_sprintf(node->last_pkt.wlan_src));
 			wprintw(show_win, " BSSID (%s) ", ether_sprintf(node->wlan_bssid));
