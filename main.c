@@ -585,4 +585,5 @@ timeout_nodes(void)
 			free(n);
 		}
 	}
+	last_nodetimeout = the_time;
 }
