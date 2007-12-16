@@ -89,9 +89,18 @@ duration_per_second(unsigned int duration) {
 	return dps;
 }
 
-static inline void
-print_centered(WINDOW* win, int line, int cols, char* str) {
-	mvwprintw(win, line, cols / 2 - strlen(str) / 2, str);
+
+static void __attribute__ ((format (printf, 4, 5)))
+print_centered(WINDOW* win, int line, int cols, const char *fmt, ...)
+{
+	char buf[cols];
+	va_list ap;
+
+	va_start(ap, fmt);
+	vsnprintf(buf, cols, fmt, ap);
+	va_end(ap);
+
+	mvwprintw(win, line, cols / 2 - strlen(buf) / 2, buf);
 }
 
 
@@ -119,6 +128,7 @@ init_display(void)
 	init_pair(11, COLOR_CYAN, COLOR_CYAN);
 	init_pair(12, COLOR_YELLOW, COLOR_BLACK);
 	init_pair(13, COLOR_YELLOW, COLOR_YELLOW);
+	init_pair(14, COLOR_WHITE, COLOR_RED);
 
 	/* COLOR_BLACK COLOR_RED COLOR_GREEN COLOR_YELLOW COLOR_BLUE
 	COLOR_MAGENTA COLOR_CYAN COLOR_WHITE */
@@ -136,6 +146,7 @@ init_display(void)
 #define ALLCYAN		COLOR_PAIR(11)
 #define YELLOW		COLOR_PAIR(12)
 #define ALLYELLOW	COLOR_PAIR(13)
+#define WHITEONRED	COLOR_PAIR(14)
 
 	erase();
 
@@ -247,7 +258,7 @@ filter_input(int c)
 	case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
 		i = c - '1';
 		echo();
-		mvwprintw(filter_win, 24, 15, "[ Enter new MAC %d and ENTER ]", i+1);
+		print_centered(filter_win, 24, 57, "[ Enter new MAC %d and ENTER ]", i+1);
 		mvwgetnstr(filter_win, 9 + i, MAC_COL + 7, buf, 17);
 		noecho();
 		convert_string_to_mac(buf, conf.filtermac[i]);
@@ -758,11 +769,12 @@ update_list_win(void)
 	}
 
 	if (essids.split_active > 0) {
-		wattron(list_win, RED);
-		mvwprintw(list_win, LINES / 2 - 2, 10, " *** IBSS SPLIT DETECTED!!! ESSID ");
-		wprintw(list_win, "'%s' ", essids.split_essid->essid);
-		wprintw(list_win, "%d nodes *** ", essids.split_essid->num_nodes);
-		wattroff(list_win, RED);
+		wattron(list_win, WHITEONRED);
+		mvwhline(list_win, LINES / 2 - 1, 1, ' ', COLS - 2);
+		print_centered(list_win, LINES / 2 - 1, COLS - 2,
+			"*** IBSS SPLIT DETECTED!!! ESSID '%s' %d nodes ***",
+			essids.split_essid->essid, essids.split_essid->num_nodes);
+		wattroff(list_win, WHITEONRED);
 	}
 
 	wnoutrefresh(list_win);
