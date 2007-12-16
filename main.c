@@ -283,7 +283,7 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 	if (p->wlan_bssid[0] != 0xff &&
 		! (p->wlan_bssid[0] == 0 && p->wlan_bssid[1] == 0 && p->wlan_bssid[2] == 0 &&
 		   p->wlan_bssid[3] == 0 && p->wlan_bssid[4] == 0 && p->wlan_bssid[5] == 0)) {
-		memcpy(n->wlan_bssid, p->wlan_bssid, 6);
+		memcpy(n->wlan_bssid, p->wlan_bssid, MAC_LEN);
 	}
 	if ((p->wlan_type & IEEE80211_FCTL_FTYPE) == IEEE80211_FTYPE_MGMT &&
 	    (p->wlan_type & IEEE80211_FCTL_STYPE) == IEEE80211_STYPE_BEACON) {
@@ -315,7 +315,7 @@ node_update(struct packet_info* pkt)
 	for (i = 0; i < MAX_NODES; i++) {
 		if (nodes[i].status == 1) {
 			/* check existing node */
-			if (memcmp(pkt->wlan_src, nodes[i].last_pkt.wlan_src, 6) == 0) {
+			if (memcmp(pkt->wlan_src, nodes[i].last_pkt.wlan_src, MAC_LEN) == 0) {
 				copy_nodeinfo(&nodes[i], pkt);
 				return i;
 			}

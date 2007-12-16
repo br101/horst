@@ -450,15 +450,15 @@ parse_80211_header(unsigned char** buf, int len)
 	}
 
 	if (sa != NULL) {
-		memcpy(current_packet.wlan_src, sa, 6);
+		memcpy(current_packet.wlan_src, sa, MAC_LEN);
 		DEBUG("SA    %s\n", ether_sprintf(sa));
 	}
 	if (da != NULL) {
-		memcpy(current_packet.wlan_dst, da, 6);
+		memcpy(current_packet.wlan_dst, da, MAC_LEN);
 		DEBUG("DA    %s\n", ether_sprintf(da));
 	}
 	if (bssid!=NULL) {
-		memcpy(current_packet.wlan_bssid, bssid, 6);
+		memcpy(current_packet.wlan_bssid, bssid, MAC_LEN);
 		DEBUG("BSSID %s\n", ether_sprintf(bssid));
 	}
 
