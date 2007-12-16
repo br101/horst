@@ -165,7 +165,7 @@ init_display(void)
 	attron(KEYMARK); printw("E"); attroff(KEYMARK); printw("SSIDs St");
 	attron(KEYMARK); printw("a"); attroff(KEYMARK); printw("ts ");
 	attron(KEYMARK); printw("R"); attroff(KEYMARK); printw("eset ");
-	attron(KEYMARK); printw("D"); attroff(KEYMARK); printw("etails ");
+	//attron(KEYMARK); printw("D"); attroff(KEYMARK); printw("etails ");
 	attron(KEYMARK); printw("?"); attroff(KEYMARK); printw("Help");
 #undef KEYMARK
 	mvwprintw(stdscr, LINES-1, COLS-14, "|%s", conf.ifname);
@@ -361,7 +361,7 @@ handle_user_input()
 	case '?':
 	case 'e': case 'E':
 	case 'h': case 'H':
-	case 'd': case 'D':
+	//case 'd': case 'D':
 	case 'a': case 'A':
 		show_window(tolower(key));
 		break;
@@ -535,20 +535,21 @@ update_display(struct packet_info* pkt, struct node_info* node)
 
 	if (show_win != NULL)
 		update_show_win();
-	else {
+	else { /* main windows */
 		update_list_win();
 		update_status_win(pkt, node);
 		update_dump_win(pkt);
 		wnoutrefresh(dump_win);
-		if (filter_win != NULL) {
-			redrawwin(filter_win);
-			wnoutrefresh(filter_win);
-		}
 		if (sort_win != NULL) {
 			redrawwin(sort_win);
 			wnoutrefresh(sort_win);
 		}
 	}
+	if (filter_win != NULL) {
+		redrawwin(filter_win);
+		wnoutrefresh(filter_win);
+	}
+
 	/* only one redraw */
 	doupdate();
 }
