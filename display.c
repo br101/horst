@@ -751,12 +751,10 @@ update_list_win(void)
 #endif
 
 	list_for_each_entry(n, &nodes, list) {
-		if (n->last_seen > (the_time.tv_sec - conf.node_timeout)) {
-			line++;
-			/* Prevent overdraw of last line */
-			if (line < LINES/2)
-				print_list_line(line , n);
-		}
+		line++;
+		if (line >= LINES/2)
+			break; /* prevent overdraw of last line */
+		print_list_line(line, n);
 	}
 
 	if (essids.split_active > 0) {
@@ -786,7 +784,7 @@ update_essid_win(void)
 	print_centered(show_win, 0, COLS, " ESSIDs ");
 
 	list_for_each_entry(e, &essids.list, list) {
-		wattron(show_win, WHITE);
+		wattron(show_win, WHITE | A_BOLD);
 		mvwprintw(show_win, line, 2, "ESSID '%s'", e->essid );
 		if (e->split > 0) {
 			wattron(show_win, RED);
@@ -799,6 +797,10 @@ update_essid_win(void)
 		i = 1;
 		list_for_each_entry(n, &e->nodes, list) {
 			node = n->node;
+			if (node->last_seen > (the_time.tv_sec - conf.node_timeout / 2))
+				wattron(show_win, A_BOLD);
+			else
+				wattroff(show_win, A_BOLD);
 			mvwprintw(show_win, line, 3, "%2d. %s %s", i++,
 				node->wlan_mode == WLAN_MODE_AP ? "AP  " : "IBSS",
 				ether_sprintf(node->last_pkt.wlan_src));

@@ -43,6 +43,7 @@ static int filter_packet(struct packet_info* pkt);
 static void update_history(struct packet_info* pkt);
 static void update_statistics(struct packet_info* pkt);
 static void write_to_file(struct packet_info* pkt);
+static inline void timeout_nodes(void);
 
 struct packet_info current_packet;
 
@@ -64,6 +65,7 @@ struct timeval the_time;
 
 static int mon; /* monitoring socket */
 static FILE* DF = NULL;
+static struct timeval last_nodetimeout;
 
 
 int
@@ -141,6 +143,8 @@ main(int argc, char** argv)
 			write_to_file(&current_packet);
 
 		node = node_update(&current_packet);
+
+		timeout_nodes();
 
 		update_history(&current_packet);
 		update_statistics(&current_packet);
@@ -358,6 +362,13 @@ remove_node_from_old_essid(struct node_info* pkt_node)
 		}
 	}
 
+	/* update split status */
+	if (pkt_node->essid->num_nodes <= 1 && essids.split_essid == pkt_node->essid) {
+		essids.split_essid = NULL;
+		essids.split_active = 0;
+		pkt_node->essid->split = 0;
+	}
+
 	/* also delete essid if it has no more nodes */
 	if (pkt_node->essid->num_nodes == 0) {
 		DEBUG("SPLIT   essid empty, delete\n");
@@ -555,4 +566,23 @@ write_to_file(struct packet_info* pkt)
 	fprintf(DF, "%s, ", ip_sprintf(pkt->ip_src));
 	fprintf(DF, "%s, ", ip_sprintf(pkt->ip_dst));
 	fprintf(DF, "%d, %d, %d\n", pkt->olsr_type, pkt->olsr_neigh, pkt->olsr_tc);
+}
+
+
+static inline void
+timeout_nodes(void)
+{
+	struct node_info *n, *m;
+
+	if ((the_time.tv_sec - last_nodetimeout.tv_sec) < conf.node_timeout )
+		return;
+
+	list_for_each_entry_safe(n, m, &nodes, list) {
+		if (n->last_seen < (the_time.tv_sec - conf.node_timeout)) {
+			list_del(&n->list);
+			if (n->essid != NULL)
+				remove_node_from_old_essid(n);
+			free(n);
+		}
+	}
 }
