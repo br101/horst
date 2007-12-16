@@ -45,7 +45,9 @@ static void update_essid_win(void);
 static void update_hist_win(void);
 static void update_statistics_win(void);
 static void update_help_win(void);
+#if 0
 static void update_detail_win(void);
+#endif
 static void update_mini_status(void);
 
 static WINDOW *dump_win = NULL;
@@ -53,7 +55,7 @@ static WINDOW *list_win = NULL;
 static WINDOW *stat_win = NULL;
 static WINDOW *filter_win = NULL;
 static WINDOW *show_win = NULL;
-static WINDOW *small_win = NULL;
+static WINDOW *sort_win = NULL;
 
 static char show_win_current;
 static int do_sort = 'n';
@@ -239,8 +241,7 @@ filter_input(int c)
 	case 'q': case 'Q':
 		finish_all(0);
 
-	case '\r': case KEY_ENTER:
-		conf.paused = 0;
+	case 'f': case 'F': case '\r': case KEY_ENTER:
 		delwin(filter_win);
 		filter_win = NULL;
 		update_display(NULL, NULL);
@@ -267,6 +268,9 @@ filter_input(int c)
 	case 'o':
 		conf.filter_off = conf.filter_off ? 0 : 1;
 		break;
+
+	default:
+		return;
 	}
 
 	/* convenience: */
@@ -301,11 +305,10 @@ sort_input(int c)
 		do_sort = c;
 		/* fall thru */
 	case '\r': case KEY_ENTER:
-		delwin(small_win);
-		small_win = NULL;
-		conf.paused = 0;
+		delwin(sort_win);
+		sort_win = NULL;
 		update_display(NULL, NULL);
-		break;
+		return;
 	case 'q': case 'Q':
 		finish_all(0);
 	}
@@ -324,7 +327,7 @@ handle_user_input()
 		return;
 	}
 
-	if (small_win != NULL) {
+	if (sort_win != NULL) {
 		sort_input(key);
 		return;
 	}
@@ -332,6 +335,8 @@ handle_user_input()
 	switch(key) {
 	case ' ': case 'p': case 'P':
 		conf.paused = conf.paused ? 0 : 1;
+		wprintw(dump_win, "\n%s", conf.paused ? "- PAUSED -" : "- RESUME -");
+		wnoutrefresh(dump_win);
 		break;
 
 	case 'q': case 'Q':
@@ -339,7 +344,6 @@ handle_user_input()
 
 	case 's': case 'S':
 		if (show_win == NULL) { /* sort only makes sense in the main win */
-			conf.paused = 1;
 			show_sort_win();
 		}
 		break;
@@ -364,7 +368,6 @@ handle_user_input()
 
 	case 'f': case 'F':
 		if (filter_win == NULL) {
-			conf.paused = 1;
 			filter_win = newwin(25, 57, LINES/2-15, COLS/2-15);
 			scrollok(filter_win, FALSE);
 			update_filter_win();
@@ -406,12 +409,12 @@ show_window(char which)
 static void
 show_sort_win(void)
 {
-	if (small_win == NULL) {
-		small_win = newwin(1, COLS-2, LINES / 2 - 1, 1);
-		wattron(small_win, BLACKONWHITE);
-		mvwhline(small_win, 0, 0, ' ', COLS);
-		mvwprintw(small_win, 0, 0, " -> Sort by s:SNR t:Time n:Don't sort [current: %c]", do_sort);
-		wrefresh(small_win);
+	if (sort_win == NULL) {
+		sort_win = newwin(1, COLS-2, LINES / 2 - 1, 1);
+		wattron(sort_win, BLACKONWHITE);
+		mvwhline(sort_win, 0, 0, ' ', COLS);
+		mvwprintw(sort_win, 0, 0, " -> Sort by s:SNR t:Time n:Don't sort [current: %c]", do_sort);
+		wrefresh(sort_win);
 	}
 }
 
@@ -486,7 +489,7 @@ update_filter_win()
 
 
 static void
-update_time(time_t* sec)
+update_clock(time_t* sec)
 {
 	static char buf[9];
 	strftime(buf, 9, "%H:%M:%S", localtime(sec));
@@ -512,30 +515,39 @@ update_mini_status(void)
 void
 update_display(struct packet_info* pkt, struct node_info* node)
 {
-	/* update only in specific intervals to save CPU time */
-	if (the_time.tv_sec == last_time.tv_sec &&
+	/*
+	 * update only in specific intervals to save CPU time
+	 * if pkt is NULL we want to force an update
+	 */
+	if (pkt != NULL &&
+	    the_time.tv_sec == last_time.tv_sec &&
 	    (the_time.tv_usec - last_time.tv_usec) < conf.display_interval ) {
-		/* just add the line to dump win so we dont loose it */
-		if (show_win == NULL)
-			update_dump_win(pkt);
+		/* just add the line to dump win so we don't loose it */
+		update_dump_win(pkt);
 		return;
 	}
 
+	/* update clock every second */
 	if (the_time.tv_sec > last_time.tv_sec)
-		update_time(&the_time.tv_sec);
+		update_clock(&the_time.tv_sec);
 
 	last_time = the_time;
 
 	if (show_win != NULL)
 		update_show_win();
-	else if (small_win != NULL)
-		wnoutrefresh(small_win);
-	else if (filter_win != NULL)
-		wnoutrefresh(filter_win);
 	else {
 		update_list_win();
 		update_status_win(pkt, node);
 		update_dump_win(pkt);
+		wnoutrefresh(dump_win);
+		if (filter_win != NULL) {
+			redrawwin(filter_win);
+			wnoutrefresh(filter_win);
+		}
+		if (sort_win != NULL) {
+			redrawwin(sort_win);
+			wnoutrefresh(sort_win);
+		}
 	}
 	/* only one redraw */
 	doupdate();
@@ -553,8 +565,10 @@ update_show_win()
 		update_statistics_win();
 	else if (show_win_current == '?')
 		update_help_win();
+#if 0
 	else if (show_win_current == 'd')
 		update_detail_win();
+#endif
 }
 
 
@@ -934,7 +948,7 @@ void
 update_dump_win(struct packet_info* pkt)
 {
 	if (!pkt) {
-		wprintw(dump_win, "\n%s", conf.paused ? "- PAUSED -" : "- RESUME -");
+		redrawwin(dump_win);
 		wnoutrefresh(dump_win);
 		return;
 	}
@@ -1011,7 +1025,6 @@ update_dump_win(struct packet_info* pkt)
 		}
 	}
 	wattroff(dump_win,A_BOLD);
-	wnoutrefresh(dump_win);
 }
 
 
@@ -1174,6 +1187,7 @@ update_help_win(void)
 }
 
 
+#if 0
 static void
 update_detail_win(void)
 {
@@ -1185,3 +1199,4 @@ update_detail_win(void)
 
 	wnoutrefresh(show_win);
 }
+#endif
