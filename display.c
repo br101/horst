@@ -261,7 +261,7 @@ filter_input(int c)
 		break;
 	}
 
-	/* sanity checks */
+	/* convenience: */
 	/* if one of the individual mgmt frames is deselected we dont want to see all mgmt frames */
 	if ((conf.filter_pkt & PKT_TYPE_ALL_MGMT) != PKT_TYPE_ALL_MGMT)
 		conf.filter_pkt = conf.filter_pkt & ~PKT_TYPE_MGMT;
@@ -347,8 +347,6 @@ handle_user_input()
 		break;
 
 	case '?':
-		conf.paused = conf.paused ? 0 : 1;
-		/* fall thru */
 	case 'e': case 'E':
 	case 'h': case 'H':
 	case 'd': case 'D':
