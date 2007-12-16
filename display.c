@@ -349,7 +349,6 @@ handle_user_input()
 		break;
 
 	case 'r': case 'R':
-		memset(&nodes, 0, sizeof(nodes));
 		free_lists();
 		essids.split_active = 0;
 		essids.split_essid = NULL;
