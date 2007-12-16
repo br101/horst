@@ -27,6 +27,7 @@
 #include <time.h>
 
 #include "display.h"
+#include "main.h"
 #include "util.h"
 #include "ieee80211.h"
 #include "olsr_header.h"
@@ -58,9 +59,6 @@ static char show_win_current;
 static int do_sort = 'n';
 
 static struct timeval last_time;
-
-extern struct config conf;
-extern struct statistics stats;
 
 
 static inline int

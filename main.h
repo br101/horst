@@ -217,7 +217,7 @@ struct statistics {
 	struct timeval		stats_time;
 };
 
-extern struct statistics stat;
+extern struct statistics stats;
 
 struct config {
 	char*			ifname;

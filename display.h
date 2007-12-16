@@ -20,7 +20,8 @@
 #ifndef _DISPLAY_H_
 #define _DISPLAY_H_
 
-#include "main.h"
+struct packet_info;
+struct node_info;
 
 void
 update_display(struct packet_info* pkg, struct node_info* node);
