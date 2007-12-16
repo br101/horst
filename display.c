@@ -58,7 +58,6 @@ static char show_win_current;
 static int do_sort = 'n';
 
 static struct timeval last_time;
-static struct timeval the_time;
 
 extern struct config conf;
 extern struct statistics stats;
@@ -504,8 +503,6 @@ update_mini_status(void)
 void
 update_display(struct packet_info* pkt, struct node_info* node)
 {
-	gettimeofday(&the_time, NULL);
-
 	/* update only in specific intervals to save CPU time */
 	if (the_time.tv_sec == last_time.tv_sec &&
 	    (the_time.tv_usec - last_time.tv_usec) < conf.display_interval ) {

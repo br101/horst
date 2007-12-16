@@ -60,6 +60,8 @@ struct config conf = {
 	.recv_buffer_size	= RECV_BUFFER_SIZE,
 };
 
+struct timeval the_time;
+
 static int mon; /* monitoring socket */
 static FILE* DF = NULL;
 
@@ -132,6 +134,8 @@ main(int argc, char** argv)
 
 		if (filter_packet(&current_packet))
 			continue;
+
+		gettimeofday(&the_time, NULL);
 
 		if (conf.dumpfile != NULL)
 			write_to_file(&current_packet);

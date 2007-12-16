@@ -242,6 +242,8 @@ struct config {
 
 extern struct config conf;
 
+extern struct timeval the_time;
+
 
 void
 finish_all(int sig);
