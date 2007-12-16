@@ -329,6 +329,35 @@ node_update(struct packet_info* pkt)
 	return -1;
 }
 
+static struct node_ptr_list*
+remove_node_from_old_essid(struct node_info* pkt_node)
+{
+	struct node_ptr_list *n, *m;
+
+	list_for_each_entry_safe(n, m, &pkt_node->essid->nodes, list) {
+		if (n->node == pkt_node) {
+			DEBUG("SPLIT   remove node from old essid\n");
+			list_del(&n->list);
+			pkt_node->essid->num_nodes--;
+			break;
+		}
+	}
+
+	/* also delete essid if it has no more nodes */
+	if (pkt_node->essid->num_nodes == 0) {
+		DEBUG("SPLIT   essid empty, delete\n");
+		list_del(&pkt_node->essid->list);
+		free(pkt_node->essid);
+		pkt_node->essid = NULL;
+	}
+
+	/* in case we didn't finde the node */
+	if (&n->list == &pkt_node->essid->nodes)
+		n = NULL;
+
+	return n;
+}
+
 
 static void
 check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node)
@@ -356,7 +385,7 @@ check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node)
 		}
 	}
 
-	/* if not add new */
+	/* if not add new essid */
 	if (&e->list == &essids.list) {
 		DEBUG("SPLIT   essid not found, adding new\n");
 		e = malloc(sizeof(struct essid_info));
@@ -366,8 +395,6 @@ check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node)
 		INIT_LIST_HEAD(&e->nodes);
 		list_add_tail(&e->list, &essids.list);
 	}
-
-	DEBUG("SPLIT   check nodes\n");
 
 	/* find node if already recorded */
 	list_for_each_entry(n, &e->nodes, list) {
@@ -379,10 +406,16 @@ check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node)
 
 	/* new node */
 	if (&n->list == &e->nodes) {
-		DEBUG("SPLIT   recorded new node %s\n",
+		DEBUG("SPLIT   node not found, adding new %s\n",
 			ether_sprintf(pkt->wlan_src));
-		n = malloc(sizeof(struct node_ptr_list));
-		n->node = pkt_node;
+		n = NULL;
+		/* if node had another essid before, move it here */
+		if (pkt_node->essid != NULL)
+			n = remove_node_from_old_essid(pkt_node);
+		if (n == NULL) {
+			n = malloc(sizeof(struct node_ptr_list));
+			n->node = pkt_node;
+		}
 		list_add_tail(&n->list, &e->nodes);
 		e->num_nodes++;
 		pkt_node->essid = e;
@@ -399,7 +432,7 @@ check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node)
 		if (node->wlan_mode == WLAN_MODE_AP)
 			continue;
 
-		if (last_bssid && memcmp(last_bssid, node->wlan_bssid, 6) != 0) {
+		if (last_bssid && memcmp(last_bssid, node->wlan_bssid, MAC_LEN) != 0) {
 			e->split = 1;
 			DEBUG("SPLIT *** DETECTED!!!\n");
 		}
@@ -413,6 +446,7 @@ check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node)
 		essids.split_essid = e;
 	}
 	else if (e == essids.split_essid) {
+		DEBUG("SPLIT *** ok now\n");
 		essids.split_active = 0;
 		essids.split_essid = NULL;
 	}
