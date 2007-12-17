@@ -233,7 +233,6 @@ void
 free_lists(void)
 {
 	struct essid_info *e, *f;
-	struct node_ptr_list *n, *m;
 	struct node_info *ni, *mi;
 
 	/* free node list */
@@ -243,14 +242,9 @@ free_lists(void)
 		free(ni);
 	}
 
-	/* free essids and their node references */
+	/* free essids */
 	list_for_each_entry_safe(e, f, &essids.list, list) {
 		DEBUG("free essid '%s'\n", e->essid);
-		list_for_each_entry_safe(n, m, &e->nodes, list) {
-			DEBUG("  free node ptr %s\n", ether_sprintf(n->node->last_pkt.wlan_src));
-			list_del(&n->list);
-			free(n);
-		}
 		list_del(&e->list);
 		free(e);
 	}
@@ -348,40 +342,68 @@ node_update(struct packet_info* pkt)
 	return n;
 }
 
-static struct node_ptr_list*
-remove_node_from_old_essid(struct node_info* pkt_node)
+
+static void
+update_essid_split_status(struct essid_info* e)
 {
-	struct node_ptr_list *n, *m;
+	struct node_info* n;
+	unsigned char* last_bssid = NULL;
 
-	list_for_each_entry_safe(n, m, &pkt_node->essid->nodes, list) {
-		if (n->node == pkt_node) {
-			DEBUG("SPLIT   remove node from old essid\n");
-			list_del(&n->list);
-			pkt_node->essid->num_nodes--;
-			break;
-		}
-	}
+	e->split = 0;
 
-	/* update split status */
-	if (pkt_node->essid->num_nodes <= 1 && essids.split_essid == pkt_node->essid) {
-		essids.split_essid = NULL;
+	/* essid can't be split if it only contains 1 node */
+	if (e->num_nodes <= 1 && essids.split_essid == e) {
 		essids.split_active = 0;
-		pkt_node->essid->split = 0;
+		essids.split_essid = NULL;
+		return;
 	}
 
-	/* also delete essid if it has no more nodes */
-	if (pkt_node->essid->num_nodes == 0) {
+	/* check for split */
+	list_for_each_entry(n, &e->nodes, essid_nodes) {
+		DEBUG("SPLIT      node %p src %s",
+			n, ether_sprintf(n->last_pkt.wlan_src));
+		DEBUG(" bssid %s\n", ether_sprintf(n->wlan_bssid));
+
+		if (n->wlan_mode == WLAN_MODE_AP)
+			continue;
+
+		if (last_bssid && memcmp(last_bssid, n->wlan_bssid, MAC_LEN) != 0) {
+			e->split = 1;
+			DEBUG("SPLIT *** DETECTED!!!\n");
+		}
+		last_bssid = n->wlan_bssid;
+	}
+
+	/* if a split occurred on this essid, record it */
+	if (e->split > 0) {
+		DEBUG("SPLIT *** active\n");
+		essids.split_active = 1;
+		essids.split_essid = e;
+	}
+	else if (e == essids.split_essid) {
+		DEBUG("SPLIT *** ok now\n");
+		essids.split_active = 0;
+		essids.split_essid = NULL;
+	}
+}
+
+
+static void
+remove_node_from_essid(struct node_info* node)
+{
+	DEBUG("SPLIT   remove node from old essid\n");
+	list_del(&node->essid_nodes);
+	node->essid->num_nodes--;
+
+	update_essid_split_status(node->essid);
+
+	/* delete essid if it has no more nodes */
+	if (node->essid->num_nodes == 0) {
 		DEBUG("SPLIT   essid empty, delete\n");
-		list_del(&pkt_node->essid->list);
-		free(pkt_node->essid);
-		pkt_node->essid = NULL;
+		list_del(&node->essid->list);
+		free(node->essid);
 	}
-
-	/* in case we didn't finde the node */
-	if (&n->list == &pkt_node->essid->nodes)
-		n = NULL;
-
-	return n;
+	node->essid = NULL;
 }
 
 
@@ -389,9 +411,6 @@ static void
 check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node)
 {
 	struct essid_info* e;
-	struct node_ptr_list* n;
-	struct node_info* node;
-	unsigned char* last_bssid = NULL;
 
 	/* only check beacons (XXX: what about PROBE?) */
 	if (!((pkt->wlan_type & IEEE80211_FCTL_FTYPE) == IEEE80211_FTYPE_MGMT &&
@@ -422,60 +441,20 @@ check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node)
 		list_add_tail(&e->list, &essids.list);
 	}
 
-	/* find node if already recorded */
-	list_for_each_entry(n, &e->nodes, list) {
-		if (n->node == pkt_node) {
-			DEBUG("SPLIT   node found %p\n", n);
-			break;
-		}
-	}
+	/* if node had another essid before, remove it there */
+	if (pkt_node->essid != NULL && pkt_node->essid != e)
+		remove_node_from_essid(pkt_node);
 
 	/* new node */
-	if (&n->list == &e->nodes) {
+	if (pkt_node->essid == NULL) {
 		DEBUG("SPLIT   node not found, adding new %s\n",
 			ether_sprintf(pkt->wlan_src));
-		n = NULL;
-		/* if node had another essid before, move it here */
-		if (pkt_node->essid != NULL)
-			n = remove_node_from_old_essid(pkt_node);
-		if (n == NULL) {
-			n = malloc(sizeof(struct node_ptr_list));
-			n->node = pkt_node;
-		}
-		list_add_tail(&n->list, &e->nodes);
+		list_add_tail(&pkt_node->essid_nodes, &e->nodes);
 		e->num_nodes++;
 		pkt_node->essid = e;
 	}
 
-	/* check for split */
-	e->split = 0;
-	list_for_each_entry(n, &e->nodes, list) {
-		node = n->node;
-		DEBUG("SPLIT      node %p src %s",
-			node, ether_sprintf(node->last_pkt.wlan_src));
-		DEBUG(" bssid %s\n", ether_sprintf(node->wlan_bssid));
-
-		if (node->wlan_mode == WLAN_MODE_AP)
-			continue;
-
-		if (last_bssid && memcmp(last_bssid, node->wlan_bssid, MAC_LEN) != 0) {
-			e->split = 1;
-			DEBUG("SPLIT *** DETECTED!!!\n");
-		}
-		last_bssid = node->wlan_bssid;
-	}
-
-	/* if a split occurred on this essid, record it */
-	if (e->split > 0) {
-		DEBUG("SPLIT *** active\n");
-		essids.split_active = 1;
-		essids.split_essid = e;
-	}
-	else if (e == essids.split_essid) {
-		DEBUG("SPLIT *** ok now\n");
-		essids.split_active = 0;
-		essids.split_essid = NULL;
-	}
+	update_essid_split_status(e);
 }
 
 
@@ -581,7 +560,7 @@ timeout_nodes(void)
 		if (n->last_seen < (the_time.tv_sec - conf.node_timeout)) {
 			list_del(&n->list);
 			if (n->essid != NULL)
-				remove_node_from_old_essid(n);
+				remove_node_from_essid(n);
 			free(n);
 		}
 	}

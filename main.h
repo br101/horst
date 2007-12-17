@@ -137,6 +137,7 @@ struct essid_info;
 struct node_info {
 	/* housekeeping */
 	struct list_head	list;
+	struct list_head	essid_nodes;
 	time_t			last_seen;	/* timestamp */
 
 	/* general packet info */
@@ -167,11 +168,6 @@ struct node_info {
 };
 
 extern struct list_head nodes;
-
-struct node_ptr_list {
-	struct list_head	list;
-	struct node_info*	node;
-};
 
 struct essid_info {
 	struct list_head	list;

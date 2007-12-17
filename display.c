@@ -801,7 +801,6 @@ update_essid_win(void)
 	int i;
 	int line = 1;
 	struct essid_info* e;
-	struct node_ptr_list* n;
 	struct node_info* node;
 
 	werase(show_win);
@@ -821,8 +820,7 @@ update_essid_win(void)
 		line++;
 
 		i = 1;
-		list_for_each_entry(n, &e->nodes, list) {
-			node = n->node;
+		list_for_each_entry(node, &e->nodes, essid_nodes) {
 			if (node->last_seen > (the_time.tv_sec - conf.node_timeout / 2))
 				wattron(show_win, A_BOLD);
 			else
