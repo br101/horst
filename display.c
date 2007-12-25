@@ -724,11 +724,10 @@ print_list_line(int line, struct node_info* n)
 		mvwprintw(list_win, line, COL_IP, "%s", ip_sprintf(n->ip_src));
 
 	if (n->pkt_types & PKT_TYPE_OLSR)
-		mvwprintw(list_win, line, COL_MESH, "OLSR N:%d", n->olsr_neigh);
-	if (n->pkt_types & PKT_TYPE_OLSR_LQ)
-		wprintw(list_win, " LQ");
-	if (n->pkt_types & PKT_TYPE_OLSR_GW)
-		wprintw(list_win, " GW");
+		mvwprintw(list_win, line, COL_MESH, "OLSR%s N:%d %s",
+			n->pkt_types & PKT_TYPE_OLSR_LQ ? "_LQ" : "",
+			n->olsr_neigh,
+			n->pkt_types & PKT_TYPE_OLSR_GW ? "GW" : "");
 
 	if (n->pkt_types & PKT_TYPE_BATMAN)
 		wprintw(list_win, " BAT");
