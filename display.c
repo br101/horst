@@ -749,7 +749,7 @@ update_list_win(void)
 	mvwprintw(list_win, 0, COL_SNR, "SN/MX/MI");
 	mvwprintw(list_win, 0, COL_RATE, "RT");
 	mvwprintw(list_win, 0, COL_SOURCE, "SOURCE");
-	mvwprintw(list_win, 0, COL_STA, "Me");
+	mvwprintw(list_win, 0, COL_STA, "M");
 	mvwprintw(list_win, 0, COL_BSSID, "(BSSID)");
 	mvwprintw(list_win, 0, COL_IP, "IP");
 	mvwprintw(list_win, 0, COL_CHAN, "CH");
