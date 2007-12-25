@@ -670,14 +670,15 @@ compare_nodes_time(const void *p1, const void *p2)
 #endif
 
 
-#define COL_IP 3
-#define COL_SNR 19
-#define COL_RATE 28
-#define COL_SOURCE 31
-#define COL_STA 49
-#define COL_BSSID 52
-#define COL_OLSR 72
-#define COL_TSF 83
+#define COL_IP		3
+#define COL_SNR		COL_IP + 16
+#define COL_RATE	COL_SNR + 9
+#define COL_SOURCE	COL_RATE + 3
+#define COL_STA		COL_SOURCE + 18
+#define COL_BSSID	COL_STA + 2
+#define COL_ENC		COL_BSSID + 20
+#define COL_CHAN	COL_ENC + 2
+#define COL_MESH	COL_CHAN + 3
 
 static char spin[4] = {'/', '-', '\\', '|'};
 
@@ -710,8 +711,7 @@ print_list_line(int line, struct node_info* n)
 	else if (n->wlan_mode == WLAN_MODE_PROBE )
 		mvwprintw(list_win, line, COL_STA, "P");
 
-	if (n->wep)
-		wprintw(list_win, "e");
+	mvwprintw(list_win, line, COL_ENC, n->wep ? "E" : "O");
 
 	mvwprintw(list_win, line, COL_RATE, "%2d", p->rate/2);
 	mvwprintw(list_win, line, COL_SOURCE, "%s", ether_sprintf(p->wlan_src));
@@ -719,7 +719,7 @@ print_list_line(int line, struct node_info* n)
 	if (n->pkt_types & PKT_TYPE_IP)
 		mvwprintw(list_win, line, COL_IP, "%s", ip_sprintf(n->ip_src));
 	if (n->pkt_types & PKT_TYPE_OLSR)
-		mvwprintw(list_win, line, COL_OLSR, "N:%d", n->olsr_neigh);
+		mvwprintw(list_win, line, COL_MESH, "N:%d", n->olsr_neigh);
 	if (n->pkt_types & PKT_TYPE_OLSR_LQ)
 		wprintw(list_win, "L");
 	if (n->pkt_types & PKT_TYPE_OLSR_GW)
@@ -729,7 +729,7 @@ print_list_line(int line, struct node_info* n)
 		wprintw(list_win, " B");
 
 	if (n->channel)
-		mvwprintw(list_win, line, COL_TSF, "%2d", n->channel );
+		mvwprintw(list_win, line, COL_CHAN, "%2d", n->channel );
 
 	wattroff(list_win, A_BOLD);
 	wattroff(list_win, GREEN);
@@ -752,8 +752,9 @@ update_list_win(void)
 	mvwprintw(list_win, 0, COL_STA, "Me");
 	mvwprintw(list_win, 0, COL_BSSID, "(BSSID)");
 	mvwprintw(list_win, 0, COL_IP, "IP");
-	mvwprintw(list_win, 0, COL_OLSR, "MESH");
-	mvwprintw(list_win, 0, COL_TSF, "CH");
+	mvwprintw(list_win, 0, COL_CHAN, "CH");
+	mvwprintw(list_win, 0, COL_ENC, "E");
+	mvwprintw(list_win, 0, COL_MESH, "Mesh");
 
 	/* reuse bottom line for information on other win */
 	mvwprintw(list_win, LINES/2, 0, "Sig/Noi-RT-SOURCE");
