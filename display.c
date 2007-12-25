@@ -716,20 +716,22 @@ print_list_line(int line, struct node_info* n)
 	mvwprintw(list_win, line, COL_RATE, "%2d", p->rate/2);
 	mvwprintw(list_win, line, COL_SOURCE, "%s", ether_sprintf(p->wlan_src));
 	mvwprintw(list_win, line, COL_BSSID, "(%s)", ether_sprintf(n->wlan_bssid));
-	if (n->pkt_types & PKT_TYPE_IP)
-		mvwprintw(list_win, line, COL_IP, "%s", ip_sprintf(n->ip_src));
-	if (n->pkt_types & PKT_TYPE_OLSR)
-		mvwprintw(list_win, line, COL_MESH, "N:%d", n->olsr_neigh);
-	if (n->pkt_types & PKT_TYPE_OLSR_LQ)
-		wprintw(list_win, "L");
-	if (n->pkt_types & PKT_TYPE_OLSR_GW)
-		wprintw(list_win, "G");
-
-	if (n->pkt_types & PKT_TYPE_BATMAN)
-		wprintw(list_win, " B");
 
 	if (n->channel)
 		mvwprintw(list_win, line, COL_CHAN, "%2d", n->channel );
+
+	if (n->pkt_types & PKT_TYPE_IP)
+		mvwprintw(list_win, line, COL_IP, "%s", ip_sprintf(n->ip_src));
+
+	if (n->pkt_types & PKT_TYPE_OLSR)
+		mvwprintw(list_win, line, COL_MESH, "OLSR N:%d", n->olsr_neigh);
+	if (n->pkt_types & PKT_TYPE_OLSR_LQ)
+		wprintw(list_win, " LQ");
+	if (n->pkt_types & PKT_TYPE_OLSR_GW)
+		wprintw(list_win, " GW");
+
+	if (n->pkt_types & PKT_TYPE_BATMAN)
+		wprintw(list_win, " BAT");
 
 	wattroff(list_win, A_BOLD);
 	wattroff(list_win, GREEN);
