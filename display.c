@@ -328,6 +328,31 @@ compare_nodes_time(const struct list_head *p1, const struct list_head *p2)
 }
 
 
+static int
+compare_nodes_channel(const struct list_head *p1, const struct list_head *p2)
+{
+	struct node_info* n1 = list_entry(p1, struct node_info, list);
+	struct node_info* n2 = list_entry(p2, struct node_info, list);
+
+	if (n1->channel < n2->channel)
+		return -1;
+	else if (n1->channel == n2->channel)
+		return 0;
+	else
+		return 1;
+}
+
+
+static int
+compare_nodes_bssid(const struct list_head *p1, const struct list_head *p2)
+{
+	struct node_info* n1 = list_entry(p1, struct node_info, list);
+	struct node_info* n2 = list_entry(p2, struct node_info, list);
+
+	return memcmp(n1->wlan_bssid, n2->wlan_bssid, MAC_LEN);
+}
+
+
 void
 sort_input(int c)
 {
@@ -335,12 +360,16 @@ sort_input(int c)
 	case 'n': case 'N': sortfunc = NULL; break;
 	case 's': case 'S': sortfunc = compare_nodes_snr; break;
 	case 't': case 'T': sortfunc = compare_nodes_time; break;
+	case 'c': case 'C': sortfunc = compare_nodes_channel; break;
+	case 'b': case 'B': sortfunc = compare_nodes_bssid; break;
 	}
 
 	switch (c) {
 	case 'n': case 'N':
 	case 's': case 'S':
 	case 't': case 'T':
+	case 'c': case 'C':
+	case 'b': case 'B':
 		do_sort = c;
 		/* fall thru */
 	case '\r': case KEY_ENTER:
@@ -451,7 +480,7 @@ show_sort_win(void)
 		sort_win = newwin(1, COLS-2, LINES / 2 - 1, 1);
 		wattron(sort_win, BLACKONWHITE);
 		mvwhline(sort_win, 0, 0, ' ', COLS);
-		mvwprintw(sort_win, 0, 0, " -> Sort by s:SNR t:Time n:Don't sort [current: %c]", do_sort);
+		mvwprintw(sort_win, 0, 0, " -> Sort by s:SNR t:Time b:BSSID c:Channel n:Don't sort [current: %c]", do_sort);
 		wrefresh(sort_win);
 	}
 }
