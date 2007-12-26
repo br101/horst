@@ -1088,7 +1088,7 @@ update_statistics_win(void)
 	mvwprintw(show_win, 2, 40, "bit/sec: %s (%d)", kilo_mega_ize(bps), bps);
 
 	dps = duration_per_second(stats.duration);
-	mvwprintw(show_win, 3, 40, "Duration:   %3.1f%% (%d)", dps * 1.0 / 10000, dps ); /* usec in % */
+	mvwprintw(show_win, 3, 40, "Usage:   %3.1f%% (%d)", dps * 1.0 / 10000, dps ); /* usec in % */
 
 	line = 6;
 	mvwprintw(show_win, line, STAT_PACK_POS, " Packets");
@@ -1097,7 +1097,7 @@ update_statistics_win(void)
 	mvwprintw(show_win, line, STAT_PP_POS, "Pkts%%");
 	mvwprintw(show_win, line, STAT_BP_POS, "Byte%%");
 	wattron(show_win, A_BOLD);
-	mvwprintw(show_win, line, STAT_AIR_POS, "Duration%%");
+	mvwprintw(show_win, line, STAT_AIR_POS, "Usage%%");
 	mvwprintw(show_win, line++, 2, "RATE");
 	wattroff(show_win, A_BOLD);
 	mvwhline(show_win, line++, 2, '-', COLS-4);
@@ -1133,7 +1133,7 @@ update_statistics_win(void)
 	mvwprintw(show_win, line, STAT_PP_POS, "Pkts%%");
 	mvwprintw(show_win, line, STAT_BP_POS, "Byte%%");
 	wattron(show_win, A_BOLD);
-	mvwprintw(show_win, line, STAT_AIR_POS, "Duration%%");
+	mvwprintw(show_win, line, STAT_AIR_POS, "Usage%%");
 	mvwprintw(show_win, line++, 2, "TYPE");
 	wattroff(show_win, A_BOLD);
 	mvwhline(show_win, line++, 2, '-', COLS - 4);
