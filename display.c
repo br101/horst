@@ -833,8 +833,12 @@ update_essid_win(void)
 
 	werase(show_win);
 	wattron(show_win, WHITE);
+	wattroff(show_win, A_BOLD);
 	box(show_win, 0 , 0);
 	print_centered(show_win, 0, COLS, " ESSIDs ");
+
+	mvwprintw(show_win, line++, 3, "NO. MODE SOURCE            (BSSID)             TSF              CH SNR  E IP");
+	line++;
 
 	list_for_each_entry(e, &essids.list, list) {
 		wattron(show_win, WHITE | A_BOLD);
@@ -856,11 +860,11 @@ update_essid_win(void)
 			mvwprintw(show_win, line, 3, "%2d. %s %s", i++,
 				node->wlan_mode == WLAN_MODE_AP ? "AP  " : "IBSS",
 				ether_sprintf(node->last_pkt.wlan_src));
-			wprintw(show_win, " BSSID (%s) ", ether_sprintf(node->wlan_bssid));
-			wprintw(show_win, "TSF %016llx", node->tsf);
-			wprintw(show_win, " CH %d", node->channel);
-			wprintw(show_win, " %ddB", node->snr);
-			wprintw(show_win, " %s", node->wep ? "WEP" : "OPEN");
+			wprintw(show_win, " (%s)", ether_sprintf(node->wlan_bssid));
+			wprintw(show_win, " %016llx", node->tsf);
+			wprintw(show_win, " %2d", node->channel);
+			wprintw(show_win, " %2ddB", node->snr);
+			wprintw(show_win, " %s", node->wep ? "E" : "O");
 			if (node->pkt_types & PKT_TYPE_IP)
 				wprintw(show_win, " %s", ip_sprintf(node->ip_src));
 			line++;
