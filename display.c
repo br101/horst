@@ -60,6 +60,8 @@ static WINDOW *sort_win = NULL;
 
 static char show_win_current;
 static int do_sort = 'n';
+/* pointer to the sort function */
+static int(*sortfunc)(const struct list_head*, const struct list_head*) = NULL;
 
 static struct timeval last_time;
 
@@ -104,6 +106,35 @@ print_centered(WINDOW* win, int line, int cols, const char *fmt, ...)
 	va_end(ap);
 
 	mvwprintw(win, line, cols / 2 - strlen(buf) / 2, buf);
+}
+
+static int
+compare_nodes_snr(const struct list_head *p1, const struct list_head *p2)
+{
+	struct node_info* n1 = list_entry(p1, struct node_info, list);
+	struct node_info* n2 = list_entry(p2, struct node_info, list);
+
+	if (n1->last_pkt.snr > n2->last_pkt.snr)
+		return -1;
+	else if (n1->last_pkt.snr == n2->last_pkt.snr)
+		return 0;
+	else
+		return 1;
+}
+
+
+static int
+compare_nodes_time(const struct list_head *p1, const struct list_head *p2)
+{
+	struct node_info* n1 = list_entry(p1, struct node_info, list);
+	struct node_info* n2 = list_entry(p2, struct node_info, list);
+
+	if (n1->last_seen > n2->last_seen)
+		return -1;
+	else if (n1->last_seen == n2->last_seen)
+		return 0;
+	else
+		return 1;
 }
 
 
@@ -300,6 +331,12 @@ void
 sort_input(int c)
 {
 	switch(c) {
+	case 'n': case 'N': sortfunc = NULL; break;
+	case 's': case 'S': sortfunc = compare_nodes_snr; break;
+	case 't': case 'T': sortfunc = compare_nodes_time; break;
+	}
+
+	switch (c) {
 	case 'n': case 'N':
 	case 's': case 'S':
 	case 't': case 'T':
@@ -639,36 +676,6 @@ update_status_win(struct packet_info* pkt, struct node_info* node)
 }
 
 
-static int
-compare_nodes_snr(const struct list_head *p1, const struct list_head *p2)
-{
-	struct node_info* n1 = list_entry(p1, struct node_info, list);
-	struct node_info* n2 = list_entry(p2, struct node_info, list);
-
-	if (n1->last_pkt.snr > n2->last_pkt.snr)
-		return -1;
-	else if (n1->last_pkt.snr == n2->last_pkt.snr)
-		return 0;
-	else
-		return 1;
-}
-
-
-static int
-compare_nodes_time(const struct list_head *p1, const struct list_head *p2)
-{
-	struct node_info* n1 = list_entry(p1, struct node_info, list);
-	struct node_info* n2 = list_entry(p2, struct node_info, list);
-
-	if (n1->last_seen > n2->last_seen)
-		return -1;
-	else if (n1->last_seen == n2->last_seen)
-		return 0;
-	else
-		return 1;
-}
-
-
 #define COL_IP		3
 #define COL_SNR		COL_IP + 16
 #define COL_RATE	COL_SNR + 9
@@ -763,10 +770,8 @@ update_list_win(void)
 	mvwprintw(list_win, LINES/2, 56, "INFO");
 	mvwprintw(list_win, LINES/2, COLS-12, "LiveStatus");
 
-	if (do_sort == 's') /* sort by SNR */
-		listsort(&nodes, compare_nodes_snr);
-	else if (do_sort == 't')  /* sort by last seen */
-		listsort(&nodes, compare_nodes_time);
+	if (sortfunc)
+		listsort(&nodes, sortfunc);
 
 	list_for_each_entry(n, &nodes, list) {
 		line++;
