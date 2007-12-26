@@ -31,6 +31,7 @@
 #include "util.h"
 #include "ieee80211.h"
 #include "olsr_header.h"
+#include "listsort.h"
 
 static void show_window(char which);
 static void show_sort_win(void);
@@ -638,12 +639,11 @@ update_status_win(struct packet_info* pkt, struct node_info* node)
 }
 
 
-#if 0
 static int
-compare_nodes_snr(const void *p1, const void *p2)
+compare_nodes_snr(const struct list_head *p1, const struct list_head *p2)
 {
-	struct node_info* n1 = *(struct node_info**)p1;
-	struct node_info* n2 = *(struct node_info**)p2;
+	struct node_info* n1 = list_entry(p1, struct node_info, list);
+	struct node_info* n2 = list_entry(p2, struct node_info, list);
 
 	if (n1->last_pkt.snr > n2->last_pkt.snr)
 		return -1;
@@ -655,10 +655,10 @@ compare_nodes_snr(const void *p1, const void *p2)
 
 
 static int
-compare_nodes_time(const void *p1, const void *p2)
+compare_nodes_time(const struct list_head *p1, const struct list_head *p2)
 {
-	struct node_info* n1 = *(struct node_info**)p1;
-	struct node_info* n2 = *(struct node_info**)p2;
+	struct node_info* n1 = list_entry(p1, struct node_info, list);
+	struct node_info* n2 = list_entry(p2, struct node_info, list);
 
 	if (n1->last_seen > n2->last_seen)
 		return -1;
@@ -667,7 +667,6 @@ compare_nodes_time(const void *p1, const void *p2)
 	else
 		return 1;
 }
-#endif
 
 
 #define COL_IP		3
@@ -764,18 +763,10 @@ update_list_win(void)
 	mvwprintw(list_win, LINES/2, 56, "INFO");
 	mvwprintw(list_win, LINES/2, COLS-12, "LiveStatus");
 
-#if 0
-	/* create an array of node pointers to make sorting independent */
-	for (i = 0; i < MAX_NODES && nodes[i].status == 1; i++)
-		sort_nodes[i] = &nodes[i];
-
-	num_nodes = i;
-
 	if (do_sort == 's') /* sort by SNR */
-		qsort(sort_nodes, num_nodes, sizeof(struct node_info*), compare_nodes_snr);
+		listsort(&nodes, compare_nodes_snr);
 	else if (do_sort == 't')  /* sort by last seen */
-		qsort(sort_nodes, num_nodes, sizeof(struct node_info*), compare_nodes_time);
-#endif
+		listsort(&nodes, compare_nodes_time);
 
 	list_for_each_entry(n, &nodes, list) {
 		line++;
