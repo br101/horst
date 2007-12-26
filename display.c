@@ -58,6 +58,10 @@ static WINDOW *filter_win = NULL;
 static WINDOW *show_win = NULL;
 static WINDOW *sort_win = NULL;
 
+/* sizes of split window (list_win & status_win) */
+static int win_split;
+static int stat_height;
+
 static char show_win_current;
 static int do_sort = 'n';
 /* pointer to the sort function */
@@ -176,13 +180,16 @@ init_display(void)
 	wattroff(stdscr, BLACKONWHITE);
 	refresh();
 
-	list_win = newwin(LINES/2+1, COLS, 0, 0);
+	win_split = LINES / 2 + 1;
+	stat_height = LINES - win_split - 1;
+
+	list_win = newwin(win_split, COLS, 0, 0);
 	scrollok(list_win,FALSE);
 
-	stat_win = newwin(LINES/2-2, 14, LINES/2+1, COLS-14);
+	stat_win = newwin(stat_height, 14, win_split, COLS-14);
 	scrollok(stat_win,FALSE);
 
-	dump_win = newwin(LINES/2-2, COLS-14, LINES/2+1, 0);
+	dump_win = newwin(stat_height, COLS-14, win_split, 0);
 	scrollok(dump_win,TRUE);
 
 	update_display(NULL, NULL);
@@ -477,7 +484,7 @@ static void
 show_sort_win(void)
 {
 	if (sort_win == NULL) {
-		sort_win = newwin(1, COLS-2, LINES / 2 - 1, 1);
+		sort_win = newwin(1, COLS-2, win_split - 2, 1);
 		wattron(sort_win, BLACKONWHITE);
 		mvwhline(sort_win, 0, 0, ' ', COLS);
 		mvwprintw(sort_win, 0, 0, " -> Sort by s:SNR t:Time b:BSSID c:Channel n:Don't sort [current: %c]", do_sort);
@@ -640,66 +647,66 @@ update_show_win()
 }
 
 
-#define MAX_STAT_BAR LINES/2-6
-
 static void
 update_status_win(struct packet_info* pkt, struct node_info* node)
 {
-	int sig, noi, max, rate, bps, bpsn, use, usen;
+	int sig, noi, max, rate, bps, bpsn, usen;
+	float use;
+	int max_stat_bar = stat_height - 4;
 
 	werase(stat_win);
 	wattron(stat_win, WHITE);
-	mvwvline(stat_win, 0, 0, ACS_VLINE, LINES/2);
-	mvwvline(stat_win, 0, 14, ACS_VLINE, LINES/2);
+	mvwvline(stat_win, 0, 0, ACS_VLINE, stat_height);
 
 	bps = bytes_per_second(stats.bytes) * 8;
-	bpsn = normalize(bps, 32000000, MAX_STAT_BAR); //theoretical: 54000000
+	bpsn = normalize(bps, 32000000, max_stat_bar); //theoretical: 54000000
 
 	use = duration_per_second(stats.duration) * 1.0 / 10000; /* usec, in percent */
-	usen = normalize(use, 100, MAX_STAT_BAR);
+	usen = normalize(use, 100, max_stat_bar);
 
 	if (pkt != NULL)
 	{
-		sig = normalize_db(-pkt->signal, MAX_STAT_BAR);
-		noi = normalize_db(-pkt->noise, MAX_STAT_BAR);
-		rate = normalize(pkt->rate, 108, MAX_STAT_BAR);
+		sig = normalize_db(-pkt->signal, max_stat_bar);
+		noi = normalize_db(-pkt->noise, max_stat_bar);
+		rate = normalize(pkt->rate, 108, max_stat_bar);
 
-		if (node != NULL && node->sig_max < 0) {
-			max = normalize_db(-node->sig_max, MAX_STAT_BAR);
-		}
+		if (node != NULL && node->sig_max < 0)
+			max = normalize_db(-node->sig_max, max_stat_bar);
 
 		wattron(stat_win, GREEN);
 		mvwprintw(stat_win, 0, 1, "SN:  %03d/", pkt->signal);
 		if (max > 1)
-			mvwprintw(stat_win, max, 2, "--");
+			mvwprintw(stat_win, max + 4, 2, "--");
 		wattron(stat_win, ALLGREEN);
-		mvwvline(stat_win, sig + 4, 2, ACS_BLOCK, MAX_STAT_BAR + 3 - sig);
-		mvwvline(stat_win, sig + 4, 3, ACS_BLOCK, MAX_STAT_BAR + 3 - sig);
+		mvwvline(stat_win, sig + 4, 2, ACS_BLOCK, stat_height - sig);
+		mvwvline(stat_win, sig + 4, 3, ACS_BLOCK, stat_height - sig);
 
 		wattron(stat_win, RED);
 		mvwprintw(stat_win, 0, 10, "%03d", pkt->noise);
 		wattron(stat_win, ALLRED);
-		mvwvline(stat_win, noi + 4, 2, '=', MAX_STAT_BAR + 3 - noi);
-		mvwvline(stat_win, noi + 4, 3, '=', MAX_STAT_BAR + 3 - noi);
+		mvwvline(stat_win, noi + 4, 2, '=', stat_height - noi);
+		mvwvline(stat_win, noi + 4, 3, '=', stat_height - noi);
 
 		wattron(stat_win, BLUE);
+		wattron(stat_win, A_BOLD);
 		mvwprintw(stat_win, 1, 1, "PhyRate:  %2dM", pkt->rate/2);
+		wattroff(stat_win, A_BOLD);
 		wattron(stat_win, ALLBLUE);
-		mvwvline(stat_win, MAX_STAT_BAR + 4 - rate, 5, ACS_BLOCK, rate);
-		mvwvline(stat_win, MAX_STAT_BAR + 4 - rate, 6, ACS_BLOCK, rate);
+		mvwvline(stat_win, stat_height - rate, 5, ACS_BLOCK, rate);
+		mvwvline(stat_win, stat_height - rate, 6, ACS_BLOCK, rate);
 	}
 
 	wattron(stat_win, CYAN);
 	mvwprintw(stat_win, 2, 1, "b/sec: %6s", kilo_mega_ize(bps));
 	wattron(stat_win, ALLCYAN);
-	mvwvline(stat_win, MAX_STAT_BAR + 4 - bpsn, 8, ACS_BLOCK, bpsn);
-	mvwvline(stat_win, MAX_STAT_BAR + 4 - bpsn, 9, ACS_BLOCK, bpsn);
+	mvwvline(stat_win, stat_height - bpsn, 8, ACS_BLOCK, bpsn);
+	mvwvline(stat_win, stat_height - bpsn, 9, ACS_BLOCK, bpsn);
 
 	wattron(stat_win, YELLOW);
-	mvwprintw(stat_win, 3, 1, "Usage:   %3d%%", use);
+	mvwprintw(stat_win, 3, 1, "Usage: %5.1f%%", use);
 	wattron(stat_win, ALLYELLOW);
-	mvwvline(stat_win, MAX_STAT_BAR + 4 - usen, 11, ACS_BLOCK, usen);
-	mvwvline(stat_win, MAX_STAT_BAR + 4 - usen, 12, ACS_BLOCK, usen);
+	mvwvline(stat_win, stat_height - usen, 11, ACS_BLOCK, usen);
+	mvwvline(stat_win, stat_height - usen, 12, ACS_BLOCK, usen);
 	wattroff(stat_win, ALLYELLOW);
 
 	wnoutrefresh(stat_win);
@@ -794,26 +801,26 @@ update_list_win(void)
 	mvwprintw(list_win, 0, COL_MESH, "Mesh");
 
 	/* reuse bottom line for information on other win */
-	mvwprintw(list_win, LINES/2, 0, "Sig/Noi-RT-SOURCE");
-	mvwprintw(list_win, LINES/2, 29, "(BSSID)");
-	mvwprintw(list_win, LINES/2, 49, "TYPE");
-	mvwprintw(list_win, LINES/2, 56, "INFO");
-	mvwprintw(list_win, LINES/2, COLS-12, "LiveStatus");
+	mvwprintw(list_win, win_split - 1, 0, "Sig/Noi-RT-SOURCE");
+	mvwprintw(list_win, win_split - 1, 29, "(BSSID)");
+	mvwprintw(list_win, win_split - 1, 49, "TYPE");
+	mvwprintw(list_win, win_split - 1, 56, "INFO");
+	mvwprintw(list_win, win_split - 1, COLS-12, "LiveStatus");
 
 	if (sortfunc)
 		listsort(&nodes, sortfunc);
 
 	list_for_each_entry(n, &nodes, list) {
 		line++;
-		if (line >= LINES/2)
+		if (line >= win_split - 1)
 			break; /* prevent overdraw of last line */
 		print_list_line(line, n);
 	}
 
 	if (essids.split_active > 0) {
 		wattron(list_win, WHITEONRED);
-		mvwhline(list_win, LINES / 2 - 1, 1, ' ', COLS - 2);
-		print_centered(list_win, LINES / 2 - 1, COLS - 2,
+		mvwhline(list_win, win_split - 2, 1, ' ', COLS - 2);
+		print_centered(list_win, win_split - 2, COLS - 2,
 			"*** IBSS SPLIT DETECTED!!! ESSID '%s' %d nodes ***",
 			essids.split_essid->essid, essids.split_essid->num_nodes);
 		wattroff(list_win, WHITEONRED);
