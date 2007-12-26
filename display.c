@@ -108,35 +108,6 @@ print_centered(WINDOW* win, int line, int cols, const char *fmt, ...)
 	mvwprintw(win, line, cols / 2 - strlen(buf) / 2, buf);
 }
 
-static int
-compare_nodes_snr(const struct list_head *p1, const struct list_head *p2)
-{
-	struct node_info* n1 = list_entry(p1, struct node_info, list);
-	struct node_info* n2 = list_entry(p2, struct node_info, list);
-
-	if (n1->last_pkt.snr > n2->last_pkt.snr)
-		return -1;
-	else if (n1->last_pkt.snr == n2->last_pkt.snr)
-		return 0;
-	else
-		return 1;
-}
-
-
-static int
-compare_nodes_time(const struct list_head *p1, const struct list_head *p2)
-{
-	struct node_info* n1 = list_entry(p1, struct node_info, list);
-	struct node_info* n2 = list_entry(p2, struct node_info, list);
-
-	if (n1->last_seen > n2->last_seen)
-		return -1;
-	else if (n1->last_seen == n2->last_seen)
-		return 0;
-	else
-		return 1;
-}
-
 
 void
 init_display(void)
@@ -324,6 +295,36 @@ filter_input(int c)
 	}
 
 	update_filter_win();
+}
+
+
+static int
+compare_nodes_snr(const struct list_head *p1, const struct list_head *p2)
+{
+	struct node_info* n1 = list_entry(p1, struct node_info, list);
+	struct node_info* n2 = list_entry(p2, struct node_info, list);
+
+	if (n1->last_pkt.snr > n2->last_pkt.snr)
+		return -1;
+	else if (n1->last_pkt.snr == n2->last_pkt.snr)
+		return 0;
+	else
+		return 1;
+}
+
+
+static int
+compare_nodes_time(const struct list_head *p1, const struct list_head *p2)
+{
+	struct node_info* n1 = list_entry(p1, struct node_info, list);
+	struct node_info* n2 = list_entry(p2, struct node_info, list);
+
+	if (n1->last_seen > n2->last_seen)
+		return -1;
+	else if (n1->last_seen == n2->last_seen)
+		return 0;
+	else
+		return 1;
 }
 
 
