@@ -1089,10 +1089,12 @@ update_statistics_win(void)
 	mvwprintw(show_win, 4, 2, "Average: ~%d B/Pkt", stats.bytes/stats.packets);
 
 	bps = bytes_per_second(stats.bytes) * 8;
-	mvwprintw(show_win, 2, 40, "bit/sec: %s (%d)", kilo_mega_ize(bps), bps);
+	mvwprintw(show_win, 2, 40, "Total bit/sec: %s (%d)", kilo_mega_ize(bps), bps);
 
 	dps = duration_per_second(stats.duration);
-	mvwprintw(show_win, 3, 40, "Usage:   %3.1f%% (%d)", dps * 1.0 / 10000, dps ); /* usec in % */
+	wattron(show_win, A_BOLD);
+	mvwprintw(show_win, 3, 40, "Total Usage:   %3.1f%% (%d)", dps * 1.0 / 10000, dps ); /* usec in % */
+	wattroff(show_win, A_BOLD);
 
 	line = 6;
 	mvwprintw(show_win, line, STAT_PACK_POS, " Packets");
