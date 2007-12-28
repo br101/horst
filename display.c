@@ -650,7 +650,8 @@ update_show_win()
 static void
 update_status_win(struct packet_info* pkt, struct node_info* node)
 {
-	int sig, noi, max, rate, bps, bpsn, usen;
+	int sig, noi, rate, bps, bpsn, usen;
+	int max = 0;
 	float use;
 	int max_stat_bar = stat_height - 4;
 
