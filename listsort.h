@@ -3,7 +3,7 @@
 
 struct list_head;
 
-struct list_head*
+void
 listsort(struct list_head *list,
 	int(*cmp)(const struct list_head*, const struct list_head*));
 

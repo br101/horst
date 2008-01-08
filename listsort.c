@@ -37,27 +37,22 @@
 
 
 /*
- * This is the actual sort function. Notice that it returns the new
- * head of the list. (It has to, because the head will not
- * generally be the same element after the sort.) So unlike sorting
- * an array, where you can do
- *
- *     sort(myarray);
- *
- * you now have to do
- *
- *     list = listsort(mylist);
+ * This is the actual sort function.
+ * It assumes head to be a pointer to the first list element, and not beeing a
+ * list element itself (as common in the linux linked list implementation).
+ * If the first element moves, head is adjusted accordingly.
  */
-struct list_head*
-listsort(struct list_head *list,
+void
+listsort(struct list_head *head,
 	int(*cmp)(const struct list_head*, const struct list_head*))
 {
-	struct list_head *p, *q, *e, *tail, *oldhead;
+	struct list_head *list, *p, *q, *e, *tail, *oldhead;
 	int insize, nmerges, psize, qsize, i;
 
-	if (!list)
-		return NULL;
+	if (!head || head->next == head)
+		return;
 
+	list = head->next;
 	insize = 1;
 
 	while (1)
@@ -77,7 +72,7 @@ listsort(struct list_head *list,
 			psize = 0;
 			for (i = 0; i < insize; i++) {
 				psize++;
-				q = (q->next == oldhead ? NULL : q->next);
+				q = (q->next == oldhead || q->next == head ? NULL : q->next);
 				if (!q)
 					break;
 			}
@@ -92,20 +87,20 @@ listsort(struct list_head *list,
 				if (psize == 0) {
 					/* p is empty; e must come from q. */
 					e = q; q = q->next; qsize--;
-					if (q == oldhead) q = NULL;
+					if (q == oldhead || q == head) q = NULL;
 				} else if (qsize == 0 || !q) {
 					/* q is empty; e must come from p. */
 					e = p; p = p->next; psize--;
-					if (p == oldhead) p = NULL;
+					if (p == oldhead || p == head) p = NULL;
 				} else if (cmp(p,q) <= 0) {
 					/* First element of p is lower (or same);
 					 * e must come from p. */
 					e = p; p = p->next; psize--;
-					if (p == oldhead) p = NULL;
+					if (p == oldhead || p == head) p = NULL;
 				} else {
 					/* First element of q is lower; e must come from q. */
 					e = q; q = q->next; qsize--;
-					if (q == oldhead) q = NULL;
+					if (q == oldhead || q == head) q = NULL;
 				}
 				/* add the next element to the merged list */
 				if (tail)
@@ -124,14 +119,19 @@ listsort(struct list_head *list,
 		list->prev = tail;
 
 		/* If we have done only one merge, we're finished. */
-		if (nmerges <= 1)   /* allow for nmerges==0, the empty list case */
-			return list;
+		if (nmerges <= 1) {  /* allow for nmerges==0, the empty list case */
+			/* adjust head */
+			head->next = list;
+			head->prev = list->prev;
+			list->prev->next = head;
+			list->prev = head;
+			return;
+		}
 		/* Otherwise repeat, merging lists twice the size */
 		insize *= 2;
 	}
 }
 
-#if 0
 /*
  * Small test rig with three test orders. The list length 13 is
  * chosen because that means some passes will have an extra list at
@@ -150,9 +150,12 @@ elem_cmp(const struct list_head *a, const struct list_head *b)
 {
 	struct element *ea = list_entry(a, struct element, list);
 	struct element *eb = list_entry(b, struct element, list);
+	//printf("  cmp %d - %d\n", ea->i, eb->i);
 	return ea->i - eb->i;
 }
 
+#if 0
+/* old outdated test */
 int main(void) {
 	#define n 13
 	struct element k[n], *head, *p;
@@ -209,6 +212,43 @@ int main(void) {
 		printf("\n");
 
 	}
+	return 0;
+}
+#endif
+
+#if 0
+int main(void)
+{
+	struct list_head lh;
+	struct element e[5];
+	struct element* ep;
+
+	INIT_LIST_HEAD(&lh);
+
+	e[0].i = 5;
+	e[1].i = 2;
+	e[2].i = 1;
+	e[3].i = 3;
+	e[4].i = 4;
+
+	list_add_tail(&e[0].list, &lh);
+	list_add_tail(&e[1].list, &lh);
+	list_add_tail(&e[2].list, &lh);
+	list_add_tail(&e[3].list, &lh);
+	list_add_tail(&e[4].list, &lh);
+
+	list_for_each_entry(ep, &lh, list) {
+		printf("%d ", ep->i);
+	}
+	printf("\n");
+
+	listsort(&lh, &elem_cmp);
+
+	list_for_each_entry(ep, &lh, list) {
+		printf("%d ", ep->i);
+	}
+	printf("\n");
+
 	return 0;
 }
 #endif
