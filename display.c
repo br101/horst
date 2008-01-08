@@ -342,11 +342,11 @@ compare_nodes_channel(const struct list_head *p1, const struct list_head *p2)
 	struct node_info* n2 = list_entry(p2, struct node_info, list);
 
 	if (n1->channel < n2->channel)
-		return -1;
+		return 1;
 	else if (n1->channel == n2->channel)
 		return 0;
 	else
-		return 1;
+		return -1;
 }
 
 
@@ -356,7 +356,7 @@ compare_nodes_bssid(const struct list_head *p1, const struct list_head *p2)
 	struct node_info* n1 = list_entry(p1, struct node_info, list);
 	struct node_info* n2 = list_entry(p2, struct node_info, list);
 
-	return memcmp(n1->wlan_bssid, n2->wlan_bssid, MAC_LEN);
+	return -memcmp(n1->wlan_bssid, n2->wlan_bssid, MAC_LEN);
 }
 
 
