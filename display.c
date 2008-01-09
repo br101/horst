@@ -872,7 +872,7 @@ update_essid_win(void)
 			wprintw(show_win, " %016llx", node->tsf);
 			wprintw(show_win, " %2d", node->channel);
 			wprintw(show_win, " %2ddB", node->snr);
-			wprintw(show_win, " %s", node->wep ? "E" : "O");
+			wprintw(show_win, " %s", node->wep ? "W" : " ");
 			if (node->pkt_types & PKT_TYPE_IP)
 				wprintw(show_win, " %s", ip_sprintf(node->ip_src));
 			line++;
