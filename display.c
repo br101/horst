@@ -755,7 +755,7 @@ print_list_line(int line, struct node_info* n)
 	else if (n->wlan_mode == WLAN_MODE_PROBE )
 		mvwprintw(list_win, line, COL_STA, "P");
 
-	mvwprintw(list_win, line, COL_ENC, n->wep ? "E" : "O");
+	mvwprintw(list_win, line, COL_ENC, n->wep ? "W" : "");
 
 	mvwprintw(list_win, line, COL_RATE, "%2d", p->rate/2);
 	mvwprintw(list_win, line, COL_SOURCE, "%s", ether_sprintf(p->wlan_src));
