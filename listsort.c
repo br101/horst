@@ -132,6 +132,8 @@ listsort(struct list_head *head,
 	}
 }
 
+
+#if 0
 /*
  * Small test rig with three test orders. The list length 13 is
  * chosen because that means some passes will have an extra list at
@@ -216,7 +218,6 @@ int main(void) {
 }
 #endif
 
-#if 0
 int main(void)
 {
 	struct list_head lh;
@@ -246,6 +247,9 @@ int main(void)
 
 	list_for_each_entry(ep, &lh, list) {
 		printf("%d ", ep->i);
+		//printf("  [%p next %p prev %p]\n", &ep->list, ep->list.next, ep->list.prev);
+		if (ep->list.next->prev != &ep->list)
+			printf("* reverse link error!\n");
 	}
 	printf("\n");
 
