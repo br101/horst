@@ -30,7 +30,7 @@ struct pkt_names {
 };
 
 /* a list of packet type names for easier indexing with padding */
-struct pkt_names mgmt_names[] = {
+static struct pkt_names mgmt_names[] = {
 	{ 'a', "ASOCRQ" },		/* IEEE80211_STYPE_ASSOC_REQ	0x0000 */
 	{ 'A', "ASOCRP" },		/* IEEE80211_STYPE_ASSOC_RESP	0x0010 */
 	{ 'a', "REASRQ" },		/* IEEE80211_STYPE_REASSOC_REQ	0x0020 */
@@ -46,7 +46,7 @@ struct pkt_names mgmt_names[] = {
 	{ 'T', "ACTION" },		/* IEEE80211_STYPE_ACTION	0x00D0 */
 };
 
-struct pkt_names ctrl_names[] = {
+static struct pkt_names ctrl_names[] = {
 	{ 's', "PSPOLL" },		/* IEEE80211_STYPE_PSPOLL	0x00A0 */
 	{ 'R', "RTS" },			/* IEEE80211_STYPE_RTS		0x00B0 */
 	{ 'C', "CTS" },			/* IEEE80211_STYPE_CTS		0x00C0 */
@@ -55,7 +55,7 @@ struct pkt_names ctrl_names[] = {
 	{ 'f', "CFENDK" },		/* IEEE80211_STYPE_CFENDACK	0x00F0 */
 };
 
-struct pkt_names data_names[] = {
+static struct pkt_names data_names[] = {
 	{ 'D', "DATA" },		/* IEEE80211_STYPE_DATA			0x0000 */
 	{ 'F', "DCFACK" },		/* IEEE80211_STYPE_DATA_CFACK		0x0010 */
 	{ 'F', "DCFPLL" },		/* IEEE80211_STYPE_DATA_CFPOLL		0x0020 */
@@ -79,7 +79,7 @@ struct pkt_names data_names[] = {
 #define CTRL_NAME_INDEX(_i) ((((_i) & IEEE80211_FCTL_STYPE)>>4)-10)
 
 
-inline int
+int
 normalize(float oval, int max_val, int max) {
 	int val;
 	val= (oval / max_val) * max;

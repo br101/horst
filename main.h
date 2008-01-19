@@ -228,7 +228,7 @@ struct config {
 	unsigned char		filtermac[MAX_FILTERMAC][MAC_LEN];
 	unsigned char		filterbssid[MAC_LEN];
 	int			filter_pkt;
-	int			filter_off:1,
+	unsigned int		filter_off:1,
 				do_macfilter:1;
 
 	/* this isn't exactly config, but wtf... */

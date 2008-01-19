@@ -38,7 +38,7 @@
 static int parse_prism_header(unsigned char** buf, int len);
 static int parse_radiotap_header(unsigned char** buf, int len);
 static int parse_80211_header(unsigned char** buf, int len);
-static int inline parse_llc(unsigned char** buf, int len);
+static int parse_llc(unsigned char** buf, int len);
 static int parse_ip_header(unsigned char** buf, int len);
 static int parse_udp_header(unsigned char** buf, int len);
 static int parse_olsr_packet(unsigned char** buf, int len);
@@ -472,7 +472,7 @@ parse_80211_header(unsigned char** buf, int len)
 }
 
 
-static inline int
+static int
 parse_llc(unsigned char ** buf, int len)
 {
 	DEBUG("* parse LLC\n");
@@ -560,8 +560,7 @@ static int
 parse_olsr_packet(unsigned char** buf, int len)
 {
 	struct olsr* oh;
-	int number;
-	int i;
+	int number, i, msgtype;
 
 	if (len < sizeof(struct olsr))
 		return -1;
@@ -569,7 +568,7 @@ parse_olsr_packet(unsigned char** buf, int len)
 	oh = (struct olsr*)*buf;
 
 	// TODO: more than one olsr messages can be in one packet
-	int msgtype = oh->olsr_msg[0].olsr_msgtype;
+	msgtype = oh->olsr_msg[0].olsr_msgtype;
 
 	DEBUG("OLSR msgtype: %d\n*** ", msgtype);
 

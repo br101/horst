@@ -43,7 +43,7 @@ static int filter_packet(struct packet_info* pkt);
 static void update_history(struct packet_info* pkt);
 static void update_statistics(struct packet_info* pkt);
 static void write_to_file(struct packet_info* pkt);
-static inline void timeout_nodes(void);
+static void timeout_nodes(void);
 
 struct packet_info current_packet;
 
@@ -163,7 +163,7 @@ main(int argc, char** argv)
 }
 
 
-void
+static void
 get_options(int argc, char** argv)
 {
 	int c;
@@ -548,7 +548,7 @@ write_to_file(struct packet_info* pkt)
 }
 
 
-static inline void
+static void
 timeout_nodes(void)
 {
 	struct node_info *n, *m;

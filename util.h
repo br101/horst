@@ -40,7 +40,7 @@ ip_sprintf(const unsigned int ip);
 void
 convert_string_to_mac(const char* string, unsigned char* mac);
 
-inline int
+int
 normalize(float val, int max_val, int max);
 
 #define normalize_db(_val, _max) \

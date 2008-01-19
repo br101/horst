@@ -18,13 +18,14 @@
 
 #include "ieee80211.h"
 #include "ieee80211_radiotap.h"
+#include "ieee80211_util.h"
 #include "main.h"
 #include "util.h"
 
 #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
 
 u8*
-ieee80211_get_bssid(struct ieee80211_hdr *hdr, int len)
+ieee80211_get_bssid(struct ieee80211_hdr *hdr, size_t len)
 {
 	__le16 fc;
 
@@ -99,7 +100,7 @@ ieee80211_get_hdrlen(u16 fc)
 
 /* from mac80211/ieee80211_sta.c, modified */
 void
-ieee802_11_parse_elems(unsigned char *start, int len, struct packet_info *pkt)
+ieee802_11_parse_elems(unsigned char *start, size_t len, struct packet_info *pkt)
 {
 	int left = len;
 	unsigned char *pos = start;

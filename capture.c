@@ -176,7 +176,7 @@ device_get_arptype(void)
 }
 
 
-void
+static void
 set_receive_buffer(int fd, int sockbufsize)
 {
 	int ret;
@@ -206,6 +206,7 @@ open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size)
 {
 	int ret;
 	int ifindex;
+	struct sockaddr_ll sall;
 
 	mon_ifname = devname;
 
@@ -216,7 +217,6 @@ open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size)
 	/* bind only to one interface */
 	ifindex = device_index(mon_fd, devname);
 
-	struct sockaddr_ll sall;
 	sall.sll_ifindex = ifindex;
 	sall.sll_family = AF_PACKET;
 	sall.sll_protocol = htons(ETH_P_ALL);

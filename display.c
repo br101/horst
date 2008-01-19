@@ -205,7 +205,7 @@ finish_display(int sig)
 
 #define MAC_COL 30
 
-void
+static void
 filter_input(int c)
 {
 	char buf[18];
@@ -360,7 +360,7 @@ compare_nodes_bssid(const struct list_head *p1, const struct list_head *p2)
 }
 
 
-void
+static void
 sort_input(int c)
 {
 	switch(c) {
@@ -391,7 +391,7 @@ sort_input(int c)
 
 
 void
-handle_user_input()
+handle_user_input(void)
 {
 	int key;
 
@@ -497,7 +497,7 @@ show_sort_win(void)
 #define CHECK_ETHER(_mac) MAC_NOT_EMPTY(_mac) ? '*' : ' '
 
 static void
-update_filter_win()
+update_filter_win(void)
 {
 	int l, i;
 
@@ -630,7 +630,7 @@ update_display(struct packet_info* pkt, struct node_info* node)
 
 
 static void
-update_show_win()
+update_show_win(void)
 {
 	if (show_win_current == 'e')
 		update_essid_win();
@@ -982,7 +982,7 @@ update_hist_win(void)
 }
 
 
-void
+static void
 update_dump_win(struct packet_info* pkt)
 {
 	if (!pkt) {
