@@ -102,14 +102,19 @@ duration_per_second(unsigned int duration) {
 static void __attribute__ ((format (printf, 4, 5)))
 print_centered(WINDOW* win, int line, int cols, const char *fmt, ...)
 {
-	char buf[cols];
+	char* buf;
 	va_list ap;
+
+	buf = malloc(cols);
+	if (buf == NULL)
+		return;
 
 	va_start(ap, fmt);
 	vsnprintf(buf, cols, fmt, ap);
 	va_end(ap);
 
 	mvwprintw(win, line, cols / 2 - strlen(buf) / 2, buf);
+	free(buf);
 }
 
 
