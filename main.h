@@ -224,6 +224,7 @@ struct config {
 	int			sleep_time;
 	char*			dumpfile;
 	int			recv_buffer_size;
+	int			serverip;
 
 	unsigned char		filtermac[MAX_FILTERMAC][MAC_LEN];
 	unsigned char		filterbssid[MAC_LEN];

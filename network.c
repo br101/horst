@@ -30,70 +30,67 @@
 
 extern struct config conf;
 
-struct sockaddr_in sock_in, cin;
-socklen_t cinlen;
-int srv_fd=0;
-int cli_fd=0;
-int i;
-fd_set rs;
-char line[256];
-int llen;
-struct timeval to={0,0};
-struct timeval tr={0,100};
-int on = 1;
+int srv_fd = 0;
+int cli_fd = 0;
+static int netmon_fd;
 
+#define CLI_BACKLOG 5
 
 void
-net_init_socket(int rport)
+net_init_server_socket(int rport)
 {
+	struct sockaddr_in sock_in;
+	int reuse = 1;
+
 	if (!conf.quiet)
-		printf("using remote port %d\n",rport);
+		printf("using remote port %d\n", rport);
 
-	sock_in.sin_family=AF_INET;
-	sock_in.sin_port=htons(rport);
-	sock_in.sin_addr.s_addr=htonl(INADDR_ANY);
+	sock_in.sin_family = AF_INET;
+	sock_in.sin_addr.s_addr = htonl(INADDR_ANY);
+	sock_in.sin_port = htons(rport);
 
-	if ((srv_fd=socket(AF_INET,SOCK_STREAM,0)) < 0) {
+	if ((srv_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		err(1, "socket");
-	}
-	if (setsockopt(srv_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {
+
+	if (setsockopt(srv_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0)
 		err(1, "setsockopt SO_REUSEADDR");
-	}
-	if (bind(srv_fd, (struct sockaddr*)&sock_in, sizeof(sock_in)) < 0) {
+
+	if (bind(srv_fd, (struct sockaddr*)&sock_in, sizeof(sock_in)) < 0)
 		err(1, "bind");
-	}
-	if (listen(srv_fd, 5) < 0) {
+
+	if (listen(srv_fd, CLI_BACKLOG) < 0)
 		err(1, "listen");
-	}
 }
 
 
 int
-net_send_packet(void)
+net_send_packet(struct packet_info *pkt)
 {
-	struct node_info* n;
-	FD_ZERO(&rs);
-	FD_SET(srv_fd,&rs);
-	if (select(srv_fd+1,&rs,NULL,NULL,&to) && FD_ISSET(srv_fd,&rs))
-	{
-		cli_fd = accept(srv_fd,(struct sockaddr*)&cin,&cinlen);
-		if (!conf.quiet)
-			printf("horst: accepting client\n");
-		if (!cli_fd)
-			return -1;
+	write(cli_fd, &current_packet, sizeof(struct packet_info));
+	return 0;
+}
 
-		// discard stuff which was sent to us e.g. by a http client
-		FD_ZERO(&rs);
-		FD_SET(cli_fd,&rs);
-		while (select(cli_fd+1,&rs,NULL,NULL,&tr) && FD_ISSET(cli_fd,&rs)) {
-			read(cli_fd,line,sizeof(line));
-			FD_ZERO(&rs);
-			FD_SET(cli_fd,&rs);
-		}
+int net_handle_server_conn()
+{
+	struct sockaddr_in cin;
+	socklen_t cinlen;
 
+	cli_fd = accept(srv_fd, (struct sockaddr*)&cin, &cinlen);
+
+	if (!cli_fd)
+		return -1;
+
+	if (!conf.quiet)
+		printf("horst: accepting client\n");
+
+	//read(cli_fd,line,sizeof(line));
+	return 0;
+}
+
+#if 0
 		// satisfy http clients (wget)
 		static const char hdr[]="HTTP/1.0 200 ok\r\nContent-Type: text/plain\r\n\r\n";
-		write (cli_fd,hdr,sizeof(hdr));
+ 		write (cli_fd,hdr,sizeof(hdr));
 		list_for_each_entry(n, &nodes, list) {
 			char src_eth[18];
 			strcpy(src_eth,ether_sprintf(n->last_pkt.wlan_src));
@@ -110,13 +107,43 @@ net_send_packet(void)
 				n->tsf);
 			write(cli_fd,line,llen);
 		}
-		close(cli_fd);
-	}
-	return 0;
+#endif
+
+
+int
+net_open_client_socket(unsigned int serverip, unsigned int rport)
+{
+	struct sockaddr_in sock_in;
+
+	if (!conf.quiet)
+		printf("using server %x port %d\n", serverip, rport);
+
+	sock_in.sin_family = AF_INET;
+	sock_in.sin_addr.s_addr = htonl(serverip);
+	sock_in.sin_port = htons(rport);
+
+	if ((netmon_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+		err(1, "socket");
+
+	if (connect(netmon_fd, (struct sockaddr*)&sock_in, sizeof(sock_in)) < 0)
+		err(1, "connect");
+
+	return netmon_fd;
 }
 
 
 void
 net_finish(void) {
-	close(srv_fd);
+	if (srv_fd) {
+		shutdown(srv_fd, SHUT_RDWR);
+		close(srv_fd);
+	}
+	if (cli_fd) {
+		shutdown(cli_fd, SHUT_RDWR);
+		close(cli_fd);
+	}
+	if (netmon_fd) {
+		shutdown(netmon_fd, SHUT_RDWR);
+		close(netmon_fd);
+	}
 }

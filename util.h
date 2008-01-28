@@ -60,4 +60,6 @@ kilo_mega_ize(unsigned int val);
 
 #define TOGGLE_BIT(_x, _m) (_x) ^= (_m)
 
+#define max(x,y) ((x) > (y) ? (x) : (y))
+
 #endif

@@ -31,6 +31,7 @@
 #include "capture.h"
 #include "util.h"
 
+extern fd_set fds;
 
 #ifdef PCAP
 
@@ -229,14 +230,14 @@ open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size)
 
 	set_receive_buffer(mon_fd, recv_buffer_size);
 
-	return (mon_fd >= 0);
+	return mon_fd;
 }
 
 
 inline int
-recv_packet(unsigned char* buffer, size_t bufsize)
+recv_packet(int fd, unsigned char* buffer, size_t bufsize)
 {
-	return recv(mon_fd, buffer, bufsize, MSG_DONTWAIT);
+	return recv(fd, buffer, bufsize, MSG_DONTWAIT);
 }
 
 

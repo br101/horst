@@ -25,6 +25,7 @@
 #include <signal.h>
 #include <sys/time.h>
 #include <time.h>
+#include <errno.h>
 #include <err.h>
 
 #include "protocol_parser.h"
@@ -67,13 +68,100 @@ static int mon; /* monitoring socket */
 static FILE* DF = NULL;
 static struct timeval last_nodetimeout;
 
+unsigned char buffer[8192];
+
+/* for select */
+fd_set read_fds;
+fd_set write_fds;
+fd_set excpt_fds;
+struct timeval tv;
+extern int srv_fd;
+extern int cli_fd;
+
+static void
+handle_packet(unsigned char* buffer, int len)
+{
+	struct node_info* node;
+
+	if (!conf.serverip) {
+#if DO_DEBUG
+	dump_packet(buffer, len);
+#endif
+	memset(&current_packet, 0, sizeof(current_packet));
+	if (!parse_packet(buffer, len)) {
+		DEBUG("parsing failed\n");
+		return;
+	}
+	}
+	else {
+		memcpy((void*)&current_packet, buffer, sizeof(struct packet_info));
+	}
+
+	if (filter_packet(&current_packet))
+		return;
+
+	gettimeofday(&the_time, NULL);
+
+	if (conf.dumpfile != NULL)
+		write_to_file(&current_packet);
+
+	node = node_update(&current_packet);
+
+	timeout_nodes();
+
+	update_history(&current_packet);
+	update_statistics(&current_packet);
+	check_ibss_split(&current_packet, node);
+
+	if (conf.rport && cli_fd)
+		net_send_packet(&current_packet);
+
+#if !DO_DEBUG
+	update_display(&current_packet, node);
+#endif
+}
+
+void
+receive_any(void)
+{
+	int ret, len, mfd;
+
+	FD_ZERO(&read_fds);
+	FD_ZERO(&write_fds);
+	FD_ZERO(&excpt_fds);
+
+	FD_SET(0, &read_fds);
+	FD_SET(mon, &read_fds);
+	if (srv_fd)
+		FD_SET(srv_fd, &read_fds);
+
+	tv.tv_sec = 0;
+	tv.tv_usec = conf.sleep_time;
+	mfd = max(mon, srv_fd) + 1;
+
+	ret = select(mfd, &read_fds, &write_fds, &excpt_fds, &tv);
+	if (ret == -1 && errno == EINTR)
+		return;
+	if (ret < 0)
+		err(1, "select()");
+
+	if (FD_ISSET(0, &read_fds))
+		handle_user_input();
+
+	if (FD_ISSET(mon, &read_fds)) {
+		len = recv_packet(mon, buffer, sizeof(buffer));
+		handle_packet(buffer, len);
+	}
+
+	if (srv_fd && FD_ISSET(srv_fd, &read_fds))
+		net_handle_server_conn();
+}
 
 int
 main(int argc, char** argv)
 {
-	unsigned char buffer[8192];
-	int len;
-	struct node_info* node;
+	INIT_LIST_HEAD(&essids.list);
+	INIT_LIST_HEAD(&nodes);
 
 	get_options(argc, argv);
 
@@ -84,15 +172,19 @@ main(int argc, char** argv)
 
 	gettimeofday(&stats.stats_time, NULL);
 
-	mon = open_packet_socket(conf.ifname, sizeof(buffer), conf.recv_buffer_size);
-	if (mon < 0)
-		err(1, "couldn't open packet socket");
+	if (conf.serverip)
+		mon = net_open_client_socket(conf.serverip, conf.rport);
+	else {
+		mon = open_packet_socket(conf.ifname, sizeof(buffer), conf.recv_buffer_size);
+		if (mon < 0)
+			err(1, "couldn't open packet socket");
 
-	conf.arphrd = device_get_arptype();
-	if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
-	    conf.arphrd != ARPHRD_IEEE80211_RADIOTAP) {
-		printf("wrong monitor type. please use radiotap or prism2 headers\n");
-		exit(1);
+		conf.arphrd = device_get_arptype();
+		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
+		conf.arphrd != ARPHRD_IEEE80211_RADIOTAP) {
+			printf("wrong monitor type. please use radiotap or prism2 headers\n");
+			exit(1);
+		}
 	}
 
 	if (conf.dumpfile != NULL) {
@@ -101,62 +193,16 @@ main(int argc, char** argv)
 			err(1, "couldn't open dump file");
 	}
 
-	INIT_LIST_HEAD(&essids.list);
-	INIT_LIST_HEAD(&nodes);
+	if (!conf.serverip && conf.rport)
+		net_init_server_socket(conf.rport);
 
-	if (conf.rport)
-		net_init_socket(conf.rport);
 #if !DO_DEBUG
-	else {
-		init_display();
-	}
+	init_display();
 #endif
 
-	while ((len = recv_packet(buffer, sizeof(buffer))))
+	for ( /* ever*/ ;;)
 	{
-		handle_user_input();
-
-		if (conf.paused || len == -1) {
-			/*
-			 * no packet received or paused: just wait a few ms
-			 * if we wait too long here we will loose packets
-			 * if we don't sleep there will be 100% system load
-			 */
-			usleep(conf.sleep_time);
-			continue;
-		}
-#if DO_DEBUG
-		dump_packet(buffer, len);
-#endif
-		memset(&current_packet, 0, sizeof(current_packet));
-		if (!parse_packet(buffer, len)) {
-			DEBUG("parsing failed\n");
-			continue;
-		}
-
-		if (filter_packet(&current_packet))
-			continue;
-
-		gettimeofday(&the_time, NULL);
-
-		if (conf.dumpfile != NULL)
-			write_to_file(&current_packet);
-
-		node = node_update(&current_packet);
-
-		timeout_nodes();
-
-		update_history(&current_packet);
-		update_statistics(&current_packet);
-		check_ibss_split(&current_packet, node);
-
-		if (conf.rport) {
-			net_send_packet();
-			continue;
-		}
-#if !DO_DEBUG
-		update_display(&current_packet, node);
-#endif
+		receive_any();
 	}
 	/* will never */
 	return 0;
@@ -169,7 +215,7 @@ get_options(int argc, char** argv)
 	int c;
 	static int n;
 
-	while((c = getopt(argc, argv, "hqi:t:p:e:d:w:o:b:")) > 0) {
+	while((c = getopt(argc, argv, "hqi:t:p:e:d:w:o:b:c:")) > 0) {
 		switch (c) {
 			case 'p':
 				conf.rport = atoi(optarg);
@@ -205,6 +251,9 @@ get_options(int argc, char** argv)
 				convert_string_to_mac(optarg, conf.filtermac[n]);
 				printf("%s\n", ether_sprintf(conf.filtermac[n]));
 				n++;
+				break;
+			case 'c':
+				conf.serverip = 0x7F000001;
 				break;
 			case 'h':
 			default:
@@ -256,7 +305,8 @@ finish_all(int sig)
 {
 	free_lists();
 
-	close_packet_socket();
+	if (!conf.serverip)
+		close_packet_socket();
 	
 	if (DF != NULL)
 		fclose(DF);
