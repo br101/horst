@@ -27,6 +27,9 @@
 #include <time.h>
 #include <errno.h>
 #include <err.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include "protocol_parser.h"
 #include "display.h"
@@ -60,6 +63,7 @@ struct config conf = {
 	.sleep_time		= SLEEP_TIME,
 	.filter_pkt		= 0xffffff,
 	.recv_buffer_size	= RECV_BUFFER_SIZE,
+	.port			= DEFAULT_PORT,
 };
 
 struct timeval the_time;
@@ -113,7 +117,7 @@ handle_packet(unsigned char* buffer, int len)
 	update_statistics(&current_packet);
 	check_ibss_split(&current_packet, node);
 
-	if (conf.rport && cli_fd)
+	if (conf.port && cli_fd)
 		net_send_packet(&current_packet);
 
 #if !DO_DEBUG
@@ -173,7 +177,7 @@ main(int argc, char** argv)
 	gettimeofday(&stats.stats_time, NULL);
 
 	if (conf.serverip)
-		mon = net_open_client_socket(conf.serverip, conf.rport);
+		mon = net_open_client_socket(conf.serverip, conf.port);
 	else {
 		mon = open_packet_socket(conf.ifname, sizeof(buffer), conf.recv_buffer_size);
 		if (mon < 0)
@@ -193,8 +197,8 @@ main(int argc, char** argv)
 			err(1, "couldn't open dump file");
 	}
 
-	if (!conf.serverip && conf.rport)
-		net_init_server_socket(conf.rport);
+	if (!conf.serverip && conf.port)
+		net_init_server_socket(conf.port);
 
 #if !DO_DEBUG
 	init_display();
@@ -214,11 +218,12 @@ get_options(int argc, char** argv)
 {
 	int c;
 	static int n;
+	struct in_addr ia;
 
 	while((c = getopt(argc, argv, "hqi:t:p:e:d:w:o:b:c:")) > 0) {
 		switch (c) {
 			case 'p':
-				conf.rport = atoi(optarg);
+				conf.port = atoi(optarg);
 				break;
 			case 'q':
 				conf.quiet = 1;
@@ -253,7 +258,11 @@ get_options(int argc, char** argv)
 				n++;
 				break;
 			case 'c':
-				conf.serverip = 0x7F000001;
+				if (!inet_aton(optarg, &ia)) {
+					printf("client ip conversion failed\n");
+					exit(0);
+				}
+				conf.serverip = ia.s_addr;
 				break;
 			case 'h':
 			default:
@@ -263,7 +272,8 @@ get_options(int argc, char** argv)
 					"  -q\t\tquiet [basically useless]\n"
 					"  -i <intf>\tinterface (wlan0)\n"
 					"  -t <sec>\tnode timeout (60)\n"
-					"  -p <port>\tuse port\n"
+					"  -c <IP>\tconnect to server at IP\n"
+					"  -p <port>\tuse port (4444)\n"
 					"  -e <mac>\tfilter all macs ecxept this\n"
 					"  -d <usec>\tdisplay update interval (100000 = 100ms = 10fps)\n"
 					"  -w <usec>\twait loop (1000 = 1ms)\n"
@@ -312,7 +322,7 @@ finish_all(int sig)
 		fclose(DF);
 
 #if !DO_DEBUG
-	if (conf.rport)
+	if (conf.port)
 		net_finish();
 	else
 		finish_display(sig);

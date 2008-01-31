@@ -80,14 +80,14 @@
 #define PHY_FLAG_G		0x0040
 #define PHY_FLAG_MODE_MASK	0x00f0
 
-/* default config vlaues */
+/* default config values */
 #define INTERFACE_NAME		"wlan0"
 #define NODE_TIMEOUT		60	/* seconds */
 /* update display every 100ms - "10 frames per sec should be enough for everyone" ;) */
 #define DISPLAY_UPDATE_INTERVAL 100000	/* usec */
 #define SLEEP_TIME		1000	/* usec */
 #define RECV_BUFFER_SIZE	6750000 /* 54Mbps in byte */
-
+#define DEFAULT_PORT		4444
 
 #ifndef ARPHRD_IEEE80211_RADIOTAP
 #define ARPHRD_IEEE80211_RADIOTAP 803    /* IEEE 802.11 + radiotap header */
@@ -217,7 +217,7 @@ extern struct statistics stats;
 
 struct config {
 	char*			ifname;
-	int			rport;
+	int			port;
 	int			quiet;
 	int			node_timeout;
 	int			display_interval;
