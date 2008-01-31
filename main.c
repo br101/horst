@@ -124,7 +124,9 @@ handle_packet(unsigned char* buffer, int len)
 	update_statistics(&current_packet);
 	check_ibss_split(&current_packet, node);
 
+#if !DO_DEBUG
 	update_display(&current_packet, node);
+#endif
 }
 
 
