@@ -119,11 +119,9 @@ net_open_client_socket(unsigned int serverip, unsigned int rport)
 	sock_in.sin_addr.s_addr = serverip;
 	sock_in.sin_port = htons(rport);
 
-printf("sock\n");
 	if ((netmon_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		err(1, "socket");
 
-printf("conn\n");
 	if (connect(netmon_fd, (struct sockaddr*)&sock_in, sizeof(sock_in)) < 0)
 		err(1, "connect");
 
