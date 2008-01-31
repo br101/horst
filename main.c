@@ -104,20 +104,16 @@ handle_packet(unsigned char* buffer, int len)
 	if (filter_packet(&current_packet))
 		return;
 
-	gettimeofday(&the_time, NULL);
-
 	if (conf.dumpfile != NULL)
 		write_to_file(&current_packet);
 
 	node = node_update(&current_packet);
 
-	timeout_nodes();
-
 	update_history(&current_packet);
 	update_statistics(&current_packet);
 	check_ibss_split(&current_packet, node);
 
-	if (conf.port && cli_fd)
+	if (conf.port && cli_fd != -1)
 		net_send_packet(&current_packet);
 
 #if !DO_DEBUG
@@ -137,7 +133,7 @@ receive_any(void)
 
 	FD_SET(0, &read_fds);
 	FD_SET(mon, &read_fds);
-	if (srv_fd)
+	if (srv_fd != -1)
 		FD_SET(srv_fd, &read_fds);
 
 	tv.tv_sec = 0;
@@ -147,20 +143,31 @@ receive_any(void)
 	ret = select(mfd, &read_fds, &write_fds, &excpt_fds, &tv);
 	if (ret == -1 && errno == EINTR)
 		return;
+	if (ret == 0) /* timeout */
+		return;
 	if (ret < 0)
 		err(1, "select()");
 
-	if (FD_ISSET(0, &read_fds))
+	if (FD_ISSET(0, &read_fds)) {
 		handle_user_input();
+	}
 
 	if (FD_ISSET(mon, &read_fds)) {
 		len = recv_packet(mon, buffer, sizeof(buffer));
 		handle_packet(buffer, len);
 	}
 
-	if (srv_fd && FD_ISSET(srv_fd, &read_fds))
+	if (srv_fd != -1 && FD_ISSET(srv_fd, &read_fds))
 		net_handle_server_conn();
 }
+
+
+void
+sigpipe_handler(int sig)
+{
+	/* ignore signal here - we will handle it after write failed */
+}
+
 
 int
 main(int argc, char** argv)
@@ -171,6 +178,7 @@ main(int argc, char** argv)
 	get_options(argc, argv);
 
 	signal(SIGINT, finish_all);
+	signal(SIGPIPE, sigpipe_handler);
 
 	gettimeofday(&stats.stats_time, NULL);
 
@@ -206,6 +214,8 @@ main(int argc, char** argv)
 	for ( /* ever*/ ;;)
 	{
 		receive_any();
+		gettimeofday(&the_time, NULL);
+		timeout_nodes();
 	}
 	/* will never */
 	return 0;

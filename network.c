@@ -23,6 +23,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <errno.h>
 #include <err.h>
 
 #include "main.h"
@@ -30,8 +31,8 @@
 
 extern struct config conf;
 
-int srv_fd = 0;
-int cli_fd = 0;
+int srv_fd = -1;
+int cli_fd = -1;
 static int netmon_fd;
 
 #define CLI_BACKLOG 5
@@ -65,7 +66,17 @@ net_init_server_socket(int rport)
 int
 net_send_packet(struct packet_info *pkt)
 {
-	write(cli_fd, &current_packet, sizeof(struct packet_info));
+	int ret;
+	ret = write(cli_fd, &current_packet, sizeof(struct packet_info));
+	if (ret == -1) {
+		if (errno == EPIPE) {
+			printf("client has closed\n");
+			close(cli_fd);
+			cli_fd = -1;
+		}
+		else
+			perror("write");
+	}
 	return 0;
 }
 
@@ -74,10 +85,12 @@ int net_handle_server_conn()
 	struct sockaddr_in cin;
 	socklen_t cinlen;
 
-	cli_fd = accept(srv_fd, (struct sockaddr*)&cin, &cinlen);
-
-	if (!cli_fd)
+	if (cli_fd != -1) {
+		printf("can only handle one client\n");
 		return -1;
+	}
+
+	cli_fd = accept(srv_fd, (struct sockaddr*)&cin, &cinlen);
 
 	printf("horst: accepting client\n");
 
@@ -132,16 +145,13 @@ net_open_client_socket(unsigned int serverip, unsigned int rport)
 
 void
 net_finish(void) {
-	if (srv_fd) {
-		shutdown(srv_fd, SHUT_RDWR);
+	if (srv_fd != -1) {
 		close(srv_fd);
 	}
-	if (cli_fd) {
-		shutdown(cli_fd, SHUT_RDWR);
+	if (cli_fd != -1) {
 		close(cli_fd);
 	}
 	if (netmon_fd) {
-		shutdown(netmon_fd, SHUT_RDWR);
 		close(netmon_fd);
 	}
 }
