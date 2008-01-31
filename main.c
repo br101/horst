@@ -82,45 +82,51 @@ struct timeval tv;
 extern int srv_fd;
 extern int cli_fd;
 
+
 static void
 handle_packet(unsigned char* buffer, int len)
 {
 	struct node_info* node;
 
-	if (!conf.serverip) {
 #if DO_DEBUG
 	dump_packet(buffer, len);
 #endif
-	memset(&current_packet, 0, sizeof(current_packet));
-	if (!parse_packet(buffer, len)) {
-		DEBUG("parsing failed\n");
-		return;
-	}
+
+	if (!conf.serverip) {
+		/* local capture */
+		memset(&current_packet, 0, sizeof(current_packet));
+		if (!parse_packet(buffer, len)) {
+			DEBUG("parsing failed\n");
+			return;
+		}
 	}
 	else {
+		/* client mode - receiving pre-parsed from server */
+		/* TODO: this is not portable! */
 		memcpy((void*)&current_packet, buffer, sizeof(struct packet_info));
 	}
-
-	if (filter_packet(&current_packet))
-		return;
-
-	if (conf.dumpfile != NULL)
-		write_to_file(&current_packet);
-
-	node = node_update(&current_packet);
-
-	update_history(&current_packet);
-	update_statistics(&current_packet);
-	check_ibss_split(&current_packet, node);
 
 	if (conf.port && cli_fd != -1)
 		net_send_packet(&current_packet);
 
-#if !DO_DEBUG
-	if (!conf.quiet)
-		update_display(&current_packet, node);
-#endif
+	if (conf.dumpfile != NULL)
+		write_to_file(&current_packet);
+
+	if (conf.quiet)
+		return;
+
+	/* in display mode */
+	if (filter_packet(&current_packet))
+		return;
+
+	node = node_update(&current_packet);
+	update_history(&current_packet);
+	update_statistics(&current_packet);
+	check_ibss_split(&current_packet, node);
+
+	update_display(&current_packet, node);
 }
+
 
 void
 receive_any(void)
