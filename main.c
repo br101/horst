@@ -67,11 +67,17 @@ static int mon; /* monitoring socket */
 static FILE* DF = NULL;
 static struct timeval last_nodetimeout;
 
+/*
+ * receive packet buffer
+ * size: max 80211 frame (2312) + space for prism2 header (144)
+ * or radiotap header (usually only 26) + some extra
+ */
+static unsigned char buffer[2312 + 200];
+
 
 int
 main(int argc, char** argv)
 {
-	unsigned char buffer[8192];
 	int len;
 	struct node_info* node;
 
