@@ -42,8 +42,7 @@ net_init_server_socket(int rport)
 	struct sockaddr_in sock_in;
 	int reuse = 1;
 
-	if (!conf.quiet)
-		printf("using remote port %d\n", rport);
+	printf("using server port %d\n", rport);
 
 	sock_in.sin_family = AF_INET;
 	sock_in.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -80,8 +79,7 @@ int net_handle_server_conn()
 	if (!cli_fd)
 		return -1;
 
-	if (!conf.quiet)
-		printf("horst: accepting client\n");
+	printf("horst: accepting client\n");
 
 	//read(cli_fd,line,sizeof(line));
 	return 0;
@@ -115,19 +113,21 @@ net_open_client_socket(unsigned int serverip, unsigned int rport)
 {
 	struct sockaddr_in sock_in;
 
-	if (!conf.quiet)
-		printf("using server %x port %d\n", serverip, rport);
+	printf("connecting to server %x port %d\n", serverip, rport);
 
 	sock_in.sin_family = AF_INET;
-	sock_in.sin_addr.s_addr = htonl(serverip);
+	sock_in.sin_addr.s_addr = serverip;
 	sock_in.sin_port = htons(rport);
 
+printf("sock\n");
 	if ((netmon_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		err(1, "socket");
 
+printf("conn\n");
 	if (connect(netmon_fd, (struct sockaddr*)&sock_in, sizeof(sock_in)) < 0)
 		err(1, "connect");
 
+	printf("connected\n");
 	return netmon_fd;
 }
 

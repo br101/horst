@@ -121,7 +121,8 @@ handle_packet(unsigned char* buffer, int len)
 		net_send_packet(&current_packet);
 
 #if !DO_DEBUG
-	update_display(&current_packet, node);
+	if (!conf.quiet)
+		update_display(&current_packet, node);
 #endif
 }
 
@@ -169,9 +170,6 @@ main(int argc, char** argv)
 
 	get_options(argc, argv);
 
-	if (!conf.quiet)
-		printf("horst: using monitoring interface %s\n", conf.ifname);
-
 	signal(SIGINT, finish_all);
 
 	gettimeofday(&stats.stats_time, NULL);
@@ -201,7 +199,8 @@ main(int argc, char** argv)
 		net_init_server_socket(conf.port);
 
 #if !DO_DEBUG
-	init_display();
+	if (!conf.quiet)
+		init_display();
 #endif
 
 	for ( /* ever*/ ;;)
@@ -324,7 +323,8 @@ finish_all(int sig)
 #if !DO_DEBUG
 	if (conf.port)
 		net_finish();
-	else
+
+	if (!conf.quiet)
 		finish_display(sig);
 #endif
 	exit(0);
