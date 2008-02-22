@@ -36,8 +36,6 @@ int srv_fd = -1;
 int cli_fd = -1;
 static int netmon_fd;
 
-#define CLI_BACKLOG 5
-
 struct net_packet_info {
 	/* general */
 	int			pkt_types;	/* bitmask of packet types in this pkt */
@@ -92,7 +90,7 @@ net_init_server_socket(int rport)
 	if (bind(srv_fd, (struct sockaddr*)&sock_in, sizeof(sock_in)) < 0)
 		err(1, "bind");
 
-	if (listen(srv_fd, CLI_BACKLOG) < 0)
+	if (listen(srv_fd, 0) < 0)
 		err(1, "listen");
 }
 
