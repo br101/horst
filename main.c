@@ -91,18 +91,20 @@ handle_packet(void)
 {
 	struct node_info* node;
 
-	if (conf.port && cli_fd != -1)
+	if (conf.port && cli_fd != -1) {
 		net_send_packet(&current_packet);
-
-	if (conf.dumpfile != NULL)
+	}
+	if (conf.dumpfile != NULL) {
 		write_to_file(&current_packet);
-
-	if (conf.quiet)
+	}
+	if (conf.quiet || conf.paused) {
 		return;
+	}
 
 	/* in display mode */
-	if (filter_packet(&current_packet))
+	if (filter_packet(&current_packet)) {
 		return;
+	}
 
 	node = node_update(&current_packet);
 	update_history(&current_packet);
