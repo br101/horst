@@ -40,15 +40,6 @@
 #include "ieee80211.h"
 #include "ieee80211_util.h"
 
-static void get_options(int argv, char** argc);
-static struct node_info* node_update(struct packet_info* pkt);
-static void check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node);
-static int filter_packet(struct packet_info* pkt);
-static void update_history(struct packet_info* pkt);
-static void update_statistics(struct packet_info* pkt);
-static void write_to_file(struct packet_info* pkt);
-static void timeout_nodes(void);
-
 struct packet_info current_packet;
 
 struct list_head nodes;
@@ -84,281 +75,6 @@ static fd_set read_fds;
 static fd_set write_fds;
 static fd_set excpt_fds;
 static struct timeval tv;
-
-
-static void
-handle_packet(void)
-{
-	struct node_info* node;
-
-	if (conf.port && cli_fd != -1) {
-		net_send_packet(&current_packet);
-	}
-	if (conf.dumpfile != NULL) {
-		write_to_file(&current_packet);
-	}
-	if (conf.quiet || conf.paused) {
-		return;
-	}
-
-	/* in display mode */
-	if (filter_packet(&current_packet)) {
-		return;
-	}
-
-	node = node_update(&current_packet);
-	update_history(&current_packet);
-	update_statistics(&current_packet);
-	check_ibss_split(&current_packet, node);
-
-#if !DO_DEBUG
-	update_display(&current_packet, node);
-#endif
-}
-
-
-static void
-receive_packet(unsigned char* buffer, int len)
-{
-#if DO_DEBUG
-	dump_packet(buffer, len);
-#endif
-	memset(&current_packet, 0, sizeof(current_packet));
-
-	if (!conf.serveraddr) {
-		/* local capture */
-		if (!parse_packet(buffer, len)) {
-			DEBUG("parsing failed\n");
-			return;
-		}
-	}
-	else {
-		/* client mode - receiving pre-parsed from server */
-		if (!net_receive_packet(buffer, len, &current_packet)) {
-			DEBUG("receive failed\n");
-			return;
-		}
-	}
-
-	handle_packet();
-}
-
-
-static void
-receive_any(void)
-{
-	int ret, len, mfd;
-
-	FD_ZERO(&read_fds);
-	FD_ZERO(&write_fds);
-	FD_ZERO(&excpt_fds);
-
-	FD_SET(0, &read_fds);
-	FD_SET(mon, &read_fds);
-	if (srv_fd != -1)
-		FD_SET(srv_fd, &read_fds);
-
-	tv.tv_sec = 0;
-	tv.tv_usec = conf.sleep_time;
-	mfd = max(mon, srv_fd) + 1;
-
-	ret = select(mfd, &read_fds, &write_fds, &excpt_fds, &tv);
-	if (ret == -1 && errno == EINTR)
-		return;
-	if (ret == 0) /* timeout */
-		return;
-	if (ret < 0)
-		err(1, "select()");
-
-	/* stdin */
-	if (FD_ISSET(0, &read_fds)) {
-		handle_user_input();
-	}
-
-	/* packet */
-	if (FD_ISSET(mon, &read_fds)) {
-		len = recv_packet(mon, buffer, sizeof(buffer));
-		receive_packet(buffer, len);
-	}
-
-	/* server */
-	if (srv_fd != -1 && FD_ISSET(srv_fd, &read_fds))
-		net_handle_server_conn();
-}
-
-
-static void
-sigpipe_handler(int sig)
-{
-	/* ignore signal here - we will handle it after write failed */
-}
-
-
-int
-main(int argc, char** argv)
-{
-	INIT_LIST_HEAD(&essids.list);
-	INIT_LIST_HEAD(&nodes);
-
-	get_options(argc, argv);
-
-	signal(SIGINT, finish_all);
-	signal(SIGPIPE, sigpipe_handler);
-
-	gettimeofday(&stats.stats_time, NULL);
-
-	if (conf.serveraddr)
-		mon = net_open_client_socket(conf.serveraddr, conf.port);
-	else {
-		mon = open_packet_socket(conf.ifname, sizeof(buffer), conf.recv_buffer_size);
-		if (mon < 0)
-			err(1, "couldn't open packet socket");
-
-		conf.arphrd = device_get_arptype();
-		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
-		conf.arphrd != ARPHRD_IEEE80211_RADIOTAP) {
-			printf("wrong monitor type. please use radiotap or prism2 headers\n");
-			exit(1);
-		}
-	}
-
-	if (conf.dumpfile != NULL) {
-		DF = fopen(conf.dumpfile, "w");
-		if (DF == NULL)
-			err(1, "couldn't open dump file");
-	}
-
-	if (!conf.serveraddr && conf.port)
-		net_init_server_socket(conf.port);
-
-#if !DO_DEBUG
-	if (!conf.quiet)
-		init_display();
-#endif
-
-	for ( /* ever*/ ;;)
-	{
-		receive_any();
-		gettimeofday(&the_time, NULL);
-		timeout_nodes();
-	}
-	/* will never */
-	return 0;
-}
-
-
-static void
-get_options(int argc, char** argv)
-{
-	int c;
-	static int n;
-
-	while((c = getopt(argc, argv, "hqi:t:p:e:d:w:o:b:c:")) > 0) {
-		switch (c) {
-			case 'p':
-				conf.port = optarg;
-				break;
-			case 'q':
-				conf.quiet = 1;
-				break;
-			case 'i':
-				conf.ifname = optarg;
-				break;
-			case 'o':
-				conf.dumpfile = optarg;
-				break;
-			case 't':
-				conf.node_timeout = atoi(optarg);
-				break;
-			case 'b':
-				conf.recv_buffer_size = atoi(optarg);
-				break;
-			case 's':
-				/* reserved for spectro meter */
-				break;
-			case 'd':
-				conf.display_interval = atoi(optarg);
-				break;
-			case 'w':
-				conf.sleep_time = atoi(optarg);
-				break;
-			case 'e':
-				if (n >= MAX_FILTERMAC)
-					break;
-				conf.do_macfilter = 1;
-				convert_string_to_mac(optarg, conf.filtermac[n]);
-				printf("%s\n", ether_sprintf(conf.filtermac[n]));
-				n++;
-				break;
-			case 'c':
-				conf.serveraddr = optarg;
-				break;
-			case 'h':
-			default:
-				printf("usage: %s [-h] [-q] [-i interface] [-t sec] [-p port] [-e mac] [-d usec] [-w usec] [-o file]\n\n"
-					"Options (default value)\n"
-					"  -h\t\tthis help\n"
-					"  -q\t\tquiet [basically useless]\n"
-					"  -i <intf>\tinterface (wlan0)\n"
-					"  -t <sec>\tnode timeout (60)\n"
-					"  -c <IP>\tconnect to server at IP\n"
-					"  -p <port>\tuse port (4444)\n"
-					"  -e <mac>\tfilter all macs ecxept this\n"
-					"  -d <usec>\tdisplay update interval (100000 = 100ms = 10fps)\n"
-					"  -w <usec>\twait loop (1000 = 1ms)\n"
-					"  -o <filename>\twrite packet info into file\n"
-					"  -b <bytes>\treceive buffer size (6750000)\n"
-					"\n",
-					argv[0]);
-				exit(0);
-				break;
-		}
-	}
-}
-
-
-void
-free_lists(void)
-{
-	struct essid_info *e, *f;
-	struct node_info *ni, *mi;
-
-	/* free node list */
-	list_for_each_entry_safe(ni, mi, &nodes, list) {
-		DEBUG("free node %s\n", ether_sprintf(ni->last_pkt.wlan_src));
-		list_del(&ni->list);
-		free(ni);
-	}
-
-	/* free essids */
-	list_for_each_entry_safe(e, f, &essids.list, list) {
-		DEBUG("free essid '%s'\n", e->essid);
-		list_del(&e->list);
-		free(e);
-	}
-}
-
-
-void
-finish_all(int sig)
-{
-	free_lists();
-
-	if (!conf.serveraddr)
-		close_packet_socket();
-	
-	if (DF != NULL)
-		fclose(DF);
-
-#if !DO_DEBUG
-	if (conf.port)
-		net_finish();
-
-	if (!conf.quiet)
-		finish_display(sig);
-#endif
-	exit(0);
-}
 
 
 static void
@@ -657,6 +373,229 @@ timeout_nodes(void)
 	last_nodetimeout = the_time;
 }
 
+
+static void
+handle_packet(void)
+{
+	struct node_info* node;
+
+	if (conf.port && cli_fd != -1) {
+		net_send_packet(&current_packet);
+	}
+	if (conf.dumpfile != NULL) {
+		write_to_file(&current_packet);
+	}
+	if (conf.quiet || conf.paused) {
+		return;
+	}
+
+	/* in display mode */
+	if (filter_packet(&current_packet)) {
+		return;
+	}
+
+	node = node_update(&current_packet);
+	update_history(&current_packet);
+	update_statistics(&current_packet);
+	check_ibss_split(&current_packet, node);
+
+#if !DO_DEBUG
+	update_display(&current_packet, node);
+#endif
+}
+
+
+static void
+receive_packet(unsigned char* buffer, int len)
+{
+#if DO_DEBUG
+	dump_packet(buffer, len);
+#endif
+	memset(&current_packet, 0, sizeof(current_packet));
+
+	if (!conf.serveraddr) {
+		/* local capture */
+		if (!parse_packet(buffer, len)) {
+			DEBUG("parsing failed\n");
+			return;
+		}
+	}
+	else {
+		/* client mode - receiving pre-parsed from server */
+		if (!net_receive_packet(buffer, len, &current_packet)) {
+			DEBUG("receive failed\n");
+			return;
+		}
+	}
+
+	handle_packet();
+}
+
+
+static void
+receive_any(void)
+{
+	int ret, len, mfd;
+
+	FD_ZERO(&read_fds);
+	FD_ZERO(&write_fds);
+	FD_ZERO(&excpt_fds);
+
+	FD_SET(0, &read_fds);
+	FD_SET(mon, &read_fds);
+	if (srv_fd != -1)
+		FD_SET(srv_fd, &read_fds);
+
+	tv.tv_sec = 0;
+	tv.tv_usec = conf.sleep_time;
+	mfd = max(mon, srv_fd) + 1;
+
+	ret = select(mfd, &read_fds, &write_fds, &excpt_fds, &tv);
+	if (ret == -1 && errno == EINTR)
+		return;
+	if (ret == 0) /* timeout */
+		return;
+	if (ret < 0)
+		err(1, "select()");
+
+	/* stdin */
+	if (FD_ISSET(0, &read_fds)) {
+		handle_user_input();
+	}
+
+	/* packet */
+	if (FD_ISSET(mon, &read_fds)) {
+		len = recv_packet(mon, buffer, sizeof(buffer));
+		receive_packet(buffer, len);
+	}
+
+	/* server */
+	if (srv_fd != -1 && FD_ISSET(srv_fd, &read_fds))
+		net_handle_server_conn();
+}
+
+
+static void
+sigpipe_handler(int sig)
+{
+	/* ignore signal here - we will handle it after write failed */
+}
+
+
+static void
+get_options(int argc, char** argv)
+{
+	int c;
+	static int n;
+
+	while((c = getopt(argc, argv, "hqi:t:p:e:d:w:o:b:c:")) > 0) {
+		switch (c) {
+			case 'p':
+				conf.port = optarg;
+				break;
+			case 'q':
+				conf.quiet = 1;
+				break;
+			case 'i':
+				conf.ifname = optarg;
+				break;
+			case 'o':
+				conf.dumpfile = optarg;
+				break;
+			case 't':
+				conf.node_timeout = atoi(optarg);
+				break;
+			case 'b':
+				conf.recv_buffer_size = atoi(optarg);
+				break;
+			case 's':
+				/* reserved for spectro meter */
+				break;
+			case 'd':
+				conf.display_interval = atoi(optarg);
+				break;
+			case 'w':
+				conf.sleep_time = atoi(optarg);
+				break;
+			case 'e':
+				if (n >= MAX_FILTERMAC)
+					break;
+				conf.do_macfilter = 1;
+				convert_string_to_mac(optarg, conf.filtermac[n]);
+				printf("%s\n", ether_sprintf(conf.filtermac[n]));
+				n++;
+				break;
+			case 'c':
+				conf.serveraddr = optarg;
+				break;
+			case 'h':
+			default:
+				printf("usage: %s [-h] [-q] [-i interface] [-t sec] [-p port] [-e mac] [-d usec] [-w usec] [-o file]\n\n"
+					"Options (default value)\n"
+					"  -h\t\tthis help\n"
+					"  -q\t\tquiet [basically useless]\n"
+					"  -i <intf>\tinterface (wlan0)\n"
+					"  -t <sec>\tnode timeout (60)\n"
+					"  -c <IP>\tconnect to server at IP\n"
+					"  -p <port>\tuse port (4444)\n"
+					"  -e <mac>\tfilter all macs ecxept this\n"
+					"  -d <usec>\tdisplay update interval (100000 = 100ms = 10fps)\n"
+					"  -w <usec>\twait loop (1000 = 1ms)\n"
+					"  -o <filename>\twrite packet info into file\n"
+					"  -b <bytes>\treceive buffer size (6750000)\n"
+					"\n",
+					argv[0]);
+				exit(0);
+				break;
+		}
+	}
+}
+
+
+void
+free_lists(void)
+{
+	struct essid_info *e, *f;
+	struct node_info *ni, *mi;
+
+	/* free node list */
+	list_for_each_entry_safe(ni, mi, &nodes, list) {
+		DEBUG("free node %s\n", ether_sprintf(ni->last_pkt.wlan_src));
+		list_del(&ni->list);
+		free(ni);
+	}
+
+	/* free essids */
+	list_for_each_entry_safe(e, f, &essids.list, list) {
+		DEBUG("free essid '%s'\n", e->essid);
+		list_del(&e->list);
+		free(e);
+	}
+}
+
+
+void
+finish_all(int sig)
+{
+	free_lists();
+
+	if (!conf.serveraddr)
+		close_packet_socket();
+
+	if (DF != NULL)
+		fclose(DF);
+
+#if !DO_DEBUG
+	if (conf.port)
+		net_finish();
+
+	if (!conf.quiet)
+		finish_display(sig);
+#endif
+	exit(0);
+}
+
+
 #if 0
 void print_rate_duration_table(void)
 {
@@ -697,3 +636,56 @@ void print_rate_duration_table(void)
 	}
 }
 #endif
+
+
+int
+main(int argc, char** argv)
+{
+	INIT_LIST_HEAD(&essids.list);
+	INIT_LIST_HEAD(&nodes);
+
+	get_options(argc, argv);
+
+	signal(SIGINT, finish_all);
+	signal(SIGPIPE, sigpipe_handler);
+
+	gettimeofday(&stats.stats_time, NULL);
+
+	if (conf.serveraddr)
+		mon = net_open_client_socket(conf.serveraddr, conf.port);
+	else {
+		mon = open_packet_socket(conf.ifname, sizeof(buffer), conf.recv_buffer_size);
+		if (mon < 0)
+			err(1, "couldn't open packet socket");
+
+		conf.arphrd = device_get_arptype();
+		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
+		conf.arphrd != ARPHRD_IEEE80211_RADIOTAP) {
+			printf("wrong monitor type. please use radiotap or prism2 headers\n");
+			exit(1);
+		}
+	}
+
+	if (conf.dumpfile != NULL) {
+		DF = fopen(conf.dumpfile, "w");
+		if (DF == NULL)
+			err(1, "couldn't open dump file");
+	}
+
+	if (!conf.serveraddr && conf.port)
+		net_init_server_socket(conf.port);
+
+#if !DO_DEBUG
+	if (!conf.quiet)
+		init_display();
+#endif
+
+	for ( /* ever*/ ;;)
+	{
+		receive_any();
+		gettimeofday(&the_time, NULL);
+		timeout_nodes();
+	}
+	/* will never */
+	return 0;
+}
