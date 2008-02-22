@@ -96,8 +96,9 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 	if (p->pkt_types & PKT_TYPE_OLSR)
 		n->olsr_count++;
 	if (p->wlan_bssid[0] != 0xff &&
-		! (p->wlan_bssid[0] == 0 && p->wlan_bssid[1] == 0 && p->wlan_bssid[2] == 0 &&
-		   p->wlan_bssid[3] == 0 && p->wlan_bssid[4] == 0 && p->wlan_bssid[5] == 0)) {
+	    !(p->wlan_bssid[0] == 0 && p->wlan_bssid[1] == 0 &&
+	      p->wlan_bssid[2] == 0 && p->wlan_bssid[3] == 0 &&
+	      p->wlan_bssid[4] == 0 && p->wlan_bssid[5] == 0)) {
 		memcpy(n->wlan_bssid, p->wlan_bssid, MAC_LEN);
 	}
 	if ((p->wlan_type & IEEE80211_FCTL_FTYPE) == IEEE80211_FTYPE_MGMT &&
@@ -122,8 +123,9 @@ node_update(struct packet_info* pkt)
 {
 	struct node_info* n;
 
-	if (pkt->wlan_src[0] == 0 && pkt->wlan_src[1] == 0 && pkt->wlan_src[2] == 0 &&
-	    pkt->wlan_src[3] == 0 && pkt->wlan_src[4] == 0 && pkt->wlan_src[5] == 0) {
+	if (pkt->wlan_src[0] == 0 && pkt->wlan_src[1] == 0 &&
+	    pkt->wlan_src[2] == 0 && pkt->wlan_src[3] == 0 &&
+	    pkt->wlan_src[4] == 0 && pkt->wlan_src[5] == 0) {
 		return NULL;
 	}
 
@@ -170,8 +172,9 @@ update_essid_split_status(struct essid_info* e)
 			n, ether_sprintf(n->last_pkt.wlan_src));
 		DEBUG(" bssid %s\n", ether_sprintf(n->wlan_bssid));
 
-		if (n->wlan_mode == WLAN_MODE_AP)
+		if (n->wlan_mode == WLAN_MODE_AP) {
 			continue;
+		}
 
 		if (last_bssid && memcmp(last_bssid, n->wlan_bssid, MAC_LEN) != 0) {
 			e->split = 1;
@@ -220,7 +223,7 @@ check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node)
 
 	/* only check beacons (XXX: what about PROBE?) */
 	if (!((pkt->wlan_type & IEEE80211_FCTL_FTYPE) == IEEE80211_FTYPE_MGMT &&
-	     (pkt->wlan_type & IEEE80211_FCTL_STYPE) == IEEE80211_STYPE_BEACON)) {
+	      (pkt->wlan_type & IEEE80211_FCTL_STYPE) == IEEE80211_STYPE_BEACON)) {
 		return;
 	}
 
@@ -248,8 +251,9 @@ check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node)
 	}
 
 	/* if node had another essid before, remove it there */
-	if (pkt_node->essid != NULL && pkt_node->essid != e)
+	if (pkt_node->essid != NULL && pkt_node->essid != e) {
 		remove_node_from_essid(pkt_node);
+	}
 
 	/* new node */
 	if (pkt_node->essid == NULL) {
@@ -269,8 +273,9 @@ filter_packet(struct packet_info* pkt)
 {
 	int i;
 
-	if (conf.filter_off)
+	if (conf.filter_off) {
 		return 0;
+	}
 
 	if (!(pkt->pkt_types & conf.filter_pkt)) {
 		stats.filtered_packets++;
@@ -285,8 +290,9 @@ filter_packet(struct packet_info* pkt)
 
 	if (conf.do_macfilter) {
 		for (i = 0; i < MAX_FILTERMAC; i++) {
-			if (memcmp(current_packet.wlan_src, conf.filtermac[i], MAC_LEN) == 0)
+			if (memcmp(current_packet.wlan_src, conf.filtermac[i], MAC_LEN) == 0) {
 				return 0;
+			}
 		}
 		stats.filtered_packets++;
 		return 1;
@@ -298,16 +304,18 @@ filter_packet(struct packet_info* pkt)
 static void
 update_history(struct packet_info* p)
 {
-	if (p->signal == 0)
+	if (p->signal == 0) {
 		return;
+	}
 
 	hist.signal[hist.index] = p->signal;
 	hist.noise[hist.index] = p->noise;
 	hist.rate[hist.index] = p->rate;
 	hist.type[hist.index] = p->wlan_type;
 	hist.index++;
-	if (hist.index == MAX_HISTORY)
+	if (hist.index == MAX_HISTORY) {
 		hist.index = 0;
+	}
 }
 
 
@@ -315,6 +323,11 @@ static void
 update_statistics(struct packet_info* p)
 {
 	int duration;
+
+	if (p->rate == 0) {
+		return;
+	}
+
 	duration = ieee80211_frame_duration(p->phy_flags & PHY_FLAG_MODE_MASK,
 			p->len, p->rate * 5, p->phy_flags & PHY_FLAG_SHORTPRE);
 
@@ -359,14 +372,16 @@ timeout_nodes(void)
 {
 	struct node_info *n, *m;
 
-	if ((the_time.tv_sec - last_nodetimeout.tv_sec) < conf.node_timeout )
+	if ((the_time.tv_sec - last_nodetimeout.tv_sec) < conf.node_timeout ) {
 		return;
+	}
 
 	list_for_each_entry_safe(n, m, &nodes, list) {
 		if (n->last_seen < (the_time.tv_sec - conf.node_timeout)) {
 			list_del(&n->list);
-			if (n->essid != NULL)
+			if (n->essid != NULL) {
 				remove_node_from_essid(n);
+			}
 			free(n);
 		}
 	}
@@ -443,20 +458,23 @@ receive_any(void)
 
 	FD_SET(0, &read_fds);
 	FD_SET(mon, &read_fds);
-	if (srv_fd != -1)
+	if (srv_fd != -1) {
 		FD_SET(srv_fd, &read_fds);
-
+	}
 	tv.tv_sec = 0;
 	tv.tv_usec = conf.sleep_time;
 	mfd = max(mon, srv_fd) + 1;
 
 	ret = select(mfd, &read_fds, &write_fds, &excpt_fds, &tv);
-	if (ret == -1 && errno == EINTR)
+	if (ret == -1 && errno == EINTR) {
 		return;
-	if (ret == 0) /* timeout */
+	}
+	if (ret == 0) { /* timeout */
 		return;
-	if (ret < 0)
+	}
+	if (ret < 0) {
 		err(1, "select()");
+	}
 
 	/* stdin */
 	if (FD_ISSET(0, &read_fds)) {
@@ -470,8 +488,9 @@ receive_any(void)
 	}
 
 	/* server */
-	if (srv_fd != -1 && FD_ISSET(srv_fd, &read_fds))
+	if (srv_fd != -1 && FD_ISSET(srv_fd, &read_fds)) {
 		net_handle_server_conn();
+	}
 }
 
 
@@ -579,18 +598,22 @@ finish_all(int sig)
 {
 	free_lists();
 
-	if (!conf.serveraddr)
+	if (!conf.serveraddr) {
 		close_packet_socket();
+	}
 
-	if (DF != NULL)
+	if (DF != NULL) {
 		fclose(DF);
+	}
 
 #if !DO_DEBUG
-	if (conf.port)
+	if (conf.port) {
 		net_finish();
+	}
 
-	if (!conf.quiet)
+	if (!conf.quiet) {
 		finish_display(sig);
+	}
 #endif
 	exit(0);
 }
@@ -651,13 +674,14 @@ main(int argc, char** argv)
 
 	gettimeofday(&stats.stats_time, NULL);
 
-	if (conf.serveraddr)
+	if (conf.serveraddr) {
 		mon = net_open_client_socket(conf.serveraddr, conf.port);
+	}
 	else {
 		mon = open_packet_socket(conf.ifname, sizeof(buffer), conf.recv_buffer_size);
-		if (mon < 0)
+		if (mon < 0) {
 			err(1, "couldn't open packet socket");
-
+		}
 		conf.arphrd = device_get_arptype();
 		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
 		conf.arphrd != ARPHRD_IEEE80211_RADIOTAP) {
@@ -668,16 +692,18 @@ main(int argc, char** argv)
 
 	if (conf.dumpfile != NULL) {
 		DF = fopen(conf.dumpfile, "w");
-		if (DF == NULL)
+		if (DF == NULL) {
 			err(1, "couldn't open dump file");
+		}
 	}
 
-	if (!conf.serveraddr && conf.port)
+	if (!conf.serveraddr && conf.port) {
 		net_init_server_socket(conf.port);
-
+	}
 #if !DO_DEBUG
-	if (!conf.quiet)
+	if (!conf.quiet) {
 		init_display();
+	}
 #endif
 
 	for ( /* ever*/ ;;)
