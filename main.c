@@ -77,16 +77,13 @@ static struct timeval last_nodetimeout;
  * size: max 80211 frame (2312) + space for prism2 header (144)
  * or radiotap header (usually only 26) + some extra
  */
-unsigned char buffer[2312 + 200];
+static unsigned char buffer[2312 + 200];
 
 /* for select */
-fd_set read_fds;
-fd_set write_fds;
-fd_set excpt_fds;
-struct timeval tv;
-extern int srv_fd;
-extern int cli_fd;
-
+static fd_set read_fds;
+static fd_set write_fds;
+static fd_set excpt_fds;
+static struct timeval tv;
 
 static void
 handle_packet(unsigned char* buffer, int len)
@@ -135,7 +132,7 @@ handle_packet(unsigned char* buffer, int len)
 }
 
 
-void
+static void
 receive_any(void)
 {
 	int ret, len, mfd;
@@ -175,7 +172,7 @@ receive_any(void)
 }
 
 
-void
+static void
 sigpipe_handler(int sig)
 {
 	/* ignore signal here - we will handle it after write failed */

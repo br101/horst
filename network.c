@@ -28,6 +28,7 @@
 
 #include "main.h"
 #include "util.h"
+#include "network.h"
 
 extern struct config conf;
 
@@ -80,7 +81,7 @@ net_send_packet(struct packet_info *pkt)
 	return 0;
 }
 
-int net_handle_server_conn()
+int net_handle_server_conn( void )
 {
 	struct sockaddr_in cin;
 	socklen_t cinlen;

@@ -22,7 +22,10 @@
 
 struct packet_info;
 
-int
+extern int srv_fd;
+extern int cli_fd;
+
+void
 net_init_server_socket(int rport);
 
 int net_handle_server_conn(void);
