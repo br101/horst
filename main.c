@@ -466,7 +466,7 @@ receive_any(void)
 	mfd = max(mon, srv_fd) + 1;
 
 	ret = select(mfd, &read_fds, &write_fds, &excpt_fds, &tv);
-	if (ret == -1 && errno == EINTR) {
+	if (ret == -1 && errno == EINTR) { /* interrupted */
 		return;
 	}
 	if (ret == 0) { /* timeout */
@@ -509,63 +509,63 @@ get_options(int argc, char** argv)
 
 	while((c = getopt(argc, argv, "hqi:t:p:e:d:w:o:b:c:")) > 0) {
 		switch (c) {
-			case 'p':
-				conf.port = optarg;
+		case 'p':
+			conf.port = optarg;
+			break;
+		case 'q':
+			conf.quiet = 1;
+			break;
+		case 'i':
+			conf.ifname = optarg;
+			break;
+		case 'o':
+			conf.dumpfile = optarg;
+			break;
+		case 't':
+			conf.node_timeout = atoi(optarg);
+			break;
+		case 'b':
+			conf.recv_buffer_size = atoi(optarg);
+			break;
+		case 's':
+			/* reserved for spectro meter */
+			break;
+		case 'd':
+			conf.display_interval = atoi(optarg);
+			break;
+		case 'w':
+			conf.sleep_time = atoi(optarg);
+			break;
+		case 'e':
+			if (n >= MAX_FILTERMAC)
 				break;
-			case 'q':
-				conf.quiet = 1;
-				break;
-			case 'i':
-				conf.ifname = optarg;
-				break;
-			case 'o':
-				conf.dumpfile = optarg;
-				break;
-			case 't':
-				conf.node_timeout = atoi(optarg);
-				break;
-			case 'b':
-				conf.recv_buffer_size = atoi(optarg);
-				break;
-			case 's':
-				/* reserved for spectro meter */
-				break;
-			case 'd':
-				conf.display_interval = atoi(optarg);
-				break;
-			case 'w':
-				conf.sleep_time = atoi(optarg);
-				break;
-			case 'e':
-				if (n >= MAX_FILTERMAC)
-					break;
-				conf.do_macfilter = 1;
-				convert_string_to_mac(optarg, conf.filtermac[n]);
-				printf("%s\n", ether_sprintf(conf.filtermac[n]));
-				n++;
-				break;
-			case 'c':
-				conf.serveraddr = optarg;
-				break;
-			case 'h':
-			default:
-				printf("usage: %s [-h] [-q] [-i interface] [-t sec] [-p port] [-e mac] [-d usec] [-w usec] [-o file]\n\n"
-					"Options (default value)\n"
-					"  -h\t\tthis help\n"
-					"  -q\t\tquiet [basically useless]\n"
-					"  -i <intf>\tinterface (wlan0)\n"
-					"  -t <sec>\tnode timeout (60)\n"
-					"  -c <IP>\tconnect to server at IP\n"
-					"  -p <port>\tuse port (4444)\n"
-					"  -e <mac>\tfilter all macs ecxept this\n"
-					"  -d <usec>\tdisplay update interval (100000 = 100ms = 10fps)\n"
-					"  -w <usec>\twait loop (1000 = 1ms)\n"
-					"  -o <filename>\twrite packet info into file\n"
-					"  -b <bytes>\treceive buffer size (6750000)\n"
-					"\n",
-					argv[0]);
-				exit(0);
-				break;
+			conf.do_macfilter = 1;
+			convert_string_to_mac(optarg, conf.filtermac[n]);
+			printf("%s\n", ether_sprintf(conf.filtermac[n]));
+			n++;
+			break;
+		case 'c':
+			conf.serveraddr = optarg;
+			break;
+		case 'h':
+		default:
+			printf("usage: %s [-h] [-q] [-i interface] [-t sec] [-p port] [-e mac] [-d usec] [-w usec] [-o file]\n\n"
+				"Options (default value)\n"
+				"  -h\t\tthis help\n"
+				"  -q\t\tquiet [basically useless]\n"
+				"  -i <intf>\tinterface (wlan0)\n"
+				"  -t <sec>\tnode timeout (60)\n"
+				"  -c <IP>\tconnect to server\n"
+				"  -p <port>\tuse port (4444)\n"
+				"  -e <mac>\tfilter all macs ecxept this\n"
+				"  -d <usec>\tdisplay update interval (100000 = 100ms = 10fps)\n"
+				"  -w <usec>\twait loop (1000 = 1ms)\n"
+				"  -o <filename>\twrite packet info into file\n"
+				"  -b <bytes>\treceive buffer size (6750000)\n"
+				"\n",
+				argv[0]);
+			exit(0);
+			break;
 		}
 	}
 }
