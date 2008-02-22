@@ -40,8 +40,6 @@
 #include "ieee80211.h"
 #include "ieee80211_util.h"
 
-struct packet_info current_packet;
-
 struct list_head nodes;
 struct essid_meta_info essids;
 struct history hist;
@@ -283,14 +281,14 @@ filter_packet(struct packet_info* pkt)
 	}
 
 	if (MAC_NOT_EMPTY(conf.filterbssid) &&
-	    memcmp(current_packet.wlan_bssid, conf.filterbssid, MAC_LEN) != 0) {
+	    memcmp(pkt->wlan_bssid, conf.filterbssid, MAC_LEN) != 0) {
 		stats.filtered_packets++;
 		return 1;
 	}
 
 	if (conf.do_macfilter) {
 		for (i = 0; i < MAX_FILTERMAC; i++) {
-			if (memcmp(current_packet.wlan_src, conf.filtermac[i], MAC_LEN) == 0) {
+			if (memcmp(pkt->wlan_src, conf.filtermac[i], MAC_LEN) == 0) {
 				return 0;
 			}
 		}
@@ -390,32 +388,32 @@ timeout_nodes(void)
 
 
 static void
-handle_packet(void)
+handle_packet(struct packet_info* pkt)
 {
 	struct node_info* node;
 
 	if (conf.port && cli_fd != -1) {
-		net_send_packet(&current_packet);
+		net_send_packet(pkt);
 	}
 	if (conf.dumpfile != NULL) {
-		write_to_file(&current_packet);
+		write_to_file(pkt);
 	}
 	if (conf.quiet || conf.paused) {
 		return;
 	}
 
 	/* in display mode */
-	if (filter_packet(&current_packet)) {
+	if (filter_packet(pkt)) {
 		return;
 	}
 
-	node = node_update(&current_packet);
-	update_history(&current_packet);
-	update_statistics(&current_packet);
-	check_ibss_split(&current_packet, node);
+	node = node_update(pkt);
+	update_history(pkt);
+	update_statistics(pkt);
+	check_ibss_split(pkt, node);
 
 #if !DO_DEBUG
-	update_display(&current_packet, node);
+	update_display(pkt, node);
 #endif
 }
 
@@ -423,6 +421,8 @@ handle_packet(void)
 static void
 receive_packet(unsigned char* buffer, int len)
 {
+	struct packet_info current_packet;
+
 #if DO_DEBUG
 	dump_packet(buffer, len);
 #endif
@@ -430,7 +430,7 @@ receive_packet(unsigned char* buffer, int len)
 
 	if (!conf.serveraddr) {
 		/* local capture */
-		if (!parse_packet(buffer, len)) {
+		if (!parse_packet(buffer, len, &current_packet)) {
 			DEBUG("parsing failed\n");
 			return;
 		}
@@ -443,7 +443,7 @@ receive_packet(unsigned char* buffer, int len)
 		}
 	}
 
-	handle_packet();
+	handle_packet(&current_packet);
 }
 
 

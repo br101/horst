@@ -20,7 +20,9 @@
 #ifndef _PROTOCOL_PARSER_H_
 #define _PROTOCOL_PARSER_H_
 
+struct packet_info;
+
 int
-parse_packet(unsigned char* buf, int len);
+parse_packet(unsigned char* buf, int len, struct packet_info* current_packet);
 
 #endif

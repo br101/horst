@@ -1042,7 +1042,7 @@ update_dump_win(struct packet_info* pkt)
 
 		switch (pkt->wlan_type & IEEE80211_FCTL_FTYPE) {
 		case IEEE80211_FTYPE_DATA:
-			if ( current_packet.wlan_wep == 1)
+			if ( pkt->wlan_wep == 1)
 				wprintw(dump_win, "ENCRYPTED");
 			break;
 		case IEEE80211_FTYPE_CTL:
@@ -1055,7 +1055,7 @@ update_dump_win(struct packet_info* pkt)
 			}
 			break;
 		case IEEE80211_FTYPE_MGMT:
-			switch (current_packet.wlan_type & IEEE80211_FCTL_STYPE) {
+			switch (pkt->wlan_type & IEEE80211_FCTL_STYPE) {
 			case IEEE80211_STYPE_BEACON:
 			case IEEE80211_STYPE_PROBE_RESP:
 				wprintw(dump_win, "'%s' %llx", pkt->wlan_essid,
