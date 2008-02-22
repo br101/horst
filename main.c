@@ -85,28 +85,11 @@ static fd_set write_fds;
 static fd_set excpt_fds;
 static struct timeval tv;
 
+
 static void
-handle_packet(unsigned char* buffer, int len)
+handle_packet(void)
 {
 	struct node_info* node;
-
-#if DO_DEBUG
-	dump_packet(buffer, len);
-#endif
-
-	if (!conf.serverip) {
-		/* local capture */
-		memset(&current_packet, 0, sizeof(current_packet));
-		if (!parse_packet(buffer, len)) {
-			DEBUG("parsing failed\n");
-			return;
-		}
-	}
-	else {
-		/* client mode - receiving pre-parsed from server */
-		/* TODO: this is not portable! */
-		memcpy((void*)&current_packet, buffer, sizeof(struct packet_info));
-	}
 
 	if (conf.port && cli_fd != -1)
 		net_send_packet(&current_packet);
@@ -129,6 +112,33 @@ handle_packet(unsigned char* buffer, int len)
 #if !DO_DEBUG
 	update_display(&current_packet, node);
 #endif
+}
+
+
+static void
+receive_packet(unsigned char* buffer, int len)
+{
+#if DO_DEBUG
+	dump_packet(buffer, len);
+#endif
+	memset(&current_packet, 0, sizeof(current_packet));
+
+	if (!conf.serverip) {
+		/* local capture */
+		if (!parse_packet(buffer, len)) {
+			DEBUG("parsing failed\n");
+			return;
+		}
+	}
+	else {
+		/* client mode - receiving pre-parsed from server */
+		if (!net_receive_packet(buffer, len, &current_packet)) {
+			DEBUG("receive failed\n");
+			return;
+		}
+	}
+
+	handle_packet();
 }
 
 
@@ -158,15 +168,18 @@ receive_any(void)
 	if (ret < 0)
 		err(1, "select()");
 
+	/* stdin */
 	if (FD_ISSET(0, &read_fds)) {
 		handle_user_input();
 	}
 
+	/* packet */
 	if (FD_ISSET(mon, &read_fds)) {
 		len = recv_packet(mon, buffer, sizeof(buffer));
-		handle_packet(buffer, len);
+		receive_packet(buffer, len);
 	}
 
+	/* server */
 	if (srv_fd != -1 && FD_ISSET(srv_fd, &read_fds))
 		net_handle_server_conn();
 }

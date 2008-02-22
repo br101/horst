@@ -38,6 +38,39 @@ static int netmon_fd;
 
 #define CLI_BACKLOG 5
 
+struct net_packet_info {
+	/* general */
+	int			pkt_types;	/* bitmask of packet types in this pkt */
+	int			len;		/* packet length */
+
+	/* wlan phy (from radiotap) */
+	int			signal;		/* signal strength (usually dBm) */
+	int			noise;		/* noise level (usually dBm) */
+	int			snr;		/* signal to noise ratio */
+	int			rate;		/* physical rate */
+	int			phy_freq;	/* frequency (unused) */
+	int			phy_flags;	/* A, B, G, shortpre */
+
+	/* wlan mac */
+	int			wlan_type;	/* frame control field */
+	unsigned char		wlan_src[MAC_LEN];
+	unsigned char		wlan_dst[MAC_LEN];
+	unsigned char		wlan_bssid[MAC_LEN];
+	char			wlan_essid[MAX_ESSID_LEN];
+	u_int64_t		wlan_tsf;	/* timestamp from beacon */
+	int			wlan_mode;	/* AP, STA or IBSS */
+	unsigned char		wlan_channel;	/* channel from beacon, probe */
+	int			wlan_wep;	/* WEP on/off */
+
+	/* IP */
+	unsigned int		ip_src;
+	unsigned int		ip_dst;
+	int			olsr_type;
+	int			olsr_neigh;
+	int			olsr_tc;
+} __attribute__ ((packed));
+
+
 void
 net_init_server_socket(int rport)
 {
@@ -68,7 +101,32 @@ int
 net_send_packet(struct packet_info *pkt)
 {
 	int ret;
-	ret = write(cli_fd, &current_packet, sizeof(struct packet_info));
+	struct net_packet_info np;
+
+	np.pkt_types	= pkt->pkt_types;
+	np.len		= pkt->len;
+	np.signal	= pkt->signal;
+	np.noise	= pkt->noise;
+	np.snr		= pkt->snr;
+	np.rate		= pkt->rate;
+	np.phy_freq	= pkt->phy_freq;
+	np.phy_flags	= pkt->phy_flags;
+	np.wlan_type	= pkt->wlan_type;
+	np.wlan_tsf	= pkt->wlan_tsf;
+	np.wlan_mode	= pkt->wlan_mode;
+	np.wlan_channel = pkt->wlan_channel;
+	np.wlan_wep	= pkt->wlan_wep;
+	np.ip_src	= pkt->ip_src;
+	np.ip_dst	= pkt->ip_dst;
+	np.olsr_type	= pkt->olsr_type;
+	np.olsr_neigh	= pkt->olsr_neigh;
+	np.olsr_tc	= pkt->olsr_tc;
+	memcpy(np.wlan_src, pkt->wlan_src, MAC_LEN);
+	memcpy(np.wlan_dst, pkt->wlan_dst, MAC_LEN);
+	memcpy(np.wlan_bssid, pkt->wlan_bssid, MAC_LEN);
+	memcpy(np.wlan_essid, pkt->wlan_essid, MAX_ESSID_LEN);
+
+	ret = write(cli_fd, &np, sizeof(np));
 	if (ret == -1) {
 		if (errno == EPIPE) {
 			printf("client has closed\n");
@@ -80,6 +138,53 @@ net_send_packet(struct packet_info *pkt)
 	}
 	return 0;
 }
+
+
+/*
+ * return 0 - error
+ *	  1 - ok
+ */
+int
+net_receive_packet(unsigned char *buffer, int len, struct packet_info *pkt)
+{
+	struct net_packet_info *np;
+
+	if (len < sizeof(struct net_packet_info)) {
+		return 0;
+	}
+
+	np = (struct net_packet_info *)buffer;
+
+	if (np->rate == 0) {
+		return 0;
+	}
+
+	pkt->pkt_types	= np->pkt_types;
+	pkt->len	= np->len;
+	pkt->signal	= np->signal;
+	pkt->noise	= np->noise;
+	pkt->snr	= np->snr;
+	pkt->rate	= np->rate;
+	pkt->phy_freq	= np->phy_freq;
+	pkt->phy_flags	= np->phy_flags;
+	pkt->wlan_type	= np->wlan_type;
+	pkt->wlan_tsf	= np->wlan_tsf;
+	pkt->wlan_mode	= np->wlan_mode;
+	pkt->wlan_channel = np->wlan_channel;
+	pkt->wlan_wep	= np->wlan_wep;
+	pkt->ip_src	= np->ip_src;
+	pkt->ip_dst	= np->ip_dst;
+	pkt->olsr_type	= np->olsr_type;
+	pkt->olsr_neigh	= np->olsr_neigh;
+	pkt->olsr_tc	= np->olsr_tc;
+	memcpy(pkt->wlan_src, np->wlan_src, MAC_LEN);
+	memcpy(pkt->wlan_dst, np->wlan_dst, MAC_LEN);
+	memcpy(pkt->wlan_bssid, np->wlan_bssid, MAC_LEN);
+	memcpy(pkt->wlan_essid, np->wlan_essid, MAX_ESSID_LEN);
+
+	return 1;
+}
+
 
 int net_handle_server_conn( void )
 {
