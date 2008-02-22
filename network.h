@@ -20,11 +20,24 @@
 #ifndef _PROTOCOL_NETWORK_H_
 #define _PROTOCOL_NETWORK_H_
 
-int
-net_init_socket(int rport);
+struct packet_info;
+
+extern int srv_fd;
+extern int cli_fd;
+
+void
+net_init_server_socket(char* rport);
+
+int net_handle_server_conn(void);
 
 int
-net_send_packet(void);
+net_send_packet(struct packet_info *pkt);
+
+int
+net_receive_packet(unsigned char* buffer, int len, struct packet_info *pkt);
+
+int
+net_open_client_socket(char* server, char* rport);
 
 void
 net_finish(void);

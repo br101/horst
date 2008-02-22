@@ -25,7 +25,11 @@
 #include <signal.h>
 #include <sys/time.h>
 #include <time.h>
+#include <errno.h>
 #include <err.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include "protocol_parser.h"
 #include "display.h"
@@ -59,6 +63,7 @@ struct config conf = {
 	.sleep_time		= SLEEP_TIME,
 	.filter_pkt		= 0xffffff,
 	.recv_buffer_size	= RECV_BUFFER_SIZE,
+	.port			= DEFAULT_PORT,
 };
 
 struct timeval the_time;
@@ -74,31 +79,147 @@ static struct timeval last_nodetimeout;
  */
 static unsigned char buffer[2312 + 200];
 
+/* for select */
+static fd_set read_fds;
+static fd_set write_fds;
+static fd_set excpt_fds;
+static struct timeval tv;
+
+
+static void
+handle_packet(void)
+{
+	struct node_info* node;
+
+	if (conf.port && cli_fd != -1) {
+		net_send_packet(&current_packet);
+	}
+	if (conf.dumpfile != NULL) {
+		write_to_file(&current_packet);
+	}
+	if (conf.quiet || conf.paused) {
+		return;
+	}
+
+	/* in display mode */
+	if (filter_packet(&current_packet)) {
+		return;
+	}
+
+	node = node_update(&current_packet);
+	update_history(&current_packet);
+	update_statistics(&current_packet);
+	check_ibss_split(&current_packet, node);
+
+#if !DO_DEBUG
+	update_display(&current_packet, node);
+#endif
+}
+
+
+static void
+receive_packet(unsigned char* buffer, int len)
+{
+#if DO_DEBUG
+	dump_packet(buffer, len);
+#endif
+	memset(&current_packet, 0, sizeof(current_packet));
+
+	if (!conf.serveraddr) {
+		/* local capture */
+		if (!parse_packet(buffer, len)) {
+			DEBUG("parsing failed\n");
+			return;
+		}
+	}
+	else {
+		/* client mode - receiving pre-parsed from server */
+		if (!net_receive_packet(buffer, len, &current_packet)) {
+			DEBUG("receive failed\n");
+			return;
+		}
+	}
+
+	handle_packet();
+}
+
+
+static void
+receive_any(void)
+{
+	int ret, len, mfd;
+
+	FD_ZERO(&read_fds);
+	FD_ZERO(&write_fds);
+	FD_ZERO(&excpt_fds);
+
+	FD_SET(0, &read_fds);
+	FD_SET(mon, &read_fds);
+	if (srv_fd != -1)
+		FD_SET(srv_fd, &read_fds);
+
+	tv.tv_sec = 0;
+	tv.tv_usec = conf.sleep_time;
+	mfd = max(mon, srv_fd) + 1;
+
+	ret = select(mfd, &read_fds, &write_fds, &excpt_fds, &tv);
+	if (ret == -1 && errno == EINTR)
+		return;
+	if (ret == 0) /* timeout */
+		return;
+	if (ret < 0)
+		err(1, "select()");
+
+	/* stdin */
+	if (FD_ISSET(0, &read_fds)) {
+		handle_user_input();
+	}
+
+	/* packet */
+	if (FD_ISSET(mon, &read_fds)) {
+		len = recv_packet(mon, buffer, sizeof(buffer));
+		receive_packet(buffer, len);
+	}
+
+	/* server */
+	if (srv_fd != -1 && FD_ISSET(srv_fd, &read_fds))
+		net_handle_server_conn();
+}
+
+
+static void
+sigpipe_handler(int sig)
+{
+	/* ignore signal here - we will handle it after write failed */
+}
+
 
 int
 main(int argc, char** argv)
 {
-	int len;
-	struct node_info* node;
+	INIT_LIST_HEAD(&essids.list);
+	INIT_LIST_HEAD(&nodes);
 
 	get_options(argc, argv);
 
-	if (!conf.quiet)
-		printf("horst: using monitoring interface %s\n", conf.ifname);
-
 	signal(SIGINT, finish_all);
+	signal(SIGPIPE, sigpipe_handler);
 
 	gettimeofday(&stats.stats_time, NULL);
 
-	mon = open_packet_socket(conf.ifname, sizeof(buffer), conf.recv_buffer_size);
-	if (mon < 0)
-		err(1, "couldn't open packet socket");
+	if (conf.serveraddr)
+		mon = net_open_client_socket(conf.serveraddr, conf.port);
+	else {
+		mon = open_packet_socket(conf.ifname, sizeof(buffer), conf.recv_buffer_size);
+		if (mon < 0)
+			err(1, "couldn't open packet socket");
 
-	conf.arphrd = device_get_arptype();
-	if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
-	    conf.arphrd != ARPHRD_IEEE80211_RADIOTAP) {
-		printf("wrong monitor type. please use radiotap or prism2 headers\n");
-		exit(1);
+		conf.arphrd = device_get_arptype();
+		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
+		conf.arphrd != ARPHRD_IEEE80211_RADIOTAP) {
+			printf("wrong monitor type. please use radiotap or prism2 headers\n");
+			exit(1);
+		}
 	}
 
 	if (conf.dumpfile != NULL) {
@@ -107,62 +228,19 @@ main(int argc, char** argv)
 			err(1, "couldn't open dump file");
 	}
 
-	INIT_LIST_HEAD(&essids.list);
-	INIT_LIST_HEAD(&nodes);
+	if (!conf.serveraddr && conf.port)
+		net_init_server_socket(conf.port);
 
-	if (conf.rport)
-		net_init_socket(conf.rport);
 #if !DO_DEBUG
-	else {
+	if (!conf.quiet)
 		init_display();
-	}
 #endif
 
-	while ((len = recv_packet(buffer, sizeof(buffer))))
+	for ( /* ever*/ ;;)
 	{
-		handle_user_input();
-
-		if (conf.paused || len == -1) {
-			/*
-			 * no packet received or paused: just wait a few ms
-			 * if we wait too long here we will loose packets
-			 * if we don't sleep there will be 100% system load
-			 */
-			usleep(conf.sleep_time);
-			continue;
-		}
-#if DO_DEBUG
-		dump_packet(buffer, len);
-#endif
-		memset(&current_packet, 0, sizeof(current_packet));
-		if (!parse_packet(buffer, len)) {
-			DEBUG("parsing failed\n");
-			continue;
-		}
-
-		if (filter_packet(&current_packet))
-			continue;
-
+		receive_any();
 		gettimeofday(&the_time, NULL);
-
-		if (conf.dumpfile != NULL)
-			write_to_file(&current_packet);
-
-		node = node_update(&current_packet);
-
 		timeout_nodes();
-
-		update_history(&current_packet);
-		update_statistics(&current_packet);
-		check_ibss_split(&current_packet, node);
-
-		if (conf.rport) {
-			net_send_packet();
-			continue;
-		}
-#if !DO_DEBUG
-		update_display(&current_packet, node);
-#endif
 	}
 	/* will never */
 	return 0;
@@ -175,10 +253,10 @@ get_options(int argc, char** argv)
 	int c;
 	static int n;
 
-	while((c = getopt(argc, argv, "hqi:t:p:e:d:w:o:b:")) > 0) {
+	while((c = getopt(argc, argv, "hqi:t:p:e:d:w:o:b:c:")) > 0) {
 		switch (c) {
 			case 'p':
-				conf.rport = atoi(optarg);
+				conf.port = optarg;
 				break;
 			case 'q':
 				conf.quiet = 1;
@@ -212,6 +290,9 @@ get_options(int argc, char** argv)
 				printf("%s\n", ether_sprintf(conf.filtermac[n]));
 				n++;
 				break;
+			case 'c':
+				conf.serveraddr = optarg;
+				break;
 			case 'h':
 			default:
 				printf("usage: %s [-h] [-q] [-i interface] [-t sec] [-p port] [-e mac] [-d usec] [-w usec] [-o file]\n\n"
@@ -220,7 +301,8 @@ get_options(int argc, char** argv)
 					"  -q\t\tquiet [basically useless]\n"
 					"  -i <intf>\tinterface (wlan0)\n"
 					"  -t <sec>\tnode timeout (60)\n"
-					"  -p <port>\tuse port\n"
+					"  -c <IP>\tconnect to server at IP\n"
+					"  -p <port>\tuse port (4444)\n"
 					"  -e <mac>\tfilter all macs ecxept this\n"
 					"  -d <usec>\tdisplay update interval (100000 = 100ms = 10fps)\n"
 					"  -w <usec>\twait loop (1000 = 1ms)\n"
@@ -262,15 +344,17 @@ finish_all(int sig)
 {
 	free_lists();
 
-	close_packet_socket();
+	if (!conf.serveraddr)
+		close_packet_socket();
 	
 	if (DF != NULL)
 		fclose(DF);
 
 #if !DO_DEBUG
-	if (conf.rport)
+	if (conf.port)
 		net_finish();
-	else
+
+	if (!conf.quiet)
 		finish_display(sig);
 #endif
 	exit(0);

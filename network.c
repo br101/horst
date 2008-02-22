@@ -23,77 +23,195 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netdb.h>
+#include <errno.h>
 #include <err.h>
 
 #include "main.h"
 #include "util.h"
+#include "network.h"
 
 extern struct config conf;
 
-struct sockaddr_in sock_in, cin;
-socklen_t cinlen;
-int srv_fd=0;
-int cli_fd=0;
-int i;
-fd_set rs;
-char line[256];
-int llen;
-struct timeval to={0,0};
-struct timeval tr={0,100};
-int on = 1;
+int srv_fd = -1;
+int cli_fd = -1;
+static int netmon_fd;
+
+struct net_packet_info {
+	/* general */
+	int			pkt_types;	/* bitmask of packet types in this pkt */
+	int			len;		/* packet length */
+
+	/* wlan phy (from radiotap) */
+	int			signal;		/* signal strength (usually dBm) */
+	int			noise;		/* noise level (usually dBm) */
+	int			snr;		/* signal to noise ratio */
+	int			rate;		/* physical rate */
+	int			phy_freq;	/* frequency (unused) */
+	int			phy_flags;	/* A, B, G, shortpre */
+
+	/* wlan mac */
+	int			wlan_type;	/* frame control field */
+	unsigned char		wlan_src[MAC_LEN];
+	unsigned char		wlan_dst[MAC_LEN];
+	unsigned char		wlan_bssid[MAC_LEN];
+	char			wlan_essid[MAX_ESSID_LEN];
+	u_int64_t		wlan_tsf;	/* timestamp from beacon */
+	int			wlan_mode;	/* AP, STA or IBSS */
+	unsigned char		wlan_channel;	/* channel from beacon, probe */
+	int			wlan_wep;	/* WEP on/off */
+
+	/* IP */
+	unsigned int		ip_src;
+	unsigned int		ip_dst;
+	int			olsr_type;
+	int			olsr_neigh;
+	int			olsr_tc;
+} __attribute__ ((packed));
 
 
 void
-net_init_socket(int rport)
+net_init_server_socket(char* rport)
 {
-	if (!conf.quiet)
-		printf("using remote port %d\n",rport);
+	struct sockaddr_in sock_in;
+	int reuse = 1;
 
-	sock_in.sin_family=AF_INET;
-	sock_in.sin_port=htons(rport);
-	sock_in.sin_addr.s_addr=htonl(INADDR_ANY);
+	printf("using server port %s\n", rport);
 
-	if ((srv_fd=socket(AF_INET,SOCK_STREAM,0)) < 0) {
+	sock_in.sin_family = AF_INET;
+	sock_in.sin_addr.s_addr = htonl(INADDR_ANY);
+	sock_in.sin_port = htons(atoi(rport));
+
+	if ((srv_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		err(1, "socket");
 	}
-	if (setsockopt(srv_fd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {
+
+	if (setsockopt(srv_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
 		err(1, "setsockopt SO_REUSEADDR");
 	}
+
 	if (bind(srv_fd, (struct sockaddr*)&sock_in, sizeof(sock_in)) < 0) {
 		err(1, "bind");
 	}
-	if (listen(srv_fd, 5) < 0) {
+
+	if (listen(srv_fd, 0) < 0) {
 		err(1, "listen");
 	}
 }
 
 
 int
-net_send_packet(void)
+net_send_packet(struct packet_info *pkt)
 {
-	struct node_info* n;
-	FD_ZERO(&rs);
-	FD_SET(srv_fd,&rs);
-	if (select(srv_fd+1,&rs,NULL,NULL,&to) && FD_ISSET(srv_fd,&rs))
-	{
-		cli_fd = accept(srv_fd,(struct sockaddr*)&cin,&cinlen);
-		if (!conf.quiet)
-			printf("horst: accepting client\n");
-		if (!cli_fd)
-			return -1;
+	int ret;
+	struct net_packet_info np;
 
-		// discard stuff which was sent to us e.g. by a http client
-		FD_ZERO(&rs);
-		FD_SET(cli_fd,&rs);
-		while (select(cli_fd+1,&rs,NULL,NULL,&tr) && FD_ISSET(cli_fd,&rs)) {
-			read(cli_fd,line,sizeof(line));
-			FD_ZERO(&rs);
-			FD_SET(cli_fd,&rs);
+	np.pkt_types	= pkt->pkt_types;
+	np.len		= pkt->len;
+	np.signal	= pkt->signal;
+	np.noise	= pkt->noise;
+	np.snr		= pkt->snr;
+	np.rate		= pkt->rate;
+	np.phy_freq	= pkt->phy_freq;
+	np.phy_flags	= pkt->phy_flags;
+	np.wlan_type	= pkt->wlan_type;
+	np.wlan_tsf	= pkt->wlan_tsf;
+	np.wlan_mode	= pkt->wlan_mode;
+	np.wlan_channel = pkt->wlan_channel;
+	np.wlan_wep	= pkt->wlan_wep;
+	np.ip_src	= pkt->ip_src;
+	np.ip_dst	= pkt->ip_dst;
+	np.olsr_type	= pkt->olsr_type;
+	np.olsr_neigh	= pkt->olsr_neigh;
+	np.olsr_tc	= pkt->olsr_tc;
+	memcpy(np.wlan_src, pkt->wlan_src, MAC_LEN);
+	memcpy(np.wlan_dst, pkt->wlan_dst, MAC_LEN);
+	memcpy(np.wlan_bssid, pkt->wlan_bssid, MAC_LEN);
+	memcpy(np.wlan_essid, pkt->wlan_essid, MAX_ESSID_LEN);
+
+	ret = write(cli_fd, &np, sizeof(np));
+	if (ret == -1) {
+		if (errno == EPIPE) {
+			printf("client has closed\n");
+			close(cli_fd);
+			cli_fd = -1;
 		}
+		else {
+			perror("write");
+		}
+	}
+	return 0;
+}
 
+
+/*
+ * return 0 - error
+ *	  1 - ok
+ */
+int
+net_receive_packet(unsigned char *buffer, int len, struct packet_info *pkt)
+{
+	struct net_packet_info *np;
+
+	if (len < sizeof(struct net_packet_info)) {
+		return 0;
+	}
+
+	np = (struct net_packet_info *)buffer;
+
+	if (np->rate == 0) {
+		return 0;
+	}
+
+	pkt->pkt_types	= np->pkt_types;
+	pkt->len	= np->len;
+	pkt->signal	= np->signal;
+	pkt->noise	= np->noise;
+	pkt->snr	= np->snr;
+	pkt->rate	= np->rate;
+	pkt->phy_freq	= np->phy_freq;
+	pkt->phy_flags	= np->phy_flags;
+	pkt->wlan_type	= np->wlan_type;
+	pkt->wlan_tsf	= np->wlan_tsf;
+	pkt->wlan_mode	= np->wlan_mode;
+	pkt->wlan_channel = np->wlan_channel;
+	pkt->wlan_wep	= np->wlan_wep;
+	pkt->ip_src	= np->ip_src;
+	pkt->ip_dst	= np->ip_dst;
+	pkt->olsr_type	= np->olsr_type;
+	pkt->olsr_neigh	= np->olsr_neigh;
+	pkt->olsr_tc	= np->olsr_tc;
+	memcpy(pkt->wlan_src, np->wlan_src, MAC_LEN);
+	memcpy(pkt->wlan_dst, np->wlan_dst, MAC_LEN);
+	memcpy(pkt->wlan_bssid, np->wlan_bssid, MAC_LEN);
+	memcpy(pkt->wlan_essid, np->wlan_essid, MAX_ESSID_LEN);
+
+	return 1;
+}
+
+
+int net_handle_server_conn( void )
+{
+	struct sockaddr_in cin;
+	socklen_t cinlen;
+
+	if (cli_fd != -1) {
+		printf("can only handle one client\n");
+		return -1;
+	}
+
+	cli_fd = accept(srv_fd, (struct sockaddr*)&cin, &cinlen);
+
+	printf("horst: accepting client\n");
+
+	//read(cli_fd,line,sizeof(line));
+	return 0;
+}
+
+#if 0
 		// satisfy http clients (wget)
 		static const char hdr[]="HTTP/1.0 200 ok\r\nContent-Type: text/plain\r\n\r\n";
-		write (cli_fd,hdr,sizeof(hdr));
+ 		write (cli_fd,hdr,sizeof(hdr));
 		list_for_each_entry(n, &nodes, list) {
 			char src_eth[18];
 			strcpy(src_eth,ether_sprintf(n->last_pkt.wlan_src));
@@ -110,13 +228,67 @@ net_send_packet(void)
 				n->tsf);
 			write(cli_fd,line,llen);
 		}
-		close(cli_fd);
+#endif
+
+
+int
+net_open_client_socket(char* serveraddr, char* rport)
+{
+	struct addrinfo saddr;
+	struct addrinfo *result, *rp;
+	int ret;
+
+	printf("connecting to server %s port %s\n", serveraddr, rport);
+
+	/* Obtain address(es) matching host/port */
+	memset(&saddr, 0, sizeof(struct addrinfo));
+	saddr.ai_family = AF_INET;
+	saddr.ai_socktype = SOCK_STREAM;
+	saddr.ai_flags = 0;
+	saddr.ai_protocol = 0;
+
+	ret = getaddrinfo(serveraddr, rport, &saddr, &result);
+	if (ret != 0) {
+		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(ret));
+		exit(EXIT_FAILURE);
 	}
-	return 0;
+
+	/* getaddrinfo() returns a list of address structures.
+	   Try each address until we successfully connect. */
+	for (rp = result; rp != NULL; rp = rp->ai_next) {
+		netmon_fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+		if (netmon_fd == -1) {
+			continue;
+		}
+
+		if (connect(netmon_fd, rp->ai_addr, rp->ai_addrlen) != -1) {
+			break; /* Success */
+		}
+
+		close(netmon_fd);
+	}
+
+	if (rp == NULL) {
+		/* No address succeeded */
+		err(1, "Could not connect\n");
+	}
+
+	freeaddrinfo(result);
+
+	printf("connected\n");
+	return netmon_fd;
 }
 
 
 void
 net_finish(void) {
-	close(srv_fd);
+	if (srv_fd != -1) {
+		close(srv_fd);
+	}
+	if (cli_fd != -1) {
+		close(cli_fd);
+	}
+	if (netmon_fd) {
+		close(netmon_fd);
+	}
 }

@@ -24,7 +24,7 @@ int
 open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size);
 
 int
-recv_packet(unsigned char* buffer, size_t bufsize);
+recv_packet(int fd, unsigned char* buffer, size_t bufsize);
 
 void
 close_packet_socket(void);

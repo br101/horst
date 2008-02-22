@@ -178,6 +178,7 @@ parse_radiotap_header(unsigned char** buf, int len)
 	b = *buf + sizeof(struct ieee80211_radiotap_header);
 	present = rh->it_present;
 
+	DEBUG("radiotap header len: %d\n", rh->it_len);
 	DEBUG("%08x\n", present);
 
 	/* check for header extension - ignore for now, just advance current position */

@@ -34,7 +34,7 @@
 #define MAX_ESSIDS		255
 #define MAX_BSSIDS		255
 #define MAX_HISTORY		255
-#define MAX_ESSID_LEN		255
+#define MAX_ESSID_LEN		32
 #define MAX_RATES		109	/* in 500kbps steps: 54 * 2 + 1 for array index */
 #define MAX_FSTYPE		0xff
 #define MAX_FILTERMAC		9
@@ -80,14 +80,14 @@
 #define PHY_FLAG_G		0x0040
 #define PHY_FLAG_MODE_MASK	0x00f0
 
-/* default config vlaues */
+/* default config values */
 #define INTERFACE_NAME		"wlan0"
 #define NODE_TIMEOUT		60	/* seconds */
 /* update display every 100ms - "10 frames per sec should be enough for everyone" ;) */
 #define DISPLAY_UPDATE_INTERVAL 100000	/* usec */
 #define SLEEP_TIME		1000	/* usec */
-#define RECV_BUFFER_SIZE	6750000 /* 54Mbps in byte */
-
+#define RECV_BUFFER_SIZE	6750000	/* 54Mbps in byte */
+#define DEFAULT_PORT		"4444"	/* string because of getaddrinfo() */
 
 #ifndef ARPHRD_IEEE80211_RADIOTAP
 #define ARPHRD_IEEE80211_RADIOTAP 803    /* IEEE 802.11 + radiotap header */
@@ -116,7 +116,7 @@ struct packet_info {
 	unsigned char		wlan_src[MAC_LEN];
 	unsigned char		wlan_dst[MAC_LEN];
 	unsigned char		wlan_bssid[MAC_LEN];
-	char			wlan_essid[255];
+	char			wlan_essid[MAX_ESSID_LEN];
 	u_int64_t		wlan_tsf;	/* timestamp from beacon */
 	int			wlan_mode;	/* AP, STA or IBSS */
 	unsigned char		wlan_channel;	/* channel from beacon, probe */
@@ -217,13 +217,14 @@ extern struct statistics stats;
 
 struct config {
 	char*			ifname;
-	int			rport;
+	char*			port;
 	int			quiet;
 	int			node_timeout;
 	int			display_interval;
 	int			sleep_time;
 	char*			dumpfile;
 	int			recv_buffer_size;
+	char*			serveraddr;
 
 	unsigned char		filtermac[MAX_FILTERMAC][MAC_LEN];
 	unsigned char		filterbssid[MAC_LEN];
