@@ -26,7 +26,7 @@ extern int srv_fd;
 extern int cli_fd;
 
 void
-net_init_server_socket(int rport);
+net_init_server_socket(char* rport);
 
 int net_handle_server_conn(void);
 
@@ -37,7 +37,7 @@ int
 net_receive_packet(unsigned char* buffer, int len, struct packet_info *pkt);
 
 int
-net_open_client_socket(unsigned int serverip, unsigned int rport);
+net_open_client_socket(char* server, char* rport);
 
 void
 net_finish(void);

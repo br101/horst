@@ -123,7 +123,7 @@ receive_packet(unsigned char* buffer, int len)
 #endif
 	memset(&current_packet, 0, sizeof(current_packet));
 
-	if (!conf.serverip) {
+	if (!conf.serveraddr) {
 		/* local capture */
 		if (!parse_packet(buffer, len)) {
 			DEBUG("parsing failed\n");
@@ -205,8 +205,8 @@ main(int argc, char** argv)
 
 	gettimeofday(&stats.stats_time, NULL);
 
-	if (conf.serverip)
-		mon = net_open_client_socket(conf.serverip, conf.port);
+	if (conf.serveraddr)
+		mon = net_open_client_socket(conf.serveraddr, conf.port);
 	else {
 		mon = open_packet_socket(conf.ifname, sizeof(buffer), conf.recv_buffer_size);
 		if (mon < 0)
@@ -226,7 +226,7 @@ main(int argc, char** argv)
 			err(1, "couldn't open dump file");
 	}
 
-	if (!conf.serverip && conf.port)
+	if (!conf.serveraddr && conf.port)
 		net_init_server_socket(conf.port);
 
 #if !DO_DEBUG
@@ -250,12 +250,11 @@ get_options(int argc, char** argv)
 {
 	int c;
 	static int n;
-	struct in_addr ia;
 
 	while((c = getopt(argc, argv, "hqi:t:p:e:d:w:o:b:c:")) > 0) {
 		switch (c) {
 			case 'p':
-				conf.port = atoi(optarg);
+				conf.port = optarg;
 				break;
 			case 'q':
 				conf.quiet = 1;
@@ -290,11 +289,7 @@ get_options(int argc, char** argv)
 				n++;
 				break;
 			case 'c':
-				if (!inet_aton(optarg, &ia)) {
-					printf("client ip conversion failed\n");
-					exit(0);
-				}
-				conf.serverip = ia.s_addr;
+				conf.serveraddr = optarg;
 				break;
 			case 'h':
 			default:
@@ -347,7 +342,7 @@ finish_all(int sig)
 {
 	free_lists();
 
-	if (!conf.serverip)
+	if (!conf.serveraddr)
 		close_packet_socket();
 	
 	if (DF != NULL)

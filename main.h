@@ -86,8 +86,8 @@
 /* update display every 100ms - "10 frames per sec should be enough for everyone" ;) */
 #define DISPLAY_UPDATE_INTERVAL 100000	/* usec */
 #define SLEEP_TIME		1000	/* usec */
-#define RECV_BUFFER_SIZE	6750000 /* 54Mbps in byte */
-#define DEFAULT_PORT		4444
+#define RECV_BUFFER_SIZE	6750000	/* 54Mbps in byte */
+#define DEFAULT_PORT		"4444"	/* string because of getaddrinfo() */
 
 #ifndef ARPHRD_IEEE80211_RADIOTAP
 #define ARPHRD_IEEE80211_RADIOTAP 803    /* IEEE 802.11 + radiotap header */
@@ -217,14 +217,14 @@ extern struct statistics stats;
 
 struct config {
 	char*			ifname;
-	int			port;
+	char*			port;
 	int			quiet;
 	int			node_timeout;
 	int			display_interval;
 	int			sleep_time;
 	char*			dumpfile;
 	int			recv_buffer_size;
-	int			serverip;
+	char*			serveraddr;
 
 	unsigned char		filtermac[MAX_FILTERMAC][MAC_LEN];
 	unsigned char		filterbssid[MAC_LEN];

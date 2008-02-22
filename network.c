@@ -23,6 +23,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <netdb.h>
 #include <errno.h>
 #include <err.h>
 
@@ -70,16 +71,16 @@ struct net_packet_info {
 
 
 void
-net_init_server_socket(int rport)
+net_init_server_socket(char* rport)
 {
 	struct sockaddr_in sock_in;
 	int reuse = 1;
 
-	printf("using server port %d\n", rport);
+	printf("using server port %s\n", rport);
 
 	sock_in.sin_family = AF_INET;
 	sock_in.sin_addr.s_addr = htonl(INADDR_ANY);
-	sock_in.sin_port = htons(rport);
+	sock_in.sin_port = htons(atoi(rport));
 
 	if ((srv_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		err(1, "socket");
@@ -226,21 +227,45 @@ int net_handle_server_conn( void )
 
 
 int
-net_open_client_socket(unsigned int serverip, unsigned int rport)
+net_open_client_socket(char* serveraddr, char* rport)
 {
-	struct sockaddr_in sock_in;
+	struct addrinfo saddr;
+	struct addrinfo *result, *rp;
+	int ret;
 
-	printf("connecting to server %x port %d\n", serverip, rport);
+	printf("connecting to server %s port %s\n", serveraddr, rport);
 
-	sock_in.sin_family = AF_INET;
-	sock_in.sin_addr.s_addr = serverip;
-	sock_in.sin_port = htons(rport);
+	/* Obtain address(es) matching host/port */
+	memset(&saddr, 0, sizeof(struct addrinfo));
+	saddr.ai_family = AF_INET;
+	saddr.ai_socktype = SOCK_STREAM;
+	saddr.ai_flags = 0;
+	saddr.ai_protocol = 0;
 
-	if ((netmon_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-		err(1, "socket");
+	ret = getaddrinfo(serveraddr, rport, &saddr, &result);
+	if (ret != 0) {
+		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(ret));
+		exit(EXIT_FAILURE);
+	}
 
-	if (connect(netmon_fd, (struct sockaddr*)&sock_in, sizeof(sock_in)) < 0)
-		err(1, "connect");
+	/* getaddrinfo() returns a list of address structures.
+	   Try each address until we successfully connect. */
+	for (rp = result; rp != NULL; rp = rp->ai_next) {
+		netmon_fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+		if (netmon_fd == -1)
+			continue;
+
+		if (connect(netmon_fd, rp->ai_addr, rp->ai_addrlen) != -1)
+			break; /* Success */
+
+		close(netmon_fd);
+	}
+
+	if (rp == NULL) {               /* No address succeeded */
+		err(1, "Could not connect\n");
+	}
+
+	freeaddrinfo(result);
 
 	printf("connected\n");
 	return netmon_fd;
