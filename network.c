@@ -270,7 +270,8 @@ net_open_client_socket(char* serveraddr, char* rport)
 
 	if (rp == NULL) {
 		/* No address succeeded */
-		err(1, "Could not connect\n");
+		freeaddrinfo(result);
+		err(1, "could not connect");
 	}
 
 	freeaddrinfo(result);
