@@ -13,6 +13,13 @@ TODO:
 feature requests:
 -----------------
 
+ * FCS errors checken
+ * ACKs
+ * retries
+ * batman layer 2 ethertype 0x0842
+
+---
+
 > WEITERE OPTIONEN, (braucht ein tmp. eingabe-feld, zb. im header)
 > evt. als [IP:], dann untermenue:
 > - [k: keep] eintrag nach time-out in der anzeige halten, markiert m."?".
