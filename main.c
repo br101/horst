@@ -356,7 +356,7 @@ write_to_file(struct packet_info* pkt)
 	fprintf(DF, "%s, ", ether_sprintf(pkt->wlan_bssid));
 	fprintf(DF, "%x, %d, %d, %d, %d, %d, ",
 		pkt->pkt_types, pkt->signal, pkt->noise, pkt->snr, pkt->len, pkt->rate);
-	fprintf(DF, "%016llx, ", pkt->wlan_tsf);
+	fprintf(DF, "%016llx, ", (unsigned long long)pkt->wlan_tsf);
 	fprintf(DF, "%s, %d, %d, %d, ",
 		pkt->wlan_essid, pkt->wlan_mode, pkt->wlan_channel, pkt->wlan_wep);
 	fprintf(DF, "%s, ", ip_sprintf(pkt->ip_src));
