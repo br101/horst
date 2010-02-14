@@ -32,4 +32,7 @@ close_packet_socket(void);
 int
 device_get_arptype(void);
 
+int
+device_wireless_channel(int fd, const char* devname, int chan);
+
 #endif // _CAPTURE_H_

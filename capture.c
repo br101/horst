@@ -24,9 +24,10 @@
 #include <sys/socket.h>
 #include <netpacket/packet.h>
 #include <net/ethernet.h>
-#include <net/if.h>
+//#include <net/if.h>
 #include <arpa/inet.h>
 #include <err.h>
+#include <linux/wireless.h>
 
 #include "capture.h"
 #include "util.h"
@@ -249,12 +250,13 @@ close_packet_socket(void)
 }
 
 
-#if 0
-static void
+#endif // PCAP
+
+
+int
 device_wireless_channel(int fd, const char* devname, int chan)
 {
 	struct iwreq iwr;
-	int ret = 0;
 
 	memset(&iwr, 0, sizeof(iwr));
 	strncpy(iwr.ifr_name, devname, IFNAMSIZ);
@@ -263,10 +265,7 @@ device_wireless_channel(int fd, const char* devname, int chan)
 
 	if (ioctl(fd, SIOCSIWFREQ, &iwr) < 0) {
 		perror("ioctl[SIOCSIWFREQ]");
-		ret = -1;
+		return 0;
 	}
+	return 1;
 }
-#endif
-
-
-#endif // PCAP

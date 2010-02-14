@@ -83,6 +83,7 @@
 /* default config values */
 #define INTERFACE_NAME		"wlan0"
 #define NODE_TIMEOUT		60	/* seconds */
+#define CHANNEL_TIME		250000	/* 250 usec */
 /* update display every 100ms - "10 frames per sec should be enough for everyone" ;) */
 #define DISPLAY_UPDATE_INTERVAL 100000	/* usec */
 #define SLEEP_TIME		1000	/* usec */
@@ -220,6 +221,8 @@ struct config {
 	char*			port;
 	int			quiet;
 	int			node_timeout;
+	int			channel_time;
+	int			current_channel;
 	int			display_interval;
 	int			sleep_time;
 	char*			dumpfile;
@@ -230,7 +233,8 @@ struct config {
 	unsigned char		filterbssid[MAC_LEN];
 	int			filter_pkt;
 	unsigned int		filter_off:1,
-				do_macfilter:1;
+				do_macfilter:1,
+				do_change_channel:1;
 
 	/* this isn't exactly config, but wtf... */
 	int			arphrd; // the device ARP type
@@ -247,5 +251,8 @@ finish_all(int sig);
 
 void
 free_lists(void);
+
+void
+change_channel(int c);
 
 #endif

@@ -47,6 +47,7 @@ struct statistics stats;
 
 struct config conf = {
 	.node_timeout		= NODE_TIMEOUT,
+	.channel_time		= CHANNEL_TIME,
 	.ifname			= INTERFACE_NAME,
 	.display_interval	= DISPLAY_UPDATE_INTERVAL,
 	.sleep_time		= SLEEP_TIME,
@@ -60,6 +61,8 @@ struct timeval the_time;
 static int mon; /* monitoring socket */
 static FILE* DF = NULL;
 static struct timeval last_nodetimeout;
+static struct timeval last_channelchange;
+
 
 /*
  * receive packet buffer
@@ -508,7 +511,7 @@ get_options(int argc, char** argv)
 	int c;
 	static int n;
 
-	while((c = getopt(argc, argv, "hqi:t:p:e:d:w:o:b:c:")) > 0) {
+	while((c = getopt(argc, argv, "hqsi:t:p:e:d:w:o:b:c:")) > 0) {
 		switch (c) {
 		case 'p':
 			conf.port = optarg;
@@ -529,7 +532,7 @@ get_options(int argc, char** argv)
 			conf.recv_buffer_size = atoi(optarg);
 			break;
 		case 's':
-			/* reserved for spectro meter */
+			conf.do_change_channel = 1;
 			break;
 		case 'd':
 			conf.display_interval = atoi(optarg);
@@ -554,6 +557,7 @@ get_options(int argc, char** argv)
 				"Options (default value)\n"
 				"  -h\t\tthis help\n"
 				"  -q\t\tquiet [basically useless]\n"
+				"  -s\t\tscan (change channel automatically)\n"
 				"  -i <intf>\tinterface (wlan0)\n"
 				"  -t <sec>\tnode timeout (60)\n"
 				"  -c <IP>\tconnect to server\n"
@@ -662,6 +666,28 @@ void print_rate_duration_table(void)
 #endif
 
 
+static int channels[] = {2412, 2417, 2422, 2427, 2432, 2437, 2442, 2447, 2452, 2457, 2462, 2467, 2472};
+
+
+void
+auto_change_channel(void)
+{
+	if (conf.do_change_channel == 0 ||
+	    (the_time.tv_sec == last_channelchange.tv_sec &&
+	     (the_time.tv_usec - last_channelchange.tv_usec) < conf.channel_time)) {
+		return;
+	}
+	
+	conf.current_channel++;
+	if (conf.current_channel >= 13) /* FIX */
+	    conf.current_channel = 1;
+	
+	device_wireless_channel(mon, conf.ifname, channels[conf.current_channel-1]);
+	
+	last_channelchange = the_time;
+}
+
+
 int
 main(int argc, char** argv)
 {
@@ -712,7 +738,16 @@ main(int argc, char** argv)
 		receive_any();
 		gettimeofday(&the_time, NULL);
 		timeout_nodes();
+		auto_change_channel();
 	}
 	/* will never */
 	return 0;
+}
+
+
+void
+change_channel(int c)
+{
+	device_wireless_channel(mon, conf.ifname, channels[c-1]);
+	conf.current_channel = c;
 }
