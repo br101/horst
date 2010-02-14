@@ -927,9 +927,11 @@ update_essid_win(void)
 	print_centered(show_win, 0, COLS, " ESSIDs ");
 
 	mvwprintw(show_win, line++, 3, "NO. MODE SOURCE            (BSSID)             TSF              CH SNR  E IP");
-	line++;
 
 	list_for_each_entry(e, &essids.list, list) {
+		if (line > LINES-3)
+			break;
+
 		wattron(show_win, WHITE | A_BOLD);
 		mvwprintw(show_win, line, 2, "ESSID '%s'", e->essid );
 		if (e->split > 0) {
@@ -942,6 +944,9 @@ update_essid_win(void)
 
 		i = 1;
 		list_for_each_entry(node, &e->nodes, essid_nodes) {
+			if (line > LINES-3)
+				break;
+
 			if (node->last_seen > (the_time.tv_sec - conf.node_timeout / 2))
 				wattron(show_win, A_BOLD);
 			else
