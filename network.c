@@ -1,6 +1,6 @@
 /* horst - olsr scanning tool
  *
- * Copyright (C) 2005-2008  Bruno Randolf
+ * Copyright (C) 2005-2010 Bruno Randolf (br1@einfach.org)
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -207,28 +207,6 @@ int net_handle_server_conn( void )
 	//read(cli_fd,line,sizeof(line));
 	return 0;
 }
-
-#if 0
-		// satisfy http clients (wget)
-		static const char hdr[]="HTTP/1.0 200 ok\r\nContent-Type: text/plain\r\n\r\n";
- 		write (cli_fd,hdr,sizeof(hdr));
-		list_for_each_entry(n, &nodes, list) {
-			char src_eth[18];
-			strcpy(src_eth,ether_sprintf(n->last_pkt.wlan_src));
-			/* ip sig noise snr source bssid lq gw neigh olsrcount count tsf */
-			llen=snprintf(line,sizeof(line)-1,"%s %d %d %d %s %s %d %d %d %d %d %016llx\r\n",
-				ip_sprintf(n->ip_src),
-				n->last_pkt.signal, n->last_pkt.noise, n->last_pkt.snr,
-				src_eth,
-				ether_sprintf(n->wlan_bssid),
-				n->pkt_types & PKT_TYPE_OLSR_LQ,
-				n->pkt_types & PKT_TYPE_OLSR_GW,
-				n->olsr_neigh,
-				n->olsr_count, n->pkt_count,
-				n->tsf);
-			write(cli_fd,line,llen);
-		}
-#endif
 
 
 int

@@ -1,6 +1,6 @@
 /* horst - olsr scanning tool
  *
- * Copyright (C) 2005-2008  Bruno Randolf
+ * Copyright (C) 2005-2010 Bruno Randolf (br1@einfach.org)
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -706,7 +706,7 @@ main(int argc, char** argv)
 	}
 #endif
 
-	for ( /* ever*/ ;;)
+	for ( /* ever */ ;;)
 	{
 		receive_any();
 		gettimeofday(&the_time, NULL);

@@ -1,6 +1,6 @@
 /* horst - olsr scanning tool
  *
- * Copyright (C) 2005-2008  Bruno Randolf
+ * Copyright (C) 2005-2010 Bruno Randolf (br1@einfach.org)
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -46,9 +46,6 @@ static void update_essid_win(void);
 static void update_hist_win(void);
 static void update_statistics_win(void);
 static void update_help_win(void);
-#if 0
-static void update_detail_win(void);
-#endif
 static void update_mini_status(void);
 
 static WINDOW *dump_win = NULL;
@@ -180,10 +177,10 @@ init_display(void)
 	//attron(KEYMARK); printw("D"); attroff(KEYMARK); printw("etails ");
 	attron(KEYMARK); printw("?"); attroff(KEYMARK); printw("Help");
 #undef KEYMARK
-	mvwprintw(stdscr, LINES-1, COLS-14, "|%s", conf.ifname);
-
+	mvwprintw(stdscr, LINES-1, COLS-15, "|%s", conf.ifname);
 	wattroff(stdscr, BLACKONWHITE);
-	refresh();
+
+	update_mini_status();
 
 	win_split = LINES / 2 + 1;
 	stat_height = LINES - win_split - 1;
@@ -575,6 +572,7 @@ update_clock(time_t* sec)
 	wattron(stdscr, BLACKONWHITE);
 	mvwprintw(stdscr, LINES-1, COLS-9, "|%s", buf);
 	wattroff(stdscr, BLACKONWHITE);
+	wnoutrefresh(stdscr);
 }
 
 
@@ -582,12 +580,13 @@ static void
 update_mini_status(void)
 {
 	wattron(stdscr, BLACKONWHITE);
-	mvwprintw(stdscr, LINES-1, COLS-22, conf.paused ? "|PAU" : "|   ");
+	mvwprintw(stdscr, LINES-1, COLS-23, conf.paused ? "|PAU" : "|   ");
 	if (!conf.filter_off && (conf.do_macfilter || conf.filter_pkt != 0xffffff))
-		mvwprintw(stdscr, LINES-1, COLS-18, "|FIL");
+		mvwprintw(stdscr, LINES-1, COLS-19, "|FIL");
 	else
-		mvwprintw(stdscr, LINES-1, COLS-18, "|   ");
+		mvwprintw(stdscr, LINES-1, COLS-19, "|   ");
 	wattroff(stdscr, BLACKONWHITE);
+	wnoutrefresh(stdscr);
 }
 
 
@@ -645,10 +644,6 @@ update_show_win(void)
 		update_statistics_win();
 	else if (show_win_current == '?')
 		update_help_win();
-#if 0
-	else if (show_win_current == 'd')
-		update_detail_win();
-#endif
 }
 
 
@@ -1200,7 +1195,7 @@ update_help_win(void)
 	print_centered(show_win, 2, COLS, "HORST - Horsts OLSR Radio Scanning Tool");
 	print_centered(show_win, 3, COLS, "Version " VERSION " (build date " __DATE__ " " __TIME__ ")");
 
-	mvwprintw(show_win, 5, 2, "(C) 2005-2007 Bruno Randolf, Licensed under the GPLv2");
+	mvwprintw(show_win, 5, 2, "(C) 2005-2010 Bruno Randolf, Licensed under the GPLv2");
 
 	mvwprintw(show_win, 7, 2, "Known IEEE802.11 Packet Types:");
 	l = 9;
@@ -1230,18 +1225,3 @@ update_help_win(void)
 
 	wrefresh(show_win);
 }
-
-
-#if 0
-static void
-update_detail_win(void)
-{
-	werase(show_win);
-	wattron(show_win, WHITE);
-	box(show_win, 0 , 0);
-	print_centered(show_win, 0, COLS, " Detailed Node List ");
-
-
-	wnoutrefresh(show_win);
-}
-#endif

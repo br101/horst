@@ -1,6 +1,6 @@
 /* horst - olsr scanning tool
  *
- * Copyright (C) 2005-2008  Bruno Randolf
+ * Copyright (C) 2005-2010 Bruno Randolf (br1@einfach.org)
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,7 +22,7 @@
 
 #include "list.h"
 
-#define VERSION "2.0-rc1"
+#define VERSION "2.0-rc2"
 
 #ifndef DO_DEBUG
 #define DO_DEBUG 0
