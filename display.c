@@ -968,7 +968,7 @@ update_essid_win(void)
 }
 
 
-#define SIGN_POS LINES-14
+#define SIGN_POS LINES-17
 #define TYPE_POS SIGN_POS+1
 #define RATE_POS LINES-2
 
@@ -1012,13 +1012,16 @@ update_hist_win(void)
 	wattron(show_win, A_BOLD);
 	wattron(show_win, BLUE);
 	mvwprintw(show_win, 4, col-4, "Rate");
-	mvwprintw(show_win, RATE_POS-9, 1, "54M");
-	mvwprintw(show_win, RATE_POS-8, 1, "48M");
-	mvwprintw(show_win, RATE_POS-7, 1, "36M");
-	mvwprintw(show_win, RATE_POS-6, 1, "24M");
-	mvwprintw(show_win, RATE_POS-5, 1, "18M");
-	mvwprintw(show_win, RATE_POS-4, 1, "11M");
-	mvwprintw(show_win, RATE_POS-3, 1, " 5M");
+	mvwprintw(show_win, RATE_POS-12, 1, "54M");
+	mvwprintw(show_win, RATE_POS-11, 1, "48M");
+	mvwprintw(show_win, RATE_POS-10, 1, "36M");
+	mvwprintw(show_win, RATE_POS-9, 1, "24M");
+	mvwprintw(show_win, RATE_POS-8, 1, "18M");
+	mvwprintw(show_win, RATE_POS-7, 1, "12M");
+	mvwprintw(show_win, RATE_POS-6, 1, "11M");
+	mvwprintw(show_win, RATE_POS-5, 1, " 9M");
+	mvwprintw(show_win, RATE_POS-4, 1, " 6M");
+	mvwprintw(show_win, RATE_POS-3, 1, "5.M");
 	mvwprintw(show_win, RATE_POS-2, 1, " 2M");
 	mvwprintw(show_win, RATE_POS-1, 1, " 1M");
 	wattroff(show_win, A_BOLD);
@@ -1040,15 +1043,17 @@ update_hist_win(void)
 		mvwprintw(show_win, TYPE_POS, col, "%c", \
 			get_packet_type_char(hist.type[i]));
 
-		/* make rate table smaller by joining some values */
 		switch (hist.rate[i]/2) {
-			case 54: rat = 9; break;
-			case 48: rat = 8; break;
-			case 36: rat = 7; break;
-			case 24: rat = 6; break;
-			case 18: rat = 5; break;
-			case 12: case 11: case 9: rat = 4; break;
-			case 6: case 5: rat = 3; break;
+			case 54: rat = 12; break;
+			case 48: rat = 11; break;
+			case 36: rat = 10; break;
+			case 24: rat = 9; break;
+			case 18: rat = 8; break;
+			case 12: rat = 7; break;
+			case 11: rat = 6; break;
+			case 9: rat = 5; break;
+			case 6: rat = 4; break;
+			case 5: rat = 3; break;
 			case 2: rat = 2; break;
 			case 1: rat = 1; break;
 			default: rat = 0;
