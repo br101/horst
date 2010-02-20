@@ -314,6 +314,7 @@ update_history(struct packet_info* p)
 	hist.noise[hist.index] = p->noise;
 	hist.rate[hist.index] = p->rate;
 	hist.type[hist.index] = p->wlan_type;
+	hist.retry[hist.index] = p->wlan_retry;
 	hist.index++;
 	if (hist.index == MAX_HISTORY) {
 		hist.index = 0;

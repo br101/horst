@@ -121,7 +121,9 @@ struct packet_info {
 	u_int64_t		wlan_tsf;	/* timestamp from beacon */
 	int			wlan_mode;	/* AP, STA or IBSS */
 	unsigned char		wlan_channel;	/* channel from beacon, probe */
-	int			wlan_wep;	/* WEP on/off */
+
+	unsigned int		wlan_wep:1,	/* WEP on/off */
+				wlan_retry:1;
 
 	/* IP */
 	unsigned int		ip_src;
@@ -191,6 +193,7 @@ struct history {
 	int			noise[MAX_HISTORY];
 	int			rate[MAX_HISTORY];
 	int			type[MAX_HISTORY];
+	int			retry[MAX_HISTORY];
 	int			index;
 };
 

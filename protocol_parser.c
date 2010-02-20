@@ -355,6 +355,10 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 		/* WEP */
 		if (wh->frame_control & IEEE80211_FCTL_PROTECTED)
 			current_packet->wlan_wep = 1;
+
+		if (wh->frame_control & IEEE80211_FCTL_RETRY)
+			current_packet->wlan_retry =1;
+
 		break;
 
 	case IEEE80211_FTYPE_CTL:

@@ -1043,6 +1043,9 @@ update_hist_win(void)
 		mvwprintw(show_win, TYPE_POS, col, "%c", \
 			get_packet_type_char(hist.type[i]));
 
+		if (hist.retry[i])
+			mvwprintw(show_win, TYPE_POS+1, col, "r");
+
 		switch (hist.rate[i]/2) {
 			case 54: rat = 12; break;
 			case 48: rat = 11; break;
@@ -1090,6 +1093,9 @@ update_dump_win(struct packet_info* pkt)
 	wprintw(dump_win, "%2d ", pkt->rate/2);
 	wprintw(dump_win, "%s ", ether_sprintf(pkt->wlan_src));
 	wprintw(dump_win, "(%s) ", ether_sprintf(pkt->wlan_bssid));
+
+	if (pkt->wlan_retry)
+		wprintw(dump_win, "[r]");
 
 	if (pkt->pkt_types & PKT_TYPE_OLSR) {
 		wprintw(dump_win, "%-7s%s ", "OLSR", ip_sprintf(pkt->ip_src));
