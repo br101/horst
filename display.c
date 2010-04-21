@@ -749,7 +749,8 @@ update_status_win(struct packet_info* pkt, struct node_info* node)
 	if (pkt != NULL)
 	{
 		sig = normalize_db(-pkt->signal, max_stat_bar);
-		noi = normalize_db(-pkt->noise, max_stat_bar);
+		if (pkt->noise)
+			noi = normalize_db(-pkt->noise, max_stat_bar);
 		rate = normalize(pkt->rate, 108, max_stat_bar);
 
 		if (node != NULL && node->sig_max < 0)
@@ -765,9 +766,12 @@ update_status_win(struct packet_info* pkt, struct node_info* node)
 
 		wattron(stat_win, RED);
 		mvwprintw(stat_win, 0, 10, "%03d", pkt->noise);
-		wattron(stat_win, ALLRED);
-		mvwvline(stat_win, noi + 4, 2, '=', stat_height - noi);
-		mvwvline(stat_win, noi + 4, 3, '=', stat_height - noi);
+
+		if (pkt->noise) {
+			wattron(stat_win, ALLRED);
+			mvwvline(stat_win, noi + 4, 2, '=', stat_height - noi);
+			mvwvline(stat_win, noi + 4, 3, '=', stat_height - noi);
+		}
 
 		wattron(stat_win, BLUE);
 		wattron(stat_win, A_BOLD);
@@ -1031,13 +1035,16 @@ update_hist_win(void)
 	while (col > 4 && hist.signal[i] != 0)
 	{
 		sig = normalize_db(-hist.signal[i], SIGN_POS);
-		noi = normalize_db(-hist.noise[i], SIGN_POS);
+		if (hist.noise[i])
+			noi = normalize_db(-hist.noise[i], SIGN_POS);
 
 		wattron(show_win, ALLGREEN);
 		mvwvline(show_win, sig, col, ACS_BLOCK, SIGN_POS-sig);
 
-		wattron(show_win, ALLRED);
-		mvwvline(show_win, noi, col, '=', SIGN_POS-noi);
+		if (hist.noise[i]) {
+			wattron(show_win, ALLRED);
+			mvwvline(show_win, noi, col, '=', SIGN_POS-noi);
+		}
 
 		wattron(show_win, CYAN);
 		mvwprintw(show_win, TYPE_POS, col, "%c", \

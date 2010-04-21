@@ -278,9 +278,17 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* current_
 	}
 	DEBUG("\n");
 
+	if (!(present & (1 << IEEE80211_RADIOTAP_DB_ANTSIGNAL))) {
+		/* no SNR in radiotap, try to calculate */
+		if (present & (1 << IEEE80211_RADIOTAP_DBM_ANTSIGNAL) &&
+		    present & (1 << IEEE80211_RADIOTAP_DBM_ANTNOISE))
+			current_packet->snr = current_packet->signal - current_packet->noise;
+		/* HACK: here we just assume noise to be -95dBm */
+		else if (!(present & (1 << IEEE80211_RADIOTAP_DBM_ANTNOISE)))
+			current_packet->snr = current_packet->signal + 95;
+	}
+
 	/* sanitize */
-	if (!(present & (1 << IEEE80211_RADIOTAP_DB_ANTSIGNAL)))
-		current_packet->snr = current_packet->signal - current_packet->noise;
 	if (current_packet->snr > 99)
 		current_packet->snr = 99;
 	if (current_packet->rate == 0 || current_packet->rate > 108) {
