@@ -337,7 +337,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 	u8* sa = NULL;
 	u8* da = NULL;
 	u8* bssid = NULL;
-	u16 fc;
+	u16 fc, cap_i;
 
 	if (len < 2) /* not even enough space for fc */
 		return -1;
@@ -433,11 +433,12 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 				len - sizeof(struct ieee80211_mgmt) - 4 /* FCS */, current_packet);
 			DEBUG("ESSID %s \n", current_packet->wlan_essid );
 			DEBUG("CHAN %d \n", current_packet->wlan_channel );
-			if (whm->u.beacon.capab_info & WLAN_CAPABILITY_IBSS)
+			cap_i = le16toh(whm->u.beacon.capab_info);
+			if (cap_i & WLAN_CAPABILITY_IBSS)
 				current_packet->wlan_mode = WLAN_MODE_IBSS;
-			else if (whm->u.beacon.capab_info & WLAN_CAPABILITY_ESS)
+			else if (cap_i & WLAN_CAPABILITY_ESS)
 				current_packet->wlan_mode = WLAN_MODE_AP;
-			if (whm->u.beacon.capab_info & WLAN_CAPABILITY_PRIVACY)
+			if (cap_i & WLAN_CAPABILITY_PRIVACY)
 				current_packet->wlan_wep = 1;
 			break;
 
@@ -448,11 +449,12 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 				len - sizeof(struct ieee80211_mgmt) - 4 /* FCS */, current_packet);
 			DEBUG("ESSID %s \n", current_packet->wlan_essid );
 			DEBUG("CHAN %d \n", current_packet->wlan_channel );
-			if (whm->u.beacon.capab_info & WLAN_CAPABILITY_IBSS)
+			cap_i = le16toh(whm->u.beacon.capab_info);
+			if (cap_i & WLAN_CAPABILITY_IBSS)
 				current_packet->wlan_mode = WLAN_MODE_IBSS;
-			else if (whm->u.beacon.capab_info & WLAN_CAPABILITY_ESS)
+			else if (cap_i & WLAN_CAPABILITY_ESS)
 				current_packet->wlan_mode = WLAN_MODE_AP;
-			if (whm->u.beacon.capab_info & WLAN_CAPABILITY_PRIVACY)
+			if (cap_i & WLAN_CAPABILITY_PRIVACY)
 				current_packet->wlan_wep = 1;
 			break;
 
