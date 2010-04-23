@@ -23,6 +23,8 @@
 #include <net/if_arp.h>
 #include <netinet/ip.h>
 #include <netinet/udp.h>
+#include <endian.h>
+#include <byteswap.h>
 
 #include "prism_header.h"
 #include "ieee80211_radiotap.h"
@@ -34,6 +36,16 @@
 #include "protocol_parser.h"
 #include "main.h"
 #include "util.h"
+
+#if BYTE_ORDER == LITTLE_ENDIAN
+	#define le64toh(x) (x)
+	#define le32toh(x) (x)
+	#define le16toh(x) (x)
+#else
+	#define le64toh(x) bswap_64(x)
+	#define le32toh(x) bswap_32(x)
+	#define le16toh(x) bswap_16(x)
+#endif
 
 static int parse_prism_header(unsigned char** buf, int len, struct packet_info* current_packet);
 static int parse_radiotap_header(unsigned char** buf, int len, struct packet_info* current_packet);
@@ -166,6 +178,7 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* current_
 	__le32 present; /* the present bitmap */
 	unsigned char* b; /* current byte */
 	int i;
+	u16 rt_len, x;
 
 	DEBUG("RADIOTAP HEADER\n");
 
@@ -176,22 +189,22 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* current_
 
 	rh = (struct ieee80211_radiotap_header*)*buf;
 	b = *buf + sizeof(struct ieee80211_radiotap_header);
-	present = rh->it_present;
-
-	DEBUG("radiotap header len: %d\n", rh->it_len);
+	present = le32toh(rh->it_present);
+	rt_len = le16toh(rh->it_len);
+	DEBUG("radiotap header len: %d\n", rt_len);
 	DEBUG("%08x\n", present);
 
 	/* check for header extension - ignore for now, just advance current position */
-	while (present & 0x80000000  && b - *buf < rh->it_len) {
+	while (present & 0x80000000  && b - *buf < rt_len) {
 		DEBUG("extension\n");
 		b = b + 4;
-		present = *(__le32*)b;
+		present = le32toh(*(__le32*)b);
 	}
-	present = rh->it_present; // in case it moved
+	present = le32toh(rh->it_present); // in case it moved
 
 	/* radiotap bitmap has 32 bit, but we are only interrested until
 	 * bit 12 (IEEE80211_RADIOTAP_DB_ANTSIGNAL) => i<13 */
-	for (i = 0; i < 13 && b - *buf < rh->it_len; i++) {
+	for (i = 0; i < 13 && b - *buf < rt_len; i++) {
 		if ((present >> i) & 1) {
 			DEBUG("1");
 			switch (i) {
@@ -253,18 +266,19 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* current_
 					break;
 				case IEEE80211_RADIOTAP_CHANNEL:
 					/* channel & channel type */
-					current_packet->phy_freq = *(u_int16_t*)b;
+					current_packet->phy_freq = le16toh(*(u_int16_t*)b);
 					DEBUG("[chan %d ", current_packet->phy_freq);
 					b = b + 2;
-					if (*(u_int16_t*)b & IEEE80211_CHAN_A) {
+					x = le16toh(*(u_int16_t*)b);
+					if (x & IEEE80211_CHAN_A) {
 						current_packet->phy_flags |= PHY_FLAG_A;
 						DEBUG("A]");
 					}
-					else if (*(u_int16_t*)b & IEEE80211_CHAN_G) {
+					else if (x & IEEE80211_CHAN_G) {
 						current_packet->phy_flags |= PHY_FLAG_G;
 						DEBUG("G]");
 					}
-					else if (*(u_int16_t*)b & IEEE80211_CHAN_B) {
+					else if (x & IEEE80211_CHAN_B) {
 						current_packet->phy_flags |= PHY_FLAG_B;
 						DEBUG("B]");
 					}
@@ -309,8 +323,8 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* current_
 	DEBUG("noise: %d\n", current_packet->noise);
 	DEBUG("snr: %d\n", current_packet->snr);
 
-	*buf = *buf + rh->it_len;
-	return len - rh->it_len;
+	*buf = *buf + rt_len;
+	return len - rt_len;
 }
 
 
@@ -323,6 +337,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 	u8* sa = NULL;
 	u8* da = NULL;
 	u8* bssid = NULL;
+	u16 fc;
 
 	if (len < 2) /* not even enough space for fc */
 		return -1;
@@ -334,11 +349,12 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 		return -1;
 
 	current_packet->len = len;
-	current_packet->wlan_type = (wh->frame_control & (IEEE80211_FCTL_FTYPE | IEEE80211_FCTL_STYPE));
+	fc = le16toh(wh->frame_control);
+	current_packet->wlan_type = (fc & (IEEE80211_FCTL_FTYPE | IEEE80211_FCTL_STYPE));
 
-	DEBUG("wlan_type %x - type %x - stype %x\n", wh->frame_control, wh->frame_control & IEEE80211_FCTL_FTYPE, wh->frame_control & IEEE80211_FCTL_STYPE );
+	DEBUG("wlan_type %x - type %x - stype %x\n", fc, fc & IEEE80211_FCTL_FTYPE, fc & IEEE80211_FCTL_STYPE );
 
-	DEBUG("%s\n", get_packet_type_name(wh->frame_control));
+	DEBUG("%s\n", get_packet_type_name(fc));
 
 	bssid = ieee80211_get_bssid(wh, len);
 
@@ -353,18 +369,18 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 		sa = ieee80211_get_SA(wh);
 		da = ieee80211_get_DA(wh);
 		/* AP, STA or IBSS */
-		if ((wh->frame_control & IEEE80211_FCTL_FROMDS) == 0 &&
-		(wh->frame_control & IEEE80211_FCTL_TODS) == 0)
+		if ((fc & IEEE80211_FCTL_FROMDS) == 0 &&
+		    (fc & IEEE80211_FCTL_TODS) == 0)
 			current_packet->wlan_mode = WLAN_MODE_IBSS;
-		else if (wh->frame_control & IEEE80211_FCTL_FROMDS)
+		else if (fc & IEEE80211_FCTL_FROMDS)
 			current_packet->wlan_mode = WLAN_MODE_AP;
-		else if (wh->frame_control & IEEE80211_FCTL_TODS)
+		else if (fc & IEEE80211_FCTL_TODS)
 			current_packet->wlan_mode = WLAN_MODE_STA;
 		/* WEP */
-		if (wh->frame_control & IEEE80211_FCTL_PROTECTED)
+		if (fc & IEEE80211_FCTL_PROTECTED)
 			current_packet->wlan_wep = 1;
 
-		if (wh->frame_control & IEEE80211_FCTL_RETRY)
+		if (fc & IEEE80211_FCTL_RETRY)
 			current_packet->wlan_retry =1;
 
 		break;
@@ -412,7 +428,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 		switch (current_packet->wlan_type & IEEE80211_FCTL_STYPE) {
 		case IEEE80211_STYPE_BEACON:
 			current_packet->pkt_types |= PKT_TYPE_BEACON;
-			current_packet->wlan_tsf = whm->u.beacon.timestamp;
+			current_packet->wlan_tsf = le64toh(whm->u.beacon.timestamp);
 			ieee802_11_parse_elems(whm->u.beacon.variable,
 				len - sizeof(struct ieee80211_mgmt) - 4 /* FCS */, current_packet);
 			DEBUG("ESSID %s \n", current_packet->wlan_essid );
@@ -427,7 +443,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 
 		case IEEE80211_STYPE_PROBE_RESP:
 			current_packet->pkt_types |= PKT_TYPE_PROBE;
-			current_packet->wlan_tsf = whm->u.beacon.timestamp;
+			current_packet->wlan_tsf = le64toh(whm->u.beacon.timestamp);
 			ieee802_11_parse_elems(whm->u.beacon.variable,
 				len - sizeof(struct ieee80211_mgmt) - 4 /* FCS */, current_packet);
 			DEBUG("ESSID %s \n", current_packet->wlan_essid );
