@@ -292,7 +292,9 @@ filter_packet(struct packet_info* pkt)
 
 	if (conf.do_macfilter) {
 		for (i = 0; i < MAX_FILTERMAC; i++) {
-			if (memcmp(pkt->wlan_src, conf.filtermac[i], MAC_LEN) == 0) {
+			if (MAC_NOT_EMPTY(pkt->wlan_src) &&
+			    conf.filtermac_enabled[i] &&
+			    memcmp(pkt->wlan_src, conf.filtermac[i], MAC_LEN) == 0) {
 				return 0;
 			}
 		}
