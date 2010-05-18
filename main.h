@@ -233,6 +233,7 @@ struct config {
 	char*			serveraddr;
 
 	unsigned char		filtermac[MAX_FILTERMAC][MAC_LEN];
+	char			filtermac_enabled[MAX_FILTERMAC];
 	unsigned char		filterbssid[MAC_LEN];
 	int			filter_pkt;
 	unsigned int		filter_off:1,

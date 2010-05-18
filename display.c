@@ -270,11 +270,23 @@ filter_input(int c)
 
 	case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
 		i = c - '1';
-		echo();
-		print_centered(filter_win, 24, 57, "[ Enter new MAC %d and ENTER ]", i+1);
-		mvwgetnstr(filter_win, 9 + i, MAC_COL + 7, buf, 17);
-		noecho();
-		convert_string_to_mac(buf, conf.filtermac[i]);
+		if (MAC_NOT_EMPTY(conf.filtermac[i]) && conf.filtermac_enabled[i]) {
+			conf.filtermac_enabled[i] = 0;
+		}
+		else {
+			echo();
+			print_centered(filter_win, 24, 57, "[ Enter new MAC %d and ENTER ]", i+1);
+			mvwgetnstr(filter_win, 9 + i, MAC_COL + 7, buf, 17);
+			noecho();
+			/* just enable old MAC if user pressed return only */
+			if (*buf == '\0' && MAC_NOT_EMPTY(conf.filtermac[i]))
+				conf.filtermac_enabled[i] = 1;
+			else {
+				convert_string_to_mac(buf, conf.filtermac[i]);
+				if (MAC_NOT_EMPTY(conf.filtermac[i]))
+					conf.filtermac_enabled[i] = true;
+			}
+		}
 		break;
 
 	case 'o':
@@ -299,7 +311,7 @@ filter_input(int c)
 	/* recalculate filter flag */
 	conf.do_macfilter = 0;
 	for (i = 0; i < MAX_FILTERMAC; i++) {
-		if (MAC_NOT_EMPTY(conf.filtermac[i]))
+		if (conf.filtermac_enabled[i])
 			conf.do_macfilter = 1;
 	}
 
@@ -571,6 +583,7 @@ update_chan_win(void)
 
 #define CHECKED(_x) (conf.filter_pkt & (_x)) ? '*' : ' '
 #define CHECK_ETHER(_mac) MAC_NOT_EMPTY(_mac) ? '*' : ' '
+#define CHECK_FILTER_EN(_i) conf.filtermac_enabled[_i] ? '*' : ' '
 
 static void
 update_filter_win(void)
@@ -624,7 +637,7 @@ update_filter_win(void)
 
 	for (i = 0; i < MAX_FILTERMAC; i++) {
 		mvwprintw(filter_win, l++, MAC_COL, "%d: [%c] %s", i+1,
-			CHECK_ETHER(conf.filtermac[i]), ether_sprintf(conf.filtermac[i]));
+			CHECK_FILTER_EN(i), ether_sprintf(conf.filtermac[i]));
 	}
 
 	l++;
