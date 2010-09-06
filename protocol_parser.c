@@ -343,13 +343,15 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 		return -1;
 
 	wh = (struct ieee80211_hdr*)*buf;
-	hdrlen = ieee80211_get_hdrlen(wh->frame_control);
+	fc = le16toh(wh->frame_control);
+	hdrlen = ieee80211_get_hdrlen(fc);
+
+	DEBUG("len %d hdrlen %d\n", len, hdrlen);
 
 	if (len < hdrlen)
 		return -1;
 
 	current_packet->len = len;
-	fc = le16toh(wh->frame_control);
 	current_packet->wlan_type = (fc & (IEEE80211_FCTL_FTYPE | IEEE80211_FCTL_STYPE));
 
 	DEBUG("wlan_type %x - type %x - stype %x\n", fc, fc & IEEE80211_FCTL_FTYPE, fc & IEEE80211_FCTL_STYPE );
