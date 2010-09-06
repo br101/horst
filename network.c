@@ -119,8 +119,8 @@ net_send_packet(struct packet_info *pkt)
 	np.wlan_mode	= htole32(pkt->wlan_mode);
 	np.wlan_channel = pkt->wlan_channel;
 	np.wlan_wep	= htole32(pkt->wlan_wep);
-	np.ip_src	= htole32(pkt->ip_src);
-	np.ip_dst	= htole32(pkt->ip_dst);
+	np.ip_src	= pkt->ip_src;
+	np.ip_dst	= pkt->ip_dst;
 	np.olsr_type	= htole32(pkt->olsr_type);
 	np.olsr_neigh	= htole32(pkt->olsr_neigh);
 	np.olsr_tc	= htole32(pkt->olsr_tc);
@@ -176,8 +176,8 @@ net_receive_packet(unsigned char *buffer, int len, struct packet_info *pkt)
 	pkt->wlan_mode	= le32toh(np->wlan_mode);
 	pkt->wlan_channel = np->wlan_channel;
 	pkt->wlan_wep	= le32toh(np->wlan_wep);
-	pkt->ip_src	= le32toh(np->ip_src);
-	pkt->ip_dst	= le32toh(np->ip_dst);
+	pkt->ip_src	= np->ip_src;
+	pkt->ip_dst	= np->ip_dst;
 	pkt->olsr_type	= le32toh(np->olsr_type);
 	pkt->olsr_neigh	= le32toh(np->olsr_neigh);
 	pkt->olsr_tc	= le32toh(np->olsr_tc);
