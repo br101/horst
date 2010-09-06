@@ -23,8 +23,6 @@
 #include <net/if_arp.h>
 #include <netinet/ip.h>
 #include <netinet/udp.h>
-#include <endian.h>
-#include <byteswap.h>
 
 #include "prism_header.h"
 #include "ieee80211_radiotap.h"
@@ -37,15 +35,6 @@
 #include "main.h"
 #include "util.h"
 
-#if BYTE_ORDER == LITTLE_ENDIAN
-	#define le64toh(x) (x)
-	#define le32toh(x) (x)
-	#define le16toh(x) (x)
-#else
-	#define le64toh(x) bswap_64(x)
-	#define le32toh(x) bswap_32(x)
-	#define le16toh(x) bswap_16(x)
-#endif
 
 static int parse_prism_header(unsigned char** buf, int len, struct packet_info* current_packet);
 static int parse_radiotap_header(unsigned char** buf, int len, struct packet_info* current_packet);

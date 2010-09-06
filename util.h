@@ -21,11 +21,29 @@
 #define _UTIL_H_
 
 #include <stdio.h>
+#include <endian.h>
+#include <byteswap.h>
 
 #if DO_DEBUG
 #define DEBUG(...) printf(__VA_ARGS__)
 #else
 #define DEBUG(...)
+#endif
+
+#if BYTE_ORDER == LITTLE_ENDIAN
+	#define le64toh(x) (x)
+	#define le32toh(x) (x)
+	#define le16toh(x) (x)
+	#define htole64(x) (x)
+	#define htole32(x) (x)
+	#define htole16(x) (x)
+#else
+	#define le64toh(x) bswap_64(x)
+	#define le32toh(x) bswap_32(x)
+	#define le16toh(x) bswap_16(x)
+	#define htole64(x) bswap_64(x)
+	#define htole32(x) bswap_32(x)
+	#define htole16(x) bswap_16(x)
 #endif
 
 void
