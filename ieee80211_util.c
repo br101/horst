@@ -215,8 +215,8 @@ ieee80211_is_erp_rate(int phymode, int rate)
 
 /* from mac80211/util.c, slightly modified */
 int
-ieee80211_frame_duration(int phymode, size_t len,
-			     int rate, int short_preamble)
+ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
+			 int ackcts, int shortslot)
 {
 	int dur;
 	int erp;
@@ -232,7 +232,7 @@ ieee80211_frame_duration(int phymode, size_t len,
 	 * DIV_ROUND_UP() operations.
 	 */
 
-	DEBUG("mode %d, len %d, rate %d, shortpre %d\n", phymode, len, rate, short_preamble);
+	DEBUG("DUR mode %d, len %d, rate %d, shortpre %d ackcts %d shortslot %d\n", phymode, (int)len, rate, short_preamble, ackcts, shortslot);
 
 	if (phymode == PHY_FLAG_A || erp) {
 		DEBUG("OFDM\n");
@@ -249,7 +249,10 @@ ieee80211_frame_duration(int phymode, size_t len,
 		 * 802.11g - 19.8.4: aSIFSTime = 10 usec +
 		 *	signal ext = 6 usec
 		 */
-		dur = 16; /* SIFS + signal ext */
+		if (ackcts)
+			dur = 16; /* SIFS + signal ext */
+		else
+			dur = 34; /* DIFS */
 		dur += 16; /* 17.3.2.3: T_PREAMBLE = 16 usec */
 		dur += 4; /* 17.3.2.3: T_SIGNAL = 4 usec */
 		dur += 4 * DIV_ROUND_UP((16 + 8 * (len + 4) + 6) * 10,
@@ -266,11 +269,15 @@ ieee80211_frame_duration(int phymode, size_t len,
 		 * aPreambleLength = 144 usec or 72 usec with short preamble
 		 * aPLCPHeaderLength = 48 usec or 24 usec with short preamble
 		 */
-		dur = 10; /* aSIFSTime = 10 usec */
+		if (ackcts)
+			dur = 10; /* aSIFSTime = 10 usec */
+		else
+			dur = shortslot ? 28 : 50;
 		dur += short_preamble ? (72 + 24) : (144 + 48);
 
 		dur += DIV_ROUND_UP(8 * (len + 4) * 10, rate);
 	}
 
+	DEBUG("DUR %d\n", dur);
 	return dur;
 }
