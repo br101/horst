@@ -336,7 +336,7 @@ update_statistics(struct packet_info* p)
 	duration = ieee80211_frame_duration(p->phy_flags & PHY_FLAG_MODE_MASK,
 			p->len, p->rate * 5, p->phy_flags & PHY_FLAG_SHORTPRE,
 			p->pkt_types & (PKT_TYPE_CTS | PKT_TYPE_ACK),
-			0 /*shortslot*/);
+			0 /*shortslot*/, p->wlan_qos_class);
 
 	stats.packets++;
 	stats.bytes += p->len;

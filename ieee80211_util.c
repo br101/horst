@@ -213,10 +213,14 @@ ieee80211_is_erp_rate(int phymode, int rate)
 	return 0;
 }
 
-/* from mac80211/util.c, slightly modified */
+
+const char ieee802_1d_to_ac[8] = { 0, 1, 1, 0, 2, 2, 3, 3 };
+const char ac_to_aifs[4] = {3 /*BE*/, 7 /*BK*/, 2 /*VI*/, 2 /*VO*/};
+
+/* from mac80211/util.c, modified */
 int
 ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
-			 int ackcts, int shortslot)
+			 int ackcts, int shortslot, char qos_class)
 {
 	int dur;
 	int erp;
@@ -277,6 +281,9 @@ ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
 
 		dur += DIV_ROUND_UP(8 * (len + 4) * 10, rate);
 	}
+
+	DEBUG("DUR %d AC %d, UP %d\n", ac_to_aifs[ieee802_1d_to_ac[qos_class]], ieee802_1d_to_ac[qos_class], qos_class);
+	dur += ac_to_aifs[ieee802_1d_to_ac[qos_class]];
 
 	DEBUG("DUR %d\n", dur);
 	return dur;
