@@ -356,6 +356,11 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 		case IEEE80211_STYPE_NULLFUNC:
 			current_packet->pkt_types |= PKT_TYPE_NULL;
 			break;
+		case IEEE80211_STYPE_QOS_DATA:
+			/* TODO: ouch, should properly define a qos header */
+			current_packet->wlan_qos_class = wh->addr4[0] & 0x7;
+			DEBUG("***QDATA %x\n", current_packet->wlan_qos_class);
+			break;
 		}
 		sa = ieee80211_get_SA(wh);
 		da = ieee80211_get_DA(wh);
