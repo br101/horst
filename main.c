@@ -548,7 +548,7 @@ get_options(int argc, char** argv)
 				break;
 			conf.do_macfilter = 1;
 			convert_string_to_mac(optarg, conf.filtermac[n]);
-			printf("%s\n", ether_sprintf(conf.filtermac[n]));
+			conf.filtermac_enabled[n] = 1;
 			n++;
 			break;
 		case 'c':
@@ -565,7 +565,7 @@ get_options(int argc, char** argv)
 				"  -t <sec>\tnode timeout (60)\n"
 				"  -c <IP>\tconnect to server\n"
 				"  -p <port>\tuse port (4444)\n"
-				"  -e <mac>\tfilter all macs ecxept this\n"
+				"  -e <mac>\tfilter all macs except these (multiple)\n"
 				"  -d <usec>\tdisplay update interval (100000 = 100ms = 10fps)\n"
 				"  -w <usec>\twait loop (1000 = 1ms)\n"
 				"  -o <filename>\twrite packet info into file\n"
