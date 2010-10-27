@@ -68,15 +68,17 @@ static int(*sortfunc)(const struct list_head*, const struct list_head*) = NULL;
 
 static struct timeval last_time;
 
-
 static inline int
 bytes_per_second(unsigned int bytes) {
 	static unsigned long last_bytes;
 	static struct timeval last_bps;
 	static int bps;
+	float timediff;
 	/* reacalculate only every second or more */
 	if (the_time.tv_sec > last_bps.tv_sec) {
-		bps = (1.0*(bytes - last_bytes)) / (int)(the_time.tv_sec - last_bps.tv_sec);
+		timediff = (the_time.tv_sec + the_time.tv_usec/1000000.0) -
+			   (last_bps.tv_sec + last_bps.tv_usec/1000000.0);
+		bps = (1.0*(bytes - last_bytes)) / timediff;
 		last_bps.tv_sec = the_time.tv_sec;
 		last_bytes = bytes;
 	}
@@ -88,9 +90,12 @@ duration_per_second(unsigned int duration) {
 	static unsigned long last_dur;
 	static struct timeval last;
 	static int dps;
+	float timediff;
 	/* reacalculate only every second or more */
 	if (the_time.tv_sec > last.tv_sec) {
-		dps = (1.0*(duration - last_dur)) / (int)(the_time.tv_sec - last.tv_sec);
+		timediff = (the_time.tv_sec + the_time.tv_usec/1000000.0) -
+			   (last.tv_sec + last.tv_usec/1000000.0);
+		dps = (1.0*(duration - last_dur)) / timediff;
 		last.tv_sec = the_time.tv_sec;
 		last_dur = duration;
 	}
