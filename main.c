@@ -538,7 +538,7 @@ get_options(int argc, char** argv)
 			conf.do_change_channel = 1;
 			break;
 		case 'd':
-			conf.display_interval = atoi(optarg);
+			conf.display_interval = atoi(optarg) * 1000;
 			break;
 		case 'w':
 			conf.sleep_time = atoi(optarg);
@@ -566,7 +566,7 @@ get_options(int argc, char** argv)
 				"  -c <IP>\tconnect to server\n"
 				"  -p <port>\tuse port (4444)\n"
 				"  -e <mac>\tfilter all macs except these (multiple)\n"
-				"  -d <usec>\tdisplay update interval (100000 = 100ms = 10fps)\n"
+				"  -d <ms>\tdisplay update interval (100)\n"
 				"  -w <usec>\twait loop (1000 = 1ms)\n"
 				"  -o <filename>\twrite packet info into file\n"
 				"  -b <bytes>\treceive buffer size (6750000)\n"
