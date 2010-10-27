@@ -122,6 +122,7 @@ struct packet_info {
 	int			wlan_mode;	/* AP, STA or IBSS */
 	unsigned char		wlan_channel;	/* channel from beacon, probe */
 	unsigned char		wlan_qos_class;	/* for QDATA frames */
+	unsigned int		wlan_nav;	/* frame NAV duration */
 
 	unsigned int		wlan_wep:1,	/* WEP on/off */
 				wlan_retry:1;

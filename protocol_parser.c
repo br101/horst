@@ -362,6 +362,8 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 			DEBUG("***QDATA %x\n", current_packet->wlan_qos_class);
 			break;
 		}
+		current_packet->wlan_nav = le16toh(wh->duration_id);
+		DEBUG("DATA NAV %d\n", current_packet->wlan_nav);
 		sa = ieee80211_get_SA(wh);
 		da = ieee80211_get_DA(wh);
 		/* AP, STA or IBSS */
@@ -386,17 +388,23 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 		switch (current_packet->wlan_type & IEEE80211_FCTL_STYPE) {
 		case IEEE80211_STYPE_RTS:
 			current_packet->pkt_types |= PKT_TYPE_RTS;
+			current_packet->wlan_nav = le16toh(wh->duration_id);
+			DEBUG("RTS NAV %d\n", current_packet->wlan_nav);
 			sa = wh->addr2;
 			da = wh->addr1;
 			break;
 
 		case IEEE80211_STYPE_CTS:
 			current_packet->pkt_types |= PKT_TYPE_CTS;
+			current_packet->wlan_nav = le16toh(wh->duration_id);
+			DEBUG("CTS NAV %d\n", current_packet->wlan_nav);
 			da = wh->addr1;
 			break;
 
 		case IEEE80211_STYPE_ACK:
 			current_packet->pkt_types |= PKT_TYPE_ACK;
+			current_packet->wlan_nav = le16toh(wh->duration_id);
+			DEBUG("ACK NAV %d\n", current_packet->wlan_nav);
 			da = wh->addr1;
 			break;
 
