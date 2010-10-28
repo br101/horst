@@ -102,39 +102,41 @@
 
 struct packet_info {
 	/* general */
-	int			pkt_types;	/* bitmask of packet types in this pkt */
-	int			len;		/* packet length */
+	unsigned int		pkt_types;	/* bitmask of packet types in this pkt */
+	unsigned int		len;		/* packet length */
 
 	/* wlan phy (from radiotap) */
 	int			signal;		/* signal strength (usually dBm) */
 	int			noise;		/* noise level (usually dBm) */
 	int			snr;		/* signal to noise ratio */
-	int			rate;		/* physical rate */
-	int			phy_freq;	/* frequency (unused) */
-	int			phy_flags;	/* A, B, G, shortpre */
+	unsigned int		rate;		/* physical rate */
+	unsigned int		phy_freq;	/* frequency (unused) */
+	unsigned int		phy_flags;	/* A, B, G, shortpre */
 
 	/* wlan mac */
-	int			wlan_type;	/* frame control field */
+	unsigned int		wlan_type;	/* frame control field */
 	unsigned char		wlan_src[MAC_LEN];
 	unsigned char		wlan_dst[MAC_LEN];
 	unsigned char		wlan_bssid[MAC_LEN];
 	char			wlan_essid[MAX_ESSID_LEN];
 	u_int64_t		wlan_tsf;	/* timestamp from beacon */
-	int			wlan_mode;	/* AP, STA or IBSS */
+	unsigned int		wlan_mode;	/* AP, STA or IBSS */
 	unsigned char		wlan_channel;	/* channel from beacon, probe */
 	unsigned char		wlan_qos_class;	/* for QDATA frames */
 	unsigned int		wlan_nav;	/* frame NAV duration */
 	unsigned int		wlan_seqno;	/* sequence number */
 	unsigned int		wlan_retries;	/* retry count for this frame (calculated) */
+
+	/* flags */
 	unsigned int		wlan_wep:1,	/* WEP on/off */
 				wlan_retry:1;
 
 	/* IP */
 	unsigned int		ip_src;
 	unsigned int		ip_dst;
-	int			olsr_type;
-	int			olsr_neigh;
-	int			olsr_tc;
+	unsigned int		olsr_type;
+	unsigned int		olsr_neigh;
+	unsigned int		olsr_tc;
 };
 
 extern struct packet_info current_packet;
@@ -148,8 +150,8 @@ struct node_info {
 	time_t			last_seen;	/* timestamp */
 
 	/* general packet info */
-	int			pkt_types;	/* bitmask of packet types we've seen */
-	int			pkt_count;	/* nr of packets seen */
+	unsigned int		pkt_types;	/* bitmask of packet types we've seen */
+	unsigned int		pkt_count;	/* nr of packets seen */
 
 	/* wlan phy (from radiotap) */
 	int			snr;
@@ -159,10 +161,10 @@ struct node_info {
 
 	/* wlan mac */
 	unsigned char		wlan_bssid[MAC_LEN];
-	int			channel;	/* channel from beacon, probe frames */
-	int			wlan_mode;	/* AP, STA or IBSS */
+	unsigned int		channel;	/* channel from beacon, probe frames */
+	unsigned int		wlan_mode;	/* AP, STA or IBSS */
 	u_int64_t		tsf;
-	int			wep;		/* WEP active? */
+	unsigned int		wep:1;		/* WEP active? */
 	struct essid_info*	essid;
 	unsigned int		wlan_retries_all;
 	unsigned int		wlan_retries_last;
@@ -170,9 +172,9 @@ struct node_info {
 
 	/* IP */
 	unsigned int		ip_src;		/* IP address (if known) */
-	int			olsr_count;	/* number of OLSR packets */
-	int			olsr_neigh;	/* number if OLSR neighbours */
-	int			olsr_tc;	/* unused */
+	unsigned int		olsr_count;	/* number of OLSR packets */
+	unsigned int		olsr_neigh;	/* number if OLSR neighbours */
+	unsigned int		olsr_tc;	/* unused */
 
 	struct packet_info	last_pkt;
 };
@@ -183,7 +185,7 @@ struct essid_info {
 	struct list_head	list;
 	char			essid[MAX_ESSID_LEN];
 	struct list_head	nodes;
-	int			num_nodes;
+	unsigned int		num_nodes;
 	int			split;
 };
 
@@ -199,9 +201,9 @@ struct history {
 	int			signal[MAX_HISTORY];
 	int			noise[MAX_HISTORY];
 	int			rate[MAX_HISTORY];
-	int			type[MAX_HISTORY];
-	int			retry[MAX_HISTORY];
-	int			index;
+	unsigned int		type[MAX_HISTORY];
+	unsigned int		retry[MAX_HISTORY];
+	unsigned int		index;
 };
 
 extern struct history hist;
