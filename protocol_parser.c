@@ -648,7 +648,7 @@ parse_olsr_packet(unsigned char** buf, int len, struct packet_info* current_pack
 		struct hnapair* hna;
 		number = (ntohs(oh->olsr_msg[0].olsr_msgsize) - 12) / sizeof(struct hnapair);
 		DEBUG("HNA NUM: %d (%d) [%d]\n", number, ntohs(oh->olsr_msg[0].olsr_msgsize),
-			sizeof(struct hnapair) );
+			(int)sizeof(struct hnapair) );
 		for (i = 0; i < number; i++) {
 			hna = &(oh->olsr_msg[0].message.hna.hna_net[i]);
 			DEBUG("HNA %s", ip_sprintf(hna->addr));
