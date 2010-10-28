@@ -250,6 +250,10 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* current_
 						current_packet->phy_flags |= PHY_FLAG_SHORTPRE;
 						DEBUG(" shortpre");
 					}
+					if (*b & IEEE80211_RADIOTAP_F_BADFCS) {
+						current_packet->phy_flags |= PHY_FLAG_BADFCS;
+						DEBUG(" badfcs");
+					}
 					DEBUG("]");
 					b++;
 					break;

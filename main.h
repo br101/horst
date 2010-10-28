@@ -75,6 +75,7 @@
 #define WLAN_MODE_PROBE		0x08
 
 #define PHY_FLAG_SHORTPRE	0x0001
+#define PHY_FLAG_BADFCS		0x0002
 #define PHY_FLAG_A		0x0010
 #define PHY_FLAG_B		0x0020
 #define PHY_FLAG_G		0x0040

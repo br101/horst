@@ -314,6 +314,8 @@ ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
 	else
 		last_was_cts = 0;
 
+	/* TODO: Add EIFS (SIFS + ACKTXTIME) to frames with CRC errors, if we can get them */
+
 	DEBUG("DUR %d\n", dur);
 	return dur;
 }
