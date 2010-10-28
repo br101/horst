@@ -125,7 +125,7 @@ struct packet_info {
 	unsigned char		wlan_qos_class;	/* for QDATA frames */
 	unsigned int		wlan_nav;	/* frame NAV duration */
 	unsigned int		wlan_seqno;	/* sequence number */
-
+	unsigned int		wlan_retries;	/* retry count for this frame (calculated) */
 	unsigned int		wlan_wep:1,	/* WEP on/off */
 				wlan_retry:1;
 

@@ -20,7 +20,7 @@ NAME=horst
 DEBUG=0
 PCAP=0
 OBJS=protocol_parser.o main.o capture.o display.o network.o util.o ieee80211_util.o listsort.o
-LIBS=-lncurses
+LIBS=-lncurses -lm
 CFLAGS+=-Wall -DDO_DEBUG=$(DEBUG) -g
 
 ifeq ($(PCAP),1)

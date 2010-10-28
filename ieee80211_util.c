@@ -15,6 +15,7 @@
 
 #include <stddef.h>
 #include <string.h>
+#include <math.h>
 
 #include "ieee80211.h"
 #include "ieee80211_radiotap.h"
@@ -213,17 +214,29 @@ ieee80211_is_erp_rate(int phymode, int rate)
 	return 0;
 }
 
+int
+get_cw_time(int cw_min, int cw_max, int retries, int slottime)
+{
+	int cw = pow(2, (cw_min + retries)) - 1;
+	cw_max = pow(2, cw_max) - 1;
+
+	if(cw >  cw_max)
+		cw = cw_max;
+
+	DEBUG("CW min %d max %d ret %d = %d\n", cw_min, cw_max, retries, cw);
+	return (cw * slottime) / 2;
+}
 
 const unsigned char ieee802_1d_to_ac[8] = { 0, 1, 1, 0, 2, 2, 3, 3 };
 				     /* BE	BK	VI	VO */
 const unsigned char ac_to_aifs[4] = {	3,	7,	2,	2};
-const unsigned char ac_to_cwmin[4] = {	31,	31,	15,	7};
-const unsigned int ac_to_cwmax[4] = {	1023,	1023,	31,	15};
+const unsigned char ac_to_cwmin[4] = {	4,	4,	3,	2};
+const unsigned int ac_to_cwmax[4] = {	10,	10,	4,	3};
 
 /* from mac80211/util.c, modified */
 int
 ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
-			 int shortslot, int type, char qos_class)
+			 int shortslot, int type, char qos_class, int retries)
 {
 	int dur;
 	int erp;
@@ -284,10 +297,12 @@ ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
 
 	if (IEEE80211_IS_CTRL_STYPE(type, IEEE80211_STYPE_CTS) ||
 	    IEEE80211_IS_CTRL_STYPE(type, IEEE80211_STYPE_ACK)) {
+		//TODO: also fragments
 		DEBUG("DUR SIFS\n");
 		dur += sifs;
 	}
 	else if (IEEE80211_IS_MGMT_STYPE(type, IEEE80211_STYPE_BEACON)) {
+		/* TODO: which AIFS and CW should be used for beacons? */
 		dur += sifs + (2 * slottime); /* AIFS */
 		dur += (slottime * 1) / 2; /* contention */
 	}
@@ -298,13 +313,13 @@ ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
 	else if (IEEE80211_IS_DATA_STYPE(type, IEEE80211_STYPE_QOS_DATA)) {
 		unsigned char ac = ieee802_1d_to_ac[(unsigned char)qos_class];
 		dur += sifs + (ac_to_aifs[ac] * slottime); /* AIFS */
-		dur += (slottime * ac_to_cwmin[ac]) / 2; /* contention */
+		dur += get_cw_time(ac_to_cwmin[ac], ac_to_cwmax[ac], retries, slottime);
 		DEBUG("DUR AIFS %d CWMIN %d AC %d, UP %d\n", ac_to_aifs[ac], ac_to_cwmin[ac], ac, qos_class);
 	}
 	else {
 		DEBUG("DUR DIFS\n");
 		dur += sifs + (2 * slottime); /* DIFS */
-		dur += (slottime * 15) / 2; /* contention */
+		dur += get_cw_time(4, 10, retries, slottime);
 	}
 
 	if (IEEE80211_IS_CTRL_STYPE(type, IEEE80211_STYPE_CTS)) {

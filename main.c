@@ -342,7 +342,8 @@ update_statistics(struct packet_info* p)
 
 	duration = ieee80211_frame_duration(p->phy_flags & PHY_FLAG_MODE_MASK,
 			p->len, p->rate * 5, p->phy_flags & PHY_FLAG_SHORTPRE,
-			0 /*shortslot*/, p->wlan_type, p->wlan_qos_class);
+			0 /*shortslot*/, p->wlan_type, p->wlan_qos_class,
+			p->wlan_retries);
 
 	stats.packets++;
 	stats.bytes += p->len;
@@ -423,6 +424,10 @@ handle_packet(struct packet_info* pkt)
 	}
 
 	node = node_update(pkt);
+
+	if (node)
+		pkt->wlan_retries = node->wlan_retries_last;
+
 	update_history(pkt);
 	update_statistics(pkt);
 	check_ibss_split(pkt, node);
