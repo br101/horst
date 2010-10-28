@@ -107,37 +107,37 @@ parse_prism_header(unsigned char** buf, int len, struct packet_info* current_pac
 	*/
 	if (((int)ph->noise.data) < 0) {
 		/* new madwifi */
-		current_packet->signal = ph->signal.data;
-		current_packet->noise = ph->noise.data;
-		current_packet->snr = ph->rssi.data;
+		current_packet->phy_signal = ph->signal.data;
+		current_packet->phy_noise = ph->noise.data;
+		current_packet->phy_snr = ph->rssi.data;
 	}
 	else if (((int)ph->rssi.data) < 0) {
 		/* broadcom hack */
-		current_packet->signal = ph->rssi.data;
-		current_packet->noise = -95;
-		current_packet->snr = 95 + ph->rssi.data;
+		current_packet->phy_signal = ph->rssi.data;
+		current_packet->phy_noise = -95;
+		current_packet->phy_snr = 95 + ph->rssi.data;
 	}
 	else {
 		/* assume hostap */
-		current_packet->signal = ph->signal.data;
-		current_packet->noise = ph->noise.data;
-		current_packet->snr = ph->signal.data - ph->noise.data; //XXX rssi?
+		current_packet->phy_signal = ph->signal.data;
+		current_packet->phy_noise = ph->noise.data;
+		current_packet->phy_snr = ph->signal.data - ph->noise.data; //XXX rssi?
 	}
 
-	current_packet->rate = ph->rate.data;
+	current_packet->phy_rate = ph->rate.data;
 
 	/* just in case...*/
-	if (current_packet->snr < 0)
-		current_packet->snr = -current_packet->snr;
-	if (current_packet->snr > 99)
-		current_packet->snr = 99;
-	if (current_packet->rate == 0 || current_packet->rate > 108) {
+	if (current_packet->phy_snr < 0)
+		current_packet->phy_snr = -current_packet->phy_snr;
+	if (current_packet->phy_snr > 99)
+		current_packet->phy_snr = 99;
+	if (current_packet->phy_rate == 0 || current_packet->phy_rate > 108) {
 		/* assume min rate, guess mode from channel */
 		DEBUG("*** fixing wrong rate\n");
 		if (ph->channel.data > 14)
-			current_packet->rate = 12; /* 6 * 2 */
+			current_packet->phy_rate = 12; /* 6 * 2 */
 		else
-			current_packet->rate = 2; /* 1 * 2 */
+			current_packet->phy_rate = 2; /* 1 * 2 */
 	}
 
 	/* guess phy mode */
@@ -225,22 +225,22 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* current_
 				/* we are only interrested in these: */
 				case IEEE80211_RADIOTAP_RATE:
 					DEBUG("[rate %0x]", *b);
-					current_packet->rate = (*b);
+					current_packet->phy_rate = (*b);
 					b++;
 					break;
 				case IEEE80211_RADIOTAP_DBM_ANTSIGNAL:
 					DEBUG("[sig %0x]", *b);
-					current_packet->signal = *(char*)b;
+					current_packet->phy_signal = *(char*)b;
 					b++;
 					break;
 				case IEEE80211_RADIOTAP_DBM_ANTNOISE:
 					DEBUG("[noi %0x]", *b);
-					current_packet->noise = *(char*)b;
+					current_packet->phy_noise = *(char*)b;
 					b++;
 					break;
 				case IEEE80211_RADIOTAP_DB_ANTSIGNAL:
 					DEBUG("[snr %0x]", *b);
-					current_packet->snr = *b;
+					current_packet->phy_snr = *b;
 					b++;
 					break;
 				case IEEE80211_RADIOTAP_FLAGS:
@@ -289,32 +289,33 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* current_
 		/* no SNR in radiotap, try to calculate */
 		if (present & (1 << IEEE80211_RADIOTAP_DBM_ANTSIGNAL) &&
 		    present & (1 << IEEE80211_RADIOTAP_DBM_ANTNOISE))
-			current_packet->snr = current_packet->signal - current_packet->noise;
+			current_packet->phy_snr = current_packet->phy_signal -
+						  current_packet->phy_noise;
 		/* HACK: here we just assume noise to be -95dBm */
 		else if (!(present & (1 << IEEE80211_RADIOTAP_DBM_ANTNOISE)))
-			current_packet->snr = current_packet->signal + 95;
+			current_packet->phy_snr = current_packet->phy_signal + 95;
 	}
 
 	/* sanitize */
-	if (current_packet->snr > 99)
-		current_packet->snr = 99;
-	if (current_packet->rate == 0 || current_packet->rate > 108) {
+	if (current_packet->phy_snr > 99)
+		current_packet->phy_snr = 99;
+	if (current_packet->phy_rate == 0 || current_packet->phy_rate > 108) {
 		/* assume min rate for mode */
 		DEBUG("*** fixing wrong rate\n");
 		if (current_packet->phy_flags & PHY_FLAG_A)
-			current_packet->rate = 12; /* 6 * 2 */
+			current_packet->phy_rate = 12; /* 6 * 2 */
 		else if (current_packet->phy_flags & PHY_FLAG_B)
-			current_packet->rate = 2; /* 1 * 2 */
+			current_packet->phy_rate = 2; /* 1 * 2 */
 		else if (current_packet->phy_flags & PHY_FLAG_G)
-			current_packet->rate = 12; /* 6 * 2 */
+			current_packet->phy_rate = 12; /* 6 * 2 */
 		else
-			current_packet->rate = 2;
+			current_packet->phy_rate = 2;
 	}
 
-	DEBUG("\nrate: %d\n", current_packet->rate);
-	DEBUG("signal: %d\n", current_packet->signal);
-	DEBUG("noise: %d\n", current_packet->noise);
-	DEBUG("snr: %d\n", current_packet->snr);
+	DEBUG("\nrate: %d\n", current_packet->phy_rate);
+	DEBUG("signal: %d\n", current_packet->phy_signal);
+	DEBUG("noise: %d\n", current_packet->phy_noise);
+	DEBUG("snr: %d\n", current_packet->phy_snr);
 
 	*buf = *buf + rt_len;
 	return len - rt_len;
@@ -344,7 +345,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 	if (len < hdrlen)
 		return -1;
 
-	current_packet->len = len;
+	current_packet->pkt_len = len;
 	current_packet->wlan_type = (fc & (IEEE80211_FCTL_FTYPE | IEEE80211_FCTL_STYPE));
 
 	DEBUG("wlan_type %x - type %x - stype %x\n", fc, fc & IEEE80211_FCTL_FTYPE, fc & IEEE80211_FCTL_STYPE );

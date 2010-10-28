@@ -40,13 +40,13 @@ static int netmon_fd;
 struct net_packet_info {
 	/* general */
 	int			pkt_types;	/* bitmask of packet types in this pkt */
-	int			len;		/* packet length */
+	int			pkt_len;	/* packet length */
 
 	/* wlan phy (from radiotap) */
-	int			signal;		/* signal strength (usually dBm) */
-	int			noise;		/* noise level (usually dBm) */
-	int			snr;		/* signal to noise ratio */
-	int			rate;		/* physical rate */
+	int			phy_signal;	/* signal strength (usually dBm) */
+	int			phy_noise;	/* noise level (usually dBm) */
+	int			phy_snr;	/* signal to noise ratio */
+	int			phy_rate;	/* physical rate */
 	int			phy_freq;	/* frequency (unused) */
 	int			phy_flags;	/* A, B, G, shortpre */
 
@@ -107,11 +107,11 @@ net_send_packet(struct packet_info *pkt)
 	struct net_packet_info np;
 
 	np.pkt_types	= htole32(pkt->pkt_types);
-	np.len		= htole32(pkt->len);
-	np.signal	= htole32(pkt->signal);
-	np.noise	= htole32(pkt->noise);
-	np.snr		= htole32(pkt->snr);
-	np.rate		= htole32(pkt->rate);
+	np.pkt_len	= htole32(pkt->pkt_len);
+	np.phy_signal	= htole32(pkt->phy_signal);
+	np.phy_noise	= htole32(pkt->phy_noise);
+	np.phy_snr	= htole32(pkt->phy_snr);
+	np.phy_rate	= htole32(pkt->phy_rate);
 	np.phy_freq	= htole32(pkt->phy_freq);
 	np.phy_flags	= htole32(pkt->phy_flags);
 	np.wlan_type	= htole32(pkt->wlan_type);
@@ -159,16 +159,16 @@ net_receive_packet(unsigned char *buffer, int len, struct packet_info *pkt)
 
 	np = (struct net_packet_info *)buffer;
 
-	if (np->rate == 0) {
+	if (np->phy_rate == 0) {
 		return 0;
 	}
 
 	pkt->pkt_types	= le32toh(np->pkt_types);
-	pkt->len	= le32toh(np->len);
-	pkt->signal	= le32toh(np->signal);
-	pkt->noise	= le32toh(np->noise);
-	pkt->snr	= le32toh(np->snr);
-	pkt->rate	= le32toh(np->rate);
+	pkt->pkt_len	= le32toh(np->pkt_len);
+	pkt->phy_signal	= le32toh(np->phy_signal);
+	pkt->phy_noise	= le32toh(np->phy_noise);
+	pkt->phy_snr	= le32toh(np->phy_snr);
+	pkt->phy_rate	= le32toh(np->phy_rate);
 	pkt->phy_freq	= le32toh(np->phy_freq);
 	pkt->phy_flags	= le32toh(np->phy_flags);
 	pkt->wlan_type	= le32toh(np->wlan_type);

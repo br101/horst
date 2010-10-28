@@ -103,19 +103,19 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		memcpy(n->wlan_bssid, p->wlan_bssid, MAC_LEN);
 	}
 	if (IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON)) {
-		n->tsf = p->wlan_tsf;
+		n->wlan_tsf = p->wlan_tsf;
 	}
-	n->snr = p->snr;
-	if (p->snr > n->snr_max)
-		n->snr_max = p->snr;
-	if (p->signal > n->sig_max || n->sig_max == 0)
-		n->sig_max = p->signal;
-	if ((n->snr_min == 0 && p->snr > 0) || p->snr < n->snr_min)
-		n->snr_min = p->snr;
+	n->phy_snr = p->phy_snr;
+	if (p->phy_snr > n->phy_snr_max)
+		n->phy_snr_max = p->phy_snr;
+	if (p->phy_signal > n->phy_sig_max || n->phy_sig_max == 0)
+		n->phy_sig_max = p->phy_signal;
+	if ((n->phy_snr_min == 0 && p->phy_snr > 0) || p->phy_snr < n->phy_snr_min)
+		n->phy_snr_min = p->phy_snr;
 	if (p->wlan_channel !=0)
-		n->channel = p->wlan_channel;
+		n->wlan_channel = p->wlan_channel;
 	if (!IEEE80211_IS_CTRL(p->wlan_type))
-		n->wep = p->wlan_wep;
+		n->wlan_wep = p->wlan_wep;
 	if (p->wlan_seqno != 0) {
 		if (p->wlan_retry && p->wlan_seqno == n->wlan_seqno) {
 			n->wlan_retries_all++;
@@ -315,13 +315,13 @@ filter_packet(struct packet_info* pkt)
 static void
 update_history(struct packet_info* p)
 {
-	if (p->signal == 0) {
+	if (p->phy_signal == 0) {
 		return;
 	}
 
-	hist.signal[hist.index] = p->signal;
-	hist.noise[hist.index] = p->noise;
-	hist.rate[hist.index] = p->rate;
+	hist.signal[hist.index] = p->phy_signal;
+	hist.noise[hist.index] = p->phy_noise;
+	hist.rate[hist.index] = p->phy_rate;
 	hist.type[hist.index] = p->wlan_type;
 	hist.retry[hist.index] = p->wlan_retry;
 	hist.index++;
@@ -336,28 +336,28 @@ update_statistics(struct packet_info* p)
 {
 	int duration;
 
-	if (p->rate == 0) {
+	if (p->phy_rate == 0) {
 		return;
 	}
 
 	duration = ieee80211_frame_duration(p->phy_flags & PHY_FLAG_MODE_MASK,
-			p->len, p->rate * 5, p->phy_flags & PHY_FLAG_SHORTPRE,
+			p->pkt_len, p->phy_rate * 5, p->phy_flags & PHY_FLAG_SHORTPRE,
 			0 /*shortslot*/, p->wlan_type, p->wlan_qos_class,
 			p->wlan_retries);
 
 	stats.packets++;
-	stats.bytes += p->len;
+	stats.bytes += p->pkt_len;
 
-	if (p->rate > 0 && p->rate < MAX_RATES) {
+	if (p->phy_rate > 0 && p->phy_rate < MAX_RATES) {
 		stats.duration += duration;
-		stats.packets_per_rate[p->rate]++;
-		stats.bytes_per_rate[p->rate] += p->len;
-		stats.duration_per_rate[p->rate] += duration;
+		stats.packets_per_rate[p->phy_rate]++;
+		stats.bytes_per_rate[p->phy_rate] += p->pkt_len;
+		stats.duration_per_rate[p->phy_rate] += duration;
 	}
 	if (p->wlan_type >= 0 && p->wlan_type < MAX_FSTYPE) {
 		stats.packets_per_type[p->wlan_type]++;
-		stats.bytes_per_type[p->wlan_type] += p->len;
-		if (p->rate > 0 && p->rate < MAX_RATES)
+		stats.bytes_per_type[p->wlan_type] += p->pkt_len;
+		if (p->phy_rate > 0 && p->phy_rate < MAX_RATES)
 			stats.duration_per_type[p->wlan_type] += duration;
 	}
 }
@@ -371,7 +371,8 @@ write_to_file(struct packet_info* pkt)
 	fprintf(DF, "%s, ", ether_sprintf(pkt->wlan_dst));
 	fprintf(DF, "%s, ", ether_sprintf(pkt->wlan_bssid));
 	fprintf(DF, "%x, %d, %d, %d, %d, %d, ",
-		pkt->pkt_types, pkt->signal, pkt->noise, pkt->snr, pkt->len, pkt->rate);
+		pkt->pkt_types, pkt->phy_signal, pkt->phy_noise, pkt->phy_snr,
+		pkt->pkt_len, pkt->phy_rate);
 	fprintf(DF, "%016llx, ", (unsigned long long)pkt->wlan_tsf);
 	fprintf(DF, "%s, %d, %d, %d, ",
 		pkt->wlan_essid, pkt->wlan_mode, pkt->wlan_channel, pkt->wlan_wep);

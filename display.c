@@ -319,9 +319,9 @@ compare_nodes_snr(const struct list_head *p1, const struct list_head *p2)
 	struct node_info* n1 = list_entry(p1, struct node_info, list);
 	struct node_info* n2 = list_entry(p2, struct node_info, list);
 
-	if (n1->last_pkt.snr > n2->last_pkt.snr)
+	if (n1->last_pkt.phy_snr > n2->last_pkt.phy_snr)
 		return -1;
-	else if (n1->last_pkt.snr == n2->last_pkt.snr)
+	else if (n1->last_pkt.phy_snr == n2->last_pkt.phy_snr)
 		return 0;
 	else
 		return 1;
@@ -349,9 +349,9 @@ compare_nodes_channel(const struct list_head *p1, const struct list_head *p2)
 	struct node_info* n1 = list_entry(p1, struct node_info, list);
 	struct node_info* n2 = list_entry(p2, struct node_info, list);
 
-	if (n1->channel < n2->channel)
+	if (n1->wlan_channel < n2->wlan_channel)
 		return 1;
-	else if (n1->channel == n2->channel)
+	else if (n1->wlan_channel == n2->wlan_channel)
 		return 0;
 	else
 		return -1;
@@ -757,16 +757,16 @@ update_status_win(struct packet_info* pkt, struct node_info* node)
 
 	if (pkt != NULL)
 	{
-		sig = normalize_db(-pkt->signal, max_stat_bar);
-		if (pkt->noise)
-			noi = normalize_db(-pkt->noise, max_stat_bar);
-		rate = normalize(pkt->rate, 108, max_stat_bar);
+		sig = normalize_db(-pkt->phy_signal, max_stat_bar);
+		if (pkt->phy_noise)
+			noi = normalize_db(-pkt->phy_noise, max_stat_bar);
+		rate = normalize(pkt->phy_rate, 108, max_stat_bar);
 
-		if (node != NULL && node->sig_max < 0)
-			max = normalize_db(-node->sig_max, max_stat_bar);
+		if (node != NULL && node->phy_sig_max < 0)
+			max = normalize_db(-node->phy_sig_max, max_stat_bar);
 
 		wattron(stat_win, GREEN);
-		mvwprintw(stat_win, 0, 1, "SN:  %03d/", pkt->signal);
+		mvwprintw(stat_win, 0, 1, "SN:  %03d/", pkt->phy_signal);
 		if (max > 1)
 			mvwprintw(stat_win, max + 4, 2, "--");
 		wattron(stat_win, ALLGREEN);
@@ -774,9 +774,9 @@ update_status_win(struct packet_info* pkt, struct node_info* node)
 		mvwvline(stat_win, sig + 4, 3, ACS_BLOCK, stat_height - sig);
 
 		wattron(stat_win, RED);
-		mvwprintw(stat_win, 0, 10, "%03d", pkt->noise);
+		mvwprintw(stat_win, 0, 10, "%03d", pkt->phy_noise);
 
-		if (pkt->noise) {
+		if (pkt->phy_noise) {
 			wattron(stat_win, ALLRED);
 			mvwvline(stat_win, noi + 4, 2, '=', stat_height - noi);
 			mvwvline(stat_win, noi + 4, 3, '=', stat_height - noi);
@@ -784,7 +784,7 @@ update_status_win(struct packet_info* pkt, struct node_info* node)
 
 		wattron(stat_win, BLUE);
 		wattron(stat_win, A_BOLD);
-		mvwprintw(stat_win, 1, 1, "PhyRate:  %2dM", pkt->rate/2);
+		mvwprintw(stat_win, 1, 1, "PhyRate:  %2dM", pkt->phy_rate/2);
 		wattroff(stat_win, A_BOLD);
 		wattron(stat_win, ALLBLUE);
 		mvwvline(stat_win, stat_height - rate, 5, ACS_BLOCK, rate);
@@ -838,7 +838,7 @@ print_list_line(int line, struct node_info* n)
 	mvwprintw(list_win, line, 1, "%c", spin[n->pkt_count % 4]);
 
 	mvwprintw(list_win, line, COL_SNR, "%2d/%2d/%2d",
-		p->snr, n->snr_max, n->snr_min);
+		p->phy_snr, n->phy_snr_max, n->phy_snr_min);
 
 	if (n->wlan_mode == WLAN_MODE_AP )
 		mvwprintw(list_win, line, COL_STA,"A");
@@ -849,14 +849,14 @@ print_list_line(int line, struct node_info* n)
 	else if (n->wlan_mode == WLAN_MODE_PROBE )
 		mvwprintw(list_win, line, COL_STA, "P");
 
-	mvwprintw(list_win, line, COL_ENC, n->wep ? "W" : "");
+	mvwprintw(list_win, line, COL_ENC, n->wlan_wep ? "W" : "");
 
-	mvwprintw(list_win, line, COL_RATE, "%2d", p->rate/2);
+	mvwprintw(list_win, line, COL_RATE, "%2d", p->phy_rate/2);
 	mvwprintw(list_win, line, COL_SOURCE, "%s", ether_sprintf(p->wlan_src));
 	mvwprintw(list_win, line, COL_BSSID, "(%s)", ether_sprintf(n->wlan_bssid));
 
-	if (n->channel)
-		mvwprintw(list_win, line, COL_CHAN, "%2d", n->channel );
+	if (n->wlan_channel)
+		mvwprintw(list_win, line, COL_CHAN, "%2d", n->wlan_channel );
 
 	if (n->pkt_types & PKT_TYPE_IP)
 		mvwprintw(list_win, line, COL_IP, "%s", ip_sprintf(n->ip_src));
@@ -968,10 +968,10 @@ update_essid_win(void)
 				node->wlan_mode == WLAN_MODE_AP ? "AP  " : "IBSS",
 				ether_sprintf(node->last_pkt.wlan_src));
 			wprintw(show_win, " (%s)", ether_sprintf(node->wlan_bssid));
-			wprintw(show_win, " %016llx", node->tsf);
-			wprintw(show_win, " %2d", node->channel);
-			wprintw(show_win, " %2ddB", node->snr);
-			wprintw(show_win, " %s", node->wep ? "W" : " ");
+			wprintw(show_win, " %016llx", node->wlan_tsf);
+			wprintw(show_win, " %2d", node->wlan_channel);
+			wprintw(show_win, " %2ddB", node->phy_snr);
+			wprintw(show_win, " %s", node->wlan_wep ? "W" : " ");
 			if (node->pkt_types & PKT_TYPE_IP)
 				wprintw(show_win, " %s", ip_sprintf(node->ip_src));
 			line++;
@@ -1105,8 +1105,8 @@ update_dump_win(struct packet_info* pkt)
 	if (pkt->olsr_type > 0 && pkt->pkt_types & PKT_TYPE_OLSR)
 		wattron(dump_win, A_BOLD);
 
-	wprintw(dump_win, "\n%03d/%03d ", pkt->signal, pkt->noise);
-	wprintw(dump_win, "%2d ", pkt->rate/2);
+	wprintw(dump_win, "\n%03d/%03d ", pkt->phy_signal, pkt->phy_noise);
+	wprintw(dump_win, "%2d ", pkt->phy_rate/2);
 	wprintw(dump_win, "%s ", ether_sprintf(pkt->wlan_src));
 	wprintw(dump_win, "(%s) ", ether_sprintf(pkt->wlan_bssid));
 

@@ -103,13 +103,13 @@
 struct packet_info {
 	/* general */
 	unsigned int		pkt_types;	/* bitmask of packet types in this pkt */
-	unsigned int		len;		/* packet length */
+	unsigned int		pkt_len;	/* packet length */
 
 	/* wlan phy (from radiotap) */
-	int			signal;		/* signal strength (usually dBm) */
-	int			noise;		/* noise level (usually dBm) */
-	int			snr;		/* signal to noise ratio */
-	unsigned int		rate;		/* physical rate */
+	int			phy_signal;	/* signal strength (usually dBm) */
+	int			phy_noise;	/* noise level (usually dBm) */
+	int			phy_snr;	/* signal to noise ratio */
+	unsigned int		phy_rate;	/* physical rate */
 	unsigned int		phy_freq;	/* frequency (unused) */
 	unsigned int		phy_flags;	/* A, B, G, shortpre */
 
@@ -154,21 +154,22 @@ struct node_info {
 	unsigned int		pkt_count;	/* nr of packets seen */
 
 	/* wlan phy (from radiotap) */
-	int			snr;
-	int			snr_min;
-	int			snr_max;
-	int			sig_max;
+	int			phy_snr;
+	int			phy_snr_min;
+	int			phy_snr_max;
+	int			phy_sig_max;
 
 	/* wlan mac */
 	unsigned char		wlan_bssid[MAC_LEN];
-	unsigned int		channel;	/* channel from beacon, probe frames */
+	unsigned int		wlan_channel;	/* channel from beacon, probe frames */
 	unsigned int		wlan_mode;	/* AP, STA or IBSS */
-	u_int64_t		tsf;
-	unsigned int		wep:1;		/* WEP active? */
-	struct essid_info*	essid;
+	u_int64_t		wlan_tsf;
 	unsigned int		wlan_retries_all;
 	unsigned int		wlan_retries_last;
 	unsigned int		wlan_seqno;
+	struct essid_info*	essid;
+
+	unsigned int		wlan_wep:1;	/* WEP active? */
 
 	/* IP */
 	unsigned int		ip_src;		/* IP address (if known) */
