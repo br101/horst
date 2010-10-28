@@ -68,38 +68,27 @@ static int(*sortfunc)(const struct list_head*, const struct list_head*) = NULL;
 
 static struct timeval last_time;
 
-static inline int
-bytes_per_second(unsigned int bytes) {
-	static unsigned long last_bytes;
-	static struct timeval last_bps;
-	static int bps;
+
+static void
+get_per_second(unsigned int bytes, unsigned int duration, int *bps, int *dps)
+{
+	static struct timeval last;
+	static unsigned long last_bytes, last_dur;
+	static int last_bps, last_dps;
 	float timediff;
+
 	/* reacalculate only every second or more */
-	if (the_time.tv_sec > last_bps.tv_sec) {
-		timediff = (the_time.tv_sec + the_time.tv_usec/1000000.0) -
-			   (last_bps.tv_sec + last_bps.tv_usec/1000000.0);
-		bps = (1.0*(bytes - last_bytes)) / timediff;
-		last_bps.tv_sec = the_time.tv_sec;
+	timediff = (the_time.tv_sec + the_time.tv_usec/1000000.0) -
+		   (last.tv_sec + last.tv_usec/1000000.0);
+	if (timediff >= 1.0) {
+		last_dps = (1.0*(duration - last_dur)) / timediff;
+		last_bps = (1.0*(bytes - last_bytes)) / timediff;
+		last = the_time;
+		last_dur = duration;
 		last_bytes = bytes;
 	}
-	return bps;
-}
-
-static inline int
-duration_per_second(unsigned int duration) {
-	static unsigned long last_dur;
-	static struct timeval last;
-	static int dps;
-	float timediff;
-	/* reacalculate only every second or more */
-	if (the_time.tv_sec > last.tv_sec) {
-		timediff = (the_time.tv_sec + the_time.tv_usec/1000000.0) -
-			   (last.tv_sec + last.tv_usec/1000000.0);
-		dps = (1.0*(duration - last_dur)) / timediff;
-		last.tv_sec = the_time.tv_sec;
-		last_dur = duration;
-	}
-	return dps;
+	*bps = last_bps;
+	*dps = last_dps;
 }
 
 
@@ -749,7 +738,7 @@ update_show_win(void)
 static void
 update_status_win(struct packet_info* pkt, struct node_info* node)
 {
-	int sig, noi, rate, bps, bpsn, usen;
+	int sig, noi, rate, bps, dps, bpsn, usen;
 	int max = 0;
 	float use;
 	int max_stat_bar = stat_height - 4;
@@ -758,10 +747,12 @@ update_status_win(struct packet_info* pkt, struct node_info* node)
 	wattron(stat_win, WHITE);
 	mvwvline(stat_win, 0, 0, ACS_VLINE, stat_height);
 
-	bps = bytes_per_second(stats.bytes) * 8;
+	get_per_second(stats.bytes, stats.duration, &bps, &dps);
+
+	bps *= 8;
 	bpsn = normalize(bps, 32000000, max_stat_bar); //theoretical: 54000000
 
-	use = duration_per_second(stats.duration) * 1.0 / 10000; /* usec, in percent */
+	use = dps * 1.0 / 10000; /* usec, in percent */
 	usen = normalize(use, 100, max_stat_bar);
 
 	if (pkt != NULL)
@@ -1217,10 +1208,11 @@ update_statistics_win(void)
 	mvwprintw(show_win, 3, 2, "Bytes:   %s (%d)",  kilo_mega_ize(stats.bytes), stats.bytes );
 	mvwprintw(show_win, 4, 2, "Average: ~%d B/Pkt", stats.bytes/stats.packets);
 
-	bps = bytes_per_second(stats.bytes) * 8;
+	get_per_second(stats.bytes, stats.duration, &bps, &dps);
+	bps = bps * 8;
+
 	mvwprintw(show_win, 2, 40, "Total bit/sec: %s (%d)", kilo_mega_ize(bps), bps);
 
-	dps = duration_per_second(stats.duration);
 	wattron(show_win, A_BOLD);
 	mvwprintw(show_win, 3, 40, "Total Usage:   %3.1f%% (%d)", dps * 1.0 / 10000, dps ); /* usec in % */
 	wattroff(show_win, A_BOLD);
