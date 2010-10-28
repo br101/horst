@@ -500,8 +500,8 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 	}
 
 	/* only data frames contain more info, otherwise stop parsing */
-	if ((current_packet->wlan_type & IEEE80211_FCTL_FTYPE) == IEEE80211_FTYPE_DATA &&
-	     current_packet->wlan_wep != 1) {
+	if (IEEE80211_IS_DATA(current_packet->wlan_type) &&
+	    current_packet->wlan_wep != 1) {
 		*buf = *buf + hdrlen;
 		return len - hdrlen;
 	}

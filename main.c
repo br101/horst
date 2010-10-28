@@ -102,8 +102,7 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 	      p->wlan_bssid[4] == 0 && p->wlan_bssid[5] == 0)) {
 		memcpy(n->wlan_bssid, p->wlan_bssid, MAC_LEN);
 	}
-	if ((p->wlan_type & IEEE80211_FCTL_FTYPE) == IEEE80211_FTYPE_MGMT &&
-	    (p->wlan_type & IEEE80211_FCTL_STYPE) == IEEE80211_STYPE_BEACON) {
+	if (IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON)) {
 		n->tsf = p->wlan_tsf;
 	}
 	n->snr = p->snr;
@@ -115,7 +114,7 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		n->snr_min = p->snr;
 	if (p->wlan_channel !=0)
 		n->channel = p->wlan_channel;
-	if ((p->wlan_type & IEEE80211_FCTL_FTYPE) != IEEE80211_FTYPE_CTL)
+	if (!IEEE80211_IS_CTRL(p->wlan_type))
 		n->wep = p->wlan_wep;
 }
 
@@ -224,8 +223,7 @@ check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node)
 	struct essid_info* e;
 
 	/* only check beacons (XXX: what about PROBE?) */
-	if (!((pkt->wlan_type & IEEE80211_FCTL_FTYPE) == IEEE80211_FTYPE_MGMT &&
-	      (pkt->wlan_type & IEEE80211_FCTL_STYPE) == IEEE80211_STYPE_BEACON)) {
+	if (!IEEE80211_IS_MGMT_STYPE(pkt->wlan_type, IEEE80211_STYPE_BEACON)) {
 		return;
 	}
 
