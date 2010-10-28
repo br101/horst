@@ -418,4 +418,25 @@ static inline int ieee80211_get_morefrag(struct ieee80211_hdr *hdr)
 		IEEE80211_FCTL_MOREFRAGS) != 0;
 }
 
+#define IEEE80211_IS_MGMT(_fc) \
+	((_fc & IEEE80211_FCTL_FTYPE) == IEEE80211_FTYPE_MGMT)
+
+#define IEEE80211_IS_CTRL(_fc) \
+	((_fc & IEEE80211_FCTL_FTYPE) == IEEE80211_FTYPE_MGMT)
+
+#define IEEE80211_IS_DATA(_fc) \
+	((_fc & IEEE80211_FCTL_FTYPE) == IEEE80211_FTYPE_MGMT)
+
+#define IEEE80211_IS_MGMT_STYPE(_fc, _x) \
+	(((_fc & IEEE80211_FCTL_FTYPE) == IEEE80211_FTYPE_MGMT) && \
+	((_fc & IEEE80211_FCTL_STYPE) == _x))
+
+#define IEEE80211_IS_CTRL_STYPE(_fc, _x) \
+	(((_fc & IEEE80211_FCTL_FTYPE) == IEEE80211_FTYPE_CTL) && \
+	((_fc & IEEE80211_FCTL_STYPE) == _x))
+
+#define IEEE80211_IS_DATA_STYPE(_fc, _x) \
+	(((_fc & IEEE80211_FCTL_FTYPE) == IEEE80211_FTYPE_DATA) && \
+	((_fc & IEEE80211_FCTL_STYPE) == _x))
+
 #endif /* IEEE80211_H */

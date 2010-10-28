@@ -282,21 +282,20 @@ ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
 		dur += DIV_ROUND_UP(8 * (len + 4) * 10, rate);
 	}
 
-	if ((type & IEEE80211_FTYPE_CTL) &&
-	    ((type & IEEE80211_STYPE_CTS) ||
-	     (type & IEEE80211_STYPE_ACK))) {
+	if (IEEE80211_IS_CTRL_STYPE(type, IEEE80211_STYPE_CTS) ||
+	    IEEE80211_IS_CTRL_STYPE(type, IEEE80211_STYPE_ACK)) {
 		DEBUG("DUR SIFS\n");
 		dur += sifs;
 	}
-	else if ((type & IEEE80211_FTYPE_MGMT) && (type & IEEE80211_STYPE_BEACON)) {
+	else if (IEEE80211_IS_MGMT_STYPE(type, IEEE80211_STYPE_BEACON)) {
 		dur += sifs + (2 * slottime); /* AIFS */
 		dur += (slottime * 1) / 2; /* contention */
 	}
-	else if ((type & IEEE80211_FTYPE_DATA) && last_was_cts) {
+	else if (IEEE80211_IS_DATA(type) && last_was_cts) {
 		DEBUG("DUR LAST CTS\n");
 		dur += sifs;
 	}
-	else if ((type & IEEE80211_FTYPE_DATA) && (type & IEEE80211_STYPE_QOS_DATA)) {
+	else if (IEEE80211_IS_DATA_STYPE(type, IEEE80211_STYPE_QOS_DATA)) {
 		unsigned char ac = ieee802_1d_to_ac[(unsigned char)qos_class];
 		dur += sifs + (ac_to_aifs[ac] * slottime); /* AIFS */
 		dur += (slottime * ac_to_cwmin[ac]) / 2; /* contention */
@@ -308,8 +307,10 @@ ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
 		dur += (slottime * 15) / 2; /* contention */
 	}
 
-	if ((type & IEEE80211_FTYPE_CTL) && (type & IEEE80211_STYPE_CTS))
+	if (IEEE80211_IS_CTRL_STYPE(type, IEEE80211_STYPE_CTS)) {
+		DEBUG("SET CTS\n");
 		last_was_cts = 1;
+	}
 	else
 		last_was_cts = 0;
 
