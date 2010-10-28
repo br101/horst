@@ -215,15 +215,20 @@ ieee80211_is_erp_rate(int phymode, int rate)
 
 
 const unsigned char ieee802_1d_to_ac[8] = { 0, 1, 1, 0, 2, 2, 3, 3 };
-const unsigned char ac_to_aifs[4] = {3 /*BE*/, 7 /*BK*/, 2 /*VI*/, 2 /*VO*/};
+				     /* BE	BK	VI	VO */
+const unsigned char ac_to_aifs[4] = {	3,	7,	2,	2};
+const unsigned char ac_to_cwmin[4] = {	31,	31,	15,	7};
+const unsigned int ac_to_cwmax[4] = {	1023,	1023,	31,	15};
 
 /* from mac80211/util.c, modified */
 int
 ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
-			 int ackcts, int shortslot, char qos_class)
+			 int shortslot, int type, char qos_class)
 {
 	int dur;
 	int erp;
+	int sifs, slottime;
+	static int last_was_cts;
 
 	erp = ieee80211_is_erp_rate(phymode, rate);
 
@@ -236,7 +241,7 @@ ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
 	 * DIV_ROUND_UP() operations.
 	 */
 
-	DEBUG("DUR mode %d, len %d, rate %d, shortpre %d ackcts %d shortslot %d\n", phymode, (int)len, rate, short_preamble, ackcts, shortslot);
+	DEBUG("DUR mode %d, len %d, rate %d, shortpre %d shortslot %d type %x UP %d\n", phymode, (int)len, rate, short_preamble, shortslot, type, qos_class);
 
 	if (phymode == PHY_FLAG_A || erp) {
 		DEBUG("OFDM\n");
@@ -253,11 +258,9 @@ ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
 		 * 802.11g - 19.8.4: aSIFSTime = 10 usec +
 		 *	signal ext = 6 usec
 		 */
-		if (ackcts)
-			dur = 16; /* SIFS + signal ext */
-		else
-			dur = 34; /* DIFS */
-		dur += 16; /* 17.3.2.3: T_PREAMBLE = 16 usec */
+		sifs = 16;  /* SIFS + signal ext */
+		slottime = 9;
+		dur = 16; /* 17.3.2.3: T_PREAMBLE = 16 usec */
 		dur += 4; /* 17.3.2.3: T_SIGNAL = 4 usec */
 		dur += 4 * DIV_ROUND_UP((16 + 8 * (len + 4) + 6) * 10,
 					4 * rate); /* T_SYM x N_SYM */
@@ -273,17 +276,42 @@ ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
 		 * aPreambleLength = 144 usec or 72 usec with short preamble
 		 * aPLCPHeaderLength = 48 usec or 24 usec with short preamble
 		 */
-		if (ackcts)
-			dur = 10; /* aSIFSTime = 10 usec */
-		else
-			dur = shortslot ? 28 : 50;
-		dur += short_preamble ? (72 + 24) : (144 + 48);
-
+		sifs = 10; /* aSIFSTime = 10 usec */
+		slottime = shortslot ? 9 : 20;
+		dur = short_preamble ? (72 + 24) : (144 + 48);
 		dur += DIV_ROUND_UP(8 * (len + 4) * 10, rate);
 	}
 
-	DEBUG("DUR %d AC %d, UP %d\n", ac_to_aifs[ieee802_1d_to_ac[(unsigned char)qos_class]], ieee802_1d_to_ac[qos_class], qos_class);
-	dur += ac_to_aifs[ieee802_1d_to_ac[(unsigned char)qos_class]];
+	if ((type & IEEE80211_FTYPE_CTL) &&
+	    ((type & IEEE80211_STYPE_CTS) ||
+	     (type & IEEE80211_STYPE_ACK))) {
+		DEBUG("DUR SIFS\n");
+		dur += sifs;
+	}
+	else if ((type & IEEE80211_FTYPE_MGMT) && (type & IEEE80211_STYPE_BEACON)) {
+		dur += sifs + (2 * slottime); /* AIFS */
+		dur += (slottime * 1) / 2; /* contention */
+	}
+	else if ((type & IEEE80211_FTYPE_DATA) && last_was_cts) {
+		DEBUG("DUR LAST CTS\n");
+		dur += sifs;
+	}
+	else if ((type & IEEE80211_FTYPE_DATA) && (type & IEEE80211_STYPE_QOS_DATA)) {
+		unsigned char ac = ieee802_1d_to_ac[(unsigned char)qos_class];
+		dur += sifs + (ac_to_aifs[ac] * slottime); /* AIFS */
+		dur += (slottime * ac_to_cwmin[ac]) / 2; /* contention */
+		DEBUG("DUR AIFS %d CWMIN %d AC %d, UP %d\n", ac_to_aifs[ac], ac_to_cwmin[ac], ac, qos_class);
+	}
+	else {
+		DEBUG("DUR DIFS\n");
+		dur += sifs + (2 * slottime); /* DIFS */
+		dur += (slottime * 15) / 2; /* contention */
+	}
+
+	if ((type & IEEE80211_FTYPE_CTL) && (type & IEEE80211_STYPE_CTS))
+		last_was_cts = 1;
+	else
+		last_was_cts = 0;
 
 	DEBUG("DUR %d\n", dur);
 	return dur;
