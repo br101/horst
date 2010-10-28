@@ -124,6 +124,7 @@ struct packet_info {
 	unsigned char		wlan_channel;	/* channel from beacon, probe */
 	unsigned char		wlan_qos_class;	/* for QDATA frames */
 	unsigned int		wlan_nav;	/* frame NAV duration */
+	unsigned int		wlan_seqno;	/* sequence number */
 
 	unsigned int		wlan_wep:1,	/* WEP on/off */
 				wlan_retry:1;
@@ -163,6 +164,9 @@ struct node_info {
 	u_int64_t		tsf;
 	int			wep;		/* WEP active? */
 	struct essid_info*	essid;
+	unsigned int		wlan_retries_all;
+	unsigned int		wlan_retries_last;
+	unsigned int		wlan_seqno;
 
 	/* IP */
 	unsigned int		ip_src;		/* IP address (if known) */

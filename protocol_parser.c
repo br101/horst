@@ -368,6 +368,9 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 		}
 		current_packet->wlan_nav = le16toh(wh->duration_id);
 		DEBUG("DATA NAV %d\n", current_packet->wlan_nav);
+		current_packet->wlan_seqno = le16toh(wh->seq_ctrl);
+		DEBUG("DATA SEQ %d\n", current_packet->wlan_seqno);
+
 		sa = ieee80211_get_SA(wh);
 		da = ieee80211_get_DA(wh);
 		/* AP, STA or IBSS */
@@ -383,7 +386,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 			current_packet->wlan_wep = 1;
 
 		if (fc & IEEE80211_FCTL_RETRY)
-			current_packet->wlan_retry =1;
+			current_packet->wlan_retry = 1;
 
 		break;
 
@@ -432,6 +435,11 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 		whm = (struct ieee80211_mgmt*)*buf;
 		sa = whm->sa;
 		da = whm->da;
+		current_packet->wlan_seqno = le16toh(wh->seq_ctrl);
+		DEBUG("MGMT SEQ %d\n", current_packet->wlan_seqno);
+
+		if (fc & IEEE80211_FCTL_RETRY)
+			current_packet->wlan_retry = 1;
 
 		switch (current_packet->wlan_type & IEEE80211_FCTL_STYPE) {
 		case IEEE80211_STYPE_BEACON:

@@ -116,6 +116,15 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		n->channel = p->wlan_channel;
 	if (!IEEE80211_IS_CTRL(p->wlan_type))
 		n->wep = p->wlan_wep;
+	if (p->wlan_seqno != 0) {
+		if (p->wlan_retry && p->wlan_seqno == n->wlan_seqno) {
+			n->wlan_retries_all++;
+			n->wlan_retries_last++;
+		} else {
+			n->wlan_retries_last = 0;
+		}
+		n->wlan_seqno = p->wlan_seqno;
+	}
 }
 
 
