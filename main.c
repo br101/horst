@@ -104,6 +104,7 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 	}
 	if (IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON)) {
 		n->wlan_tsf = p->wlan_tsf;
+		n->wlan_bintval = p->wlan_bintval;
 	}
 	n->phy_snr = p->phy_snr;
 	if (p->phy_snr > n->phy_snr_max)

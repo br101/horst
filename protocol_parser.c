@@ -446,6 +446,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 		case IEEE80211_STYPE_BEACON:
 			current_packet->pkt_types |= PKT_TYPE_BEACON;
 			current_packet->wlan_tsf = le64toh(whm->u.beacon.timestamp);
+			current_packet->wlan_bintval = le16toh(whm->u.beacon.beacon_int);
 			ieee802_11_parse_elems(whm->u.beacon.variable,
 				len - sizeof(struct ieee80211_mgmt) - 4 /* FCS */, current_packet);
 			DEBUG("ESSID %s \n", current_packet->wlan_essid );

@@ -120,6 +120,7 @@ struct packet_info {
 	unsigned char		wlan_bssid[MAC_LEN];
 	char			wlan_essid[MAX_ESSID_LEN];
 	u_int64_t		wlan_tsf;	/* timestamp from beacon */
+	unsigned int		wlan_bintval;	/* beacon interval */
 	unsigned int		wlan_mode;	/* AP, STA or IBSS */
 	unsigned char		wlan_channel;	/* channel from beacon, probe */
 	unsigned char		wlan_qos_class;	/* for QDATA frames */
@@ -164,6 +165,7 @@ struct node_info {
 	unsigned int		wlan_channel;	/* channel from beacon, probe frames */
 	unsigned int		wlan_mode;	/* AP, STA or IBSS */
 	u_int64_t		wlan_tsf;
+	unsigned int		wlan_bintval;
 	unsigned int		wlan_retries_all;
 	unsigned int		wlan_retries_last;
 	unsigned int		wlan_seqno;

@@ -939,7 +939,7 @@ update_essid_win(void)
 	box(show_win, 0 , 0);
 	print_centered(show_win, 0, COLS, " ESSIDs ");
 
-	mvwprintw(show_win, line++, 3, "NO. MODE SOURCE            (BSSID)             TSF              CH SNR  E IP");
+	mvwprintw(show_win, line++, 3, "NO. MODE SOURCE            (BSSID)             TSF              (BINT) CH SNR  E IP");
 
 	list_for_each_entry(e, &essids.list, list) {
 		if (line > LINES-3)
@@ -969,6 +969,9 @@ update_essid_win(void)
 				ether_sprintf(node->last_pkt.wlan_src));
 			wprintw(show_win, " (%s)", ether_sprintf(node->wlan_bssid));
 			wprintw(show_win, " %016llx", node->wlan_tsf);
+			wprintw(show_win, " (%d)", node->wlan_bintval);
+			if (node->wlan_bintval < 1000)
+				wprintw(show_win, " ");
 			wprintw(show_win, " %2d", node->wlan_channel);
 			wprintw(show_win, " %2ddB", node->phy_snr);
 			wprintw(show_win, " %s", node->wlan_wep ? "W" : " ");
