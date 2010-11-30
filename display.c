@@ -136,6 +136,7 @@ init_display(void)
 	init_pair(12, COLOR_YELLOW, COLOR_BLACK);
 	init_pair(13, COLOR_YELLOW, COLOR_YELLOW);
 	init_pair(14, COLOR_WHITE, COLOR_RED);
+	init_pair(15, COLOR_YELLOW, COLOR_GREEN);
 
 	/* COLOR_BLACK COLOR_RED COLOR_GREEN COLOR_YELLOW COLOR_BLUE
 	COLOR_MAGENTA COLOR_CYAN COLOR_WHITE */
@@ -154,6 +155,7 @@ init_display(void)
 #define YELLOW		COLOR_PAIR(12)
 #define ALLYELLOW	COLOR_PAIR(13)
 #define WHITEONRED	COLOR_PAIR(14)
+#define YELLOWONGREEN	COLOR_PAIR(15)
 
 	erase();
 
@@ -739,7 +741,7 @@ static void
 update_status_win(struct packet_info* pkt, struct node_info* node)
 {
 	int sig, noi, rate, bps, dps, bpsn, usen;
-	int max = 0;
+	int max = 0, avg = 0;
 	float use;
 	int max_stat_bar = stat_height - 4;
 
@@ -765,6 +767,9 @@ update_status_win(struct packet_info* pkt, struct node_info* node)
 		if (node != NULL && node->phy_sig_max < 0)
 			max = normalize_db(-node->phy_sig_max, max_stat_bar);
 
+		if (node != NULL)
+			avg = normalize_db(-iir_average_get(node->phy_sig_avg), max_stat_bar);
+
 		wattron(stat_win, GREEN);
 		mvwprintw(stat_win, 0, 1, "SN:  %03d/", pkt->phy_signal);
 		if (max > 1)
@@ -772,6 +777,14 @@ update_status_win(struct packet_info* pkt, struct node_info* node)
 		wattron(stat_win, ALLGREEN);
 		mvwvline(stat_win, sig + 4, 2, ACS_BLOCK, stat_height - sig);
 		mvwvline(stat_win, sig + 4, 3, ACS_BLOCK, stat_height - sig);
+
+		if (avg > 1) {
+			if (avg < sig)
+				wattron(stat_win, GREEN);
+			wattron(stat_win, A_BOLD);
+			mvwprintw(stat_win, avg + 4, 2, "==");
+			wattron(stat_win, A_BOLD);
+		}
 
 		wattron(stat_win, RED);
 		mvwprintw(stat_win, 0, 10, "%03d", pkt->phy_noise);
@@ -838,7 +851,7 @@ print_list_line(int line, struct node_info* n)
 	mvwprintw(list_win, line, 1, "%c", spin[n->pkt_count % 4]);
 
 	mvwprintw(list_win, line, COL_SNR, "%2d/%2d/%2d",
-		p->phy_snr, n->phy_snr_max, n->phy_snr_min);
+		p->phy_snr, n->phy_snr_max, iir_average_get(n->phy_snr_avg));
 
 	if (n->wlan_mode == WLAN_MODE_AP )
 		mvwprintw(list_win, line, COL_STA,"A");
@@ -885,7 +898,7 @@ update_list_win(void)
 	werase(list_win);
 	wattron(list_win, WHITE);
 	box(list_win, 0 , 0);
-	mvwprintw(list_win, 0, COL_SNR, "SN/MX/MI");
+	mvwprintw(list_win, 0, COL_SNR, "SN/MX/AV");
 	mvwprintw(list_win, 0, COL_RATE, "RT");
 	mvwprintw(list_win, 0, COL_SOURCE, "SOURCE");
 	mvwprintw(list_win, 0, COL_STA, "M");

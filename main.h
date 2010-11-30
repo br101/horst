@@ -158,7 +158,9 @@ struct node_info {
 	int			phy_snr;
 	int			phy_snr_min;
 	int			phy_snr_max;
+	int			phy_snr_avg;
 	int			phy_sig_max;
+	int			phy_sig_avg;
 
 	/* wlan mac */
 	unsigned char		wlan_bssid[MAC_LEN];

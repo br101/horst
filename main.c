@@ -107,6 +107,8 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		n->wlan_bintval = p->wlan_bintval;
 	}
 	n->phy_snr = p->phy_snr;
+	iir_average(n->phy_snr_avg, p->phy_snr);
+	iir_average(n->phy_sig_avg, p->phy_signal);
 	if (p->phy_snr > n->phy_snr_max)
 		n->phy_snr_max = p->phy_snr;
 	if (p->phy_signal > n->phy_sig_max || n->phy_sig_max == 0)
