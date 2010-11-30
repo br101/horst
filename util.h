@@ -53,7 +53,13 @@ const char*
 ether_sprintf(const unsigned char *mac);
 
 const char*
+ether_sprintf_short(const unsigned char *mac);
+
+const char*
 ip_sprintf(const unsigned int ip);
+
+const char*
+ip_sprintf_short(const unsigned int ip);
 
 void
 convert_string_to_mac(const char* string, unsigned char* mac);

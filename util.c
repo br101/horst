@@ -117,6 +117,15 @@ ether_sprintf(const unsigned char *mac)
 	return etherbuf;
 }
 
+const char*
+ether_sprintf_short(const unsigned char *mac)
+{
+	static char etherbuf[5];
+	snprintf(etherbuf, sizeof(etherbuf), "%02x%02x",
+		mac[4], mac[5]);
+	return etherbuf;
+}
+
 
 const char*
 ip_sprintf(const unsigned int ip)
@@ -125,6 +134,16 @@ ip_sprintf(const unsigned int ip)
 	unsigned char* cip = (unsigned char*)&ip;
 	snprintf(ipbuf, sizeof(ipbuf), "%d.%d.%d.%d",
 		cip[0], cip[1], cip[2], cip[3]);
+	return ipbuf;
+}
+
+
+const char*
+ip_sprintf_short(const unsigned int ip)
+{
+	static char ipbuf[5];
+	unsigned char* cip = (unsigned char*)&ip;
+	snprintf(ipbuf, sizeof(ipbuf), ".%d", cip[3]);
 	return ipbuf;
 }
 
