@@ -116,10 +116,11 @@ init_display(void)
 	initscr();
 	start_color();                  /* Start the color functionality */
 	keypad(stdscr, TRUE);
-	nonl();         /* tell curses not to do NL->CR/NL on output */
-	cbreak();       /* take input chars one at a time, no wait for \n */
+	nonl();		/* tell curses not to do NL->CR/NL on output */
+	cbreak();	/* take input chars one at a time, no wait for \n */
+	curs_set(0);	/* don't show cursor */
 	noecho();
-	nodelay(stdscr,TRUE);
+	nodelay(stdscr, TRUE);
 	init_pair(1, COLOR_WHITE, COLOR_BLACK);
 	init_pair(2, COLOR_GREEN, COLOR_BLACK);
 	init_pair(3, COLOR_RED, COLOR_BLACK);
@@ -187,6 +188,9 @@ init_display(void)
 
 	dump_win = newwin(stat_height, COLS-14, win_split, 0);
 	scrollok(dump_win,TRUE);
+
+	if (conf.do_change_channel)
+		show_window('s');
 
 	update_display(NULL, NULL);
 }
