@@ -37,7 +37,6 @@ static void show_window(char which);
 static void show_sort_win(void);
 
 static void update_filter_win(void);
-static void update_chan_win(void);
 
 static void update_dump_win(struct packet_info* pkt);
 static void update_status_win(struct packet_info* pkt, struct node_info* node);
@@ -46,6 +45,7 @@ static void update_show_win(void);
 static void update_essid_win(void);
 static void update_hist_win(void);
 static void update_statistics_win(void);
+static void update_spectrum_win(void);
 static void update_help_win(void);
 static void update_mini_status(void);
 
@@ -55,7 +55,6 @@ static WINDOW *stat_win = NULL;
 static WINDOW *filter_win = NULL;
 static WINDOW *show_win = NULL;
 static WINDOW *sort_win = NULL;
-static WINDOW *chan_win = NULL;
 
 /* sizes of split window (list_win & status_win) */
 static int win_split;
@@ -398,45 +397,39 @@ sort_input(int c)
 }
 
 
-static void
-chan_input(int c)
+static int
+spec_input(int c)
 {
 	char buf[6];
 	int x;
 	
 	switch (c) {
-	case 'a': case 'A':
+	case 'c': case 'C':
 		conf.do_change_channel = conf.do_change_channel ? 0 : 1;
 		break;
 
-	case 'e': case 'E':
+	case 'm': case 'M':
 		conf.do_change_channel = 0;
 		echo();
-		mvwgetnstr(chan_win, 6, 29, buf, 2);
+		mvwgetnstr(show_win, 6, 29, buf, 2);
 		noecho();
 		sscanf(buf, "%d", &x);
 		if (x >= 0 && x <= 13) /*FIX*/
 			change_channel(x);
 		break;
 
-	case 't': case 'T':
+	case 'd': case 'D':
 		echo();
-		mvwgetnstr(chan_win, 5, 25, buf, 6);
+		mvwgetnstr(show_win, 5, 25, buf, 6);
 		noecho();
 		sscanf(buf, "%d", &x);
 		conf.channel_time = x*1000;
 		break;
 
-	case 'c': case 'C': case '\r': case KEY_ENTER:
-		delwin(chan_win);
-		chan_win = NULL;
-		update_display(NULL, NULL);
-		return;
-
-	case 'q': case 'Q':
-		finish_all(0);
+	default:
+		return 0; /* didn't handle input */
 	}
-	update_chan_win();
+	return 1;
 }
 
 void
@@ -456,9 +449,9 @@ handle_user_input(void)
 		return;
 	}
 
-	if (chan_win != NULL) {
-		chan_input(key);
-		return;
+	if (show_win != NULL && show_win_current == 's') {
+		if (spec_input(key))
+			return;
 	}
 
 	switch(key) {
@@ -489,8 +482,8 @@ handle_user_input(void)
 	case '?':
 	case 'e': case 'E':
 	case 'h': case 'H':
-	//case 'd': case 'D':
 	case 'a': case 'A':
+	case 's': case 'S':
 		show_window(tolower(key));
 		break;
 
@@ -499,14 +492,6 @@ handle_user_input(void)
 			filter_win = newwin(25, 57, LINES/2-15, COLS/2-15);
 			scrollok(filter_win, FALSE);
 			update_filter_win();
-		}
-		break;
-
-	case 's': case 'S':
-		if (chan_win == NULL) {
-			chan_win = newwin(15, 39, LINES/2-15, COLS/2-15);
-			scrollok(chan_win, FALSE);
-			update_chan_win();
 		}
 		break;
 
@@ -551,27 +536,6 @@ show_sort_win(void)
 		mvwprintw(sort_win, 0, 0, " -> Sort by s:SNR t:Time b:BSSID c:Channel n:Don't sort [current: %c]", do_sort);
 		wrefresh(sort_win);
 	}
-}
-
-
-static void
-update_chan_win(void)
-{
-	box(chan_win, 0 , 0);
-	print_centered(chan_win, 0, 39, " Switch Channel ");
-
-	mvwprintw(chan_win, 2, 2, "Current Channel:");
-	if (conf.do_change_channel)
-		mvwprintw(chan_win, 2, 19, "AUTO");
-	else
-		mvwprintw(chan_win, 2, 19, "%d   ", conf.current_channel);
-	mvwprintw(chan_win, 4, 2, "a: [%c] Automatically Change Channel", conf.do_change_channel ? '*' : ' ');
-	mvwprintw(chan_win, 5, 2, "t: Channel Dwell Time: %d ms", conf.channel_time/1000);
-	mvwprintw(chan_win, 6, 2, "e: Manually Enter Channel:      ");
-
-	print_centered(chan_win, 14, 39, "[ Press key or ENTER ]");
-
-	wrefresh(chan_win);
 }
 
 
@@ -711,10 +675,6 @@ update_display(struct packet_info* pkt, struct node_info* node)
 		redrawwin(filter_win);
 		wnoutrefresh(filter_win);
 	}
-	if (chan_win != NULL) {
-		redrawwin(chan_win);
-		wnoutrefresh(chan_win);
-	}
 
 	/* only one redraw */
 	doupdate();
@@ -730,6 +690,8 @@ update_show_win(void)
 		update_hist_win();
 	else if (show_win_current == 'a')
 		update_statistics_win();
+	else if (show_win_current == 's')
+		update_spectrum_win();
 	else if (show_win_current == '?')
 		update_help_win();
 }
@@ -1305,6 +1267,62 @@ update_statistics_win(void)
 			line++;
 		}
 	}
+	wnoutrefresh(show_win);
+}
+
+#define CH_SPACE	5
+#define SPEC_HEIGHT	(LINES - 10)
+
+static void
+update_spectrum_win(void)
+{
+	int i, sig, sig_avg, siga;
+
+	werase(show_win);
+	wattron(show_win, WHITE);
+	box(show_win, 0 , 0);
+	print_centered(show_win, 0, COLS, " Spectrum Analyzer ");
+
+	mvwprintw(show_win, 2, 2, "Current Channel:");
+	if (conf.do_change_channel)
+		mvwprintw(show_win, 2, 19, "AUTO");
+	else
+		mvwprintw(show_win, 2, 19, "%d   ", conf.current_channel);
+	mvwprintw(show_win, 4, 2, "c: [%c] Automatically Change Channel", conf.do_change_channel ? '*' : ' ');
+	mvwprintw(show_win, 5, 2, "d: Channel Dwell Time: %d ms", conf.channel_time/1000);
+	mvwprintw(show_win, 6, 2, "m: Manually Enter Channel:      ");
+
+	for (i = 1; i <= 11; i++) {
+		sig_avg = iir_average_get(spectrum[i].signal_avg);
+		mvwprintw(show_win, 8, 2+CH_SPACE*i, "%d", spectrum[i].packets);
+		mvwprintw(show_win, 9, 2+CH_SPACE*i, "%d", spectrum[i].signal);
+		if (spectrum[i].packets > 8)
+			mvwprintw(show_win, 10, 2+CH_SPACE*i, "%d", sig_avg);
+
+		mvwprintw(show_win, LINES-3, 2+CH_SPACE*i, "%d", i);
+
+		if (spectrum[i].signal != 0) {
+			sig = normalize_db(-spectrum[i].signal, SPEC_HEIGHT);
+			wattron(show_win, ALLGREEN);
+			mvwvline(show_win, 7+sig, 2+CH_SPACE*i, ACS_BLOCK,
+				SPEC_HEIGHT - sig);
+			mvwvline(show_win, 7+sig, 2+CH_SPACE*i+1, ACS_BLOCK,
+				SPEC_HEIGHT - sig);
+		}
+
+		if (spectrum[i].packets > 8 && sig_avg != 0) {
+			siga = normalize_db(-sig_avg, SPEC_HEIGHT);
+			if (siga > 1) {
+				if (siga < sig)
+					wattron(show_win, GREEN);
+				wattron(show_win, A_BOLD);
+				mvwprintw(show_win, 7+siga, 2+CH_SPACE*i, "==");
+				wattroff(show_win, A_BOLD);
+			}
+		}
+		wattroff(show_win, ALLGREEN);
+	}
+
 	wnoutrefresh(show_win);
 }
 

@@ -365,10 +365,11 @@ update_spectrum(struct packet_info* p, struct node_info* n)
 {
 	struct channel_info* ch = &spectrum[conf.current_channel];
 	ch->signal = p->phy_signal;
-	ch->signal_avg = n->phy_sig_avg;
 	ch->packets++;
 	ch->bytes += p->pkt_len;
 	ch->durations += p->pkt_duration;
+	if (n)
+		ch->signal_avg = n->phy_sig_avg;
 }
 
 
