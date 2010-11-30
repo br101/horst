@@ -34,6 +34,7 @@
 #define MAX_ESSIDS		255
 #define MAX_BSSIDS		255
 #define MAX_HISTORY		255
+#define MAX_CHANNELS		15	/* only 2.4GHz now */
 #define MAX_ESSID_LEN		32
 #define MAX_RATES		109	/* in 500kbps steps: 54 * 2 + 1 for array index */
 #define MAX_FSTYPE		0xff
@@ -104,6 +105,8 @@ struct packet_info {
 	/* general */
 	unsigned int		pkt_types;	/* bitmask of packet types in this pkt */
 	unsigned int		pkt_len;	/* packet length */
+	unsigned int		pkt_duration;	/* packet "airtime" */
+	int			pkt_channel;	/* received while on channel X */
 
 	/* wlan phy (from radiotap) */
 	int			phy_signal;	/* signal strength (usually dBm) */
@@ -232,6 +235,16 @@ struct statistics {
 };
 
 extern struct statistics stats;
+
+struct channel_info {
+	int			signal;
+	int			signal_avg;
+	unsigned long		packets;
+	unsigned long		bytes;
+	unsigned long		durations;
+};
+
+extern struct channel_info spectrum[MAX_CHANNELS];
 
 struct config {
 	char*			ifname;

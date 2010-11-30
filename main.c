@@ -44,6 +44,7 @@ struct list_head nodes;
 struct essid_meta_info essids;
 struct history hist;
 struct statistics stats;
+struct channel_info spectrum[MAX_CHANNELS];
 
 struct config conf = {
 	.node_timeout		= NODE_TIMEOUT,
@@ -337,32 +338,37 @@ update_history(struct packet_info* p)
 static void
 update_statistics(struct packet_info* p)
 {
-	int duration;
-
 	if (p->phy_rate == 0) {
 		return;
 	}
-
-	duration = ieee80211_frame_duration(p->phy_flags & PHY_FLAG_MODE_MASK,
-			p->pkt_len, p->phy_rate * 5, p->phy_flags & PHY_FLAG_SHORTPRE,
-			0 /*shortslot*/, p->wlan_type, p->wlan_qos_class,
-			p->wlan_retries);
 
 	stats.packets++;
 	stats.bytes += p->pkt_len;
 
 	if (p->phy_rate > 0 && p->phy_rate < MAX_RATES) {
-		stats.duration += duration;
+		stats.duration += p->pkt_duration;
 		stats.packets_per_rate[p->phy_rate]++;
 		stats.bytes_per_rate[p->phy_rate] += p->pkt_len;
-		stats.duration_per_rate[p->phy_rate] += duration;
+		stats.duration_per_rate[p->phy_rate] += p->pkt_duration;
 	}
 	if (p->wlan_type >= 0 && p->wlan_type < MAX_FSTYPE) {
 		stats.packets_per_type[p->wlan_type]++;
 		stats.bytes_per_type[p->wlan_type] += p->pkt_len;
 		if (p->phy_rate > 0 && p->phy_rate < MAX_RATES)
-			stats.duration_per_type[p->wlan_type] += duration;
+			stats.duration_per_type[p->wlan_type] += p->pkt_duration;
 	}
+}
+
+
+static void
+update_spectrum(struct packet_info* p, struct node_info* n)
+{
+	struct channel_info* ch = &spectrum[conf.current_channel];
+	ch->signal = p->phy_signal;
+	ch->signal_avg = n->phy_sig_avg;
+	ch->packets++;
+	ch->bytes += p->pkt_len;
+	ch->durations += p->pkt_duration;
 }
 
 
@@ -408,36 +414,42 @@ timeout_nodes(void)
 
 
 static void
-handle_packet(struct packet_info* pkt)
+handle_packet(struct packet_info* p)
 {
 	struct node_info* node;
 
 	if (conf.port && cli_fd != -1) {
-		net_send_packet(pkt);
+		net_send_packet(p);
 	}
 	if (conf.dumpfile != NULL) {
-		write_to_file(pkt);
+		write_to_file(p);
 	}
 	if (conf.quiet || conf.paused) {
 		return;
 	}
 
 	/* in display mode */
-	if (filter_packet(pkt)) {
+	if (filter_packet(p)) {
 		return;
 	}
 
-	node = node_update(pkt);
+	p->pkt_duration = ieee80211_frame_duration(p->phy_flags & PHY_FLAG_MODE_MASK,
+			p->pkt_len, p->phy_rate * 5, p->phy_flags & PHY_FLAG_SHORTPRE,
+			0 /*shortslot*/, p->wlan_type, p->wlan_qos_class,
+			p->wlan_retries);
+
+	node = node_update(p);
 
 	if (node)
-		pkt->wlan_retries = node->wlan_retries_last;
+		p->wlan_retries = node->wlan_retries_last;
 
-	update_history(pkt);
-	update_statistics(pkt);
-	check_ibss_split(pkt, node);
+	update_history(p);
+	update_statistics(p);
+	update_spectrum(p, node);
+	check_ibss_split(p, node);
 
 #if !DO_DEBUG
-	update_display(pkt, node);
+	update_display(p, node);
 #endif
 }
 
