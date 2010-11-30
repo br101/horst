@@ -695,13 +695,13 @@ auto_change_channel(void)
 	     (the_time.tv_usec - last_channelchange.tv_usec) < conf.channel_time)) {
 		return;
 	}
-	
+
 	conf.current_channel++;
-	if (conf.current_channel >= 13) /* FIX */
+	if (conf.current_channel > 11) /* TODO: get list from card */
 	    conf.current_channel = 1;
-	
+
 	device_wireless_channel(mon, conf.ifname, channels[conf.current_channel-1]);
-	
+
 	last_channelchange = the_time;
 }
 
