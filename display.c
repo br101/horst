@@ -162,14 +162,14 @@ init_display(void)
 
 #define KEYMARK A_UNDERLINE
 	attron(KEYMARK); printw("Q"); attroff(KEYMARK); printw("uit ");
-	attron(KEYMARK); printw("P"); attroff(KEYMARK); printw("ause ");
-	attron(KEYMARK); printw("S"); attroff(KEYMARK); printw("ort ");
+	attron(KEYMARK); printw("P"); attroff(KEYMARK); printw("ause s");
+	attron(KEYMARK); printw("O"); attroff(KEYMARK); printw("rt ");
 	attron(KEYMARK); printw("F"); attroff(KEYMARK); printw("ilter ");
 	attron(KEYMARK); printw("H"); attroff(KEYMARK); printw("istory ");
 	attron(KEYMARK); printw("E"); attroff(KEYMARK); printw("SSIDs St");
 	attron(KEYMARK); printw("a"); attroff(KEYMARK); printw("ts ");
 	attron(KEYMARK); printw("R"); attroff(KEYMARK); printw("eset ");
-	attron(KEYMARK); printw("C"); attroff(KEYMARK); printw("hannel ");
+	attron(KEYMARK); printw("S"); attroff(KEYMARK); printw("pectrum ");
 	attron(KEYMARK); printw("?"); attroff(KEYMARK); printw("Help");
 #undef KEYMARK
 	mvwprintw(stdscr, LINES-1, COLS-15, "|%s", conf.ifname);
@@ -471,7 +471,7 @@ handle_user_input(void)
 	case 'q': case 'Q':
 		finish_all(0);
 
-	case 's': case 'S':
+	case 'o': case 'O':
 		if (show_win == NULL) { /* sort only makes sense in the main win */
 			show_sort_win();
 		}
@@ -502,7 +502,7 @@ handle_user_input(void)
 		}
 		break;
 
-	case 'c': case 'C':
+	case 's': case 'S':
 		if (chan_win == NULL) {
 			chan_win = newwin(15, 39, LINES/2-15, COLS/2-15);
 			scrollok(chan_win, FALSE);
