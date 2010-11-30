@@ -149,11 +149,11 @@ parse_prism_header(unsigned char** buf, int len, struct packet_info* current_pac
 	current_packet->phy_flags |= PHY_FLAG_SHORTPRE;
 
 	DEBUG("devname: %s\n", ph->devname);
-	DEBUG("signal: %d -> %d\n", ph->signal.data, current_packet->signal);
-	DEBUG("noise: %d -> %d\n", ph->noise.data, current_packet->noise);
+	DEBUG("signal: %d -> %d\n", ph->signal.data, current_packet->phy_signal);
+	DEBUG("noise: %d -> %d\n", ph->noise.data, current_packet->phy_noise);
 	DEBUG("rate: %d\n", ph->rate.data);
 	DEBUG("rssi: %d\n", ph->rssi.data);
-	DEBUG("*** SNR %d\n", current_packet->snr);
+	DEBUG("*** SNR %d\n", current_packet->phy_snr);
 
 	*buf = *buf + sizeof(wlan_ng_prism2_header);
 	return len - sizeof(wlan_ng_prism2_header);
