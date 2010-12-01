@@ -269,3 +269,38 @@ device_wireless_channel(int fd, const char* devname, int chan)
 	}
 	return 1;
 }
+
+int
+device_wireless_get_channels(int fd, const char* devname,
+			     struct chan_freq channels[MAX_CHANNELS])
+{
+	struct iwreq iwr;
+	struct iw_range range;
+	int i;
+
+	memset(&iwr, 0, sizeof(iwr));
+	memset(&range, 0, sizeof(range));
+
+	strncpy(iwr.ifr_name, devname, IFNAMSIZ);
+	iwr.u.data.pointer = (caddr_t) &range;
+	iwr.u.data.length = sizeof(range);
+	iwr.u.data.flags = 0;
+
+	if (ioctl(fd, SIOCGIWRANGE, &iwr) < 0) {
+		perror("ioctl[SIOCSIWRANGE]");
+		return 0;
+	}
+
+	if(range.we_version_compiled < 16) {
+		printf("WEXT version %d too old to get channels\n",
+		       range.we_version_compiled);
+		return 0;
+	}
+
+	for(i = 0; i < range.num_frequency && i < MAX_CHANNELS; i++) {
+	      DEBUG("  Channel %.2d: %dMHz\n", range.freq[i].i, range.freq[i].m);
+	      channels[i].chan = range.freq[i].i;
+	      channels[i].freq = range.freq[i].m;
+	}
+	return range.num_frequency;
+}

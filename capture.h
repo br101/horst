@@ -20,6 +20,8 @@
 #ifndef _CAPTURE_H_
 #define _CAPTURE_H_
 
+#include "main.h"
+
 int
 open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size);
 
@@ -34,5 +36,8 @@ device_get_arptype(void);
 
 int
 device_wireless_channel(int fd, const char* devname, int chan);
+
+int
+device_wireless_get_channels(int fd, const char* devname, struct chan_freq c[MAX_CHANNELS]);
 
 #endif // _CAPTURE_H_

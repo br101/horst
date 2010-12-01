@@ -44,6 +44,7 @@ struct list_head nodes;
 struct essid_meta_info essids;
 struct history hist;
 struct statistics stats;
+struct chan_freq channels[MAX_CHANNELS];
 struct channel_info spectrum[MAX_CHANNELS];
 
 struct config conf = {
@@ -63,7 +64,6 @@ static int mon; /* monitoring socket */
 static FILE* DF = NULL;
 static struct timeval last_nodetimeout;
 static struct timeval last_channelchange;
-
 
 /*
  * receive packet buffer
@@ -699,9 +699,6 @@ void print_rate_duration_table(void)
 #endif
 
 
-static int channels[] = {2412, 2417, 2422, 2427, 2432, 2437, 2442, 2447, 2452, 2457, 2462, 2467, 2472};
-
-
 void
 auto_change_channel(void)
 {
@@ -712,10 +709,10 @@ auto_change_channel(void)
 	}
 
 	conf.current_channel++;
-	if (conf.current_channel > 11) /* TODO: get list from card */
-	    conf.current_channel = 1;
+	if (conf.current_channel >= conf.num_channels)
+	    conf.current_channel = 0;
 
-	device_wireless_channel(mon, conf.ifname, channels[conf.current_channel-1]);
+	device_wireless_channel(mon, conf.ifname, channels[conf.current_channel].freq);
 
 	last_channelchange = the_time;
 }
@@ -748,6 +745,7 @@ main(int argc, char** argv)
 			printf("wrong monitor type. please use radiotap or prism2 headers\n");
 			exit(1);
 		}
+		conf.num_channels = device_wireless_get_channels(mon, conf.ifname, channels);
 	}
 
 	if (conf.dumpfile != NULL) {
@@ -781,6 +779,14 @@ main(int argc, char** argv)
 void
 change_channel(int c)
 {
-	device_wireless_channel(mon, conf.ifname, channels[c-1]);
-	conf.current_channel = c;
+	int i;
+
+	for (i = 0; i < conf.num_channels; i++) {
+		if (channels[i].chan == c) {
+			device_wireless_channel(mon, conf.ifname, channels[i].freq);
+			conf.current_channel = i;
+			break;
+		}
+	}
 }
+

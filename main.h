@@ -34,7 +34,7 @@
 #define MAX_ESSIDS		255
 #define MAX_BSSIDS		255
 #define MAX_HISTORY		255
-#define MAX_CHANNELS		15	/* only 2.4GHz now */
+#define MAX_CHANNELS		14	/* only 2.4GHz now */
 #define MAX_ESSID_LEN		32
 #define MAX_RATES		109	/* in 500kbps steps: 54 * 2 + 1 for array index */
 #define MAX_FSTYPE		0xff
@@ -236,6 +236,13 @@ struct statistics {
 
 extern struct statistics stats;
 
+struct chan_freq {
+	int			chan;
+	int			freq;
+};
+
+extern struct chan_freq channels[MAX_CHANNELS];
+
 struct channel_info {
 	int			signal;
 	int			signal_avg;
@@ -270,6 +277,7 @@ struct config {
 	/* this isn't exactly config, but wtf... */
 	int			arphrd; // the device ARP type
 	int			paused;
+	int			num_channels;
 };
 
 extern struct config conf;

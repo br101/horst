@@ -418,7 +418,7 @@ spec_input(int c)
 		mvwgetnstr(show_win, 6, 29, buf, 2);
 		noecho();
 		sscanf(buf, "%d", &x);
-		if (x >= 0 && x <= 13) /*FIX*/
+		if (x > 0)
 			change_channel(x);
 		break;
 
@@ -634,7 +634,8 @@ update_mini_status(void)
 		mvwprintw(stdscr, LINES-1, COLS-24, "|FIL");
 	else
 		mvwprintw(stdscr, LINES-1, COLS-24, "|   ");
-	mvwprintw(stdscr, LINES-1, COLS-20, "|Ch%02d", conf.current_channel);
+	mvwprintw(stdscr, LINES-1, COLS-20, "|Ch%02d",
+		  channels[conf.current_channel].chan);
 	wattroff(stdscr, BLACKONWHITE);
 	wnoutrefresh(stdscr);
 }
@@ -1288,22 +1289,19 @@ update_spectrum_win(void)
 	print_centered(show_win, 0, COLS, " Spectrum Analyzer ");
 
 	mvwprintw(show_win, 2, 2, "Current Channel:");
-	if (conf.do_change_channel)
-		mvwprintw(show_win, 2, 19, "AUTO");
-	else
-		mvwprintw(show_win, 2, 19, "%d   ", conf.current_channel);
+	mvwprintw(show_win, 2, 19, "%d   ", channels[conf.current_channel].chan);
 	mvwprintw(show_win, 4, 2, "c: [%c] Automatically Change Channel", conf.do_change_channel ? '*' : ' ');
 	mvwprintw(show_win, 5, 2, "d: Channel Dwell Time: %d ms", conf.channel_time/1000);
 	mvwprintw(show_win, 6, 2, "m: Manually Enter Channel:      ");
 
-	for (i = 1; i <= 11; i++) {
+	for (i = 0; i < conf.num_channels; i++) {
 		sig_avg = iir_average_get(spectrum[i].signal_avg);
 		mvwprintw(show_win, 8, 2+CH_SPACE*i, "%d", spectrum[i].packets);
 		mvwprintw(show_win, 9, 2+CH_SPACE*i, "%d", spectrum[i].signal);
 		if (spectrum[i].packets > 8)
 			mvwprintw(show_win, 10, 2+CH_SPACE*i, "%d", sig_avg);
 
-		mvwprintw(show_win, LINES-3, 2+CH_SPACE*i, "%d", i);
+		mvwprintw(show_win, LINES-3, 2+CH_SPACE*i, "%02d", channels[i].chan);
 
 		if (spectrum[i].signal != 0) {
 			sig = normalize_db(-spectrum[i].signal, SPEC_HEIGHT);
