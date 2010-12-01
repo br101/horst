@@ -1,4 +1,4 @@
-/* horst - olsr scanning tool
+/* horst - radio scanning tool
  *
  * Copyright (C) 2005-2010 Bruno Randolf (br1@einfach.org)
  *
@@ -17,19 +17,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef _CAPTURE_H_
-#define _CAPTURE_H_
+#ifndef _WEXT_H_
+#define _WEXT_H_
+
+#include "main.h"
 
 int
-open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size);
+wext_set_channel(int fd, const char* devname, int chan);
 
 int
-recv_packet(int fd, unsigned char* buffer, size_t bufsize);
+wext_get_channels(int fd, const char* devname, struct chan_freq c[MAX_CHANNELS]);
 
-void
-close_packet_socket(void);
-
-int
-device_get_arptype(void);
-
-#endif // _CAPTURE_H_
+#endif // _WEXT_H_

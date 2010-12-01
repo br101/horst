@@ -39,6 +39,7 @@
 #include "util.h"
 #include "ieee80211.h"
 #include "ieee80211_util.h"
+#include "wext.h"
 
 struct list_head nodes;
 struct essid_meta_info essids;
@@ -712,7 +713,7 @@ auto_change_channel(void)
 	if (conf.current_channel >= conf.num_channels)
 	    conf.current_channel = 0;
 
-	device_wireless_channel(mon, conf.ifname, channels[conf.current_channel].freq);
+	wext_set_channel(mon, conf.ifname, channels[conf.current_channel].freq);
 
 	last_channelchange = the_time;
 }
@@ -745,7 +746,7 @@ main(int argc, char** argv)
 			printf("wrong monitor type. please use radiotap or prism2 headers\n");
 			exit(1);
 		}
-		conf.num_channels = device_wireless_get_channels(mon, conf.ifname, channels);
+		conf.num_channels = wext_get_channels(mon, conf.ifname, channels);
 	}
 
 	if (conf.dumpfile != NULL) {
@@ -783,7 +784,7 @@ change_channel(int c)
 
 	for (i = 0; i < conf.num_channels; i++) {
 		if (channels[i].chan == c) {
-			device_wireless_channel(mon, conf.ifname, channels[i].freq);
+			wext_set_channel(mon, conf.ifname, channels[i].freq);
 			conf.current_channel = i;
 			break;
 		}

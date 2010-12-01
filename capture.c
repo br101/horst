@@ -24,10 +24,9 @@
 #include <sys/socket.h>
 #include <netpacket/packet.h>
 #include <net/ethernet.h>
-//#include <net/if.h>
+#include <net/if.h>
 #include <arpa/inet.h>
 #include <err.h>
-#include <linux/wireless.h>
 
 #include "capture.h"
 #include "util.h"
@@ -249,58 +248,4 @@ close_packet_socket(void)
 	close(mon_fd);
 }
 
-
 #endif // PCAP
-
-
-int
-device_wireless_channel(int fd, const char* devname, int chan)
-{
-	struct iwreq iwr;
-
-	memset(&iwr, 0, sizeof(iwr));
-	strncpy(iwr.ifr_name, devname, IFNAMSIZ);
-	iwr.u.freq.m = chan * 100000;
-	iwr.u.freq.e = 1;
-
-	if (ioctl(fd, SIOCSIWFREQ, &iwr) < 0) {
-		perror("ioctl[SIOCSIWFREQ]");
-		return 0;
-	}
-	return 1;
-}
-
-int
-device_wireless_get_channels(int fd, const char* devname,
-			     struct chan_freq channels[MAX_CHANNELS])
-{
-	struct iwreq iwr;
-	struct iw_range range;
-	int i;
-
-	memset(&iwr, 0, sizeof(iwr));
-	memset(&range, 0, sizeof(range));
-
-	strncpy(iwr.ifr_name, devname, IFNAMSIZ);
-	iwr.u.data.pointer = (caddr_t) &range;
-	iwr.u.data.length = sizeof(range);
-	iwr.u.data.flags = 0;
-
-	if (ioctl(fd, SIOCGIWRANGE, &iwr) < 0) {
-		perror("ioctl[SIOCSIWRANGE]");
-		return 0;
-	}
-
-	if(range.we_version_compiled < 16) {
-		printf("WEXT version %d too old to get channels\n",
-		       range.we_version_compiled);
-		return 0;
-	}
-
-	for(i = 0; i < range.num_frequency && i < MAX_CHANNELS; i++) {
-	      DEBUG("  Channel %.2d: %dMHz\n", range.freq[i].i, range.freq[i].m);
-	      channels[i].chan = range.freq[i].i;
-	      channels[i].freq = range.freq[i].m;
-	}
-	return range.num_frequency;
-}
