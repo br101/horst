@@ -415,7 +415,9 @@ spec_input(int c)
 	case 'm': case 'M':
 		conf.do_change_channel = 0;
 		echo();
+		curs_set(1);
 		mvwgetnstr(show_win, 6, 29, buf, 2);
+		curs_set(0);
 		noecho();
 		sscanf(buf, "%d", &x);
 		if (x > 0)
@@ -424,7 +426,9 @@ spec_input(int c)
 
 	case 'd': case 'D':
 		echo();
+		curs_set(1);
 		mvwgetnstr(show_win, 5, 25, buf, 6);
+		curs_set(0);
 		noecho();
 		sscanf(buf, "%d", &x);
 		conf.channel_time = x*1000;
