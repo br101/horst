@@ -364,7 +364,13 @@ update_statistics(struct packet_info* p)
 static void
 update_spectrum(struct packet_info* p, struct node_info* n)
 {
-	struct channel_info* ch = &spectrum[conf.current_channel];
+	struct channel_info* ch;
+
+	if (p->phy_chan)
+		ch = &spectrum[p->phy_chan];
+	else /* physical channel not available, best guess */
+		ch = &spectrum[conf.current_channel];
+
 	ch->signal = p->phy_signal;
 	ch->packets++;
 	ch->bytes += p->pkt_len;

@@ -260,7 +260,10 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* current_
 				case IEEE80211_RADIOTAP_CHANNEL:
 					/* channel & channel type */
 					current_packet->phy_freq = le16toh(*(u_int16_t*)b);
-					DEBUG("[chan %d ", current_packet->phy_freq);
+					current_packet->phy_chan =
+						ieee80211_frequency_to_channel(current_packet->phy_freq);
+					DEBUG("[freq %d chan %d", current_packet->phy_freq,
+						current_packet->phy_chan);
 					b = b + 2;
 					x = le16toh(*(u_int16_t*)b);
 					if (x & IEEE80211_CHAN_A) {

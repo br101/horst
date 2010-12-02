@@ -334,3 +334,19 @@ ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
 	DEBUG("DUR %d\n", dur);
 	return dur;
 }
+
+int
+ieee80211_frequency_to_channel(int freq)
+{
+	int base;
+
+	if (freq == 2484)
+		return 14;
+	if (freq < 2484)
+		base = 2407;
+	else if (freq >= 4910 && freq <= 4980)
+		base = 4000;
+	else
+		base = 5000;
+	return (freq - base) / 5;
+}
