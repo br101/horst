@@ -223,6 +223,11 @@ handle_user_input(void)
 			return;
 	}
 
+	if (show_win == NULL) {
+		if (main_input(key))
+			return;
+	}
+
 	switch(key) {
 	case ' ': case 'p': case 'P':
 		conf.paused = conf.paused ? 0 : 1;
@@ -262,11 +267,6 @@ handle_user_input(void)
 	case KEY_RESIZE: /* xterm window resize event */
 		endwin();
 		init_display();
-		return;
-	}
-
-	if (show_win == NULL) {
-		main_input(key);
 		return;
 	}
 
