@@ -1,4 +1,4 @@
-/* horst - radio scanning tool
+/* horst - Highly Optimized Radio Scanning Tool
  *
  * Copyright (C) 2005-2010 Bruno Randolf (br1@einfach.org)
  *
