@@ -109,10 +109,12 @@ for debugging you can use
 	$ make DEBUG=1
 
 
-= Contributers =
+= Contributors =
 
-thanks to the following persons for contributions:
+Thanks to the following persons for contributions:
 
 Horst Krause
 Sven-Ola Tuecke
 Robert Schuster
+Jonathan Guerin
+David Rowe

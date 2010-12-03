@@ -5,7 +5,6 @@ TODO:
  * better batman support
  * OLSR ETX auswertung
  * IP auswertung
- * remote client
  * sig/noise WRT
  * detaildenster sortiert nach ESSID
 
@@ -15,7 +14,6 @@ feature requests:
 
  * FCS errors checken
  * ACKs
- * retries
  * batman layer 2 ethertype 0x0842
 
 ---
@@ -30,17 +28,7 @@ feature requests:
 
 ---
 
-specci:
-
-(eigentlich wünsche ich mir ein 3. horst-fenster am oberen rand,
-  wie [scanCG.pl] als simpel-'SPECTRUM-analyser' mit life-NOISE, um
-  CH-'belegung' u. nachbar-CH-'übersprechen' beurteilen zu können)
-
-AirMagnet mit atheros card: 250ms pro channel
-
----
-
-sound ausgabe
+sound output
 
 ---
 
@@ -58,10 +46,6 @@ sound ausgabe
 
 ---
 
-==============================================================================================
-_[HORST]"HELP"-HALTED_quit_run_sort_filt_hist_essid_stat_detail_help_________________________
-                      -    -   -    -    -     -       -  -        -
-
 *CH_IP______________SI/N0_ESSID_______________BSSID_____________MAC______________pT_NNLG_.TSF_
 
 -06 111.222.333.444 82/92 'lotte'             bb:ss:ss:ii:dd:00 MM:MM:AA:AA:CC:CC A ----.0003a 
@@ -74,4 +58,3 @@ _[HORST]"HELP"-HALTED_quit_run_sort_filt_hist_essid_stat_detail_help____________
 
 /13 111.222.333.444 78/95 'NETGEAR'            bb:ss:ss:ii:dd:00 mm:mm:aa:aa:cc:cc A----.0002b
 ===============================================================================================
-
