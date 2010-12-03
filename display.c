@@ -1288,7 +1288,7 @@ update_spectrum_win(void)
 {
 	int i, sig, sig_avg, siga;
 	struct chan_node *cn;
-	char *id;
+	const char *id;
 
 	werase(show_win);
 	wattron(show_win, WHITE);

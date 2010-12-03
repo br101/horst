@@ -312,4 +312,7 @@ free_lists(void);
 void
 change_channel(int c);
 
+void
+init_channels(void);
+
 #endif
