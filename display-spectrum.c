@@ -41,7 +41,7 @@ update_spectrum_win(WINDOW *win)
 	werase(win);
 	wattron(win, WHITE);
 	box(win, 0 , 0);
-	print_centered(win, 0, COLS, " Spectrum Analyzer ");
+	print_centered(win, 0, COLS, " \"Spectrum Analyzer\" ");
 
 	mvwprintw(win, 2, 2, "Current Channel:");
 	mvwprintw(win, 2, 19, "%d   ", channels[conf.current_channel].chan);
