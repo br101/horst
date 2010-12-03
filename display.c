@@ -1300,7 +1300,7 @@ update_spectrum_win(void)
 
 	for (i = 0; i < conf.num_channels; i++) {
 		sig_avg = iir_average_get(spectrum[i].signal_avg);
-		mvwprintw(show_win, 8, 2+CH_SPACE*i, "%d", spectrum[i].packets);
+		mvwprintw(show_win, 8, 2+CH_SPACE*i, "%d", spectrum[i].num_nodes);
 		mvwprintw(show_win, 9, 2+CH_SPACE*i, "%d", spectrum[i].signal);
 		if (spectrum[i].packets > 8)
 			mvwprintw(show_win, 10, 2+CH_SPACE*i, "%d", sig_avg);

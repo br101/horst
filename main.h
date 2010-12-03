@@ -152,6 +152,8 @@ struct node_info {
 	/* housekeeping */
 	struct list_head	list;
 	struct list_head	essid_nodes;
+	struct list_head	on_channels;	/* channels this node was seen on */
+	unsigned int		num_on_channels;
 	time_t			last_seen;	/* timestamp */
 
 	/* general packet info */
@@ -237,6 +239,7 @@ struct statistics {
 
 extern struct statistics stats;
 
+/* channel to frequency mapping */
 struct chan_freq {
 	int			chan;
 	int			freq;
@@ -250,9 +253,20 @@ struct channel_info {
 	unsigned long		packets;
 	unsigned long		bytes;
 	unsigned long		durations;
+	struct list_head	nodes;
+	unsigned int		num_nodes;
 };
 
 extern struct channel_info spectrum[MAX_CHANNELS];
+
+/* helper for keeping lists of nodes for each channel
+ * (a node can be on more than one channel) */
+struct chan_node {
+	struct node_info*	node;
+	struct channel_info*	chan;
+	struct list_head	chan_list;	/* list for nodes per channel */
+	struct list_head	node_list;	/* list for channels per node */
+};
 
 struct config {
 	char*			ifname;

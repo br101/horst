@@ -154,9 +154,11 @@ node_update(struct packet_info* pkt)
 
 	/* not found */
 	if (&n->list == &nodes) {
+		DEBUG("node adding\n");
 		n = malloc(sizeof(struct node_info));
 		memset(n, 0, sizeof(struct node_info));
 		n->essid = NULL;
+		INIT_LIST_HEAD(&n->on_channels);
 		list_add_tail(&n->list, &nodes);
 	}
 
@@ -364,19 +366,49 @@ update_statistics(struct packet_info* p)
 static void
 update_spectrum(struct packet_info* p, struct node_info* n)
 {
-	struct channel_info* ch;
+	struct channel_info* chan;
+	struct chan_node* cn;
+	int i, ch;
 
-	if (p->phy_chan)
-		ch = &spectrum[p->phy_chan];
-	else /* physical channel not available, best guess */
-		ch = &spectrum[conf.current_channel];
+	/* if physical channel not available from pkt, best guess from config */
+	ch = p->phy_chan ? p->phy_chan: conf.current_channel;
 
-	ch->signal = p->phy_signal;
-	ch->packets++;
-	ch->bytes += p->pkt_len;
-	ch->durations += p->pkt_duration;
-	if (n)
-		ch->signal_avg = n->phy_sig_avg;
+	/* find channel index */
+	for (i = 0; i < conf.num_channels; i++)
+		if (channels[i].chan == ch)
+			break;
+
+	if (i >= conf.num_channels) /* chan not found */
+		return;
+
+	chan = &spectrum[i];
+	chan->signal = p->phy_signal;
+	chan->packets++;
+	chan->bytes += p->pkt_len;
+	chan->durations += p->pkt_duration;
+
+	if (!n) /* no node: shouldn't happen, but does */
+		return;
+
+	chan->signal_avg = n->phy_sig_avg;
+
+	/* add node to channel if not already there */
+	list_for_each_entry(cn, &chan->nodes, chan_list) {
+		if (cn->node == n) {
+			DEBUG("SPEC node found %p\n", cn->node);
+			break;
+		}
+	}
+	if (cn->node != n) {
+		DEBUG("SPEC node adding %p chan %d\n", n, ch);
+		cn = malloc(sizeof(struct chan_node));
+		cn->node = n;
+		cn->chan = chan;
+		list_add_tail(&cn->chan_list, &chan->nodes);
+		list_add_tail(&cn->node_list, &n->on_channels);
+		chan->num_nodes++;
+		n->num_on_channels++;
+	}
 }
 
 
@@ -403,6 +435,7 @@ static void
 timeout_nodes(void)
 {
 	struct node_info *n, *m;
+	struct chan_node *cn, *cn2;
 
 	if ((the_time.tv_sec - last_nodetimeout.tv_sec) < conf.node_timeout ) {
 		return;
@@ -413,6 +446,12 @@ timeout_nodes(void)
 			list_del(&n->list);
 			if (n->essid != NULL) {
 				remove_node_from_essid(n);
+			}
+			list_for_each_entry_safe(cn, cn2, &n->on_channels, node_list) {
+				list_del(&cn->node_list);
+				list_del(&cn->chan_list);
+				cn->chan->num_nodes--;
+				free(cn);
 			}
 			free(n);
 		}
@@ -619,8 +658,10 @@ get_options(int argc, char** argv)
 void
 free_lists(void)
 {
+	int i;
 	struct essid_info *e, *f;
 	struct node_info *ni, *mi;
+	struct chan_node *cn, *cn2;
 
 	/* free node list */
 	list_for_each_entry_safe(ni, mi, &nodes, list) {
@@ -634,6 +675,15 @@ free_lists(void)
 		DEBUG("free essid '%s'\n", e->essid);
 		list_del(&e->list);
 		free(e);
+	}
+
+	/* free channel nodes */
+	for (i = 0; i < conf.num_channels; i++) {
+		list_for_each_entry_safe(cn, cn2, &spectrum[i].nodes, chan_list) {
+			DEBUG("free chan_node %p\n", cn);
+			list_del(&cn->chan_list);
+			free(cn);
+		}
 	}
 }
 
@@ -725,6 +775,17 @@ auto_change_channel(void)
 }
 
 
+void
+init_channels(void)
+{
+	int i;
+
+	conf.num_channels = wext_get_channels(mon, conf.ifname, channels);
+	for (i = 0; i < conf.num_channels; i++)
+		INIT_LIST_HEAD(&spectrum[i].nodes);
+}
+
+
 int
 main(int argc, char** argv)
 {
@@ -752,7 +813,7 @@ main(int argc, char** argv)
 			printf("wrong monitor type. please use radiotap or prism2 headers\n");
 			exit(1);
 		}
-		conf.num_channels = wext_get_channels(mon, conf.ifname, channels);
+		init_channels();
 	}
 
 	if (conf.dumpfile != NULL) {
@@ -796,4 +857,3 @@ change_channel(int c)
 		}
 	}
 }
-
