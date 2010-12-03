@@ -19,8 +19,12 @@
 NAME=horst
 DEBUG=0
 PCAP=0
-OBJS=protocol_parser.o main.o capture.o display.o network.o util.o \
-	ieee80211_util.o listsort.o wext.o
+OBJS=main.o capture.o protocol_parser.o network.o wext.o \
+	util.o ieee80211_util.o listsort.o \
+	display.o display-main.o display-filter.o display-help.o \
+	display-statistics.o display-essid.o display-history.o \
+	display-spectrum.o
+
 LIBS=-lncurses -lm
 CFLAGS+=-Wall -DDO_DEBUG=$(DEBUG) -g
 

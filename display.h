@@ -20,8 +20,31 @@
 #ifndef _DISPLAY_H_
 #define _DISPLAY_H_
 
+#include <curses.h>
+
+#define WHITE		COLOR_PAIR(1)
+#define GREEN		COLOR_PAIR(2)
+#define RED		COLOR_PAIR(3)
+#define CYAN		COLOR_PAIR(4)
+#define BLUE		COLOR_PAIR(5)
+#define BLACKONWHITE	COLOR_PAIR(6)
+#define MAGENTA		COLOR_PAIR(7)
+#define ALLGREEN	COLOR_PAIR(8)
+#define ALLRED		COLOR_PAIR(9)
+#define ALLBLUE		COLOR_PAIR(10)
+#define ALLCYAN		COLOR_PAIR(11)
+#define YELLOW		COLOR_PAIR(12)
+#define ALLYELLOW	COLOR_PAIR(13)
+#define WHITEONRED	COLOR_PAIR(14)
+
 struct packet_info;
 struct node_info;
+
+void
+get_per_second(unsigned int bytes, unsigned int duration, int *bps, int *dps);
+
+void __attribute__ ((format (printf, 4, 5)))
+print_centered(WINDOW* win, int line, int cols, const char *fmt, ...);
 
 void
 update_display(struct packet_info* pkg, struct node_info* node);
