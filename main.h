@@ -277,6 +277,7 @@ struct config {
 	int			quiet;
 	int			node_timeout;
 	int			channel_time;
+	int			channel_max;
 	int			current_channel;
 	int			display_interval;
 	int			sleep_time;

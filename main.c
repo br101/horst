@@ -770,7 +770,8 @@ auto_change_channel(void)
 	}
 
 	conf.current_channel++;
-	if (conf.current_channel >= conf.num_channels)
+	if (conf.current_channel >= conf.num_channels ||
+		(conf.channel_max && conf.current_channel >= conf.channel_max))
 	    conf.current_channel = 0;
 
 	wext_set_channel(mon, conf.ifname, channels[conf.current_channel].freq);

@@ -48,6 +48,7 @@ update_spectrum_win(WINDOW *win)
 	mvwprintw(win, 3, 2, "c: [%c] Automatically Change Channel", conf.do_change_channel ? '*' : ' ');
 	mvwprintw(win, 4, 2, "d: Channel Dwell Time: %d ms", conf.channel_time/1000);
 	mvwprintw(win, 5, 2, "m: Manually Enter Channel:      ");
+	mvwprintw(win, 4, 35, "u: Max Channel: %d", conf.channel_max);
 
 	mvwprintw(win, SPEC_POS_Y+1, 1, "dBm");
 	for(i = -30; i > -100; i -= 10) {
@@ -134,6 +135,16 @@ spectrum_input(WINDOW *win, int c)
 		noecho();
 		sscanf(buf, "%d", &x);
 		conf.channel_time = x*1000;
+		break;
+
+	case 'u': case 'U':
+		echo();
+		curs_set(1);
+		mvwgetnstr(win, 4, 51, buf, 6);
+		curs_set(0);
+		noecho();
+		sscanf(buf, "%d", &x);
+		conf.channel_max = x;
 		break;
 
 	default:
