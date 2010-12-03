@@ -484,6 +484,8 @@ handle_user_input(void)
 		essids.split_essid = NULL;
 		memset(&hist, 0, sizeof(hist));
 		memset(&stats, 0, sizeof(stats));
+		memset(&spectrum, 0, sizeof(spectrum));
+		init_channels();
 		gettimeofday(&stats.stats_time, NULL);
 		break;
 
@@ -748,10 +750,8 @@ update_status_win(struct packet_info* pkt, struct node_info* node)
 		mvwvline(stat_win, sig + 4, 3, ACS_BLOCK, stat_height - sig);
 
 		if (avg > 1) {
-			if (avg < sig)
-				wattron(stat_win, GREEN);
 			wattron(stat_win, A_BOLD);
-			mvwprintw(stat_win, avg + 4, 2, "==");
+			mvwvline(stat_win, avg + 4, 2, '=', stat_height - avg);
 			wattron(stat_win, A_BOLD);
 		}
 
@@ -1280,12 +1280,15 @@ update_statistics_win(void)
 }
 
 #define CH_SPACE	5
-#define SPEC_HEIGHT	(LINES - 10)
-
+#define SPEC_HEIGHT	(LINES - 11)
+#define SPEC_POS_Y	7
+#define SPEC_POS_X	6
 static void
 update_spectrum_win(void)
 {
 	int i, sig, sig_avg, siga;
+	struct chan_node *cn;
+	char *id;
 
 	werase(show_win);
 	wattron(show_win, WHITE);
@@ -1294,39 +1297,58 @@ update_spectrum_win(void)
 
 	mvwprintw(show_win, 2, 2, "Current Channel:");
 	mvwprintw(show_win, 2, 19, "%d   ", channels[conf.current_channel].chan);
-	mvwprintw(show_win, 4, 2, "c: [%c] Automatically Change Channel", conf.do_change_channel ? '*' : ' ');
-	mvwprintw(show_win, 5, 2, "d: Channel Dwell Time: %d ms", conf.channel_time/1000);
-	mvwprintw(show_win, 6, 2, "m: Manually Enter Channel:      ");
+	mvwprintw(show_win, 3, 2, "c: [%c] Automatically Change Channel", conf.do_change_channel ? '*' : ' ');
+	mvwprintw(show_win, 4, 2, "d: Channel Dwell Time: %d ms", conf.channel_time/1000);
+	mvwprintw(show_win, 5, 2, "m: Manually Enter Channel:      ");
+
+	mvwprintw(show_win, SPEC_POS_Y+1, 1, "dBm");
+	for(i = -30; i > -100; i -= 10) {
+		sig = normalize_db(-i, SPEC_HEIGHT);
+		mvwprintw(show_win, SPEC_POS_Y+sig, 1, "%d", i);
+	}
+	mvwhline(show_win, LINES-4, 1, ACS_HLINE, COLS-2);
+	mvwvline(show_win, SPEC_POS_Y, 4, ACS_VLINE, LINES-SPEC_POS_Y-2);
 
 	for (i = 0; i < conf.num_channels; i++) {
 		sig_avg = iir_average_get(spectrum[i].signal_avg);
-		mvwprintw(show_win, 8, 2+CH_SPACE*i, "%d", spectrum[i].num_nodes);
-		mvwprintw(show_win, 9, 2+CH_SPACE*i, "%d", spectrum[i].signal);
+		mvwprintw(show_win, 7, SPEC_POS_X+CH_SPACE*i, "%d", spectrum[i].num_nodes);
+		mvwprintw(show_win, 8, SPEC_POS_X+CH_SPACE*i, "%d", spectrum[i].signal);
 		if (spectrum[i].packets > 8)
-			mvwprintw(show_win, 10, 2+CH_SPACE*i, "%d", sig_avg);
+			mvwprintw(show_win, 9, SPEC_POS_X+CH_SPACE*i, "%d", sig_avg);
 
-		mvwprintw(show_win, LINES-3, 2+CH_SPACE*i, "%02d", channels[i].chan);
+		mvwprintw(show_win, LINES-3, SPEC_POS_X+CH_SPACE*i, "%02d", channels[i].chan);
 
 		if (spectrum[i].signal != 0) {
 			sig = normalize_db(-spectrum[i].signal, SPEC_HEIGHT);
 			wattron(show_win, ALLGREEN);
-			mvwvline(show_win, 7+sig, 2+CH_SPACE*i, ACS_BLOCK,
+			mvwvline(show_win, SPEC_POS_Y+sig, SPEC_POS_X+CH_SPACE*i, ACS_BLOCK,
 				SPEC_HEIGHT - sig);
-			mvwvline(show_win, 7+sig, 2+CH_SPACE*i+1, ACS_BLOCK,
+			mvwvline(show_win, SPEC_POS_Y+sig, SPEC_POS_X+CH_SPACE*i+1, ACS_BLOCK,
 				SPEC_HEIGHT - sig);
 		}
 
 		if (spectrum[i].packets > 8 && sig_avg != 0) {
 			siga = normalize_db(-sig_avg, SPEC_HEIGHT);
 			if (siga > 1) {
-				if (siga < sig)
-					wattron(show_win, GREEN);
 				wattron(show_win, A_BOLD);
-				mvwprintw(show_win, 7+siga, 2+CH_SPACE*i, "==");
+				mvwvline(show_win, SPEC_POS_Y+siga, SPEC_POS_X+CH_SPACE*i, '=',
+				SPEC_HEIGHT - siga);
 				wattroff(show_win, A_BOLD);
 			}
 		}
 		wattroff(show_win, ALLGREEN);
+		/* show nodes */
+		list_for_each_entry(cn, &spectrum[i].nodes, chan_list) {
+			if (cn->packets >= 8)
+				sig = normalize_db(-iir_average_get(cn->sig_avg), SPEC_HEIGHT);
+			else
+				sig = normalize_db(-cn->sig, SPEC_HEIGHT);
+			if (cn->node->ip_src)
+				id = ip_sprintf_short(cn->node->ip_src);
+			else
+				id = ether_sprintf_short(cn->node->last_pkt.wlan_src);
+			mvwprintw(show_win, SPEC_POS_Y+sig, SPEC_POS_X+CH_SPACE*i, "%s", id);
+		}
 	}
 
 	wnoutrefresh(show_win);

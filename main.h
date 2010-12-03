@@ -266,6 +266,9 @@ struct chan_node {
 	struct channel_info*	chan;
 	struct list_head	chan_list;	/* list for nodes per channel */
 	struct list_head	node_list;	/* list for channels per node */
+	int			sig;
+	int			sig_avg;
+	unsigned long		packets;
 };
 
 struct config {

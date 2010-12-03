@@ -386,11 +386,10 @@ update_spectrum(struct packet_info* p, struct node_info* n)
 	chan->packets++;
 	chan->bytes += p->pkt_len;
 	chan->durations += p->pkt_duration;
+	chan->signal_avg = iir_average(chan->signal_avg, chan->signal);
 
 	if (!n) /* no node: shouldn't happen, but does */
 		return;
-
-	chan->signal_avg = n->phy_sig_avg;
 
 	/* add node to channel if not already there */
 	list_for_each_entry(cn, &chan->nodes, chan_list) {
@@ -409,6 +408,10 @@ update_spectrum(struct packet_info* p, struct node_info* n)
 		chan->num_nodes++;
 		n->num_on_channels++;
 	}
+	/* keep signal of this node as seen on this channel */
+	cn->sig = p->phy_signal;
+	cn->sig_avg = iir_average(cn->sig_avg, cn->sig);
+	cn->packets++;
 }
 
 
@@ -682,6 +685,7 @@ free_lists(void)
 		list_for_each_entry_safe(cn, cn2, &spectrum[i].nodes, chan_list) {
 			DEBUG("free chan_node %p\n", cn);
 			list_del(&cn->chan_list);
+			cn->chan->num_nodes--;
 			free(cn);
 		}
 	}
