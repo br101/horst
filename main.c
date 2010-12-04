@@ -108,7 +108,6 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		n->wlan_tsf = p->wlan_tsf;
 		n->wlan_bintval = p->wlan_bintval;
 	}
-	n->phy_snr = p->phy_snr;
 	iir_average(n->phy_snr_avg, p->phy_snr);
 	iir_average(n->phy_sig_avg, p->phy_signal);
 	if (p->phy_snr > n->phy_snr_max)

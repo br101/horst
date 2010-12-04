@@ -74,7 +74,7 @@ update_essid_win(WINDOW *win)
 			if (node->wlan_bintval < 1000)
 				wprintw(win, " ");
 			wprintw(win, " %2d", node->wlan_channel);
-			wprintw(win, " %2ddB", node->phy_snr);
+			wprintw(win, " %2ddB", node->last_pkt.phy_snr);
 			wprintw(win, " %s", node->wlan_wep ? "W" : " ");
 			if (node->pkt_types & PKT_TYPE_IP)
 				wprintw(win, " %s", ip_sprintf(node->ip_src));
