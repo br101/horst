@@ -35,7 +35,7 @@ static unsigned int show_nodes;
 void
 update_spectrum_win(WINDOW *win)
 {
-	int i, sig, sig_avg, siga, use, usen;
+	int i, sig, sig_avg, siga, use, usen, nnodes;
 	struct chan_node *cn;
 	const char *id;
 
@@ -110,6 +110,12 @@ update_spectrum_win(WINDOW *win)
 			}
 		}
 		else {
+			nnodes = spectrum[i].num_nodes;
+			wattron(win, ALLBLUE);
+			mvwvline(win, SPEC_POS_Y+SPEC_HEIGHT-nnodes, SPEC_POS_X+CH_SPACE*i+2,
+				ACS_BLOCK, nnodes);
+			wattroff(win, ALLBLUE);
+
 			use = (spectrum[i].durations - spectrum[i].durations_last)
 				* 1.0 / 1000;
 			mvwprintw(win, 10, SPEC_POS_X+CH_SPACE*i, "%d", use);
@@ -119,7 +125,7 @@ update_spectrum_win(WINDOW *win)
 #endif
 			usen = normalize(use, conf.channel_time, SPEC_HEIGHT);
 			wattron(win, ALLYELLOW);
-			mvwvline(win, SPEC_POS_Y+SPEC_HEIGHT-usen, SPEC_POS_X+CH_SPACE*i+2,
+			mvwvline(win, SPEC_POS_Y+SPEC_HEIGHT-usen, SPEC_POS_X+CH_SPACE*i+3,
 				ACS_BLOCK, usen);
 			wattroff(win, ALLYELLOW);
 		}
