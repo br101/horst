@@ -122,8 +122,7 @@ update_mini_status(void)
 		mvwprintw(stdscr, LINES-1, COLS-24, "|FIL");
 	else
 		mvwprintw(stdscr, LINES-1, COLS-24, "|   ");
-	mvwprintw(stdscr, LINES-1, COLS-20, "|Ch%02d",
-		  channels[conf.current_channel].chan);
+	mvwprintw(stdscr, LINES-1, COLS-20, "|Ch%02d", CONF_CURRENT_CHANNEL);
 	wattroff(stdscr, BLACKONWHITE);
 	wnoutrefresh(stdscr);
 }

@@ -45,7 +45,7 @@ update_spectrum_win(WINDOW *win)
 	print_centered(win, 0, COLS, " \"Spectrum Analyzer\" ");
 
 	mvwprintw(win, 2, 2, "Current Channel:");
-	mvwprintw(win, 2, 19, "%d   ", channels[conf.current_channel].chan);
+	mvwprintw(win, 2, 19, "%d   ", CONF_CURRENT_CHANNEL);
 	mvwprintw(win, 3, 2, "c: [%c] Automatically Change Channel   n: [%c] Show Nodes",
 				conf.do_change_channel ? '*' : ' ',
 				show_nodes ? '*' : ' ');
@@ -91,18 +91,6 @@ update_spectrum_win(WINDOW *win)
 		}
 		wattroff(win, ALLGREEN);
 
-		use = (spectrum[i].durations - spectrum[i].durations_last) * 1.0 / 1000;
-		mvwprintw(win, 10, SPEC_POS_X+CH_SPACE*i, "%d", use);
-#if 0
-		mvwprintw(win, 11, SPEC_POS_X+CH_SPACE*i, "%d", spectrum[i].durations);
-		mvwprintw(win, 12, SPEC_POS_X+CH_SPACE*i, "%d", spectrum[i].durations_last);
-#endif
-		usen = normalize(use, conf.channel_time, SPEC_HEIGHT);
-		wattron(win, ALLYELLOW);
-		mvwvline(win, SPEC_POS_Y+SPEC_HEIGHT-usen, SPEC_POS_X+CH_SPACE*i+2, 
-			ACS_BLOCK, usen);
-		wattroff(win, ALLYELLOW);
-
 		if (show_nodes) {
 			list_for_each_entry(cn, &spectrum[i].nodes, chan_list) {
 				if (cn->packets >= 8)
@@ -120,6 +108,20 @@ update_spectrum_win(WINDOW *win)
 				if (cn->node->ip_src)
 					wattroff(win, A_BOLD);
 			}
+		}
+		else {
+			use = (spectrum[i].durations - spectrum[i].durations_last)
+				* 1.0 / 1000;
+			mvwprintw(win, 10, SPEC_POS_X+CH_SPACE*i, "%d", use);
+#if 0
+			mvwprintw(win, 11, SPEC_POS_X+CH_SPACE*i, "%d", spectrum[i].durations);
+			mvwprintw(win, 12, SPEC_POS_X+CH_SPACE*i, "%d", spectrum[i].durations_last);
+#endif
+			usen = normalize(use, conf.channel_time, SPEC_HEIGHT);
+			wattron(win, ALLYELLOW);
+			mvwvline(win, SPEC_POS_Y+SPEC_HEIGHT-usen, SPEC_POS_X+CH_SPACE*i+2,
+				ACS_BLOCK, usen);
+			wattroff(win, ALLYELLOW);
 		}
 	}
 

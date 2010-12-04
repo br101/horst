@@ -367,18 +367,20 @@ update_spectrum(struct packet_info* p, struct node_info* n)
 {
 	struct channel_info* chan;
 	struct chan_node* cn;
-	int i, ch;
+	int i;
 
 	/* if physical channel not available from pkt, best guess from config */
-	ch = p->phy_chan ? p->phy_chan: conf.current_channel;
+	if (!p->phy_chan)
+		i = conf.current_channel;
+	else {
+		/* find channel index from packet channel */
+		for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++)
+			if (channels[i].chan == p->phy_chan)
+				break;
+	}
 
-	/* find channel index */
-	for (i = 0; i < conf.num_channels; i++)
-		if (channels[i].chan == ch)
-			break;
-
-	if (i >= conf.num_channels) /* chan not found */
-		return;
+	if (i < 0 || i >= conf.num_channels || i >= MAX_CHANNELS)
+		return; /* chan not found */
 
 	chan = &spectrum[i];
 	chan->signal = p->phy_signal;
@@ -767,7 +769,9 @@ auto_change_channel(void)
 		return;
 	}
 
-	spectrum[conf.current_channel].durations_last = spectrum[conf.current_channel].durations;
+	if (conf.current_channel >= 0)
+		spectrum[conf.current_channel].durations_last =
+					spectrum[conf.current_channel].durations;
 
 	last_channelchange = the_time;
 
@@ -776,6 +780,7 @@ auto_change_channel(void)
 
 	conf.current_channel++;
 	if (conf.current_channel >= conf.num_channels ||
+		conf.current_channel >= MAX_CHANNELS ||
 		(conf.channel_max && conf.current_channel >= conf.channel_max))
 	    conf.current_channel = 0;
 
@@ -786,14 +791,28 @@ auto_change_channel(void)
 void
 init_channels(void)
 {
-	int i, freq;
+	int i, freq, ch;
 
+	conf.current_channel = -1;
+
+	/* get all available channels */
 	conf.num_channels = wext_get_channels(mon, conf.ifname, channels);
-	for (i = 0; i < conf.num_channels; i++)
+	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++)
 		INIT_LIST_HEAD(&spectrum[i].nodes);
 
+	/* get current channel &  map to our channel array */
 	freq = wext_get_freq(mon, conf.ifname);
-	conf.current_channel = ieee80211_frequency_to_channel(freq)-1;
+	if (freq == 0)
+		return;
+
+	ch = ieee80211_frequency_to_channel(freq);
+	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++)
+		if (channels[i].chan == ch)
+			break;
+
+	if (i < MAX_CHANNELS)
+		conf.current_channel = i;
+	DEBUG("***%d\n", conf.current_channel);
 }
 
 
@@ -860,7 +879,7 @@ change_channel(int c)
 {
 	int i;
 
-	for (i = 0; i < conf.num_channels; i++) {
+	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++) {
 		if (channels[i].chan == c) {
 			wext_set_channel(mon, conf.ifname, channels[i].freq);
 			conf.current_channel = i;

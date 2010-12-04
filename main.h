@@ -278,7 +278,7 @@ struct config {
 	int			node_timeout;
 	int			channel_time;
 	int			channel_max;
-	int			current_channel;
+	int			current_channel;	/* index into channels array */
 	int			display_interval;
 	int			sleep_time;
 	char*			dumpfile;
@@ -303,6 +303,9 @@ extern struct config conf;
 
 extern struct timeval the_time;
 
+
+#define CONF_CURRENT_CHANNEL (conf.current_channel >= 0 && conf.current_channel < MAX_CHANNELS ? \
+	channels[conf.current_channel].chan : 0)
 
 void
 finish_all(int sig);
