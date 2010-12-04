@@ -35,7 +35,7 @@ static unsigned int show_nodes;
 void
 update_spectrum_win(WINDOW *win)
 {
-	int i, sig, sig_avg, siga;
+	int i, sig, sig_avg, siga, use, usen;
 	struct chan_node *cn;
 	const char *id;
 
@@ -62,13 +62,13 @@ update_spectrum_win(WINDOW *win)
 	mvwvline(win, SPEC_POS_Y, 4, ACS_VLINE, LINES-SPEC_POS_Y-2);
 
 	for (i = 0; i < conf.num_channels; i++) {
+		mvwprintw(win, LINES-3, SPEC_POS_X+CH_SPACE*i, "%02d", channels[i].chan);
+
 		sig_avg = iir_average_get(spectrum[i].signal_avg);
 		mvwprintw(win, 7, SPEC_POS_X+CH_SPACE*i, "%d", spectrum[i].num_nodes);
 		mvwprintw(win, 8, SPEC_POS_X+CH_SPACE*i, "%d", spectrum[i].signal);
 		if (spectrum[i].packets > 8)
 			mvwprintw(win, 9, SPEC_POS_X+CH_SPACE*i, "%d", sig_avg);
-
-		mvwprintw(win, LINES-3, SPEC_POS_X+CH_SPACE*i, "%02d", channels[i].chan);
 
 		if (spectrum[i].signal != 0) {
 			sig = normalize_db(-spectrum[i].signal, SPEC_HEIGHT);
@@ -90,6 +90,18 @@ update_spectrum_win(WINDOW *win)
 			}
 		}
 		wattroff(win, ALLGREEN);
+
+		use = (spectrum[i].durations - spectrum[i].durations_last) * 1.0 / 1000;
+		mvwprintw(win, 10, SPEC_POS_X+CH_SPACE*i, "%d", use);
+#if 0
+		mvwprintw(win, 11, SPEC_POS_X+CH_SPACE*i, "%d", spectrum[i].durations);
+		mvwprintw(win, 12, SPEC_POS_X+CH_SPACE*i, "%d", spectrum[i].durations_last);
+#endif
+		usen = normalize(use, conf.channel_time, SPEC_HEIGHT);
+		wattron(win, ALLYELLOW);
+		mvwvline(win, SPEC_POS_Y+SPEC_HEIGHT-usen, SPEC_POS_X+CH_SPACE*i+2, 
+			ACS_BLOCK, usen);
+		wattroff(win, ALLYELLOW);
 
 		if (show_nodes) {
 			list_for_each_entry(cn, &spectrum[i].nodes, chan_list) {

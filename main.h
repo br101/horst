@@ -252,6 +252,7 @@ struct channel_info {
 	unsigned long		packets;
 	unsigned long		bytes;
 	unsigned long		durations;
+	unsigned long		durations_last;
 	struct list_head	nodes;
 	unsigned int		num_nodes;
 };

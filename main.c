@@ -762,11 +762,17 @@ void print_rate_duration_table(void)
 void
 auto_change_channel(void)
 {
-	if (conf.do_change_channel == 0 ||
-	    (the_time.tv_sec == last_channelchange.tv_sec &&
-	     (the_time.tv_usec - last_channelchange.tv_usec) < conf.channel_time)) {
+	if (the_time.tv_sec == last_channelchange.tv_sec &&
+	     (the_time.tv_usec - last_channelchange.tv_usec) < conf.channel_time) {
 		return;
 	}
+
+	spectrum[conf.current_channel].durations_last = spectrum[conf.current_channel].durations;
+
+	last_channelchange = the_time;
+
+	if (conf.do_change_channel == 0)
+		return;
 
 	conf.current_channel++;
 	if (conf.current_channel >= conf.num_channels ||
@@ -774,8 +780,6 @@ auto_change_channel(void)
 	    conf.current_channel = 0;
 
 	wext_set_channel(mon, conf.ifname, channels[conf.current_channel].freq);
-
-	last_channelchange = the_time;
 }
 
 
