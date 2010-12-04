@@ -17,7 +17,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-/******************* SPECTRUM ANALYZER *******************/
+/******************* POOR MAN's "SPECTRUM ANALYZER" *******************/
 
 #include <stdlib.h>
 
@@ -25,11 +25,12 @@
 #include "main.h"
 #include "util.h"
 
-#define CH_SPACE	5
+#define CH_SPACE	6
 #define SPEC_HEIGHT	(LINES - 11)
 #define SPEC_POS_Y	7
 #define SPEC_POS_X	6
 
+static unsigned int show_nodes;
 
 void
 update_spectrum_win(WINDOW *win)
@@ -45,7 +46,9 @@ update_spectrum_win(WINDOW *win)
 
 	mvwprintw(win, 2, 2, "Current Channel:");
 	mvwprintw(win, 2, 19, "%d   ", channels[conf.current_channel].chan);
-	mvwprintw(win, 3, 2, "c: [%c] Automatically Change Channel", conf.do_change_channel ? '*' : ' ');
+	mvwprintw(win, 3, 2, "c: [%c] Automatically Change Channel   n: [%c] Show Nodes",
+				conf.do_change_channel ? '*' : ' ',
+				show_nodes ? '*' : ' ');
 	mvwprintw(win, 4, 2, "d: Channel Dwell Time: %d ms", conf.channel_time/1000);
 	mvwprintw(win, 5, 2, "m: Manually Enter Channel:      ");
 	mvwprintw(win, 4, 35, "u: Max Channel: %d", conf.channel_max);
@@ -72,8 +75,9 @@ update_spectrum_win(WINDOW *win)
 			wattron(win, ALLGREEN);
 			mvwvline(win, SPEC_POS_Y+sig, SPEC_POS_X+CH_SPACE*i, ACS_BLOCK,
 				SPEC_HEIGHT - sig);
-			mvwvline(win, SPEC_POS_Y+sig, SPEC_POS_X+CH_SPACE*i+1, ACS_BLOCK,
-				SPEC_HEIGHT - sig);
+			if (!show_nodes)
+				mvwvline(win, SPEC_POS_Y+sig, SPEC_POS_X+CH_SPACE*i+1, ACS_BLOCK,
+					SPEC_HEIGHT - sig);
 		}
 
 		if (spectrum[i].packets > 8 && sig_avg != 0) {
@@ -86,17 +90,24 @@ update_spectrum_win(WINDOW *win)
 			}
 		}
 		wattroff(win, ALLGREEN);
-		/* show nodes */
-		list_for_each_entry(cn, &spectrum[i].nodes, chan_list) {
-			if (cn->packets >= 8)
-				sig = normalize_db(-iir_average_get(cn->sig_avg), SPEC_HEIGHT);
-			else
-				sig = normalize_db(-cn->sig, SPEC_HEIGHT);
-			if (cn->node->ip_src)
-				id = ip_sprintf_short(cn->node->ip_src);
-			else
-				id = ether_sprintf_short(cn->node->last_pkt.wlan_src);
-			mvwprintw(win, SPEC_POS_Y+sig, SPEC_POS_X+CH_SPACE*i, "%s", id);
+
+		if (show_nodes) {
+			list_for_each_entry(cn, &spectrum[i].nodes, chan_list) {
+				if (cn->packets >= 8)
+					sig = normalize_db(-iir_average_get(cn->sig_avg),
+						SPEC_HEIGHT);
+				else
+					sig = normalize_db(-cn->sig, SPEC_HEIGHT);
+				if (cn->node->ip_src) {
+					wattron(win, A_BOLD);
+					id = ip_sprintf_short(cn->node->ip_src);
+				}
+				else
+					id = ether_sprintf_short(cn->node->last_pkt.wlan_src);
+				mvwprintw(win, SPEC_POS_Y+sig, SPEC_POS_X+CH_SPACE*i+1, "%s", id);
+				if (cn->node->ip_src)
+					wattroff(win, A_BOLD);
+			}
 		}
 	}
 
@@ -145,6 +156,10 @@ spectrum_input(WINDOW *win, int c)
 		noecho();
 		sscanf(buf, "%d", &x);
 		conf.channel_max = x;
+		break;
+
+	case 'n': case 'N':
+		show_nodes = show_nodes ? 0 : 1;
 		break;
 
 	default:
