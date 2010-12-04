@@ -44,6 +44,26 @@ wext_set_channel(int fd, const char* devname, int chan)
 	return 1;
 }
 
+
+int
+wext_get_freq(int fd, const char* devname)
+{
+	struct iwreq iwr;
+
+	memset(&iwr, 0, sizeof(iwr));
+	strncpy(iwr.ifr_name, devname, IFNAMSIZ);
+
+	if (ioctl(fd, SIOCGIWFREQ, &iwr) < 0) {
+		perror("ioctl[SIOCGIWFREQ]");
+		return 0;
+	}
+
+	DEBUG("FREQ %d %d\n", iwr.u.freq.m, iwr.u.freq.e);
+
+	return iwr.u.freq.m;
+}
+
+
 int
 wext_get_channels(int fd, const char* devname,
 		  struct chan_freq channels[MAX_CHANNELS])

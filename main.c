@@ -786,11 +786,14 @@ auto_change_channel(void)
 void
 init_channels(void)
 {
-	int i;
+	int i, freq;
 
 	conf.num_channels = wext_get_channels(mon, conf.ifname, channels);
 	for (i = 0; i < conf.num_channels; i++)
 		INIT_LIST_HEAD(&spectrum[i].nodes);
+
+	freq = wext_get_freq(mon, conf.ifname);
+	conf.current_channel = ieee80211_frequency_to_channel(freq)-1;
 }
 
 
