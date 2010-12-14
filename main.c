@@ -242,6 +242,9 @@ check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node)
 		return;
 	}
 
+	if (pkt_node == NULL)
+		return;
+
 	DEBUG("SPLIT check ibss '%s' node %s ", pkt->wlan_essid,
 		ether_sprintf(pkt->wlan_src));
 	DEBUG("bssid %s\n", ether_sprintf(pkt->wlan_bssid));
@@ -389,7 +392,7 @@ update_spectrum(struct packet_info* p, struct node_info* n)
 	chan->durations += p->pkt_duration;
 	chan->signal_avg = iir_average(chan->signal_avg, chan->signal);
 
-	if (!n) /* no node: shouldn't happen, but does */
+	if (!n)
 		return;
 
 	/* add node to channel if not already there */
