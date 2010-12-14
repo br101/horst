@@ -133,19 +133,19 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 
 
 static struct node_info*
-node_update(struct packet_info* pkt)
+node_update(struct packet_info* p)
 {
 	struct node_info* n;
 
-	if (pkt->wlan_src[0] == 0 && pkt->wlan_src[1] == 0 &&
-	    pkt->wlan_src[2] == 0 && pkt->wlan_src[3] == 0 &&
-	    pkt->wlan_src[4] == 0 && pkt->wlan_src[5] == 0) {
+	if (p->wlan_src[0] == 0 && p->wlan_src[1] == 0 &&
+	    p->wlan_src[2] == 0 && p->wlan_src[3] == 0 &&
+	    p->wlan_src[4] == 0 && p->wlan_src[5] == 0) {
 		return NULL;
 	}
 
 	/* find node by wlan source address */
 	list_for_each_entry(n, &nodes, list) {
-		if (memcmp(pkt->wlan_src, n->last_pkt.wlan_src, MAC_LEN) == 0) {
+		if (memcmp(p->wlan_src, n->last_pkt.wlan_src, MAC_LEN) == 0) {
 			DEBUG("node found %p\n", n);
 			break;
 		}
@@ -161,7 +161,7 @@ node_update(struct packet_info* pkt)
 		list_add_tail(&n->list, &nodes);
 	}
 
-	copy_nodeinfo(n, pkt);
+	copy_nodeinfo(n, p);
 
 	return n;
 }
@@ -214,44 +214,44 @@ update_essid_split_status(struct essid_info* e)
 
 
 static void
-remove_node_from_essid(struct node_info* node)
+remove_node_from_essid(struct node_info* n)
 {
 	DEBUG("SPLIT   remove node from old essid\n");
-	list_del(&node->essid_nodes);
-	node->essid->num_nodes--;
+	list_del(&n->essid_nodes);
+	n->essid->num_nodes--;
 
-	update_essid_split_status(node->essid);
+	update_essid_split_status(n->essid);
 
 	/* delete essid if it has no more nodes */
-	if (node->essid->num_nodes == 0) {
+	if (n->essid->num_nodes == 0) {
 		DEBUG("SPLIT   essid empty, delete\n");
-		list_del(&node->essid->list);
-		free(node->essid);
+		list_del(&n->essid->list);
+		free(n->essid);
 	}
-	node->essid = NULL;
+	n->essid = NULL;
 }
 
 
 static void
-check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node)
+check_ibss_split(struct packet_info* p, struct node_info* n)
 {
 	struct essid_info* e;
 
 	/* only check beacons (XXX: what about PROBE?) */
-	if (!IEEE80211_IS_MGMT_STYPE(pkt->wlan_type, IEEE80211_STYPE_BEACON)) {
+	if (!IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON)) {
 		return;
 	}
 
-	if (pkt_node == NULL)
+	if (n == NULL)
 		return;
 
-	DEBUG("SPLIT check ibss '%s' node %s ", pkt->wlan_essid,
-		ether_sprintf(pkt->wlan_src));
-	DEBUG("bssid %s\n", ether_sprintf(pkt->wlan_bssid));
+	DEBUG("SPLIT check ibss '%s' node %s ", p->wlan_essid,
+		ether_sprintf(p->wlan_src));
+	DEBUG("bssid %s\n", ether_sprintf(p->wlan_bssid));
 
 	/* find essid if already recorded */
 	list_for_each_entry(e, &essids.list, list) {
-		if (strncmp(e->essid, pkt->wlan_essid, MAX_ESSID_LEN) == 0) {
+		if (strncmp(e->essid, p->wlan_essid, MAX_ESSID_LEN) == 0) {
 			DEBUG("SPLIT   essid found\n");
 			break;
 		}
@@ -261,7 +261,7 @@ check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node)
 	if (&e->list == &essids.list) {
 		DEBUG("SPLIT   essid not found, adding new\n");
 		e = malloc(sizeof(struct essid_info));
-		strncpy(e->essid, pkt->wlan_essid, MAX_ESSID_LEN);
+		strncpy(e->essid, p->wlan_essid, MAX_ESSID_LEN);
 		e->num_nodes = 0;
 		e->split = 0;
 		INIT_LIST_HEAD(&e->nodes);
@@ -269,17 +269,17 @@ check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node)
 	}
 
 	/* if node had another essid before, remove it there */
-	if (pkt_node->essid != NULL && pkt_node->essid != e) {
-		remove_node_from_essid(pkt_node);
+	if (n->essid != NULL && n->essid != e) {
+		remove_node_from_essid(n);
 	}
 
 	/* new node */
-	if (pkt_node->essid == NULL) {
+	if (n->essid == NULL) {
 		DEBUG("SPLIT   node not found, adding new %s\n",
-			ether_sprintf(pkt->wlan_src));
-		list_add_tail(&pkt_node->essid_nodes, &e->nodes);
+			ether_sprintf(p->wlan_src));
+		list_add_tail(&n->essid_nodes, &e->nodes);
 		e->num_nodes++;
-		pkt_node->essid = e;
+		n->essid = e;
 	}
 
 	update_essid_split_status(e);
@@ -287,7 +287,7 @@ check_ibss_split(struct packet_info* pkt, struct node_info* pkt_node)
 
 
 static int
-filter_packet(struct packet_info* pkt)
+filter_packet(struct packet_info* p)
 {
 	int i;
 
@@ -295,22 +295,22 @@ filter_packet(struct packet_info* pkt)
 		return 0;
 	}
 
-	if (!(pkt->pkt_types & conf.filter_pkt)) {
+	if (!(p->pkt_types & conf.filter_pkt)) {
 		stats.filtered_packets++;
 		return 1;
 	}
 
 	if (MAC_NOT_EMPTY(conf.filterbssid) &&
-	    memcmp(pkt->wlan_bssid, conf.filterbssid, MAC_LEN) != 0) {
+	    memcmp(p->wlan_bssid, conf.filterbssid, MAC_LEN) != 0) {
 		stats.filtered_packets++;
 		return 1;
 	}
 
 	if (conf.do_macfilter) {
 		for (i = 0; i < MAX_FILTERMAC; i++) {
-			if (MAC_NOT_EMPTY(pkt->wlan_src) &&
+			if (MAC_NOT_EMPTY(p->wlan_src) &&
 			    conf.filtermac_enabled[i] &&
-			    memcmp(pkt->wlan_src, conf.filtermac[i], MAC_LEN) == 0) {
+			    memcmp(p->wlan_src, conf.filtermac[i], MAC_LEN) == 0) {
 				return 0;
 			}
 		}
@@ -420,21 +420,21 @@ update_spectrum(struct packet_info* p, struct node_info* n)
 
 
 static void 
-write_to_file(struct packet_info* pkt)
+write_to_file(struct packet_info* p)
 {
 	fprintf(DF, "%s, %s, ",
-		get_packet_type_name(pkt->wlan_type), ether_sprintf(pkt->wlan_src));
-	fprintf(DF, "%s, ", ether_sprintf(pkt->wlan_dst));
-	fprintf(DF, "%s, ", ether_sprintf(pkt->wlan_bssid));
+		get_packet_type_name(p->wlan_type), ether_sprintf(p->wlan_src));
+	fprintf(DF, "%s, ", ether_sprintf(p->wlan_dst));
+	fprintf(DF, "%s, ", ether_sprintf(p->wlan_bssid));
 	fprintf(DF, "%x, %d, %d, %d, %d, %d, ",
-		pkt->pkt_types, pkt->phy_signal, pkt->phy_noise, pkt->phy_snr,
-		pkt->pkt_len, pkt->phy_rate);
-	fprintf(DF, "%016llx, ", (unsigned long long)pkt->wlan_tsf);
+		p->pkt_types, p->phy_signal, p->phy_noise, p->phy_snr,
+		p->pkt_len, p->phy_rate);
+	fprintf(DF, "%016llx, ", (unsigned long long)p->wlan_tsf);
 	fprintf(DF, "%s, %d, %d, %d, ",
-		pkt->wlan_essid, pkt->wlan_mode, pkt->wlan_channel, pkt->wlan_wep);
-	fprintf(DF, "%s, ", ip_sprintf(pkt->ip_src));
-	fprintf(DF, "%s, ", ip_sprintf(pkt->ip_dst));
-	fprintf(DF, "%d, %d, %d\n", pkt->olsr_type, pkt->olsr_neigh, pkt->olsr_tc);
+		p->wlan_essid, p->wlan_mode, p->wlan_channel, p->wlan_wep);
+	fprintf(DF, "%s, ", ip_sprintf(p->ip_src));
+	fprintf(DF, "%s, ", ip_sprintf(p->ip_dst));
+	fprintf(DF, "%d, %d, %d\n", p->olsr_type, p->olsr_neigh, p->olsr_tc);
 }
 
 
@@ -470,7 +470,7 @@ timeout_nodes(void)
 static void
 handle_packet(struct packet_info* p)
 {
-	struct node_info* node;
+	struct node_info* n;
 
 	if (conf.port && cli_fd != -1) {
 		net_send_packet(p);
@@ -492,18 +492,18 @@ handle_packet(struct packet_info* p)
 			0 /*shortslot*/, p->wlan_type, p->wlan_qos_class,
 			p->wlan_retries);
 
-	node = node_update(p);
+	n = node_update(p);
 
-	if (node)
-		p->wlan_retries = node->wlan_retries_last;
+	if (n)
+		p->wlan_retries = n->wlan_retries_last;
 
 	update_history(p);
 	update_statistics(p);
-	update_spectrum(p, node);
-	check_ibss_split(p, node);
+	update_spectrum(p, n);
+	check_ibss_split(p, n);
 
 #if !DO_DEBUG
-	update_display(p, node);
+	update_display(p, n);
 #endif
 }
 
@@ -511,29 +511,29 @@ handle_packet(struct packet_info* p)
 static void
 receive_packet(unsigned char* buffer, int len)
 {
-	struct packet_info current_packet;
+	struct packet_info p;
 
 #if DO_DEBUG
 	dump_packet(buffer, len);
 #endif
-	memset(&current_packet, 0, sizeof(current_packet));
+	memset(&p, 0, sizeof(p));
 
 	if (!conf.serveraddr) {
 		/* local capture */
-		if (!parse_packet(buffer, len, &current_packet)) {
+		if (!parse_packet(buffer, len, &p)) {
 			DEBUG("parsing failed\n");
 			return;
 		}
 	}
 	else {
 		/* client mode - receiving pre-parsed from server */
-		if (!net_receive_packet(buffer, len, &current_packet)) {
+		if (!net_receive_packet(buffer, len, &p)) {
 			DEBUG("receive failed\n");
 			return;
 		}
 	}
 
-	handle_packet(&current_packet);
+	handle_packet(&p);
 }
 
 

@@ -36,27 +36,27 @@
 #include "util.h"
 
 
-static int parse_prism_header(unsigned char** buf, int len, struct packet_info* current_packet);
-static int parse_radiotap_header(unsigned char** buf, int len, struct packet_info* current_packet);
-static int parse_80211_header(unsigned char** buf, int len, struct packet_info* current_packet);
-static int parse_llc(unsigned char** buf, int len, struct packet_info* current_packet);
-static int parse_ip_header(unsigned char** buf, int len, struct packet_info* current_packet);
-static int parse_udp_header(unsigned char** buf, int len, struct packet_info* current_packet);
-static int parse_olsr_packet(unsigned char** buf, int len, struct packet_info* current_packet);
-static int parse_batman_packet(unsigned char** buf, int len, struct packet_info* current_packet);
+static int parse_prism_header(unsigned char** buf, int len, struct packet_info* p);
+static int parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p);
+static int parse_80211_header(unsigned char** buf, int len, struct packet_info* p);
+static int parse_llc(unsigned char** buf, int len, struct packet_info* p);
+static int parse_ip_header(unsigned char** buf, int len, struct packet_info* p);
+static int parse_udp_header(unsigned char** buf, int len, struct packet_info* p);
+static int parse_olsr_packet(unsigned char** buf, int len, struct packet_info* p);
+static int parse_batman_packet(unsigned char** buf, int len, struct packet_info* p);
 
 
 /* return 1 if we parsed enough = min ieee header */
 int
-parse_packet(unsigned char* buf, int len, struct packet_info* current_packet)
+parse_packet(unsigned char* buf, int len, struct packet_info* p)
 {
 	if (conf.arphrd == ARPHRD_IEEE80211_PRISM) {
-		len = parse_prism_header(&buf, len, current_packet);
+		len = parse_prism_header(&buf, len, p);
 		if (len <= 0)
 			return 0;
 	}
 	else if (conf.arphrd == ARPHRD_IEEE80211_RADIOTAP) {
-		len = parse_radiotap_header(&buf, len, current_packet);
+		len = parse_radiotap_header(&buf, len, p);
 		if (len <= 0)
 			return 0;
 	}
@@ -65,22 +65,22 @@ parse_packet(unsigned char* buf, int len, struct packet_info* current_packet)
 	    conf.arphrd == ARPHRD_IEEE80211_PRISM ||
 	    conf.arphrd == ARPHRD_IEEE80211_RADIOTAP) {
 		DEBUG("before parse 80211 len: %d\n", len);
-		len = parse_80211_header(&buf, len, current_packet);
+		len = parse_80211_header(&buf, len, p);
 		if (len < 0) /* couldnt parse */
 			return 0;
 		else if (len == 0)
 			return 1;
 	}
 
-	len = parse_llc(&buf, len, current_packet);
+	len = parse_llc(&buf, len, p);
 	if (len <= 0)
 		return 1;
 
-	len = parse_ip_header(&buf, len, current_packet);
+	len = parse_ip_header(&buf, len, p);
 	if (len <= 0)
 		return 1;
 
-	len = parse_udp_header(&buf, len, current_packet);
+	len = parse_udp_header(&buf, len, p);
 	if (len <= 0)
 		return 1;
 
@@ -89,7 +89,7 @@ parse_packet(unsigned char* buf, int len, struct packet_info* current_packet)
 
 
 static int
-parse_prism_header(unsigned char** buf, int len, struct packet_info* current_packet)
+parse_prism_header(unsigned char** buf, int len, struct packet_info* p)
 {
 	wlan_ng_prism2_header* ph;
 
@@ -107,53 +107,53 @@ parse_prism_header(unsigned char** buf, int len, struct packet_info* current_pac
 	*/
 	if (((int)ph->noise.data) < 0) {
 		/* new madwifi */
-		current_packet->phy_signal = ph->signal.data;
-		current_packet->phy_noise = ph->noise.data;
-		current_packet->phy_snr = ph->rssi.data;
+		p->phy_signal = ph->signal.data;
+		p->phy_noise = ph->noise.data;
+		p->phy_snr = ph->rssi.data;
 	}
 	else if (((int)ph->rssi.data) < 0) {
 		/* broadcom hack */
-		current_packet->phy_signal = ph->rssi.data;
-		current_packet->phy_noise = -95;
-		current_packet->phy_snr = 95 + ph->rssi.data;
+		p->phy_signal = ph->rssi.data;
+		p->phy_noise = -95;
+		p->phy_snr = 95 + ph->rssi.data;
 	}
 	else {
 		/* assume hostap */
-		current_packet->phy_signal = ph->signal.data;
-		current_packet->phy_noise = ph->noise.data;
-		current_packet->phy_snr = ph->signal.data - ph->noise.data; //XXX rssi?
+		p->phy_signal = ph->signal.data;
+		p->phy_noise = ph->noise.data;
+		p->phy_snr = ph->signal.data - ph->noise.data; //XXX rssi?
 	}
 
-	current_packet->phy_rate = ph->rate.data;
+	p->phy_rate = ph->rate.data;
 
 	/* just in case...*/
-	if (current_packet->phy_snr < 0)
-		current_packet->phy_snr = -current_packet->phy_snr;
-	if (current_packet->phy_snr > 99)
-		current_packet->phy_snr = 99;
-	if (current_packet->phy_rate == 0 || current_packet->phy_rate > 108) {
+	if (p->phy_snr < 0)
+		p->phy_snr = -p->phy_snr;
+	if (p->phy_snr > 99)
+		p->phy_snr = 99;
+	if (p->phy_rate == 0 || p->phy_rate > 108) {
 		/* assume min rate, guess mode from channel */
 		DEBUG("*** fixing wrong rate\n");
 		if (ph->channel.data > 14)
-			current_packet->phy_rate = 12; /* 6 * 2 */
+			p->phy_rate = 12; /* 6 * 2 */
 		else
-			current_packet->phy_rate = 2; /* 1 * 2 */
+			p->phy_rate = 2; /* 1 * 2 */
 	}
 
 	/* guess phy mode */
 	if (ph->channel.data > 14)
-		current_packet->phy_flags |= PHY_FLAG_A;
+		p->phy_flags |= PHY_FLAG_A;
 	else
-		current_packet->phy_flags |= PHY_FLAG_G;
+		p->phy_flags |= PHY_FLAG_G;
 	/* always assume shortpre */
-	current_packet->phy_flags |= PHY_FLAG_SHORTPRE;
+	p->phy_flags |= PHY_FLAG_SHORTPRE;
 
 	DEBUG("devname: %s\n", ph->devname);
-	DEBUG("signal: %d -> %d\n", ph->signal.data, current_packet->phy_signal);
-	DEBUG("noise: %d -> %d\n", ph->noise.data, current_packet->phy_noise);
+	DEBUG("signal: %d -> %d\n", ph->signal.data, p->phy_signal);
+	DEBUG("noise: %d -> %d\n", ph->noise.data, p->phy_noise);
 	DEBUG("rate: %d\n", ph->rate.data);
 	DEBUG("rssi: %d\n", ph->rssi.data);
-	DEBUG("*** SNR %d\n", current_packet->phy_snr);
+	DEBUG("*** SNR %d\n", p->phy_snr);
 
 	*buf = *buf + sizeof(wlan_ng_prism2_header);
 	return len - sizeof(wlan_ng_prism2_header);
@@ -161,7 +161,7 @@ parse_prism_header(unsigned char** buf, int len, struct packet_info* current_pac
 
 
 static int
-parse_radiotap_header(unsigned char** buf, int len, struct packet_info* current_packet)
+parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 {
 	struct ieee80211_radiotap_header* rh;
 	__le32 present; /* the present bitmap */
@@ -225,33 +225,33 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* current_
 				/* we are only interrested in these: */
 				case IEEE80211_RADIOTAP_RATE:
 					DEBUG("[rate %0x]", *b);
-					current_packet->phy_rate = (*b);
+					p->phy_rate = (*b);
 					b++;
 					break;
 				case IEEE80211_RADIOTAP_DBM_ANTSIGNAL:
 					DEBUG("[sig %0x]", *b);
-					current_packet->phy_signal = *(char*)b;
+					p->phy_signal = *(char*)b;
 					b++;
 					break;
 				case IEEE80211_RADIOTAP_DBM_ANTNOISE:
 					DEBUG("[noi %0x]", *b);
-					current_packet->phy_noise = *(char*)b;
+					p->phy_noise = *(char*)b;
 					b++;
 					break;
 				case IEEE80211_RADIOTAP_DB_ANTSIGNAL:
 					DEBUG("[snr %0x]", *b);
-					current_packet->phy_snr = *b;
+					p->phy_snr = *b;
 					b++;
 					break;
 				case IEEE80211_RADIOTAP_FLAGS:
 					/* short preamble */
 					DEBUG("[flags %0x", *b);
 					if (*b & IEEE80211_RADIOTAP_F_SHORTPRE) {
-						current_packet->phy_flags |= PHY_FLAG_SHORTPRE;
+						p->phy_flags |= PHY_FLAG_SHORTPRE;
 						DEBUG(" shortpre");
 					}
 					if (*b & IEEE80211_RADIOTAP_F_BADFCS) {
-						current_packet->phy_flags |= PHY_FLAG_BADFCS;
+						p->phy_flags |= PHY_FLAG_BADFCS;
 						DEBUG(" badfcs");
 					}
 					DEBUG("]");
@@ -259,23 +259,23 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* current_
 					break;
 				case IEEE80211_RADIOTAP_CHANNEL:
 					/* channel & channel type */
-					current_packet->phy_freq = le16toh(*(u_int16_t*)b);
-					current_packet->phy_chan =
-						ieee80211_frequency_to_channel(current_packet->phy_freq);
-					DEBUG("[freq %d chan %d", current_packet->phy_freq,
-						current_packet->phy_chan);
+					p->phy_freq = le16toh(*(u_int16_t*)b);
+					p->phy_chan =
+						ieee80211_frequency_to_channel(p->phy_freq);
+					DEBUG("[freq %d chan %d", p->phy_freq,
+						p->phy_chan);
 					b = b + 2;
 					x = le16toh(*(u_int16_t*)b);
 					if (x & IEEE80211_CHAN_A) {
-						current_packet->phy_flags |= PHY_FLAG_A;
+						p->phy_flags |= PHY_FLAG_A;
 						DEBUG("A]");
 					}
 					else if (x & IEEE80211_CHAN_G) {
-						current_packet->phy_flags |= PHY_FLAG_G;
+						p->phy_flags |= PHY_FLAG_G;
 						DEBUG("G]");
 					}
 					else if (x & IEEE80211_CHAN_B) {
-						current_packet->phy_flags |= PHY_FLAG_B;
+						p->phy_flags |= PHY_FLAG_B;
 						DEBUG("B]");
 					}
 					b = b + 2;
@@ -292,33 +292,33 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* current_
 		/* no SNR in radiotap, try to calculate */
 		if (present & (1 << IEEE80211_RADIOTAP_DBM_ANTSIGNAL) &&
 		    present & (1 << IEEE80211_RADIOTAP_DBM_ANTNOISE))
-			current_packet->phy_snr = current_packet->phy_signal -
-						  current_packet->phy_noise;
+			p->phy_snr = p->phy_signal -
+						  p->phy_noise;
 		/* HACK: here we just assume noise to be -95dBm */
 		else if (!(present & (1 << IEEE80211_RADIOTAP_DBM_ANTNOISE)))
-			current_packet->phy_snr = current_packet->phy_signal + 95;
+			p->phy_snr = p->phy_signal + 95;
 	}
 
 	/* sanitize */
-	if (current_packet->phy_snr > 99)
-		current_packet->phy_snr = 99;
-	if (current_packet->phy_rate == 0 || current_packet->phy_rate > 108) {
+	if (p->phy_snr > 99)
+		p->phy_snr = 99;
+	if (p->phy_rate == 0 || p->phy_rate > 108) {
 		/* assume min rate for mode */
 		DEBUG("*** fixing wrong rate\n");
-		if (current_packet->phy_flags & PHY_FLAG_A)
-			current_packet->phy_rate = 12; /* 6 * 2 */
-		else if (current_packet->phy_flags & PHY_FLAG_B)
-			current_packet->phy_rate = 2; /* 1 * 2 */
-		else if (current_packet->phy_flags & PHY_FLAG_G)
-			current_packet->phy_rate = 12; /* 6 * 2 */
+		if (p->phy_flags & PHY_FLAG_A)
+			p->phy_rate = 12; /* 6 * 2 */
+		else if (p->phy_flags & PHY_FLAG_B)
+			p->phy_rate = 2; /* 1 * 2 */
+		else if (p->phy_flags & PHY_FLAG_G)
+			p->phy_rate = 12; /* 6 * 2 */
 		else
-			current_packet->phy_rate = 2;
+			p->phy_rate = 2;
 	}
 
-	DEBUG("\nrate: %d\n", current_packet->phy_rate);
-	DEBUG("signal: %d\n", current_packet->phy_signal);
-	DEBUG("noise: %d\n", current_packet->phy_noise);
-	DEBUG("snr: %d\n", current_packet->phy_snr);
+	DEBUG("\nrate: %d\n", p->phy_rate);
+	DEBUG("signal: %d\n", p->phy_signal);
+	DEBUG("noise: %d\n", p->phy_noise);
+	DEBUG("snr: %d\n", p->phy_snr);
 
 	*buf = *buf + rt_len;
 	return len - rt_len;
@@ -326,7 +326,7 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* current_
 
 
 static int
-parse_80211_header(unsigned char** buf, int len, struct packet_info* current_packet)
+parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 {
 	struct ieee80211_hdr* wh;
 	struct ieee80211_mgmt* whm;
@@ -348,8 +348,8 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 	if (len < hdrlen)
 		return -1;
 
-	current_packet->pkt_len = len;
-	current_packet->wlan_type = (fc & (IEEE80211_FCTL_FTYPE | IEEE80211_FCTL_STYPE));
+	p->pkt_len = len;
+	p->wlan_type = (fc & (IEEE80211_FCTL_FTYPE | IEEE80211_FCTL_STYPE));
 
 	DEBUG("wlan_type %x - type %x - stype %x\n", fc, fc & IEEE80211_FCTL_FTYPE, fc & IEEE80211_FCTL_STYPE );
 
@@ -357,65 +357,65 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 
 	bssid = ieee80211_get_bssid(wh, len);
 
-	switch (current_packet->wlan_type & IEEE80211_FCTL_FTYPE) {
+	switch (p->wlan_type & IEEE80211_FCTL_FTYPE) {
 	case IEEE80211_FTYPE_DATA:
-		current_packet->pkt_types = PKT_TYPE_DATA;
-		switch (current_packet->wlan_type & IEEE80211_FCTL_STYPE) {
+		p->pkt_types = PKT_TYPE_DATA;
+		switch (p->wlan_type & IEEE80211_FCTL_STYPE) {
 		case IEEE80211_STYPE_NULLFUNC:
-			current_packet->pkt_types |= PKT_TYPE_NULL;
+			p->pkt_types |= PKT_TYPE_NULL;
 			break;
 		case IEEE80211_STYPE_QOS_DATA:
 			/* TODO: ouch, should properly define a qos header */
-			current_packet->wlan_qos_class = wh->addr4[0] & 0x7;
-			DEBUG("***QDATA %x\n", current_packet->wlan_qos_class);
+			p->wlan_qos_class = wh->addr4[0] & 0x7;
+			DEBUG("***QDATA %x\n", p->wlan_qos_class);
 			break;
 		}
-		current_packet->wlan_nav = le16toh(wh->duration_id);
-		DEBUG("DATA NAV %d\n", current_packet->wlan_nav);
-		current_packet->wlan_seqno = le16toh(wh->seq_ctrl);
-		DEBUG("DATA SEQ %d\n", current_packet->wlan_seqno);
+		p->wlan_nav = le16toh(wh->duration_id);
+		DEBUG("DATA NAV %d\n", p->wlan_nav);
+		p->wlan_seqno = le16toh(wh->seq_ctrl);
+		DEBUG("DATA SEQ %d\n", p->wlan_seqno);
 
 		sa = ieee80211_get_SA(wh);
 		da = ieee80211_get_DA(wh);
 		/* AP, STA or IBSS */
 		if ((fc & IEEE80211_FCTL_FROMDS) == 0 &&
 		    (fc & IEEE80211_FCTL_TODS) == 0)
-			current_packet->wlan_mode = WLAN_MODE_IBSS;
+			p->wlan_mode = WLAN_MODE_IBSS;
 		else if (fc & IEEE80211_FCTL_FROMDS)
-			current_packet->wlan_mode = WLAN_MODE_AP;
+			p->wlan_mode = WLAN_MODE_AP;
 		else if (fc & IEEE80211_FCTL_TODS)
-			current_packet->wlan_mode = WLAN_MODE_STA;
+			p->wlan_mode = WLAN_MODE_STA;
 		/* WEP */
 		if (fc & IEEE80211_FCTL_PROTECTED)
-			current_packet->wlan_wep = 1;
+			p->wlan_wep = 1;
 
 		if (fc & IEEE80211_FCTL_RETRY)
-			current_packet->wlan_retry = 1;
+			p->wlan_retry = 1;
 
 		break;
 
 	case IEEE80211_FTYPE_CTL:
-		current_packet->pkt_types = PKT_TYPE_CTRL;
-		switch (current_packet->wlan_type & IEEE80211_FCTL_STYPE) {
+		p->pkt_types = PKT_TYPE_CTRL;
+		switch (p->wlan_type & IEEE80211_FCTL_STYPE) {
 		case IEEE80211_STYPE_RTS:
-			current_packet->pkt_types |= PKT_TYPE_RTS;
-			current_packet->wlan_nav = le16toh(wh->duration_id);
-			DEBUG("RTS NAV %d\n", current_packet->wlan_nav);
+			p->pkt_types |= PKT_TYPE_RTS;
+			p->wlan_nav = le16toh(wh->duration_id);
+			DEBUG("RTS NAV %d\n", p->wlan_nav);
 			sa = wh->addr2;
 			da = wh->addr1;
 			break;
 
 		case IEEE80211_STYPE_CTS:
-			current_packet->pkt_types |= PKT_TYPE_CTS;
-			current_packet->wlan_nav = le16toh(wh->duration_id);
-			DEBUG("CTS NAV %d\n", current_packet->wlan_nav);
+			p->pkt_types |= PKT_TYPE_CTS;
+			p->wlan_nav = le16toh(wh->duration_id);
+			DEBUG("CTS NAV %d\n", p->wlan_nav);
 			da = wh->addr1;
 			break;
 
 		case IEEE80211_STYPE_ACK:
-			current_packet->pkt_types |= PKT_TYPE_ACK;
-			current_packet->wlan_nav = le16toh(wh->duration_id);
-			DEBUG("ACK NAV %d\n", current_packet->wlan_nav);
+			p->pkt_types |= PKT_TYPE_ACK;
+			p->wlan_nav = le16toh(wh->duration_id);
+			DEBUG("ACK NAV %d\n", p->wlan_nav);
 			da = wh->addr1;
 			break;
 
@@ -435,56 +435,56 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 		break;
 
 	case IEEE80211_FTYPE_MGMT:
-		current_packet->pkt_types = PKT_TYPE_MGMT;
+		p->pkt_types = PKT_TYPE_MGMT;
 		whm = (struct ieee80211_mgmt*)*buf;
 		sa = whm->sa;
 		da = whm->da;
-		current_packet->wlan_seqno = le16toh(wh->seq_ctrl);
-		DEBUG("MGMT SEQ %d\n", current_packet->wlan_seqno);
+		p->wlan_seqno = le16toh(wh->seq_ctrl);
+		DEBUG("MGMT SEQ %d\n", p->wlan_seqno);
 
 		if (fc & IEEE80211_FCTL_RETRY)
-			current_packet->wlan_retry = 1;
+			p->wlan_retry = 1;
 
-		switch (current_packet->wlan_type & IEEE80211_FCTL_STYPE) {
+		switch (p->wlan_type & IEEE80211_FCTL_STYPE) {
 		case IEEE80211_STYPE_BEACON:
-			current_packet->pkt_types |= PKT_TYPE_BEACON;
-			current_packet->wlan_tsf = le64toh(whm->u.beacon.timestamp);
-			current_packet->wlan_bintval = le16toh(whm->u.beacon.beacon_int);
+			p->pkt_types |= PKT_TYPE_BEACON;
+			p->wlan_tsf = le64toh(whm->u.beacon.timestamp);
+			p->wlan_bintval = le16toh(whm->u.beacon.beacon_int);
 			ieee802_11_parse_elems(whm->u.beacon.variable,
-				len - sizeof(struct ieee80211_mgmt) - 4 /* FCS */, current_packet);
-			DEBUG("ESSID %s \n", current_packet->wlan_essid );
-			DEBUG("CHAN %d \n", current_packet->wlan_channel );
+				len - sizeof(struct ieee80211_mgmt) - 4 /* FCS */, p);
+			DEBUG("ESSID %s \n", p->wlan_essid );
+			DEBUG("CHAN %d \n", p->wlan_channel );
 			cap_i = le16toh(whm->u.beacon.capab_info);
 			if (cap_i & WLAN_CAPABILITY_IBSS)
-				current_packet->wlan_mode = WLAN_MODE_IBSS;
+				p->wlan_mode = WLAN_MODE_IBSS;
 			else if (cap_i & WLAN_CAPABILITY_ESS)
-				current_packet->wlan_mode = WLAN_MODE_AP;
+				p->wlan_mode = WLAN_MODE_AP;
 			if (cap_i & WLAN_CAPABILITY_PRIVACY)
-				current_packet->wlan_wep = 1;
+				p->wlan_wep = 1;
 			break;
 
 		case IEEE80211_STYPE_PROBE_RESP:
-			current_packet->pkt_types |= PKT_TYPE_PROBE;
-			current_packet->wlan_tsf = le64toh(whm->u.beacon.timestamp);
+			p->pkt_types |= PKT_TYPE_PROBE;
+			p->wlan_tsf = le64toh(whm->u.beacon.timestamp);
 			ieee802_11_parse_elems(whm->u.beacon.variable,
-				len - sizeof(struct ieee80211_mgmt) - 4 /* FCS */, current_packet);
-			DEBUG("ESSID %s \n", current_packet->wlan_essid );
-			DEBUG("CHAN %d \n", current_packet->wlan_channel );
+				len - sizeof(struct ieee80211_mgmt) - 4 /* FCS */, p);
+			DEBUG("ESSID %s \n", p->wlan_essid );
+			DEBUG("CHAN %d \n", p->wlan_channel );
 			cap_i = le16toh(whm->u.beacon.capab_info);
 			if (cap_i & WLAN_CAPABILITY_IBSS)
-				current_packet->wlan_mode = WLAN_MODE_IBSS;
+				p->wlan_mode = WLAN_MODE_IBSS;
 			else if (cap_i & WLAN_CAPABILITY_ESS)
-				current_packet->wlan_mode = WLAN_MODE_AP;
+				p->wlan_mode = WLAN_MODE_AP;
 			if (cap_i & WLAN_CAPABILITY_PRIVACY)
-				current_packet->wlan_wep = 1;
+				p->wlan_wep = 1;
 			break;
 
 		case IEEE80211_STYPE_PROBE_REQ:
-			current_packet->pkt_types |= PKT_TYPE_PROBE;
+			p->pkt_types |= PKT_TYPE_PROBE;
 			ieee802_11_parse_elems(whm->u.probe_req.variable,
 				len - 24 - 4 /* FCS */,
-				current_packet);
-			current_packet->wlan_mode |= WLAN_MODE_PROBE;
+				p);
+			p->wlan_mode |= WLAN_MODE_PROBE;
 			break;
 
 		case IEEE80211_STYPE_ASSOC_REQ:
@@ -492,33 +492,33 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 		case IEEE80211_STYPE_REASSOC_REQ:
 		case IEEE80211_STYPE_REASSOC_RESP:
 		case IEEE80211_STYPE_DISASSOC:
-			current_packet->pkt_types |= PKT_TYPE_ASSOC;
+			p->pkt_types |= PKT_TYPE_ASSOC;
 			break;
 
 		case IEEE80211_STYPE_AUTH:
 		case IEEE80211_STYPE_DEAUTH:
-			current_packet->pkt_types |= PKT_TYPE_AUTH;
+			p->pkt_types |= PKT_TYPE_AUTH;
 			break;
 		}
 		break;
 	}
 
 	if (sa != NULL) {
-		memcpy(current_packet->wlan_src, sa, MAC_LEN);
+		memcpy(p->wlan_src, sa, MAC_LEN);
 		DEBUG("SA    %s\n", ether_sprintf(sa));
 	}
 	if (da != NULL) {
-		memcpy(current_packet->wlan_dst, da, MAC_LEN);
+		memcpy(p->wlan_dst, da, MAC_LEN);
 		DEBUG("DA    %s\n", ether_sprintf(da));
 	}
 	if (bssid!=NULL) {
-		memcpy(current_packet->wlan_bssid, bssid, MAC_LEN);
+		memcpy(p->wlan_bssid, bssid, MAC_LEN);
 		DEBUG("BSSID %s\n", ether_sprintf(bssid));
 	}
 
 	/* only data frames contain more info, otherwise stop parsing */
-	if (IEEE80211_IS_DATA(current_packet->wlan_type) &&
-	    current_packet->wlan_wep != 1) {
+	if (IEEE80211_IS_DATA(p->wlan_type) &&
+	    p->wlan_wep != 1) {
 		*buf = *buf + hdrlen;
 		return len - hdrlen;
 	}
@@ -527,7 +527,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* current_pac
 
 
 static int
-parse_llc(unsigned char ** buf, int len, struct packet_info* current_packet)
+parse_llc(unsigned char ** buf, int len, struct packet_info* p)
 {
 	DEBUG("* parse LLC\n");
 
@@ -540,7 +540,7 @@ parse_llc(unsigned char ** buf, int len, struct packet_info* current_packet)
 		return -1;
 	(*buf)++;
 	if (**buf == 0x06) { /* ARP */
-		current_packet->pkt_types |= PKT_TYPE_ARP;
+		p->pkt_types |= PKT_TYPE_ARP;
 		return 0;
 	}
 	if (**buf != 0x00)  /* not IP */
@@ -554,7 +554,7 @@ parse_llc(unsigned char ** buf, int len, struct packet_info* current_packet)
 
 
 static int
-parse_ip_header(unsigned char** buf, int len, struct packet_info* current_packet)
+parse_ip_header(unsigned char** buf, int len, struct packet_info* p)
 {
 	struct iphdr* ih;
 
@@ -567,16 +567,16 @@ parse_ip_header(unsigned char** buf, int len, struct packet_info* current_packet
 
 	DEBUG("*** IP SRC: %s\n", ip_sprintf(ih->saddr));
 	DEBUG("*** IP DST: %s\n", ip_sprintf(ih->daddr));
-	current_packet->ip_src = ih->saddr;
-	current_packet->ip_dst = ih->daddr;
-	current_packet->pkt_types |= PKT_TYPE_IP;
+	p->ip_src = ih->saddr;
+	p->ip_dst = ih->daddr;
+	p->pkt_types |= PKT_TYPE_IP;
 
 	DEBUG("IP proto: %d\n", ih->protocol);
 	switch (ih->protocol) {
-	case IPPROTO_UDP: current_packet->pkt_types |= PKT_TYPE_UDP; break;
+	case IPPROTO_UDP: p->pkt_types |= PKT_TYPE_UDP; break;
 	/* all others set the type and return. no more parsing */
-	case IPPROTO_ICMP: current_packet->pkt_types |= PKT_TYPE_ICMP; return 0;
-	case IPPROTO_TCP: current_packet->pkt_types |= PKT_TYPE_TCP; return 0;
+	case IPPROTO_ICMP: p->pkt_types |= PKT_TYPE_ICMP; return 0;
+	case IPPROTO_TCP: p->pkt_types |= PKT_TYPE_TCP; return 0;
 	}
 
 
@@ -586,7 +586,7 @@ parse_ip_header(unsigned char** buf, int len, struct packet_info* current_packet
 
 
 static int
-parse_udp_header(unsigned char** buf, int len, struct packet_info* current_packet)
+parse_udp_header(unsigned char** buf, int len, struct packet_info* p)
 {
 	struct udphdr* uh;
 
@@ -601,17 +601,17 @@ parse_udp_header(unsigned char** buf, int len, struct packet_info* current_packe
 	len = len - 8;
 
 	if (ntohs(uh->dest) == 698) /* OLSR */
-		return parse_olsr_packet(buf, len, current_packet);
+		return parse_olsr_packet(buf, len, p);
 
 	if (ntohs(uh->dest) == BAT_PORT) /* batman */
-		return parse_batman_packet(buf, len, current_packet);
+		return parse_batman_packet(buf, len, p);
 
 	return 0;
 }
 
 
 static int
-parse_olsr_packet(unsigned char** buf, int len, struct packet_info* current_packet)
+parse_olsr_packet(unsigned char** buf, int len, struct packet_info* p)
 {
 	struct olsr* oh;
 	int number, i, msgtype;
@@ -626,22 +626,22 @@ parse_olsr_packet(unsigned char** buf, int len, struct packet_info* current_pack
 
 	DEBUG("OLSR msgtype: %d\n*** ", msgtype);
 
-	current_packet->pkt_types |= PKT_TYPE_OLSR;
-	current_packet->olsr_type = msgtype;
+	p->pkt_types |= PKT_TYPE_OLSR;
+	p->olsr_type = msgtype;
 
 	if (msgtype == LQ_HELLO_MESSAGE || msgtype == LQ_TC_MESSAGE )
-		current_packet->pkt_types |= PKT_TYPE_OLSR_LQ;
+		p->pkt_types |= PKT_TYPE_OLSR_LQ;
 
 	if (msgtype == HELLO_MESSAGE) {
 		number = (ntohs(oh->olsr_msg[0].olsr_msgsize) - 12) / sizeof(struct hellomsg);
 		DEBUG("HELLO %d\n", number);
-		current_packet->olsr_neigh = number;
+		p->olsr_neigh = number;
 	}
 
 	if (msgtype == LQ_HELLO_MESSAGE) {
 		number = (ntohs(oh->olsr_msg[0].olsr_msgsize) - 16) / 12;
 		DEBUG("LQ_HELLO %d (%d)\n", number, (ntohs(oh->olsr_msg[0].olsr_msgsize) - 16));
-		current_packet->olsr_neigh = number;
+		p->olsr_neigh = number;
 	}
 #if 0
 /*	XXX: tc messages are relayed. so we would have to find the originating node (IP)
@@ -650,13 +650,13 @@ parse_olsr_packet(unsigned char** buf, int len, struct packet_info* current_pack
 	if (msgtype == TC_MESSAGE) {
 		number = (ntohs(oh->olsr_msg[0].olsr_msgsize)-12) / sizeof(struct tcmsg);
 		DEBUG("TC %d\n", number);
-		current_packet->olsr_tc = number;
+		p->olsr_tc = number;
 	}
 
 	if (msgtype == LQ_TC_MESSAGE) {
 		number = (ntohs(oh->olsr_msg[0].olsr_msgsize)-16) / 8;
 		DEBUG("LQ_TC %d (%d)\n", number, (ntohs(oh->olsr_msg[0].olsr_msgsize)-16));
-		current_packet->olsr_tc = number;
+		p->olsr_tc = number;
 	}
 #endif
 	if (msgtype == HNA_MESSAGE) {
@@ -671,7 +671,7 @@ parse_olsr_packet(unsigned char** buf, int len, struct packet_info* current_pack
 			DEBUG("HNA %s", ip_sprintf(hna->addr));
 			DEBUG("/%s\n", ip_sprintf(hna->netmask));
 			if (hna->addr == 0 && hna->netmask == 0)
-				current_packet->pkt_types |= PKT_TYPE_OLSR_GW;
+				p->pkt_types |= PKT_TYPE_OLSR_GW;
 		}
 	}
 	/* done for good */
@@ -680,9 +680,9 @@ parse_olsr_packet(unsigned char** buf, int len, struct packet_info* current_pack
 
 
 static int
-parse_batman_packet(unsigned char** buf, int len, struct packet_info* current_packet)
+parse_batman_packet(unsigned char** buf, int len, struct packet_info* p)
 {
-	current_packet->pkt_types |= PKT_TYPE_BATMAN;
+	p->pkt_types |= PKT_TYPE_BATMAN;
 
 	return 0;
 }

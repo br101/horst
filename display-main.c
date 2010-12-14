@@ -146,7 +146,7 @@ show_sort_win(void)
 /******************* WINDOWS *******************/
 
 static void
-update_status_win(struct packet_info* pkt, struct node_info* node)
+update_status_win(struct packet_info* p, struct node_info* n)
 {
 	int sig, noi, rate, bps, dps, bpsn, usen;
 	int max = 0, avg = 0;
@@ -165,21 +165,21 @@ update_status_win(struct packet_info* pkt, struct node_info* node)
 	use = dps * 1.0 / 10000; /* usec, in percent */
 	usen = normalize(use, 100, max_stat_bar);
 
-	if (pkt != NULL)
+	if (p != NULL)
 	{
-		sig = normalize_db(-pkt->phy_signal, max_stat_bar);
-		if (pkt->phy_noise)
-			noi = normalize_db(-pkt->phy_noise, max_stat_bar);
-		rate = normalize(pkt->phy_rate, 108, max_stat_bar);
+		sig = normalize_db(-p->phy_signal, max_stat_bar);
+		if (p->phy_noise)
+			noi = normalize_db(-p->phy_noise, max_stat_bar);
+		rate = normalize(p->phy_rate, 108, max_stat_bar);
 
-		if (node != NULL && node->phy_sig_max < 0)
-			max = normalize_db(-node->phy_sig_max, max_stat_bar);
+		if (n != NULL && n->phy_sig_max < 0)
+			max = normalize_db(-n->phy_sig_max, max_stat_bar);
 
-		if (node != NULL)
-			avg = normalize_db(-iir_average_get(node->phy_sig_avg), max_stat_bar);
+		if (n != NULL)
+			avg = normalize_db(-iir_average_get(n->phy_sig_avg), max_stat_bar);
 
 		wattron(stat_win, GREEN);
-		mvwprintw(stat_win, 0, 1, "SN:  %03d/", pkt->phy_signal);
+		mvwprintw(stat_win, 0, 1, "SN:  %03d/", p->phy_signal);
 		if (max > 1)
 			mvwprintw(stat_win, max + 4, 2, "--");
 		wattron(stat_win, ALLGREEN);
@@ -193,9 +193,9 @@ update_status_win(struct packet_info* pkt, struct node_info* node)
 		}
 
 		wattron(stat_win, RED);
-		mvwprintw(stat_win, 0, 10, "%03d", pkt->phy_noise);
+		mvwprintw(stat_win, 0, 10, "%03d", p->phy_noise);
 
-		if (pkt->phy_noise) {
+		if (p->phy_noise) {
 			wattron(stat_win, ALLRED);
 			mvwvline(stat_win, noi + 4, 2, '=', stat_height - noi);
 			mvwvline(stat_win, noi + 4, 3, '=', stat_height - noi);
@@ -203,7 +203,7 @@ update_status_win(struct packet_info* pkt, struct node_info* node)
 
 		wattron(stat_win, BLUE);
 		wattron(stat_win, A_BOLD);
-		mvwprintw(stat_win, 1, 1, "PhyRate:  %2dM", pkt->phy_rate/2);
+		mvwprintw(stat_win, 1, 1, "PhyRate:  %2dM", p->phy_rate/2);
 		wattroff(stat_win, A_BOLD);
 		wattron(stat_win, ALLBLUE);
 		mvwvline(stat_win, stat_height - rate, 5, ACS_BLOCK, rate);
@@ -345,9 +345,9 @@ update_list_win(void)
 
 
 void
-update_dump_win(struct packet_info* pkt)
+update_dump_win(struct packet_info* p)
 {
-	if (!pkt) {
+	if (!p) {
 		redrawwin(dump_win);
 		wnoutrefresh(dump_win);
 		return;
@@ -355,74 +355,74 @@ update_dump_win(struct packet_info* pkt)
 
 	wattron(dump_win, CYAN);
 
-	if (pkt->olsr_type > 0 && pkt->pkt_types & PKT_TYPE_OLSR)
+	if (p->olsr_type > 0 && p->pkt_types & PKT_TYPE_OLSR)
 		wattron(dump_win, A_BOLD);
 
-	wprintw(dump_win, "\n%03d/%03d ", pkt->phy_signal, pkt->phy_noise);
-	wprintw(dump_win, "%2d ", pkt->phy_rate/2);
-	wprintw(dump_win, "%s ", ether_sprintf(pkt->wlan_src));
-	wprintw(dump_win, "(%s) ", ether_sprintf(pkt->wlan_bssid));
+	wprintw(dump_win, "\n%03d/%03d ", p->phy_signal, p->phy_noise);
+	wprintw(dump_win, "%2d ", p->phy_rate/2);
+	wprintw(dump_win, "%s ", ether_sprintf(p->wlan_src));
+	wprintw(dump_win, "(%s) ", ether_sprintf(p->wlan_bssid));
 
-	if (pkt->wlan_retry)
+	if (p->wlan_retry)
 		wprintw(dump_win, "[r]");
 
-	if (pkt->pkt_types & PKT_TYPE_OLSR) {
-		wprintw(dump_win, "%-7s%s ", "OLSR", ip_sprintf(pkt->ip_src));
-		switch (pkt->olsr_type) {
+	if (p->pkt_types & PKT_TYPE_OLSR) {
+		wprintw(dump_win, "%-7s%s ", "OLSR", ip_sprintf(p->ip_src));
+		switch (p->olsr_type) {
 			case HELLO_MESSAGE: wprintw(dump_win, "HELLO"); break;
 			case TC_MESSAGE: wprintw(dump_win, "TC"); break;
 			case MID_MESSAGE: wprintw(dump_win, "MID");break;
 			case HNA_MESSAGE: wprintw(dump_win, "HNA"); break;
 			case LQ_HELLO_MESSAGE: wprintw(dump_win, "LQ_HELLO"); break;
 			case LQ_TC_MESSAGE: wprintw(dump_win, "LQ_TC"); break;
-			default: wprintw(dump_win, "(%d)", pkt->olsr_type);
+			default: wprintw(dump_win, "(%d)", p->olsr_type);
 		}
 	}
-	else if (pkt->pkt_types & PKT_TYPE_UDP) {
-		wprintw(dump_win, "%-7s%s", "UDP", ip_sprintf(pkt->ip_src));
-		wprintw(dump_win, " -> %s", ip_sprintf(pkt->ip_dst));
+	else if (p->pkt_types & PKT_TYPE_UDP) {
+		wprintw(dump_win, "%-7s%s", "UDP", ip_sprintf(p->ip_src));
+		wprintw(dump_win, " -> %s", ip_sprintf(p->ip_dst));
 	}
-	else if (pkt->pkt_types & PKT_TYPE_TCP) {
-		wprintw(dump_win, "%-7s%s", "TCP", ip_sprintf(pkt->ip_src));
-		wprintw(dump_win, " -> %s", ip_sprintf(pkt->ip_dst));
+	else if (p->pkt_types & PKT_TYPE_TCP) {
+		wprintw(dump_win, "%-7s%s", "TCP", ip_sprintf(p->ip_src));
+		wprintw(dump_win, " -> %s", ip_sprintf(p->ip_dst));
 	}
-	else if (pkt->pkt_types & PKT_TYPE_ICMP) {
-		wprintw(dump_win, "%-7s%s", "PING", ip_sprintf(pkt->ip_src));
-		wprintw(dump_win, " -> %s", ip_sprintf(pkt->ip_dst));
+	else if (p->pkt_types & PKT_TYPE_ICMP) {
+		wprintw(dump_win, "%-7s%s", "PING", ip_sprintf(p->ip_src));
+		wprintw(dump_win, " -> %s", ip_sprintf(p->ip_dst));
 	}
-	else if (pkt->pkt_types & PKT_TYPE_IP) {
-		wprintw(dump_win, "%-7s%s", "IP", ip_sprintf(pkt->ip_src));
-		wprintw(dump_win, " -> %s", ip_sprintf(pkt->ip_dst));
+	else if (p->pkt_types & PKT_TYPE_IP) {
+		wprintw(dump_win, "%-7s%s", "IP", ip_sprintf(p->ip_src));
+		wprintw(dump_win, " -> %s", ip_sprintf(p->ip_dst));
 	}
-	else if (pkt->pkt_types & PKT_TYPE_ARP) {
-		wprintw(dump_win, "%-7s", "ARP", ip_sprintf(pkt->ip_src));
+	else if (p->pkt_types & PKT_TYPE_ARP) {
+		wprintw(dump_win, "%-7s", "ARP", ip_sprintf(p->ip_src));
 	}
 	else {
-		wprintw(dump_win, "%-7s", get_packet_type_name(pkt->wlan_type));
+		wprintw(dump_win, "%-7s", get_packet_type_name(p->wlan_type));
 
-		switch (pkt->wlan_type & IEEE80211_FCTL_FTYPE) {
+		switch (p->wlan_type & IEEE80211_FCTL_FTYPE) {
 		case IEEE80211_FTYPE_DATA:
-			if ( pkt->wlan_wep == 1)
+			if ( p->wlan_wep == 1)
 				wprintw(dump_win, "ENCRYPTED");
 			break;
 		case IEEE80211_FTYPE_CTL:
-			switch (pkt->wlan_type & IEEE80211_FCTL_STYPE) {
+			switch (p->wlan_type & IEEE80211_FCTL_STYPE) {
 			case IEEE80211_STYPE_CTS:
 			case IEEE80211_STYPE_RTS:
 			case IEEE80211_STYPE_ACK:
-				wprintw(dump_win, "%s", ether_sprintf(pkt->wlan_dst));
+				wprintw(dump_win, "%s", ether_sprintf(p->wlan_dst));
 				break;
 			}
 			break;
 		case IEEE80211_FTYPE_MGMT:
-			switch (pkt->wlan_type & IEEE80211_FCTL_STYPE) {
+			switch (p->wlan_type & IEEE80211_FCTL_STYPE) {
 			case IEEE80211_STYPE_BEACON:
 			case IEEE80211_STYPE_PROBE_RESP:
-				wprintw(dump_win, "'%s' %llx", pkt->wlan_essid,
-					pkt->wlan_tsf);
+				wprintw(dump_win, "'%s' %llx", p->wlan_essid,
+					p->wlan_tsf);
 				break;
 			case IEEE80211_STYPE_PROBE_REQ:
-				wprintw(dump_win, "'%s'", pkt->wlan_essid);
+				wprintw(dump_win, "'%s'", p->wlan_essid);
 				break;
 			}
 		}
@@ -440,11 +440,11 @@ print_dump_win(const char *str)
 
 
 void
-update_main_win(struct packet_info *pkt, struct node_info *node)
+update_main_win(struct packet_info *p, struct node_info *n)
 {
 	update_list_win();
-	update_status_win(pkt, node);
-	update_dump_win(pkt);
+	update_status_win(p, n);
+	update_dump_win(p);
 	wnoutrefresh(dump_win);
 	if (sort_win != NULL) {
 		redrawwin(sort_win);

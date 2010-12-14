@@ -101,33 +101,33 @@ net_init_server_socket(char* rport)
 
 
 int
-net_send_packet(struct packet_info *pkt)
+net_send_packet(struct packet_info *p)
 {
 	int ret;
 	struct net_packet_info np;
 
-	np.pkt_types	= htole32(pkt->pkt_types);
-	np.pkt_len	= htole32(pkt->pkt_len);
-	np.phy_signal	= htole32(pkt->phy_signal);
-	np.phy_noise	= htole32(pkt->phy_noise);
-	np.phy_snr	= htole32(pkt->phy_snr);
-	np.phy_rate	= htole32(pkt->phy_rate);
-	np.phy_freq	= htole32(pkt->phy_freq);
-	np.phy_flags	= htole32(pkt->phy_flags);
-	np.wlan_type	= htole32(pkt->wlan_type);
-	np.wlan_tsf	= htole64(pkt->wlan_tsf);
-	np.wlan_mode	= htole32(pkt->wlan_mode);
-	np.wlan_channel = pkt->wlan_channel;
-	np.wlan_wep	= htole32(pkt->wlan_wep);
-	np.ip_src	= pkt->ip_src;
-	np.ip_dst	= pkt->ip_dst;
-	np.olsr_type	= htole32(pkt->olsr_type);
-	np.olsr_neigh	= htole32(pkt->olsr_neigh);
-	np.olsr_tc	= htole32(pkt->olsr_tc);
-	memcpy(np.wlan_src, pkt->wlan_src, MAC_LEN);
-	memcpy(np.wlan_dst, pkt->wlan_dst, MAC_LEN);
-	memcpy(np.wlan_bssid, pkt->wlan_bssid, MAC_LEN);
-	memcpy(np.wlan_essid, pkt->wlan_essid, MAX_ESSID_LEN);
+	np.pkt_types	= htole32(p->pkt_types);
+	np.pkt_len	= htole32(p->pkt_len);
+	np.phy_signal	= htole32(p->phy_signal);
+	np.phy_noise	= htole32(p->phy_noise);
+	np.phy_snr	= htole32(p->phy_snr);
+	np.phy_rate	= htole32(p->phy_rate);
+	np.phy_freq	= htole32(p->phy_freq);
+	np.phy_flags	= htole32(p->phy_flags);
+	np.wlan_type	= htole32(p->wlan_type);
+	np.wlan_tsf	= htole64(p->wlan_tsf);
+	np.wlan_mode	= htole32(p->wlan_mode);
+	np.wlan_channel = p->wlan_channel;
+	np.wlan_wep	= htole32(p->wlan_wep);
+	np.ip_src	= p->ip_src;
+	np.ip_dst	= p->ip_dst;
+	np.olsr_type	= htole32(p->olsr_type);
+	np.olsr_neigh	= htole32(p->olsr_neigh);
+	np.olsr_tc	= htole32(p->olsr_tc);
+	memcpy(np.wlan_src, p->wlan_src, MAC_LEN);
+	memcpy(np.wlan_dst, p->wlan_dst, MAC_LEN);
+	memcpy(np.wlan_bssid, p->wlan_bssid, MAC_LEN);
+	memcpy(np.wlan_essid, p->wlan_essid, MAX_ESSID_LEN);
 
 	ret = write(cli_fd, &np, sizeof(np));
 	if (ret == -1) {
@@ -149,7 +149,7 @@ net_send_packet(struct packet_info *pkt)
  *	  1 - ok
  */
 int
-net_receive_packet(unsigned char *buffer, int len, struct packet_info *pkt)
+net_receive_packet(unsigned char *buffer, int len, struct packet_info *p)
 {
 	struct net_packet_info *np;
 
@@ -163,28 +163,28 @@ net_receive_packet(unsigned char *buffer, int len, struct packet_info *pkt)
 		return 0;
 	}
 
-	pkt->pkt_types	= le32toh(np->pkt_types);
-	pkt->pkt_len	= le32toh(np->pkt_len);
-	pkt->phy_signal	= le32toh(np->phy_signal);
-	pkt->phy_noise	= le32toh(np->phy_noise);
-	pkt->phy_snr	= le32toh(np->phy_snr);
-	pkt->phy_rate	= le32toh(np->phy_rate);
-	pkt->phy_freq	= le32toh(np->phy_freq);
-	pkt->phy_flags	= le32toh(np->phy_flags);
-	pkt->wlan_type	= le32toh(np->wlan_type);
-	pkt->wlan_tsf	= le64toh(np->wlan_tsf);
-	pkt->wlan_mode	= le32toh(np->wlan_mode);
-	pkt->wlan_channel = np->wlan_channel;
-	pkt->wlan_wep	= le32toh(np->wlan_wep);
-	pkt->ip_src	= np->ip_src;
-	pkt->ip_dst	= np->ip_dst;
-	pkt->olsr_type	= le32toh(np->olsr_type);
-	pkt->olsr_neigh	= le32toh(np->olsr_neigh);
-	pkt->olsr_tc	= le32toh(np->olsr_tc);
-	memcpy(pkt->wlan_src, np->wlan_src, MAC_LEN);
-	memcpy(pkt->wlan_dst, np->wlan_dst, MAC_LEN);
-	memcpy(pkt->wlan_bssid, np->wlan_bssid, MAC_LEN);
-	memcpy(pkt->wlan_essid, np->wlan_essid, MAX_ESSID_LEN);
+	p->pkt_types	= le32toh(np->pkt_types);
+	p->pkt_len	= le32toh(np->pkt_len);
+	p->phy_signal	= le32toh(np->phy_signal);
+	p->phy_noise	= le32toh(np->phy_noise);
+	p->phy_snr	= le32toh(np->phy_snr);
+	p->phy_rate	= le32toh(np->phy_rate);
+	p->phy_freq	= le32toh(np->phy_freq);
+	p->phy_flags	= le32toh(np->phy_flags);
+	p->wlan_type	= le32toh(np->wlan_type);
+	p->wlan_tsf	= le64toh(np->wlan_tsf);
+	p->wlan_mode	= le32toh(np->wlan_mode);
+	p->wlan_channel = np->wlan_channel;
+	p->wlan_wep	= le32toh(np->wlan_wep);
+	p->ip_src	= np->ip_src;
+	p->ip_dst	= np->ip_dst;
+	p->olsr_type	= le32toh(np->olsr_type);
+	p->olsr_neigh	= le32toh(np->olsr_neigh);
+	p->olsr_tc	= le32toh(np->olsr_tc);
+	memcpy(p->wlan_src, np->wlan_src, MAC_LEN);
+	memcpy(p->wlan_dst, np->wlan_dst, MAC_LEN);
+	memcpy(p->wlan_bssid, np->wlan_bssid, MAC_LEN);
+	memcpy(p->wlan_essid, np->wlan_essid, MAX_ESSID_LEN);
 
 	return 1;
 }

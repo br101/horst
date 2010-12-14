@@ -101,7 +101,7 @@ ieee80211_get_hdrlen(u16 fc)
 
 /* from mac80211/ieee80211_sta.c, modified */
 void
-ieee802_11_parse_elems(unsigned char *start, size_t len, struct packet_info *pkt)
+ieee802_11_parse_elems(unsigned char *start, size_t len, struct packet_info *p)
 {
 	int left = len;
 	unsigned char *pos = start;
@@ -118,7 +118,7 @@ ieee802_11_parse_elems(unsigned char *start, size_t len, struct packet_info *pkt
 
 		switch (id) {
 		case WLAN_EID_SSID:
-			memcpy(pkt->wlan_essid, pos, elen);
+			memcpy(p->wlan_essid, pos, elen);
 			break;
 #if 0
 		case WLAN_EID_SUPP_RATES:
@@ -131,7 +131,7 @@ ieee802_11_parse_elems(unsigned char *start, size_t len, struct packet_info *pkt
 			break;
 #endif
 		case WLAN_EID_DS_PARAMS:
-			pkt->wlan_channel = *pos;
+			p->wlan_channel = *pos;
 			break;
 #if 0
 		case WLAN_EID_CF_PARAMS:

@@ -144,8 +144,6 @@ struct packet_info {
 	unsigned int		olsr_tc;
 };
 
-extern struct packet_info current_packet;
-
 struct essid_info;
 
 struct node_info {

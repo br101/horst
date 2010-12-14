@@ -32,7 +32,7 @@ update_essid_win(WINDOW *win)
 	int i;
 	int line = 1;
 	struct essid_info* e;
-	struct node_info* node;
+	struct node_info* n;
 
 	werase(win);
 	wattron(win, WHITE);
@@ -57,27 +57,27 @@ update_essid_win(WINDOW *win)
 		line++;
 
 		i = 1;
-		list_for_each_entry(node, &e->nodes, essid_nodes) {
+		list_for_each_entry(n, &e->nodes, essid_nodes) {
 			if (line > LINES-3)
 				break;
 
-			if (node->last_seen > (the_time.tv_sec - conf.node_timeout / 2))
+			if (n->last_seen > (the_time.tv_sec - conf.node_timeout / 2))
 				wattron(win, A_BOLD);
 			else
 				wattroff(win, A_BOLD);
 			mvwprintw(win, line, 3, "%2d. %s %s", i++,
-				node->wlan_mode == WLAN_MODE_AP ? "AP  " : "IBSS",
-				ether_sprintf(node->last_pkt.wlan_src));
-			wprintw(win, " (%s)", ether_sprintf(node->wlan_bssid));
-			wprintw(win, " %016llx", node->wlan_tsf);
-			wprintw(win, " (%d)", node->wlan_bintval);
-			if (node->wlan_bintval < 1000)
+				n->wlan_mode == WLAN_MODE_AP ? "AP  " : "IBSS",
+				ether_sprintf(n->last_pkt.wlan_src));
+			wprintw(win, " (%s)", ether_sprintf(n->wlan_bssid));
+			wprintw(win, " %016llx", n->wlan_tsf);
+			wprintw(win, " (%d)", n->wlan_bintval);
+			if (n->wlan_bintval < 1000)
 				wprintw(win, " ");
-			wprintw(win, " %2d", node->wlan_channel);
-			wprintw(win, " %2ddB", node->last_pkt.phy_snr);
-			wprintw(win, " %s", node->wlan_wep ? "W" : " ");
-			if (node->pkt_types & PKT_TYPE_IP)
-				wprintw(win, " %s", ip_sprintf(node->ip_src));
+			wprintw(win, " %2d", n->wlan_channel);
+			wprintw(win, " %2ddB", n->last_pkt.phy_snr);
+			wprintw(win, " %s", n->wlan_wep ? "W" : " ");
+			if (n->pkt_types & PKT_TYPE_IP)
+				wprintw(win, " %s", ip_sprintf(n->ip_src));
 			line++;
 		}
 	}
