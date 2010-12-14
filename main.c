@@ -400,7 +400,7 @@ update_spectrum(struct packet_info* p, struct node_info* n)
 		}
 	}
 	if (cn->node != n) {
-		DEBUG("SPEC node adding %p chan %d\n", n, ch);
+		DEBUG("SPEC node adding %p chan %d\n", n, i);
 		cn = malloc(sizeof(struct chan_node));
 		cn->node = n;
 		cn->chan = chan;
