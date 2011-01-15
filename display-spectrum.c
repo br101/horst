@@ -26,8 +26,8 @@
 #include "util.h"
 
 #define CH_SPACE	6
-#define SPEC_HEIGHT	(LINES - 11)
-#define SPEC_POS_Y	7
+#define SPEC_POS_Y	1
+#define SPEC_HEIGHT	(LINES - SPEC_POS_X - 2)
 #define SPEC_POS_X	6
 
 static unsigned int show_nodes;
@@ -44,31 +44,32 @@ update_spectrum_win(WINDOW *win)
 	box(win, 0 , 0);
 	print_centered(win, 0, COLS, " \"Spectrum Analyzer\" ");
 
-	mvwprintw(win, 2, 2, "Current Channel:");
-	mvwprintw(win, 2, 19, "%d   ", CONF_CURRENT_CHANNEL);
-	mvwprintw(win, 3, 2, "c: [%c] Automatically Change Channel   n: [%c] Show Nodes",
-				conf.do_change_channel ? '*' : ' ',
-				show_nodes ? '*' : ' ');
-	mvwprintw(win, 4, 2, "d: Channel Dwell Time: %d ms", conf.channel_time/1000);
-	mvwprintw(win, 5, 2, "m: Manually Enter Channel:      ");
-	mvwprintw(win, 4, 35, "u: Max Channel: %d", conf.channel_max);
+	mvwprintw(win, SPEC_HEIGHT+2, 1, "CHA");
+	wattron(win, GREEN);
+	mvwprintw(win, SPEC_HEIGHT+3, 1, "Sig");
+	wattron(win, BLUE);
+	mvwprintw(win, SPEC_HEIGHT+4, 1, "Nod");
+	wattron(win, YELLOW);
+	mvwprintw(win, SPEC_HEIGHT+5, 1, "Use");
+	wattroff(win, YELLOW);
 
 	mvwprintw(win, SPEC_POS_Y+1, 1, "dBm");
 	for(i = -30; i > -100; i -= 10) {
 		sig = normalize_db(-i, SPEC_HEIGHT);
 		mvwprintw(win, SPEC_POS_Y+sig, 1, "%d", i);
 	}
-	mvwhline(win, LINES-4, 1, ACS_HLINE, COLS-2);
+	mvwhline(win, SPEC_HEIGHT+1, 1, ACS_HLINE, COLS-2);
 	mvwvline(win, SPEC_POS_Y, 4, ACS_VLINE, LINES-SPEC_POS_Y-2);
 
 	for (i = 0; i < conf.num_channels; i++) {
-		mvwprintw(win, LINES-3, SPEC_POS_X+CH_SPACE*i, "%02d", channels[i].chan);
+		mvwprintw(win, SPEC_HEIGHT+2, SPEC_POS_X+CH_SPACE*i, "%02d", channels[i].chan);
 
 		sig_avg = iir_average_get(spectrum[i].signal_avg);
-		mvwprintw(win, 7, SPEC_POS_X+CH_SPACE*i, "%d", spectrum[i].num_nodes);
-		mvwprintw(win, 8, SPEC_POS_X+CH_SPACE*i, "%d", spectrum[i].signal);
-		if (spectrum[i].packets > 8)
-			mvwprintw(win, 9, SPEC_POS_X+CH_SPACE*i, "%d", sig_avg);
+		wattron(win, GREEN);
+		mvwprintw(win,  SPEC_HEIGHT+3, SPEC_POS_X+CH_SPACE*i, "%d", spectrum[i].signal);
+		wattron(win, BLUE);
+		mvwprintw(win,  SPEC_HEIGHT+4, SPEC_POS_X+CH_SPACE*i, "%d", spectrum[i].num_nodes);
+		wattroff(win, BLUE);
 
 		if (spectrum[i].signal != 0) {
 			sig = normalize_db(-spectrum[i].signal, SPEC_HEIGHT);
@@ -91,7 +92,14 @@ update_spectrum_win(WINDOW *win)
 		}
 		wattroff(win, ALLGREEN);
 
+		use = (spectrum[i].durations - spectrum[i].durations_last)
+				* 1.0 / 1000;
+		wattron(win, YELLOW);
+		mvwprintw(win,  SPEC_HEIGHT+5, SPEC_POS_X+CH_SPACE*i, "%d", use);
+		wattroff(win, YELLOW);
+
 		if (show_nodes) {
+			wattron(win, BLUE);
 			list_for_each_entry(cn, &spectrum[i].nodes, chan_list) {
 				if (cn->packets >= 8)
 					sig = normalize_db(-iir_average_get(cn->sig_avg),
@@ -108,6 +116,7 @@ update_spectrum_win(WINDOW *win)
 				if (cn->node->ip_src)
 					wattroff(win, A_BOLD);
 			}
+			wattroff(win, BLUE);
 		}
 		else {
 			nnodes = spectrum[i].num_nodes;
@@ -115,10 +124,6 @@ update_spectrum_win(WINDOW *win)
 			mvwvline(win, SPEC_POS_Y+SPEC_HEIGHT-nnodes, SPEC_POS_X+CH_SPACE*i+2,
 				ACS_BLOCK, nnodes);
 			wattroff(win, ALLBLUE);
-
-			use = (spectrum[i].durations - spectrum[i].durations_last)
-				* 1.0 / 1000;
-			mvwprintw(win, 10, SPEC_POS_X+CH_SPACE*i, "%d", use);
 #if 0
 			mvwprintw(win, 11, SPEC_POS_X+CH_SPACE*i, "%d", spectrum[i].durations);
 			mvwprintw(win, 12, SPEC_POS_X+CH_SPACE*i, "%d", spectrum[i].durations_last);
