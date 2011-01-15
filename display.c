@@ -28,9 +28,11 @@
 #include "main.h"
 
 
-WINDOW *filter_win = NULL;
+WINDOW *conf_win = NULL;
 WINDOW *show_win = NULL;
+static char conf_win_current;
 static char show_win_current;
+
 static struct timeval last_time;
 
 
@@ -41,18 +43,18 @@ void update_dump_win(struct packet_info* pkt);
 int main_input(int c);
 void print_dump_win(const char *str);
 
-/* filter too */
-void update_filter_win(void);
-void filter_input(int c);
+/* smaller config windows */
+void update_filter_win(WINDOW *win);
+int filter_input(WINDOW *win, int c);
 
 /* "standard" windows */
-void update_spectrum_win(WINDOW *show_win);
-void update_statistics_win(WINDOW *show_win);
-void update_essid_win(WINDOW *show_win);
-void update_history_win(WINDOW *show_win);
-void update_help_win(WINDOW *show_win);
+void update_spectrum_win(WINDOW *win);
+void update_statistics_win(WINDOW *win);
+void update_essid_win(WINDOW *win);
+void update_history_win(WINDOW *win);
+void update_help_win(WINDOW *win);
 
-int spectrum_input(WINDOW *show_win, int c);
+int spectrum_input(WINDOW *win, int c);
 
 
 /******************* HELPERS *******************/
@@ -165,6 +167,25 @@ show_window(char which)
 }
 
 
+static void
+show_conf_window(char key)
+{
+	if (conf_win != NULL &&
+	    (conf_win_current == key || key == '\r' || key == KEY_ENTER)) {
+		delwin(conf_win);
+		conf_win = NULL;
+		conf_win_current = 0;
+		return;
+	}
+	if (conf_win == NULL && key == 'f') {
+		conf_win = newwin(25, 57, LINES/2-15, COLS/2-15);
+		scrollok(conf_win, FALSE);
+		update_filter_win(conf_win);
+	}
+	conf_win_current = key;
+}
+
+
 void
 update_display(struct packet_info* pkt, struct node_info* node)
 {
@@ -193,9 +214,9 @@ update_display(struct packet_info* pkt, struct node_info* node)
 	else
 		update_main_win(pkt, node);
 
-	if (filter_win != NULL) {
-		redrawwin(filter_win);
-		wnoutrefresh(filter_win);
+	if (conf_win != NULL) {
+		redrawwin(conf_win);
+		wnoutrefresh(conf_win);
 	}
 
 	/* only one redraw */
@@ -212,9 +233,12 @@ handle_user_input(void)
 
 	key = getch();
 
-	if (filter_win != NULL) {
-		filter_input(key);
-		return;
+	/* if windows are active pass the input to them first. if they handle
+	 * it they will return 1. if not we handle the input below */
+
+	if (conf_win != NULL && conf_win_current == 'f') {
+		if (filter_input(conf_win, key))
+			return;
 	}
 
 	if (show_win != NULL && show_win_current == 's') {
@@ -247,6 +271,7 @@ handle_user_input(void)
 		gettimeofday(&stats.stats_time, NULL);
 		break;
 
+	/* big windows */
 	case '?':
 	case 'e': case 'E':
 	case 'h': case 'H':
@@ -255,12 +280,10 @@ handle_user_input(void)
 		show_window(tolower(key));
 		break;
 
+	/* config windows */
 	case 'f': case 'F':
-		if (filter_win == NULL) {
-			filter_win = newwin(25, 57, LINES/2-15, COLS/2-15);
-			scrollok(filter_win, FALSE);
-			update_filter_win();
-		}
+	case '\r': case KEY_ENTER: /* used to close win */
+		show_conf_window(tolower(key));
 		break;
 
 	case KEY_RESIZE: /* xterm window resize event */

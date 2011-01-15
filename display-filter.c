@@ -30,10 +30,8 @@
 #define CHECK_FILTER_EN(_i) conf.filtermac_enabled[_i] ? '*' : ' '
 #define MAC_COL 30
 
-extern WINDOW *filter_win;
-
 void
-update_filter_win(void)
+update_filter_win(WINDOW *filter_win)
 {
 	int l, i;
 
@@ -97,8 +95,8 @@ update_filter_win(void)
 	wrefresh(filter_win);
 }
 
-void
-filter_input(int c)
+int
+filter_input(WINDOW *filter_win, int c)
 {
 	char buf[18];
 	int i;
@@ -140,15 +138,6 @@ filter_input(int c)
 	case 'O': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_OLSR|PKT_TYPE_OLSR_LQ|PKT_TYPE_OLSR_GW); break;
 	case 'B': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_BATMAN); break;
 
-	case 'q': case 'Q':
-		finish_all(0);
-
-	case 'f': case 'F': case '\r': case KEY_ENTER:
-		delwin(filter_win);
-		filter_win = NULL;
-		update_display(NULL, NULL);
-		return;
-
 	case 's':
 		echo();
 		print_centered(filter_win, 24, 57, "[ Enter new BSSID and ENTER ]");
@@ -183,7 +172,7 @@ filter_input(int c)
 		break;
 
 	default:
-		return;
+		return 0;
 	}
 
 	/* convenience: */
@@ -204,5 +193,6 @@ filter_input(int c)
 			conf.do_macfilter = 1;
 	}
 
-	update_filter_win();
+	update_filter_win(filter_win);
+	return 1;
 }
