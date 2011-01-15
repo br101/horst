@@ -23,7 +23,7 @@ OBJS=main.o capture.o protocol_parser.o network.o wext.o \
 	util.o ieee80211_util.o listsort.o \
 	display.o display-main.o display-filter.o display-help.o \
 	display-statistics.o display-essid.o display-history.o \
-	display-spectrum.o
+	display-spectrum.o display-channel.o
 
 LIBS=-lncurses -lm
 CFLAGS+=-Wall -DDO_DEBUG=$(DEBUG) -g

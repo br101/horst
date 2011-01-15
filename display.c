@@ -45,7 +45,9 @@ void print_dump_win(const char *str);
 
 /* smaller config windows */
 void update_filter_win(WINDOW *win);
+void update_channel_win(WINDOW *win);
 int filter_input(WINDOW *win, int c);
+int channel_input(WINDOW *win, int c);
 
 /* "standard" windows */
 void update_spectrum_win(WINDOW *win);
@@ -53,9 +55,7 @@ void update_statistics_win(WINDOW *win);
 void update_essid_win(WINDOW *win);
 void update_history_win(WINDOW *win);
 void update_help_win(WINDOW *win);
-
 int spectrum_input(WINDOW *win, int c);
-
 
 /******************* HELPERS *******************/
 
@@ -181,8 +181,14 @@ show_conf_window(char key)
 		conf_win = newwin(25, 57, LINES/2-15, COLS/2-15);
 		scrollok(conf_win, FALSE);
 		update_filter_win(conf_win);
+		conf_win_current = key;
 	}
-	conf_win_current = key;
+	else if (conf_win == NULL && key == 'c') {
+		conf_win = newwin(10, 39, LINES/2-15, COLS/2-15);
+		scrollok(conf_win, FALSE);
+		update_channel_win(conf_win);
+		conf_win_current = key;
+	}
 }
 
 
@@ -236,15 +242,18 @@ handle_user_input(void)
 	/* if windows are active pass the input to them first. if they handle
 	 * it they will return 1. if not we handle the input below */
 
-	if (conf_win != NULL && conf_win_current == 'f') {
-		if (filter_input(conf_win, key))
-			return;
+	if (conf_win != NULL) {
+		if (conf_win_current == 'f')
+			if (filter_input(conf_win, key))
+				return;
+		if (conf_win_current == 'c')
+			if (channel_input(conf_win, key))
+				return;
 	}
 
-	if (show_win != NULL && show_win_current == 's') {
+	if (show_win != NULL && show_win_current == 's')
 		if (spectrum_input(show_win, key))
 			return;
-	}
 
 	if (show_win == NULL) {
 		if (main_input(key))
@@ -282,6 +291,7 @@ handle_user_input(void)
 
 	/* config windows */
 	case 'f': case 'F':
+	case 'c': case 'C':
 	case '\r': case KEY_ENTER: /* used to close win */
 		show_conf_window(tolower(key));
 		break;
@@ -339,6 +349,7 @@ init_display(void)
 	attron(KEYMARK); printw("P"); attroff(KEYMARK); printw("ause s");
 	attron(KEYMARK); printw("O"); attroff(KEYMARK); printw("rt ");
 	attron(KEYMARK); printw("F"); attroff(KEYMARK); printw("ilter ");
+	attron(KEYMARK); printw("C"); attroff(KEYMARK); printw("hannel ");
 	attron(KEYMARK); printw("H"); attroff(KEYMARK); printw("istory ");
 	attron(KEYMARK); printw("E"); attroff(KEYMARK); printw("SSIDs St");
 	attron(KEYMARK); printw("a"); attroff(KEYMARK); printw("ts ");

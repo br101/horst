@@ -32,6 +32,7 @@
 
 static unsigned int show_nodes;
 
+
 void
 update_spectrum_win(WINDOW *win)
 {
@@ -143,46 +144,7 @@ update_spectrum_win(WINDOW *win)
 int
 spectrum_input(WINDOW *win, int c)
 {
-	char buf[6];
-	int x;
-
 	switch (c) {
-	case 'c': case 'C':
-		conf.do_change_channel = conf.do_change_channel ? 0 : 1;
-		break;
-
-	case 'm': case 'M':
-		conf.do_change_channel = 0;
-		echo();
-		curs_set(1);
-		mvwgetnstr(win, 5, 29, buf, 2);
-		curs_set(0);
-		noecho();
-		sscanf(buf, "%d", &x);
-		if (x > 0)
-			change_channel(x);
-		break;
-
-	case 'd': case 'D':
-		echo();
-		curs_set(1);
-		mvwgetnstr(win, 4, 25, buf, 6);
-		curs_set(0);
-		noecho();
-		sscanf(buf, "%d", &x);
-		conf.channel_time = x*1000;
-		break;
-
-	case 'u': case 'U':
-		echo();
-		curs_set(1);
-		mvwgetnstr(win, 4, 51, buf, 6);
-		curs_set(0);
-		noecho();
-		sscanf(buf, "%d", &x);
-		conf.channel_max = x;
-		break;
-
 	case 'n': case 'N':
 		show_nodes = show_nodes ? 0 : 1;
 		break;
@@ -190,5 +152,7 @@ spectrum_input(WINDOW *win, int c)
 	default:
 		return 0; /* didn't handle input */
 	}
+
+	update_spectrum_win(win);
 	return 1;
 }
