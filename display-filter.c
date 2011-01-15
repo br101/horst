@@ -31,72 +31,72 @@
 #define MAC_COL 30
 
 void
-update_filter_win(WINDOW *filter_win)
+update_filter_win(WINDOW *win)
 {
 	int l, i;
 
-	box(filter_win, 0 , 0);
-	print_centered(filter_win, 0, 57, " Edit Packet Filter ");
+	box(win, 0 , 0);
+	print_centered(win, 0, 57, " Edit Packet Filter ");
 
-	mvwprintw(filter_win, 2, 2, "Show these Packet Types");
-
-	l = 4;
-	wattron(filter_win, A_BOLD);
-	mvwprintw(filter_win, l++, 2, "m: [%c] MANAGEMENT FRAMES", CHECKED(PKT_TYPE_MGMT));
-	wattroff(filter_win, A_BOLD);
-	mvwprintw(filter_win, l++, 2, "b: [%c] Beacons", CHECKED(PKT_TYPE_BEACON));
-	mvwprintw(filter_win, l++, 2, "p: [%c] Probe Req/Resp", CHECKED(PKT_TYPE_PROBE));
-	mvwprintw(filter_win, l++, 2, "a: [%c] Association", CHECKED(PKT_TYPE_ASSOC));
-	mvwprintw(filter_win, l++, 2, "u: [%c] Authentication", CHECKED(PKT_TYPE_AUTH));
-	l++;
-	wattron(filter_win, A_BOLD);
-	mvwprintw(filter_win, l++, 2, "c: [%c] CONTROL FRAMES", CHECKED(PKT_TYPE_CTRL));
-	wattroff(filter_win, A_BOLD);
-	mvwprintw(filter_win, l++, 2, "r: [%c] CTS/RTS", CHECKED(PKT_TYPE_CTS | PKT_TYPE_RTS));
-	mvwprintw(filter_win, l++, 2, "k: [%c] ACK", CHECKED(PKT_TYPE_ACK));
-	l++;
-	wattron(filter_win, A_BOLD);
-	mvwprintw(filter_win, l++, 2, "d: [%c] DATA FRAMES", CHECKED(PKT_TYPE_DATA));
-	wattroff(filter_win, A_BOLD);
-	mvwprintw(filter_win, l++, 2, "n: [%c] Null Data", CHECKED(PKT_TYPE_NULL));
-	mvwprintw(filter_win, l++, 2, "R: [%c] ARP", CHECKED(PKT_TYPE_ARP));
-	mvwprintw(filter_win, l++, 2, "P: [%c] ICMP/PING", CHECKED(PKT_TYPE_ICMP));
-	mvwprintw(filter_win, l++, 2, "I: [%c] IP", CHECKED(PKT_TYPE_IP));
-	mvwprintw(filter_win, l++, 2, "U: [%c] UDP", CHECKED(PKT_TYPE_UDP));
-	mvwprintw(filter_win, l++, 2, "T: [%c] TCP", CHECKED(PKT_TYPE_TCP));
-	mvwprintw(filter_win, l++, 2, "O: [%c] OLSR", CHECKED(PKT_TYPE_OLSR));
-	mvwprintw(filter_win, l++, 2, "B: [%c] BATMAN", CHECKED(PKT_TYPE_BATMAN));
+	mvwprintw(win, 2, 2, "Show these Packet Types");
 
 	l = 4;
-	wattron(filter_win, A_BOLD);
-	mvwprintw(filter_win, l++, MAC_COL, "BSSID");
-	wattroff(filter_win, A_BOLD);
-	mvwprintw(filter_win, l++, MAC_COL, "s: [%c] %s",
+	wattron(win, A_BOLD);
+	mvwprintw(win, l++, 2, "m: [%c] MANAGEMENT FRAMES", CHECKED(PKT_TYPE_MGMT));
+	wattroff(win, A_BOLD);
+	mvwprintw(win, l++, 2, "b: [%c] Beacons", CHECKED(PKT_TYPE_BEACON));
+	mvwprintw(win, l++, 2, "p: [%c] Probe Req/Resp", CHECKED(PKT_TYPE_PROBE));
+	mvwprintw(win, l++, 2, "a: [%c] Association", CHECKED(PKT_TYPE_ASSOC));
+	mvwprintw(win, l++, 2, "u: [%c] Authentication", CHECKED(PKT_TYPE_AUTH));
+	l++;
+	wattron(win, A_BOLD);
+	mvwprintw(win, l++, 2, "c: [%c] CONTROL FRAMES", CHECKED(PKT_TYPE_CTRL));
+	wattroff(win, A_BOLD);
+	mvwprintw(win, l++, 2, "r: [%c] CTS/RTS", CHECKED(PKT_TYPE_CTS | PKT_TYPE_RTS));
+	mvwprintw(win, l++, 2, "k: [%c] ACK", CHECKED(PKT_TYPE_ACK));
+	l++;
+	wattron(win, A_BOLD);
+	mvwprintw(win, l++, 2, "d: [%c] DATA FRAMES", CHECKED(PKT_TYPE_DATA));
+	wattroff(win, A_BOLD);
+	mvwprintw(win, l++, 2, "n: [%c] Null Data", CHECKED(PKT_TYPE_NULL));
+	mvwprintw(win, l++, 2, "R: [%c] ARP", CHECKED(PKT_TYPE_ARP));
+	mvwprintw(win, l++, 2, "P: [%c] ICMP/PING", CHECKED(PKT_TYPE_ICMP));
+	mvwprintw(win, l++, 2, "I: [%c] IP", CHECKED(PKT_TYPE_IP));
+	mvwprintw(win, l++, 2, "U: [%c] UDP", CHECKED(PKT_TYPE_UDP));
+	mvwprintw(win, l++, 2, "T: [%c] TCP", CHECKED(PKT_TYPE_TCP));
+	mvwprintw(win, l++, 2, "O: [%c] OLSR", CHECKED(PKT_TYPE_OLSR));
+	mvwprintw(win, l++, 2, "B: [%c] BATMAN", CHECKED(PKT_TYPE_BATMAN));
+
+	l = 4;
+	wattron(win, A_BOLD);
+	mvwprintw(win, l++, MAC_COL, "BSSID");
+	wattroff(win, A_BOLD);
+	mvwprintw(win, l++, MAC_COL, "s: [%c] %s",
 		CHECK_ETHER(conf.filterbssid), ether_sprintf(conf.filterbssid));
 
 	l++;
-	mvwprintw(filter_win, l++, MAC_COL, "Show only these");
-	wattron(filter_win, A_BOLD);
-	mvwprintw(filter_win, l++, MAC_COL, "Source MAC ADDRESSES");
-	wattroff(filter_win, A_BOLD);
+	mvwprintw(win, l++, MAC_COL, "Show only these");
+	wattron(win, A_BOLD);
+	mvwprintw(win, l++, MAC_COL, "Source MAC ADDRESSES");
+	wattroff(win, A_BOLD);
 
 	for (i = 0; i < MAX_FILTERMAC; i++) {
-		mvwprintw(filter_win, l++, MAC_COL, "%d: [%c] %s", i+1,
+		mvwprintw(win, l++, MAC_COL, "%d: [%c] %s", i+1,
 			CHECK_FILTER_EN(i), ether_sprintf(conf.filtermac[i]));
 	}
 
 	l++;
-	wattron(filter_win, A_BOLD);
-	mvwprintw(filter_win, l++, MAC_COL, "o: [%c] All Filters Off", conf.filter_off ? '*' : ' ' );
-	wattroff(filter_win, A_BOLD);
+	wattron(win, A_BOLD);
+	mvwprintw(win, l++, MAC_COL, "o: [%c] All Filters Off", conf.filter_off ? '*' : ' ' );
+	wattroff(win, A_BOLD);
 
-	print_centered(filter_win, 24, 57, "[ Press key or ENTER ]");
+	print_centered(win, 24, 57, "[ Press key or ENTER ]");
 
-	wrefresh(filter_win);
+	wrefresh(win);
 }
 
 int
-filter_input(WINDOW *filter_win, int c)
+filter_input(WINDOW *win, int c)
 {
 	char buf[18];
 	int i;
@@ -140,8 +140,8 @@ filter_input(WINDOW *filter_win, int c)
 
 	case 's':
 		echo();
-		print_centered(filter_win, 24, 57, "[ Enter new BSSID and ENTER ]");
-		mvwgetnstr(filter_win, 5, MAC_COL + 7, buf, 17);
+		print_centered(win, 24, 57, "[ Enter new BSSID and ENTER ]");
+		mvwgetnstr(win, 5, MAC_COL + 7, buf, 17);
 		noecho();
 		convert_string_to_mac(buf, conf.filterbssid);
 		break;
@@ -153,8 +153,8 @@ filter_input(WINDOW *filter_win, int c)
 		}
 		else {
 			echo();
-			print_centered(filter_win, 24, 57, "[ Enter new MAC %d and ENTER ]", i+1);
-			mvwgetnstr(filter_win, 9 + i, MAC_COL + 7, buf, 17);
+			print_centered(win, 24, 57, "[ Enter new MAC %d and ENTER ]", i+1);
+			mvwgetnstr(win, 9 + i, MAC_COL + 7, buf, 17);
 			noecho();
 			/* just enable old MAC if user pressed return only */
 			if (*buf == '\0' && MAC_NOT_EMPTY(conf.filtermac[i]))
@@ -193,6 +193,6 @@ filter_input(WINDOW *filter_win, int c)
 			conf.do_macfilter = 1;
 	}
 
-	update_filter_win(filter_win);
+	update_filter_win(win);
 	return 1;
 }
