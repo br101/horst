@@ -62,7 +62,7 @@ update_spectrum_win(WINDOW *win)
 	mvwhline(win, SPEC_HEIGHT + 1, 1, ACS_HLINE, COLS - 2);
 	mvwvline(win, SPEC_POS_Y, 4, ACS_VLINE, LINES - SPEC_POS_Y - 2);
 
-	for (i = 0; i < conf.num_channels; i++) {
+	for (i = 0; i < conf.num_channels && SPEC_POS_X + CH_SPACE*i+4 < COLS; i++) {
 		mvwprintw(win, SPEC_HEIGHT + 2, SPEC_POS_X + CH_SPACE*i,
 			"%02d", channels[i].chan);
 
