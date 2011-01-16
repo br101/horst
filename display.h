@@ -46,6 +46,9 @@ get_per_second(unsigned int bytes, unsigned int duration, int *bps, int *dps);
 void __attribute__ ((format (printf, 4, 5)))
 print_centered(WINDOW* win, int line, int cols, const char *fmt, ...);
 
+int
+get_packet_type_color(int type);
+
 void
 update_display(struct packet_info* pkg, struct node_info* node);
 

@@ -353,9 +353,9 @@ update_dump_win(struct packet_info* p)
 		return;
 	}
 
-	wattron(dump_win, CYAN);
+	wattron(dump_win, get_packet_type_color(p->wlan_type));
 
-	if (p->olsr_type > 0 && p->pkt_types & PKT_TYPE_OLSR)
+	if (p->pkt_types & PKT_TYPE_IP)
 		wattron(dump_win, A_BOLD);
 
 	wprintw(dump_win, "\n%03d/%03d ", p->phy_signal, p->phy_noise);

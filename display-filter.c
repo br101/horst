@@ -24,6 +24,7 @@
 #include "display.h"
 #include "main.h"
 #include "util.h"
+#include "ieee80211.h"
 
 #define CHECKED(_x) (conf.filter_pkt & (_x)) ? '*' : ' '
 #define CHECK_ETHER(_mac) MAC_NOT_EMPTY(_mac) ? '*' : ' '
@@ -41,6 +42,7 @@ update_filter_win(WINDOW *win)
 	mvwprintw(win, 2, 2, "Show these Packet Types");
 
 	l = 4;
+	wattron(win, get_packet_type_color(IEEE80211_FTYPE_MGMT));
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, 2, "m: [%c] MANAGEMENT FRAMES", CHECKED(PKT_TYPE_MGMT));
 	wattroff(win, A_BOLD);
@@ -49,12 +51,14 @@ update_filter_win(WINDOW *win)
 	mvwprintw(win, l++, 2, "a: [%c] Association", CHECKED(PKT_TYPE_ASSOC));
 	mvwprintw(win, l++, 2, "u: [%c] Authentication", CHECKED(PKT_TYPE_AUTH));
 	l++;
+	wattron(win, get_packet_type_color(IEEE80211_FTYPE_CTL));
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, 2, "c: [%c] CONTROL FRAMES", CHECKED(PKT_TYPE_CTRL));
 	wattroff(win, A_BOLD);
 	mvwprintw(win, l++, 2, "r: [%c] CTS/RTS", CHECKED(PKT_TYPE_CTS | PKT_TYPE_RTS));
 	mvwprintw(win, l++, 2, "k: [%c] ACK", CHECKED(PKT_TYPE_ACK));
 	l++;
+	wattron(win, get_packet_type_color(IEEE80211_FTYPE_DATA));
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, 2, "d: [%c] DATA FRAMES", CHECKED(PKT_TYPE_DATA));
 	wattroff(win, A_BOLD);
@@ -68,6 +72,7 @@ update_filter_win(WINDOW *win)
 	mvwprintw(win, l++, 2, "B: [%c] BATMAN", CHECKED(PKT_TYPE_BATMAN));
 
 	l = 4;
+	wattron(win, WHITE);
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, MAC_COL, "BSSID");
 	wattroff(win, A_BOLD);

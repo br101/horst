@@ -26,6 +26,7 @@
 
 #include "display.h"
 #include "main.h"
+#include "ieee80211.h"
 
 
 WINDOW *conf_win = NULL;
@@ -98,6 +99,18 @@ print_centered(WINDOW* win, int line, int cols, const char *fmt, ...)
 
 	mvwprintw(win, line, cols / 2 - strlen(buf) / 2, buf);
 	free(buf);
+}
+
+
+int
+get_packet_type_color(int type)
+{
+	switch (type & IEEE80211_FCTL_FTYPE) {
+		case IEEE80211_FTYPE_DATA: return BLUE;
+		case IEEE80211_FTYPE_CTL: return WHITE;
+		case IEEE80211_FTYPE_MGMT: return CYAN;
+	}
+	return YELLOW;
 }
 
 

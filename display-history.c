@@ -100,7 +100,7 @@ update_history_win(WINDOW *win)
 			mvwvline(win, noi, col, '=', SIGN_POS-noi);
 		}
 
-		wattron(win, CYAN);
+		wattron(win, get_packet_type_color(hist.type[i]));
 		mvwprintw(win, TYPE_POS, col, "%c", \
 			get_packet_type_char(hist.type[i]));
 

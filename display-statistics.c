@@ -114,6 +114,7 @@ update_statistics_win(WINDOW *win)
 	mvwhline(win, line++, 2, '-', COLS - 4);
 	for (i = 0; i < MAX_FSTYPE; i++) {
 		if (stats.packets_per_type[i] > 0) {
+			wattron(win, get_packet_type_color(i));
 			wattron(win, A_BOLD);
 			mvwprintw(win, line, 2, "%s", get_packet_type_name(i));
 			wattroff(win, A_BOLD);
