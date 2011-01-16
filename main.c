@@ -484,6 +484,7 @@ handle_packet(struct packet_info* p)
 
 	/* in display mode */
 	if (filter_packet(p)) {
+		update_display_clock();
 		return;
 	}
 
@@ -561,7 +562,7 @@ receive_any(void)
 	}
 	if (ret == 0) { /* timeout */
 #if !DO_DEBUG
-		update_display(NULL, NULL);
+		update_display_clock();
 #endif
 		return;
 	}

@@ -242,6 +242,17 @@ show_conf_window(char key)
 
 
 void
+update_display_clock(void)
+{
+	/* helper to update just the clock every second */
+	if (the_time.tv_sec > last_time.tv_sec) {
+		update_clock(&the_time.tv_sec);
+		doupdate();
+	}
+}
+
+
+void
 update_display(struct packet_info* pkt, struct node_info* node)
 {
 	/*

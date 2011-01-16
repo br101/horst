@@ -53,6 +53,9 @@ void
 update_display(struct packet_info* pkg, struct node_info* node);
 
 void
+update_display_clock(void);
+
+void
 handle_user_input(void);
 
 void
