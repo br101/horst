@@ -309,6 +309,12 @@ resize_display_all()
 	if (show_win)
 		wresize(show_win, LINES-1, COLS);
 
+	if (conf_win) {
+		if (conf_win_current == 'f')
+			mvwin(conf_win, LINES/2-12, COLS/2-28);
+		else if (conf_win_current == 'c')
+			mvwin(conf_win, LINES/2-5, COLS/2-20);
+	}
 	update_menu();
 	update_display(NULL, NULL);
 }
