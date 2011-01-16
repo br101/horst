@@ -143,6 +143,35 @@ update_mini_status(void)
 }
 
 
+static void
+update_menu(void)
+{
+	wattron(stdscr, BLACKONWHITE);
+	mvwhline(stdscr, LINES-1, 0, ' ', COLS);
+
+#define KEYMARK A_UNDERLINE
+	attron(KEYMARK); printw("Q"); attroff(KEYMARK); printw("uit ");
+	attron(KEYMARK); printw("P"); attroff(KEYMARK); printw("ause ");
+	attron(KEYMARK); printw("R"); attroff(KEYMARK); printw("eset ");
+	attron(KEYMARK); printw("H"); attroff(KEYMARK); printw("istory ");
+	attron(KEYMARK); printw("E"); attroff(KEYMARK); printw("SSIDs St");
+	attron(KEYMARK); printw("a"); attroff(KEYMARK); printw("ts ");
+	attron(KEYMARK); printw("S"); attroff(KEYMARK); printw("pectrum ");
+	attron(KEYMARK); printw("F"); attroff(KEYMARK); printw("ilter ");
+	attron(KEYMARK); printw("C"); attroff(KEYMARK); printw("hannel ");
+	attron(KEYMARK); printw("?"); attroff(KEYMARK); printw("Help ");
+	if (show_win == NULL) {
+		printw("s"); attron(KEYMARK); printw("O"); attroff(KEYMARK); printw("rt");
+	}
+	if (show_win != NULL && show_win_current == 's') {
+		attron(KEYMARK); printw("N"); attroff(KEYMARK); printw("odes");
+	}
+#undef KEYMARK
+	mvwprintw(stdscr, LINES-1, COLS-15, "|%s", conf.ifname);
+	wattroff(stdscr, BLACKONWHITE);
+}
+
+
 /******************* WINDOW MANAGEMENT / UPDATE *******************/
 
 static void
@@ -168,6 +197,7 @@ show_window(char which)
 		delwin(show_win);
 		show_win = NULL;
 		show_win_current = 0;
+		update_menu();
 		return;
 	}
 	if (show_win == NULL) {
@@ -175,8 +205,8 @@ show_window(char which)
 		scrollok(show_win, FALSE);
 	}
 	show_win_current = which;
-
 	update_show_win();
+	update_menu();
 }
 
 
@@ -354,31 +384,13 @@ init_display(void)
 
 	erase();
 
-	wattron(stdscr, BLACKONWHITE);
-	mvwhline(stdscr, LINES-1, 0, ' ', COLS);
-
-#define KEYMARK A_UNDERLINE
-	attron(KEYMARK); printw("Q"); attroff(KEYMARK); printw("uit ");
-	attron(KEYMARK); printw("P"); attroff(KEYMARK); printw("ause s");
-	attron(KEYMARK); printw("O"); attroff(KEYMARK); printw("rt ");
-	attron(KEYMARK); printw("F"); attroff(KEYMARK); printw("ilter ");
-	attron(KEYMARK); printw("C"); attroff(KEYMARK); printw("hannel ");
-	attron(KEYMARK); printw("H"); attroff(KEYMARK); printw("istory ");
-	attron(KEYMARK); printw("E"); attroff(KEYMARK); printw("SSIDs St");
-	attron(KEYMARK); printw("a"); attroff(KEYMARK); printw("ts ");
-	attron(KEYMARK); printw("R"); attroff(KEYMARK); printw("eset ");
-	attron(KEYMARK); printw("S"); attroff(KEYMARK); printw("pectrum ");
-	attron(KEYMARK); printw("?"); attroff(KEYMARK); printw("Help");
-#undef KEYMARK
-	mvwprintw(stdscr, LINES-1, COLS-15, "|%s", conf.ifname);
-	wattroff(stdscr, BLACKONWHITE);
-
-	update_mini_status();
-
 	init_display_main();
 
 	if (conf.do_change_channel)
 		show_window('s');
+
+	update_menu();
+	update_mini_status();
 
 	update_display(NULL, NULL);
 }
