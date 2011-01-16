@@ -477,13 +477,6 @@ init_display_main(void)
 	win_split = LINES / 2 + 1;
 	stat_height = LINES - win_split - 1;
 
-	if (list_win != NULL)
-		delwin(list_win);
-	if (stat_win != NULL)
-		delwin(list_win);
-	if (dump_win != NULL)
-		delwin(list_win);
-
 	list_win = newwin(win_split, COLS, 0, 0);
 	scrollok(list_win, FALSE);
 
@@ -492,4 +485,17 @@ init_display_main(void)
 
 	dump_win = newwin(stat_height, COLS-14, win_split, 0);
 	scrollok(dump_win, TRUE);
+}
+
+
+void
+resize_display_main(void)
+{
+	win_split = LINES / 2 + 1;
+	stat_height = LINES - win_split - 1;
+	wresize(list_win, win_split, COLS);
+	wresize(dump_win, stat_height, COLS-14);
+	mvwin(dump_win, win_split, 0);
+	wresize(stat_win, stat_height, 14);
+	mvwin(stat_win, win_split, COLS-14);
 }

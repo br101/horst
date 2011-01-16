@@ -23,6 +23,8 @@
 #include <ctype.h>
 #include <sys/time.h>
 #include <time.h>
+#include <signal.h>
+#include <sys/ioctl.h>
 
 #include "display.h"
 #include "main.h"
@@ -43,6 +45,7 @@ void update_main_win(struct packet_info *pkt, struct node_info *node);
 void update_dump_win(struct packet_info* pkt);
 int main_input(int c);
 void print_dump_win(const char *str);
+void resize_display_main(void);
 
 /* smaller config windows */
 void update_filter_win(WINDOW *win);
@@ -169,6 +172,9 @@ update_menu(void)
 #undef KEYMARK
 	mvwprintw(stdscr, LINES-1, COLS-15, "|%s", conf.ifname);
 	wattroff(stdscr, BLACKONWHITE);
+
+	update_mini_status();
+	update_clock(&the_time.tv_sec);
 }
 
 
@@ -273,6 +279,36 @@ update_display(struct packet_info* pkt, struct node_info* node)
 }
 
 
+/******************* RESIZE *******************/
+
+void
+resize_display_all()
+{
+	resize_display_main();
+
+	if (show_win)
+		wresize(show_win, LINES-1, COLS);
+
+	update_menu();
+	update_display(NULL, NULL);
+}
+
+
+void
+window_change_handler(int sig) {
+	struct winsize winsz;
+
+	winsz.ws_col = winsz.ws_row = 0;
+	ioctl(0, TIOCGWINSZ, &winsz);	/* ioctl on STDIN */
+	if (winsz.ws_col && winsz.ws_row)
+		resizeterm(winsz.ws_row, winsz.ws_col);
+	COLS = winsz.ws_col;
+	LINES = winsz.ws_row;
+
+	resize_display_all();
+}
+
+
 /******************* INPUT *******************/
 
 void
@@ -338,11 +374,6 @@ handle_user_input(void)
 	case '\r': case KEY_ENTER: /* used to close win */
 		show_conf_window(tolower(key));
 		break;
-
-	case KEY_RESIZE: /* xterm window resize event */
-		endwin();
-		init_display();
-		return;
 	}
 
 	update_display(NULL, NULL);
@@ -390,9 +421,9 @@ init_display(void)
 		show_window('s');
 
 	update_menu();
-	update_mini_status();
-
 	update_display(NULL, NULL);
+
+	signal(SIGWINCH, window_change_handler);
 }
 
 
