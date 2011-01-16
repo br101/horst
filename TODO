@@ -13,7 +13,6 @@ feature requests:
 -----------------
 
  * FCS errors checken
- * ACKs
  * batman layer 2 ethertype 0x0842
 
 ---
