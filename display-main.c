@@ -427,14 +427,16 @@ update_dump_win(struct packet_info* p)
 			}
 		}
 	}
-	wattroff(dump_win,A_BOLD);
+	wattroff(dump_win, A_BOLD);
 }
 
 
 void
 print_dump_win(const char *str)
 {
+	wattron(dump_win, RED);
 	wprintw(dump_win, str);
+	wattroff(dump_win, RED);
 	wnoutrefresh(dump_win);
 }
 
@@ -475,12 +477,19 @@ init_display_main(void)
 	win_split = LINES / 2 + 1;
 	stat_height = LINES - win_split - 1;
 
+	if (list_win != NULL)
+		delwin(list_win);
+	if (stat_win != NULL)
+		delwin(list_win);
+	if (dump_win != NULL)
+		delwin(list_win);
+
 	list_win = newwin(win_split, COLS, 0, 0);
-	scrollok(list_win,FALSE);
+	scrollok(list_win, FALSE);
 
 	stat_win = newwin(stat_height, 14, win_split, COLS-14);
-	scrollok(stat_win,FALSE);
+	scrollok(stat_win, FALSE);
 
 	dump_win = newwin(stat_height, COLS-14, win_split, 0);
-	scrollok(dump_win,TRUE);
+	scrollok(dump_win, TRUE);
 }
