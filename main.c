@@ -53,7 +53,6 @@ struct config conf = {
 	.channel_time		= CHANNEL_TIME,
 	.ifname			= INTERFACE_NAME,
 	.display_interval	= DISPLAY_UPDATE_INTERVAL,
-	.sleep_time		= SLEEP_TIME,
 	.filter_pkt		= 0xffffff,
 	.recv_buffer_size	= RECV_BUFFER_SIZE,
 	.port			= DEFAULT_PORT,
@@ -552,8 +551,8 @@ receive_any(void)
 	if (srv_fd != -1) {
 		FD_SET(srv_fd, &read_fds);
 	}
-	tv.tv_sec = 0;
-	tv.tv_usec = conf.sleep_time;
+	tv.tv_sec = 1;
+	tv.tv_usec = 0;
 	mfd = max(mon, srv_fd) + 1;
 
 	ret = select(mfd, &read_fds, &write_fds, &excpt_fds, &tv);
@@ -561,6 +560,9 @@ receive_any(void)
 		return;
 	}
 	if (ret == 0) { /* timeout */
+#if !DO_DEBUG
+		update_display(NULL, NULL);
+#endif
 		return;
 	}
 	if (ret < 0) {
@@ -598,7 +600,7 @@ get_options(int argc, char** argv)
 	int c;
 	static int n;
 
-	while((c = getopt(argc, argv, "hqsi:t:p:e:d:w:o:b:c:")) > 0) {
+	while((c = getopt(argc, argv, "hqsi:t:p:e:d:o:b:c:")) > 0) {
 		switch (c) {
 		case 'p':
 			conf.port = optarg;
@@ -624,9 +626,6 @@ get_options(int argc, char** argv)
 		case 'd':
 			conf.display_interval = atoi(optarg) * 1000;
 			break;
-		case 'w':
-			conf.sleep_time = atoi(optarg);
-			break;
 		case 'e':
 			if (n >= MAX_FILTERMAC)
 				break;
@@ -651,7 +650,6 @@ get_options(int argc, char** argv)
 				"  -p <port>\tuse port (4444)\n"
 				"  -e <mac>\tfilter all macs except these (multiple)\n"
 				"  -d <ms>\tdisplay update interval (100)\n"
-				"  -w <usec>\twait loop (1000 = 1ms)\n"
 				"  -o <filename>\twrite packet info into file\n"
 				"  -b <bytes>\treceive buffer size (6750000)\n"
 				"\n",
@@ -832,6 +830,7 @@ main(int argc, char** argv)
 	signal(SIGPIPE, sigpipe_handler);
 
 	gettimeofday(&stats.stats_time, NULL);
+	gettimeofday(&the_time, NULL);
 
 	if (conf.serveraddr) {
 		mon = net_open_client_socket(conf.serveraddr, conf.port);

@@ -88,7 +88,6 @@
 #define CHANNEL_TIME		250000	/* 250 usec */
 /* update display every 100ms - "10 frames per sec should be enough for everyone" ;) */
 #define DISPLAY_UPDATE_INTERVAL 100000	/* usec */
-#define SLEEP_TIME		1000	/* usec */
 #define RECV_BUFFER_SIZE	6750000	/* 54Mbps in byte */
 #define DEFAULT_PORT		"4444"	/* string because of getaddrinfo() */
 
@@ -279,7 +278,6 @@ struct config {
 	int			channel_max;
 	int			current_channel;	/* index into channels array */
 	int			display_interval;
-	int			sleep_time;
 	char*			dumpfile;
 	int			recv_buffer_size;
 	char*			serveraddr;
