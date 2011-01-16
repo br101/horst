@@ -228,11 +228,11 @@ show_conf_window(char key)
 	}
 	if (conf_win == NULL) {
 		if (key == 'f') {
-			conf_win = newwin(25, 57, LINES/2-15, COLS/2-15);
+			conf_win = newwin(25, 57, LINES/2-12, COLS/2-28);
 			update_filter_win(conf_win);
 		}
 		else if (key == 'c') {
-			conf_win = newwin(10, 39, LINES/2-15, COLS/2-15);
+			conf_win = newwin(10, 39, LINES/2-5, COLS/2-20);
 			update_channel_win(conf_win);
 		}
 		scrollok(conf_win, FALSE);
