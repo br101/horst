@@ -135,11 +135,11 @@ static void
 update_mini_status(void)
 {
 	wattron(stdscr, BLACKONWHITE);
-	mvwprintw(stdscr, LINES-1, COLS-28, conf.paused ? "|PAU" : "|   ");
+	mvwprintw(stdscr, LINES-1, COLS-24, conf.paused ? "|=" : "|>");
 	if (!conf.filter_off && (conf.do_macfilter || conf.filter_pkt != 0xffffff))
-		mvwprintw(stdscr, LINES-1, COLS-24, "|FIL");
+		mvwprintw(stdscr, LINES-1, COLS-22, "|F");
 	else
-		mvwprintw(stdscr, LINES-1, COLS-24, "|   ");
+		mvwprintw(stdscr, LINES-1, COLS-22, "| ");
 	mvwprintw(stdscr, LINES-1, COLS-20, "|Ch%02d", CONF_CURRENT_CHANNEL);
 	wattroff(stdscr, BLACKONWHITE);
 	wnoutrefresh(stdscr);
@@ -154,15 +154,15 @@ update_menu(void)
 
 #define KEYMARK A_UNDERLINE
 	attron(KEYMARK); printw("Q"); attroff(KEYMARK); printw("uit ");
-	attron(KEYMARK); printw("P"); attroff(KEYMARK); printw("ause ");
-	attron(KEYMARK); printw("R"); attroff(KEYMARK); printw("eset ");
-	attron(KEYMARK); printw("H"); attroff(KEYMARK); printw("istory ");
-	attron(KEYMARK); printw("E"); attroff(KEYMARK); printw("SSIDs St");
+	attron(KEYMARK); printw("P"); attroff(KEYMARK); printw("aus ");
+	attron(KEYMARK); printw("R"); attroff(KEYMARK); printw("est ");
+	attron(KEYMARK); printw("H"); attroff(KEYMARK); printw("ist ");
+	attron(KEYMARK); printw("E"); attroff(KEYMARK); printw("SSID St");
 	attron(KEYMARK); printw("a"); attroff(KEYMARK); printw("ts ");
-	attron(KEYMARK); printw("S"); attroff(KEYMARK); printw("pectrum ");
-	attron(KEYMARK); printw("F"); attroff(KEYMARK); printw("ilter ");
-	attron(KEYMARK); printw("C"); attroff(KEYMARK); printw("hannel ");
-	attron(KEYMARK); printw("?"); attroff(KEYMARK); printw("Help ");
+	attron(KEYMARK); printw("S"); attroff(KEYMARK); printw("pec ");
+	attron(KEYMARK); printw("F"); attroff(KEYMARK); printw("ilt ");
+	attron(KEYMARK); printw("C"); attroff(KEYMARK); printw("han ");
+	attron(KEYMARK); printw("?"); attroff(KEYMARK); printw(" ");
 	if (show_win == NULL) {
 		printw("s"); attron(KEYMARK); printw("O"); attroff(KEYMARK); printw("rt");
 	}
@@ -226,16 +226,16 @@ show_conf_window(char key)
 		conf_win_current = 0;
 		return;
 	}
-	if (conf_win == NULL && key == 'f') {
-		conf_win = newwin(25, 57, LINES/2-15, COLS/2-15);
+	if (conf_win == NULL) {
+		if (key == 'f') {
+			conf_win = newwin(25, 57, LINES/2-15, COLS/2-15);
+			update_filter_win(conf_win);
+		}
+		else if (key == 'c') {
+			conf_win = newwin(10, 39, LINES/2-15, COLS/2-15);
+			update_channel_win(conf_win);
+		}
 		scrollok(conf_win, FALSE);
-		update_filter_win(conf_win);
-		conf_win_current = key;
-	}
-	else if (conf_win == NULL && key == 'c') {
-		conf_win = newwin(10, 39, LINES/2-15, COLS/2-15);
-		scrollok(conf_win, FALSE);
-		update_channel_win(conf_win);
 		conf_win_current = key;
 	}
 }
@@ -267,7 +267,7 @@ update_display(struct packet_info* pkt, struct node_info* node)
 		return;
 	}
 
-	update_mini_status();
+	update_menu();
 
 	/* update clock every second */
 	if (the_time.tv_sec > last_time.tv_sec)
@@ -360,6 +360,7 @@ handle_user_input(void)
 		finish_all(0);
 
 	case 'r': case 'R':
+		print_dump_win("\n- RESET -");
 		free_lists();
 		essids.split_active = 0;
 		essids.split_essid = NULL;
