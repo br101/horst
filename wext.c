@@ -38,7 +38,7 @@ wext_set_channel(int fd, const char* devname, int chan)
 	iwr.u.freq.e = 1;
 
 	if (ioctl(fd, SIOCSIWFREQ, &iwr) < 0) {
-		perror("ioctl[SIOCSIWFREQ]");
+		//perror("ioctl[SIOCSIWFREQ]");
 		return 0;
 	}
 	return 1;
@@ -54,7 +54,7 @@ wext_get_freq(int fd, const char* devname)
 	strncpy(iwr.ifr_name, devname, IFNAMSIZ);
 
 	if (ioctl(fd, SIOCGIWFREQ, &iwr) < 0) {
-		perror("ioctl[SIOCGIWFREQ]");
+		//perror("ioctl[SIOCGIWFREQ]");
 		return 0;
 	}
 
