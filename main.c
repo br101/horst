@@ -387,6 +387,7 @@ update_spectrum(struct packet_info* p, struct node_info* n)
 
 	chan = &spectrum[i];
 	chan->signal = p->phy_signal;
+	chan->noise = p->phy_noise;
 	chan->packets++;
 	chan->bytes += p->pkt_len;
 	chan->durations += p->pkt_duration;

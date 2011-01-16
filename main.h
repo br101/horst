@@ -247,6 +247,7 @@ extern struct chan_freq channels[MAX_CHANNELS];
 struct channel_info {
 	int			signal;
 	int			signal_avg;
+	int			noise;
 	unsigned long		packets;
 	unsigned long		bytes;
 	unsigned long		durations;
