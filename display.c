@@ -253,6 +253,15 @@ update_display_clock(void)
 
 
 void
+display_error_msg(const char *string)
+{
+	char buf[128] = "\n*** ERROR: ";
+	strncat(buf, string, 100);
+	print_dump_win(buf);
+}
+
+
+void
 update_display(struct packet_info* pkt, struct node_info* node)
 {
 	/*

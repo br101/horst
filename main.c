@@ -767,6 +767,8 @@ void print_rate_duration_table(void)
 void
 auto_change_channel(void)
 {
+	int new_chan;
+
 	if (the_time.tv_sec == last_channelchange.tv_sec &&
 	     (the_time.tv_usec - last_channelchange.tv_usec) < conf.channel_time) {
 		return;
@@ -781,13 +783,16 @@ auto_change_channel(void)
 	if (conf.do_change_channel == 0)
 		return;
 
-	conf.current_channel++;
-	if (conf.current_channel >= conf.num_channels ||
-		conf.current_channel >= MAX_CHANNELS ||
-		(conf.channel_max && conf.current_channel >= conf.channel_max))
-	    conf.current_channel = 0;
+	new_chan = conf.current_channel + 1;
+	if (new_chan >= conf.num_channels ||
+		new_chan >= MAX_CHANNELS ||
+		(conf.channel_max && new_chan >= conf.channel_max))
+	    new_chan = 0;
 
-	wext_set_channel(mon, conf.ifname, channels[conf.current_channel].freq);
+	if (wext_set_channel(mon, conf.ifname, channels[new_chan].freq) == 0)
+		display_error_msg("auto change channel could not set channel");
+	else
+		conf.current_channel = new_chan;
 }
 
 
@@ -885,7 +890,10 @@ change_channel(int c)
 
 	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++) {
 		if (channels[i].chan == c) {
-			wext_set_channel(mon, conf.ifname, channels[i].freq);
+			if (wext_set_channel(mon, conf.ifname, channels[i].freq) == 0) {
+				display_error_msg("could not set channel");
+				return;
+			}
 			conf.current_channel = i;
 			break;
 		}
