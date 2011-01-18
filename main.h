@@ -85,7 +85,7 @@
 /* default config values */
 #define INTERFACE_NAME		"wlan0"
 #define NODE_TIMEOUT		60	/* seconds */
-#define CHANNEL_TIME		250000	/* 250 usec */
+#define CHANNEL_TIME		250000	/* 250 msec */
 /* update display every 100ms - "10 frames per sec should be enough for everyone" ;) */
 #define DISPLAY_UPDATE_INTERVAL 100000	/* usec */
 #define RECV_BUFFER_SIZE	6750000	/* 54Mbps in byte */

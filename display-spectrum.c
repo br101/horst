@@ -32,7 +32,6 @@
 
 static unsigned int show_nodes;
 
-
 void
 update_spectrum_win(WINDOW *win)
 {
@@ -102,7 +101,9 @@ update_spectrum_win(WINDOW *win)
 				ACS_BLOCK, SPEC_HEIGHT - noi);
 		}
 
-		use = (spectrum[i].durations - spectrum[i].durations_last) * 1.0 / 1000;
+		/* usage in percent */
+		use = (spectrum[i].durations_last * 100.0) / conf.channel_time;
+
 		wattron(win, YELLOW);
 		mvwprintw(win, SPEC_HEIGHT + 5, SPEC_POS_X + CH_SPACE*i, "%d", use);
 		wattroff(win, YELLOW);
@@ -134,11 +135,8 @@ update_spectrum_win(WINDOW *win)
 			mvwvline(win, SPEC_POS_Y + SPEC_HEIGHT - nnodes,
 				SPEC_POS_X + CH_SPACE*i + 2, ACS_BLOCK, nnodes);
 			wattroff(win, ALLBLUE);
-#if 0
-			mvwprintw(win, 11, SPEC_POS_X+CH_SPACE*i, "%d", spectrum[i].durations);
-			mvwprintw(win, 12, SPEC_POS_X+CH_SPACE*i, "%d", spectrum[i].durations_last);
-#endif
-			usen = normalize(use, conf.channel_time, SPEC_HEIGHT);
+
+			usen = normalize(use, 100, SPEC_HEIGHT);
 			wattron(win, ALLYELLOW);
 			mvwvline(win, SPEC_POS_Y + SPEC_HEIGHT - usen,
 				SPEC_POS_X + CH_SPACE*i + 3, ACS_BLOCK, usen);

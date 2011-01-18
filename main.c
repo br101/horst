@@ -770,29 +770,30 @@ auto_change_channel(void)
 	int new_chan;
 
 	if (the_time.tv_sec == last_channelchange.tv_sec &&
-	     (the_time.tv_usec - last_channelchange.tv_usec) < conf.channel_time) {
-		return;
+	    (the_time.tv_usec - last_channelchange.tv_usec) < conf.channel_time)
+		return; /* too early */
+
+	if (conf.do_change_channel) {
+		new_chan = conf.current_channel + 1;
+		if (new_chan >= conf.num_channels || new_chan >= MAX_CHANNELS ||
+		    (conf.channel_max && new_chan >= conf.channel_max))
+			new_chan = 0;
+
+		if (wext_set_channel(mon, conf.ifname, channels[new_chan].freq) == 0)
+			display_error_msg("auto change channel could not set channel");
+		else
+			conf.current_channel = new_chan;
 	}
 
-	if (conf.current_channel >= 0)
+	/* also if channel was not changed, keep stats only for every channel_time.
+	 * display code uses durations_last to get a more stable view */
+	if (conf.current_channel >= 0) {
 		spectrum[conf.current_channel].durations_last =
-					spectrum[conf.current_channel].durations;
+				spectrum[conf.current_channel].durations;
+		spectrum[conf.current_channel].durations = 0;
+	}
 
 	last_channelchange = the_time;
-
-	if (conf.do_change_channel == 0)
-		return;
-
-	new_chan = conf.current_channel + 1;
-	if (new_chan >= conf.num_channels ||
-		new_chan >= MAX_CHANNELS ||
-		(conf.channel_max && new_chan >= conf.channel_max))
-	    new_chan = 0;
-
-	if (wext_set_channel(mon, conf.ifname, channels[new_chan].freq) == 0)
-		display_error_msg("auto change channel could not set channel");
-	else
-		conf.current_channel = new_chan;
 }
 
 
