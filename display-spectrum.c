@@ -82,7 +82,7 @@ update_spectrum_win(WINDOW *win)
 
 			signal_average_bar(win, sig, siga,
 					   SPEC_POS_Y, SPEC_POS_X + CH_SPACE*i,
-					   SPEC_HEIGHT, 2);
+					   SPEC_HEIGHT, show_nodes ? 1 : 2);
 		}
 
 		if (spectrum[i].noise != 0) {
