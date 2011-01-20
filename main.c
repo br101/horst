@@ -396,7 +396,7 @@ update_spectrum(struct packet_info* p, struct node_info* n)
 		}
 	}
 	if (cn->node != n) {
-		DEBUG("SPEC node adding %p chan %d\n", n, i);
+		DEBUG("SPEC node adding %p\n", n);
 		cn = malloc(sizeof(struct chan_node));
 		cn->node = n;
 		cn->chan = chan;
@@ -866,6 +866,7 @@ main(int argc, char** argv)
 
 	if (conf.serveraddr) {
 		mon = net_open_client_socket(conf.serveraddr, conf.port);
+		init_channels(); //TODO: get from server
 	}
 	else {
 		mon = open_packet_socket(conf.ifname, sizeof(buffer), conf.recv_buffer_size);
