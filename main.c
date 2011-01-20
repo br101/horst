@@ -795,7 +795,7 @@ auto_change_channel(void)
 			new_chan = 0;
 
 		if (wext_set_channel(mon, conf.ifname, channels[new_chan].freq) == 0)
-			display_error_msg("auto change channel could not set channel");
+			printlog("auto change channel could not set channel");
 		else
 			conf.current_channel = new_chan;
 	}
@@ -859,6 +859,11 @@ main(int argc, char** argv)
 	gettimeofday(&stats.stats_time, NULL);
 	gettimeofday(&the_time, NULL);
 
+	#if !DO_DEBUG
+	if (!conf.quiet)
+		init_display();
+	#endif
+
 	if (conf.serveraddr) {
 		mon = net_open_client_socket(conf.serveraddr, conf.port);
 		init_channels(); //TODO: get from server
@@ -887,11 +892,6 @@ main(int argc, char** argv)
 	if (!conf.serveraddr && conf.port)
 		net_init_server_socket(conf.port);
 
-#if !DO_DEBUG
-	if (!conf.quiet)
-		init_display();
-#endif
-
 	for ( /* ever */ ;;)
 	{
 		receive_any();
@@ -912,11 +912,28 @@ change_channel(int c)
 	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++) {
 		if (channels[i].chan == c) {
 			if (wext_set_channel(mon, conf.ifname, channels[i].freq) == 0) {
-				display_error_msg("could not set channel");
+				printlog("could not set channel");
 				return;
 			}
 			conf.current_channel = i;
 			break;
 		}
 	}
+}
+
+
+void __attribute__ ((format (printf, 1, 2)))
+printlog(const char *fmt, ...)
+{
+	char buf[128];
+	va_list ap;
+
+	va_start(ap, fmt);
+	vsnprintf(buf, 128, fmt, ap);
+	va_end(ap);
+
+	if (conf.quiet || DO_DEBUG)
+		printf("%s", buf);
+	else
+		display_log(buf);
 }

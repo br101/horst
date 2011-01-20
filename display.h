@@ -64,7 +64,7 @@ void
 update_display_clock(void);
 
 void
-display_error_msg(const char *string);
+display_log(const char *string);
 
 void
 handle_user_input(void);

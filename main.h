@@ -323,5 +323,7 @@ init_channels(void);
 void
 handle_packet(struct packet_info* p);
 
+void __attribute__ ((format (printf, 1, 2)))
+printlog(const char *fmt, ...);
 
 #endif

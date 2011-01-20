@@ -307,11 +307,9 @@ update_display_clock(void)
 
 
 void
-display_error_msg(const char *string)
+display_log(const char *string)
 {
-	char buf[128] = "\n*** ERROR: ";
-	strncat(buf, string, 100);
-	print_dump_win(buf);
+	print_dump_win(string);
 }
 
 

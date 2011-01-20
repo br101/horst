@@ -263,13 +263,13 @@ int net_handle_server_conn( void )
 	socklen_t cinlen;
 
 	if (cli_fd != -1) {
-		printf("can only handle one client\n");
+		printlog("can only handle one client\n");
 		return -1;
 	}
 
 	cli_fd = accept(srv_fd, (struct sockaddr*)&cin, &cinlen);
 
-	printf("horst: accepting client\n");
+	printlog("horst: accepting client\n");
 
 	//read(cli_fd,line,sizeof(line));
 	return 0;
@@ -283,7 +283,7 @@ net_open_client_socket(char* serveraddr, char* rport)
 	struct addrinfo *result, *rp;
 	int ret;
 
-	printf("connecting to server %s port %s\n", serveraddr, rport);
+	printlog("connecting to server %s port %s\n", serveraddr, rport);
 
 	/* Obtain address(es) matching host/port */
 	memset(&saddr, 0, sizeof(struct addrinfo));
@@ -321,7 +321,7 @@ net_open_client_socket(char* serveraddr, char* rport)
 
 	freeaddrinfo(result);
 
-	printf("connected\n");
+	printlog("connected\n");
 	return netmon_fd;
 }
 
