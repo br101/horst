@@ -87,6 +87,8 @@ kilo_mega_ize(unsigned int val);
 #define max(_x, _y) ((_x) > (_y) ? (_x) : (_y))
 #define min(_x, _y) ((_x) < (_y) ? (_x) : (_y))
 
+#define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
+
 static inline __attribute__((const))
 int is_power_of_2(unsigned long n)
 {

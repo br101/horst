@@ -30,7 +30,6 @@
 #include "ieee80211_util.h"
 #include "olsr_header.h"
 #include "batman_header.h"
-
 #include "protocol_parser.h"
 #include "main.h"
 #include "util.h"

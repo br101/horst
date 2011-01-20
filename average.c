@@ -5,9 +5,9 @@
  * Version 2.  See the file COPYING for more details.
  */
 
+#include <error.h>
 #include "average.h"
 #include "util.h"
-#include <error.h>
 
 /**
  * DOC: Exponentially Weighted Moving Average (EWMA)

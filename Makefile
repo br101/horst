@@ -19,11 +19,11 @@
 NAME=horst
 DEBUG=0
 PCAP=0
-OBJS=main.o capture.o protocol_parser.o network.o wext.o \
-	util.o ieee80211_util.o listsort.o \
+OBJS=main.o capture.o protocol_parser.o network.o wext.o util.o \
+	ieee80211_util.o listsort.o average.o \
 	display.o display-main.o display-filter.o display-help.o \
 	display-statistics.o display-essid.o display-history.o \
-	display-spectrum.o display-channel.o average.o
+	display-spectrum.o display-channel.o
 
 LIBS=-lncurses -lm
 CFLAGS+=-Wall -DDO_DEBUG=$(DEBUG) -g
@@ -38,13 +38,28 @@ buildstamp=.build_debug$(DEBUG)pcap$(PCAP)
 all: $(buildstamp) $(NAME)
 
 # include dependencies
-protocol_parser.o: protocol_parser.h ieee80211.h ieee80211_radiotap.h ieee80211_util.h \
-		   prism_header.h olsr_header.h batman_header.h util.h main.h
-main.o: main.h ieee80211.h protocol_parser.h display.h network.h util.h capture.h
-display.o: display.h main.h util.h ieee80211.h olsr_header.h
-network.o: network.h main.h util.h
-util.o: util.h ieee80211.h
+average.o: average.h util.h
 capture.o: capture.h util.h
+display.o: display.h main.h ieee80211.h
+display-channel.o: display.h main.h
+display-essid.o: display.h main.h util.h
+display-filter.o: display.h main.h util.h ieee80211.h
+display-help.o: display.h main.h util.h
+display-history.o: display.h main.h util.h
+display-main.o: display.h main.h util.h ieee80211.h olsr_header.h listsort.h
+display-spectrum.o: display.h main.h util.h
+display-statistics.o: display.h main.h util.h
+ieee80211_util.o: ieee80211.h ieee80211_radiotap.h ieee80211_util.h main.h \
+	util.h
+listsort.o: list.h listsort.h
+main.o: protocol_parser.h display.h network.h main.h capture.h util.h \
+	ieee80211.h ieee80211_util.h wext.h average.h
+network.o: main.h util.h network.h
+protocol_parser.o: prism_header.h ieee80211_radiotap.h ieee80211.h \
+	ieee80211_util.h olsr_header.h batman_header.h protocol_parser.h \
+	main.h util.h
+util.o: util.h ieee80211.h
+wext.o: wext.h util.h
 
 $(NAME): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)

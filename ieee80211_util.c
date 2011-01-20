@@ -23,7 +23,6 @@
 #include "main.h"
 #include "util.h"
 
-#define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
 
 u8*
 ieee80211_get_bssid(struct ieee80211_hdr *hdr, size_t len)
