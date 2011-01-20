@@ -239,3 +239,13 @@ kilo_mega_ize(unsigned int val) {
 		snprintf(buf, sizeof(buf), "%d", val);
 	return buf;
 }
+
+
+/* simple ilog2 implementation */
+int
+ilog2(int x) {
+	int n;
+	for (n = 0; !(x & 1); n++)
+		x = x >> 1;
+	return n;
+}

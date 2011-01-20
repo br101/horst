@@ -87,19 +87,13 @@ kilo_mega_ize(unsigned int val);
 #define max(_x, _y) ((_x) > (_y) ? (_x) : (_y))
 #define min(_x, _y) ((_x) < (_y) ? (_x) : (_y))
 
-/* Fixed Point IIR Averaging Filter:
- *
- * y(n) = 0.875*y(n-1) + 0.125*x(n)
- * y(n) = y(n-1) - 0.125*y(n-1) + 0.125*x(n)
- * 8*y(n) = 8*y(n-1) - 0.125*8*y(n-1) + x(n)
- * 8*y(n) = 8*y(n-1) - 8*y(n-1) >> 3 + x(n)
- *
- * We store y(n) in Q13.3 format to get higher precision, less round off error.
-*/
-#define iir_average(_avg, _val) \
-	(_avg = _avg - (_avg >> 3) + _val)
+static inline __attribute__((const))
+int is_power_of_2(unsigned long n)
+{
+	return (n != 0 && ((n & (n - 1)) == 0));
+}
 
-#define iir_average_get(_avg) \
-	(_avg >> 3)
+int
+ilog2(int x);
 
 #endif

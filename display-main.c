@@ -178,7 +178,7 @@ update_status_win(struct packet_info* p)
 			chan = &spectrum[p->pkt_chan_idx];
 
 		if (chan != NULL && chan->packets >= 8)
-			siga = normalize_db(-iir_average_get(chan->signal_avg),
+			siga = normalize_db(ewma_read(&chan->signal_avg),
 					    max_stat_bar);
 		else
 			siga = sig;
@@ -249,7 +249,7 @@ print_list_line(int line, struct node_info* n)
 	mvwprintw(list_win, line, 1, "%c", spin[n->pkt_count % 4]);
 
 	mvwprintw(list_win, line, COL_SNR, "%2d/%2d/%2d",
-		p->phy_snr, n->phy_snr_max, iir_average_get(n->phy_snr_avg));
+		p->phy_snr, n->phy_snr_max, ewma_read(&n->phy_snr_avg));
 
 	if (n->wlan_mode == WLAN_MODE_AP )
 		mvwprintw(list_win, line, COL_STA,"A");

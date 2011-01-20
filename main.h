@@ -21,6 +21,7 @@
 #define _MAIN_H_
 
 #include "list.h"
+#include "average.h"
 
 #define VERSION "2.0-rc2"
 
@@ -160,9 +161,8 @@ struct node_info {
 	/* wlan phy (from radiotap) */
 	int			phy_snr_min;
 	int			phy_snr_max;
-	int			phy_snr_avg;
+	struct ewma		phy_snr_avg;
 	int			phy_sig_max;
-	int			phy_sig_avg;
 
 	/* wlan mac */
 	unsigned char		wlan_bssid[MAC_LEN];
@@ -245,13 +245,13 @@ extern struct chan_freq channels[MAX_CHANNELS];
 
 struct channel_info {
 	int			signal;
-	int			signal_avg;
+	struct ewma		signal_avg;
 	int			noise;
 	unsigned long		packets;
 	unsigned long		bytes;
 	unsigned long		durations;
 	unsigned long		durations_last;
-	unsigned long		durations_avg;
+	struct ewma		durations_avg;
 	struct list_head	nodes;
 	unsigned int		num_nodes;
 };
@@ -266,7 +266,7 @@ struct chan_node {
 	struct list_head	chan_list;	/* list for nodes per channel */
 	struct list_head	node_list;	/* list for channels per node */
 	int			sig;
-	int			sig_avg;
+	struct ewma		sig_avg;
 	unsigned long		packets;
 };
 

@@ -40,6 +40,7 @@
 #include "ieee80211.h"
 #include "ieee80211_util.h"
 #include "wext.h"
+#include "average.h"
 
 struct list_head nodes;
 struct essid_meta_info essids;
@@ -107,8 +108,7 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		n->wlan_tsf = p->wlan_tsf;
 		n->wlan_bintval = p->wlan_bintval;
 	}
-	iir_average(n->phy_snr_avg, p->phy_snr);
-	iir_average(n->phy_sig_avg, p->phy_signal);
+	ewma_add(&n->phy_snr_avg, p->phy_snr);
 	if (p->phy_snr > n->phy_snr_max)
 		n->phy_snr_max = p->phy_snr;
 	if (p->phy_signal > n->phy_sig_max || n->phy_sig_max == 0)
@@ -159,6 +159,7 @@ node_update(struct packet_info* p)
 		n = malloc(sizeof(struct node_info));
 		memset(n, 0, sizeof(struct node_info));
 		n->essid = NULL;
+		ewma_init(&n->phy_snr_avg, 1024, 8);
 		INIT_LIST_HEAD(&n->on_channels);
 		list_add_tail(&n->list, &nodes);
 	}
@@ -382,7 +383,7 @@ update_spectrum(struct packet_info* p, struct node_info* n)
 	chan->packets++;
 	chan->bytes += p->pkt_len;
 	chan->durations += p->pkt_duration;
-	chan->signal_avg = iir_average(chan->signal_avg, chan->signal);
+	ewma_add(&chan->signal_avg, -chan->signal);
 
 	if (!n)
 		return;
@@ -399,6 +400,7 @@ update_spectrum(struct packet_info* p, struct node_info* n)
 		cn = malloc(sizeof(struct chan_node));
 		cn->node = n;
 		cn->chan = chan;
+		ewma_init(&cn->sig_avg, 1024, 8);
 		list_add_tail(&cn->chan_list, &chan->nodes);
 		list_add_tail(&cn->node_list, &n->on_channels);
 		chan->num_nodes++;
@@ -406,7 +408,7 @@ update_spectrum(struct packet_info* p, struct node_info* n)
 	}
 	/* keep signal of this node as seen on this channel */
 	cn->sig = p->phy_signal;
-	cn->sig_avg = iir_average(cn->sig_avg, cn->sig);
+	ewma_add(&cn->sig_avg, -cn->sig);
 	cn->packets++;
 }
 
@@ -807,8 +809,8 @@ auto_change_channel(void)
 		spectrum[conf.current_channel].durations_last =
 				spectrum[conf.current_channel].durations;
 		spectrum[conf.current_channel].durations = 0;
-		iir_average(spectrum[conf.current_channel].durations_avg,
-			    spectrum[conf.current_channel].durations_last);
+		ewma_add(&spectrum[conf.current_channel].durations_avg,
+			 spectrum[conf.current_channel].durations_last);
 	}
 
 	last_channelchange = the_time;
@@ -824,8 +826,11 @@ init_channels(void)
 
 	/* get all available channels */
 	conf.num_channels = wext_get_channels(mon, conf.ifname, channels);
-	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++)
+	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++) {
 		INIT_LIST_HEAD(&spectrum[i].nodes);
+		ewma_init(&spectrum[i].signal_avg, 1024, 8);
+		ewma_init(&spectrum[i].durations_avg, 1024, 8);
+	}
 
 	/* get current channel &  map to our channel array */
 	freq = wext_get_freq(mon, conf.ifname);

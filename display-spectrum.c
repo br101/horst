@@ -75,7 +75,7 @@ update_spectrum_win(WINDOW *win)
 			sig = normalize_db(-spectrum[i].signal, SPEC_HEIGHT);
 			if (spectrum[i].packets > 8)
 				siga = normalize_db(
-					-iir_average_get(spectrum[i].signal_avg),
+					ewma_read(&spectrum[i].signal_avg),
 					SPEC_HEIGHT);
 			else
 				siga = sig;
@@ -102,7 +102,7 @@ update_spectrum_win(WINDOW *win)
 			wattron(win, BLUE);
 			list_for_each_entry(cn, &spectrum[i].nodes, chan_list) {
 				if (cn->packets >= 8)
-					sig = normalize_db(-iir_average_get(cn->sig_avg),
+					sig = normalize_db(ewma_read(&cn->sig_avg),
 						SPEC_HEIGHT);
 				else
 					sig = normalize_db(-cn->sig, SPEC_HEIGHT);
@@ -131,7 +131,7 @@ update_spectrum_win(WINDOW *win)
 
 			usen = normalize(use, 100, SPEC_HEIGHT);
 
-			use = (iir_average_get(spectrum[i].durations_avg) * 100.0)
+			use = (ewma_read(&spectrum[i].durations_avg) * 100.0)
 				/ conf.channel_time;
 			usean = normalize(use, 100, SPEC_HEIGHT);
 
