@@ -112,7 +112,7 @@ struct packet_info {
 	int			phy_snr;	/* signal to noise ratio */
 	unsigned int		phy_rate;	/* physical rate */
 	unsigned int		phy_freq;	/* frequency from driver */
-	unsigned short		phy_chan;	/* channel from driver */
+	unsigned char		phy_chan;	/* channel from driver */
 	unsigned int		phy_flags;	/* A, B, G, shortpre */
 
 	/* wlan mac */

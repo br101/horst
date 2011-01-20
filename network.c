@@ -45,8 +45,8 @@ enum pkt_type {
 };
 
 struct net_header {
-	unsigned short version;
-	unsigned short type;
+	unsigned char version;
+	unsigned char type;
 } __attribute__ ((packed));
 
 struct net_packet_info {
@@ -62,7 +62,7 @@ struct net_packet_info {
 	int			phy_snr;	/* signal to noise ratio */
 	int			phy_rate;	/* physical rate */
 	int			phy_freq;	/* frequency (unused) */
-	unsigned short		phy_chan;	/* channel from driver */
+	unsigned char		phy_chan;	/* channel from driver */
 	int			phy_flags;	/* A, B, G, shortpre */
 
 	/* wlan mac */
@@ -245,8 +245,10 @@ net_receive(int fd, unsigned char* buffer, size_t bufsize)
 
 	nh = (struct net_header *)buffer;
 
-	if (nh->version != PROTO_VERSION)
+	if (nh->version != PROTO_VERSION) {
+		err(1, "version %x", nh->version);
 		return 0;
+	}
 
 	if (nh->type == PROTO_PKT_INFO)
 		net_receive_packet(buffer, len);
