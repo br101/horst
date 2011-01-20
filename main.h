@@ -320,4 +320,8 @@ change_channel(int c);
 void
 init_channels(void);
 
+void
+handle_packet(struct packet_info* p);
+
+
 #endif

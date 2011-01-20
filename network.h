@@ -34,7 +34,7 @@ int
 net_send_packet(struct packet_info *pkt);
 
 int
-net_receive_packet(unsigned char* buffer, int len, struct packet_info *pkt);
+net_receive(int fd, unsigned char* buffer, size_t bufsize);
 
 int
 net_open_client_socket(char* server, char* rport);

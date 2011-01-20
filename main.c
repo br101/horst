@@ -461,7 +461,7 @@ timeout_nodes(void)
 }
 
 
-static void
+void
 handle_packet(struct packet_info* p)
 {
 	struct node_info* n;
@@ -528,28 +528,21 @@ handle_packet(struct packet_info* p)
 
 
 static void
-receive_packet(unsigned char* buffer, int len)
+local_receive_packet(int fd, unsigned char* buffer, size_t bufsize)
 {
+	int len;
 	struct packet_info p;
+
+	len = recv_packet(fd, buffer, bufsize);
 
 #if DO_DEBUG
 	dump_packet(buffer, len);
 #endif
 	memset(&p, 0, sizeof(p));
 
-	if (!conf.serveraddr) {
-		/* local capture */
-		if (!parse_packet(buffer, len, &p)) {
-			DEBUG("parsing failed\n");
-			return;
-		}
-	}
-	else {
-		/* client mode - receiving pre-parsed from server */
-		if (!net_receive_packet(buffer, len, &p)) {
-			DEBUG("receive failed\n");
-			return;
-		}
+	if (!parse_packet(buffer, len, &p)) {
+		DEBUG("parsing failed\n");
+		return;
 	}
 
 	handle_packet(&p);
@@ -559,7 +552,7 @@ receive_packet(unsigned char* buffer, int len)
 static void
 receive_any(void)
 {
-	int ret, len, mfd;
+	int ret, mfd;
 
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);
@@ -595,10 +588,12 @@ receive_any(void)
 			handle_user_input();
 	}
 
-	/* packet */
+	/* local packet or client */
 	if (FD_ISSET(mon, &read_fds)) {
-		len = recv_packet(mon, buffer, sizeof(buffer));
-		receive_packet(buffer, len);
+		if (conf.serveraddr)
+			net_receive(mon, buffer, sizeof(buffer));
+		else
+			local_receive_packet(mon, buffer, sizeof(buffer));
 	}
 
 	/* server */

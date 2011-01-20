@@ -37,7 +37,21 @@ int srv_fd = -1;
 int cli_fd = -1;
 static int netmon_fd;
 
+#define PROTO_VERSION	1
+
+enum pkt_type {
+	PROTO_PKT_INFO		= 0,
+	PROTO_CHAN_LIST		= 1,
+};
+
+struct net_header {
+	unsigned short version;
+	unsigned short type;
+} __attribute__ ((packed));
+
 struct net_packet_info {
+	struct net_header	proto;
+
 	/* general */
 	int			pkt_types;	/* bitmask of packet types */
 	int			pkt_len;	/* packet length */
@@ -114,6 +128,9 @@ net_send_packet(struct packet_info *p)
 	int ret;
 	struct net_packet_info np;
 
+	np.proto.version = PROTO_VERSION;
+	np.proto.type	= PROTO_PKT_INFO;
+
 	np.pkt_types	= htole32(p->pkt_types);
 	np.pkt_len	= htole32(p->pkt_len);
 	np.phy_signal	= htole32(p->phy_signal);
@@ -163,9 +180,11 @@ net_send_packet(struct packet_info *p)
  *	  1 - ok
  */
 int
-net_receive_packet(unsigned char *buffer, int len, struct packet_info *p)
+net_receive_packet(unsigned char *buffer, int len)
 {
 	struct net_packet_info *np;
+	struct packet_info pkt;
+	struct packet_info* p = &pkt;
 
 	if (len < sizeof(struct net_packet_info)) {
 		return 0;
@@ -177,6 +196,7 @@ net_receive_packet(unsigned char *buffer, int len, struct packet_info *p)
 		return 0;
 	}
 
+	memset(&pkt, 0, sizeof(pkt));
 	p->pkt_types	= le32toh(np->pkt_types);
 	p->pkt_len	= le32toh(np->pkt_len);
 	p->phy_signal	= le32toh(np->phy_signal);
@@ -205,6 +225,31 @@ net_receive_packet(unsigned char *buffer, int len, struct packet_info *p)
 	p->olsr_type	= le32toh(np->olsr_type);
 	p->olsr_neigh	= le32toh(np->olsr_neigh);
 	p->olsr_tc	= le32toh(np->olsr_tc);
+
+	handle_packet(p);
+	return 1;
+}
+
+
+int
+net_receive(int fd, unsigned char* buffer, size_t bufsize)
+{
+	struct net_header *nh;
+	int len;
+
+	len = recv(fd, buffer, bufsize, MSG_DONTWAIT);
+
+	if (len < sizeof(struct net_header)) {
+		return 0;
+	}
+
+	nh = (struct net_header *)buffer;
+
+	if (nh->version != PROTO_VERSION)
+		return 0;
+
+	if (nh->type == PROTO_PKT_INFO)
+		net_receive_packet(buffer, len);
 
 	return 1;
 }
