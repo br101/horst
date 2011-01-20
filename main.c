@@ -590,7 +590,8 @@ receive_any(void)
 
 	/* stdin */
 	if (FD_ISSET(0, &read_fds)) {
-		handle_user_input();
+		if (!conf.quiet)
+			handle_user_input();
 	}
 
 	/* packet */
@@ -886,13 +887,12 @@ main(int argc, char** argv)
 		}
 	}
 
-	if (!conf.serveraddr && conf.port) {
+	if (!conf.serveraddr && conf.port)
 		net_init_server_socket(conf.port);
-	}
+
 #if !DO_DEBUG
-	if (!conf.quiet) {
+	if (!conf.quiet)
 		init_display();
-	}
 #endif
 
 	for ( /* ever */ ;;)
