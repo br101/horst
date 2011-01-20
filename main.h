@@ -288,7 +288,8 @@ struct config {
 	int			filter_pkt;
 	unsigned int		filter_off:1,
 				do_macfilter:1,
-				do_change_channel:1;
+				do_change_channel:1,
+				have_noise:1;
 
 	/* this isn't exactly config, but wtf... */
 	int			arphrd; // the device ARP type

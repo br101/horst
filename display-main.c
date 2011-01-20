@@ -44,6 +44,8 @@ static int win_split;
 static int stat_height;
 
 
+#define STAT_WIDTH 11
+
 /******************* SORTING *******************/
 
 static int
@@ -148,7 +150,7 @@ show_sort_win(void)
 static void
 update_status_win(struct packet_info* p)
 {
-	int sig, siga, noi, rate, bps, dps, bpsn, usen;
+	int sig, siga, noi, bps, dps, bpsn, usen;
 	float use;
 	int max_stat_bar = stat_height - 4;
 	struct channel_info* chan = NULL;
@@ -171,7 +173,6 @@ update_status_win(struct packet_info* p)
 		sig = normalize_db(-p->phy_signal, max_stat_bar);
 		if (p->phy_noise)
 			noi = normalize_db(-p->phy_noise, max_stat_bar);
-		rate = normalize(p->phy_rate, 108, max_stat_bar);
 
 		if (p->pkt_chan_idx > 0)
 			chan = &spectrum[p->pkt_chan_idx];
@@ -183,39 +184,35 @@ update_status_win(struct packet_info* p)
 			siga = sig;
 
 		wattron(stat_win, GREEN);
-		mvwprintw(stat_win, 0, 1, "SN:  %03d/", p->phy_signal);
+		if (conf.have_noise) {
+			mvwprintw(stat_win, 0, 1, "S/ :-%02d/", -p->phy_signal);
+			wattron(stat_win, RED);
+			wprintw(stat_win, "%02d", -p->phy_noise);
+			mvwprintw(stat_win, 0, 3, "N");
+		}
+		else
+			mvwprintw(stat_win, 0, 1, "Sig: %5d", p->phy_signal);
 
 		signal_bar(stat_win, sig, siga, 4, 2, stat_height, 2);
-
-		wattron(stat_win, RED);
-		mvwprintw(stat_win, 0, 10, "%03d", p->phy_noise);
 
 		if (p->phy_noise) {
 			wattron(stat_win, ALLRED);
 			mvwvline(stat_win, noi + 4, 2, '=', stat_height - noi);
 			mvwvline(stat_win, noi + 4, 3, '=', stat_height - noi);
 		}
-
-		wattron(stat_win, BLUE);
-		wattron(stat_win, A_BOLD);
-		mvwprintw(stat_win, 1, 1, "PhyRate:  %2dM", p->phy_rate/2);
-		wattroff(stat_win, A_BOLD);
-		wattron(stat_win, ALLBLUE);
-		mvwvline(stat_win, stat_height - rate, 5, ACS_BLOCK, rate);
-		mvwvline(stat_win, stat_height - rate, 6, ACS_BLOCK, rate);
 	}
 
 	wattron(stat_win, CYAN);
-	mvwprintw(stat_win, 2, 1, "b/sec: %6s", kilo_mega_ize(bps));
+	mvwprintw(stat_win, 1, 1, "bps:%6s", kilo_mega_ize(bps));
 	wattron(stat_win, ALLCYAN);
-	mvwvline(stat_win, stat_height - bpsn, 8, ACS_BLOCK, bpsn);
-	mvwvline(stat_win, stat_height - bpsn, 9, ACS_BLOCK, bpsn);
+	mvwvline(stat_win, stat_height - bpsn, 5, ACS_BLOCK, bpsn);
+	mvwvline(stat_win, stat_height - bpsn, 6, ACS_BLOCK, bpsn);
 
 	wattron(stat_win, YELLOW);
-	mvwprintw(stat_win, 3, 1, "Usage: %5.1f%%", use);
+	mvwprintw(stat_win, 2, 1, "Use:%5.1f%%", use);
 	wattron(stat_win, ALLYELLOW);
-	mvwvline(stat_win, stat_height - usen, 11, ACS_BLOCK, usen);
-	mvwvline(stat_win, stat_height - usen, 12, ACS_BLOCK, usen);
+	mvwvline(stat_win, stat_height - usen, 8, ACS_BLOCK, usen);
+	mvwvline(stat_win, stat_height - usen, 9, ACS_BLOCK, usen);
 	wattroff(stat_win, ALLYELLOW);
 
 	wnoutrefresh(stat_win);
@@ -294,7 +291,7 @@ static void
 update_list_win(void)
 {
 	struct node_info* n;
-	int line = 0;
+	int line = 0, nadd = 0;
 
 	werase(list_win);
 	wattron(list_win, WHITE);
@@ -310,11 +307,16 @@ update_list_win(void)
 	mvwprintw(list_win, 0, COL_MESH, "Mesh");
 
 	/* reuse bottom line for information on other win */
-	mvwprintw(list_win, win_split - 1, 0, "CH Sig/Noi-RT-SOURCE");
-	mvwprintw(list_win, win_split - 1, 29, "(BSSID)");
-	mvwprintw(list_win, win_split - 1, 49, "TYPE");
-	mvwprintw(list_win, win_split - 1, 56, "INFO");
-	mvwprintw(list_win, win_split - 1, COLS-12, "LiveStatus");
+	mvwprintw(list_win, win_split - 1, 0, "CH-Sig");
+	if (conf.have_noise) {
+		wprintw(list_win, "/No");
+		nadd = 3;
+	}
+	wprintw(list_win, "-RT-SOURCE");
+	mvwprintw(list_win, win_split - 1, 28 + nadd, "(BSSID)");
+	mvwprintw(list_win, win_split - 1, 48 + nadd, "TYPE");
+	mvwprintw(list_win, win_split - 1, 55 + nadd, "INFO");
+	mvwprintw(list_win, win_split - 1, COLS-10, "LiveStatus");
 
 	if (sortfunc)
 		listsort(&nodes, sortfunc);
@@ -354,7 +356,11 @@ update_dump_win(struct packet_info* p)
 		wattron(dump_win, A_BOLD);
 
 	wprintw(dump_win, "\n%02d ", p->phy_chan);
-	wprintw(dump_win, "%03d/%03d ", p->phy_signal, p->phy_noise);
+	wprintw(dump_win, "-%02d", -p->phy_signal);
+	if (conf.have_noise)
+		wprintw(dump_win, "/%02d ", -p->phy_noise);
+	else
+		wprintw(dump_win, " ");
 	wprintw(dump_win, "%2d ", p->phy_rate/2);
 	wprintw(dump_win, "%s ", ether_sprintf(p->wlan_src));
 	wprintw(dump_win, "(%s) ", ether_sprintf(p->wlan_bssid));
@@ -476,10 +482,10 @@ init_display_main(void)
 	list_win = newwin(win_split, COLS, 0, 0);
 	scrollok(list_win, FALSE);
 
-	stat_win = newwin(stat_height, 14, win_split, COLS-14);
+	stat_win = newwin(stat_height, STAT_WIDTH, win_split, COLS - STAT_WIDTH);
 	scrollok(stat_win, FALSE);
 
-	dump_win = newwin(stat_height, COLS-14, win_split, 0);
+	dump_win = newwin(stat_height, COLS - STAT_WIDTH, win_split, 0);
 	scrollok(dump_win, TRUE);
 }
 
@@ -490,8 +496,8 @@ resize_display_main(void)
 	win_split = LINES / 2 + 1;
 	stat_height = LINES - win_split - 1;
 	wresize(list_win, win_split, COLS);
-	wresize(dump_win, stat_height, COLS-14);
+	wresize(dump_win, stat_height, COLS - STAT_WIDTH);
 	mvwin(dump_win, win_split, 0);
-	wresize(stat_win, stat_height, 14);
-	mvwin(stat_win, win_split, COLS-14);
+	wresize(stat_win, stat_height, STAT_WIDTH);
+	mvwin(stat_win, win_split, COLS - STAT_WIDTH);
 }

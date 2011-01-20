@@ -497,6 +497,10 @@ handle_packet(struct packet_info* p)
 	else
 		p->pkt_chan_idx = i;
 
+	/* detect if noise reading is present or not */
+	if (!conf.have_noise && p->phy_noise)
+		conf.have_noise = 1;
+
 	n = node_update(p);
 
 	if (n)
