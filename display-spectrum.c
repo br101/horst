@@ -121,6 +121,9 @@ update_spectrum_win(WINDOW *win)
 		}
 		else {
 			nnodes = spectrum[i].num_nodes;
+			if (nnodes > SPEC_HEIGHT)
+				nnodes = SPEC_HEIGHT;
+
 			wattron(win, ALLBLUE);
 			mvwvline(win, SPEC_POS_Y + SPEC_HEIGHT - nnodes,
 				SPEC_POS_X + CH_SPACE*i + 2, ACS_BLOCK, nnodes);
