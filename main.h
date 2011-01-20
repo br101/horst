@@ -105,7 +105,7 @@ struct packet_info {
 	unsigned int		pkt_types;	/* bitmask of packet types in this pkt */
 	unsigned int		pkt_len;	/* packet length */
 	unsigned int		pkt_duration;	/* packet "airtime" */
-	int			pkt_channel;	/* received while on channel X */
+	int			pkt_chan_idx;	/* received while on channel */
 
 	/* wlan phy (from radiotap) */
 	int			phy_signal;	/* signal strength (usually dBm) */

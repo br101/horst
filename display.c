@@ -41,7 +41,7 @@ static struct timeval last_time;
 
 /* main windows are special */
 void init_display_main(void);
-void update_main_win(struct packet_info *pkt, struct node_info *node);
+void update_main_win(struct packet_info *pkt);
 void update_dump_win(struct packet_info* pkt);
 int main_input(int c);
 void print_dump_win(const char *str);
@@ -312,7 +312,7 @@ update_display(struct packet_info* pkt, struct node_info* node)
 	if (show_win != NULL)
 		update_show_win();
 	else
-		update_main_win(pkt, node);
+		update_main_win(pkt);
 
 	if (conf_win != NULL) {
 		redrawwin(conf_win);

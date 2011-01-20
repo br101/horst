@@ -146,11 +146,12 @@ show_sort_win(void)
 /******************* WINDOWS *******************/
 
 static void
-update_status_win(struct packet_info* p, struct node_info* n)
+update_status_win(struct packet_info* p)
 {
-	int sig, siga, noi, rate, bps, dps, bpsn, usen, max = 0;
+	int sig, siga, noi, rate, bps, dps, bpsn, usen;
 	float use;
 	int max_stat_bar = stat_height - 4;
+	struct channel_info* chan = NULL;
 
 	if (p != NULL)
 		werase(stat_win);
@@ -166,26 +167,23 @@ update_status_win(struct packet_info* p, struct node_info* n)
 	use = dps * 1.0 / 10000; /* usec, in percent */
 	usen = normalize(use, 100, max_stat_bar);
 
-	if (p != NULL)
-	{
+	if (p != NULL) {
 		sig = normalize_db(-p->phy_signal, max_stat_bar);
 		if (p->phy_noise)
 			noi = normalize_db(-p->phy_noise, max_stat_bar);
 		rate = normalize(p->phy_rate, 108, max_stat_bar);
 
-		if (n != NULL && n->phy_sig_max < 0)
-			max = normalize_db(-n->phy_sig_max, max_stat_bar);
+		if (p->pkt_chan_idx > 0)
+			chan = &spectrum[p->pkt_chan_idx];
 
-		if (n != NULL && n->pkt_count >= 8)
-			siga = normalize_db(-iir_average_get(n->phy_sig_avg),
+		if (chan != NULL && chan->packets >= 8)
+			siga = normalize_db(-iir_average_get(chan->signal_avg),
 					    max_stat_bar);
 		else
 			siga = sig;
 
 		wattron(stat_win, GREEN);
 		mvwprintw(stat_win, 0, 1, "SN:  %03d/", p->phy_signal);
-		if (max > 1)
-			mvwprintw(stat_win, max + 4, 2, "--");
 
 		signal_bar(stat_win, sig, siga, 4, 2, stat_height, 2);
 
@@ -312,7 +310,7 @@ update_list_win(void)
 	mvwprintw(list_win, 0, COL_MESH, "Mesh");
 
 	/* reuse bottom line for information on other win */
-	mvwprintw(list_win, win_split - 1, 0, "Sig/Noi-RT-SOURCE");
+	mvwprintw(list_win, win_split - 1, 0, "CH Sig/Noi-RT-SOURCE");
 	mvwprintw(list_win, win_split - 1, 29, "(BSSID)");
 	mvwprintw(list_win, win_split - 1, 49, "TYPE");
 	mvwprintw(list_win, win_split - 1, 56, "INFO");
@@ -355,7 +353,8 @@ update_dump_win(struct packet_info* p)
 	if (p->pkt_types & PKT_TYPE_IP)
 		wattron(dump_win, A_BOLD);
 
-	wprintw(dump_win, "\n%03d/%03d ", p->phy_signal, p->phy_noise);
+	wprintw(dump_win, "\n%02d ", p->phy_chan);
+	wprintw(dump_win, "%03d/%03d ", p->phy_signal, p->phy_noise);
 	wprintw(dump_win, "%2d ", p->phy_rate/2);
 	wprintw(dump_win, "%s ", ether_sprintf(p->wlan_src));
 	wprintw(dump_win, "(%s) ", ether_sprintf(p->wlan_bssid));
@@ -439,10 +438,10 @@ print_dump_win(const char *str)
 
 
 void
-update_main_win(struct packet_info *p, struct node_info *n)
+update_main_win(struct packet_info *p)
 {
 	update_list_win();
-	update_status_win(p, n);
+	update_status_win(p);
 	update_dump_win(p);
 	wnoutrefresh(dump_win);
 	if (sort_win != NULL) {

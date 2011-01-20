@@ -369,22 +369,11 @@ update_spectrum(struct packet_info* p, struct node_info* n)
 {
 	struct channel_info* chan;
 	struct chan_node* cn;
-	int i;
 
-	/* if physical channel not available from pkt, best guess from config */
-	if (!p->phy_chan)
-		i = conf.current_channel;
-	else {
-		/* find channel index from packet channel */
-		for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++)
-			if (channels[i].chan == p->phy_chan)
-				break;
-	}
-
-	if (i < 0 || i >= conf.num_channels || i >= MAX_CHANNELS)
+	if (p->pkt_chan_idx < 0)
 		return; /* chan not found */
 
-	chan = &spectrum[i];
+	chan = &spectrum[p->pkt_chan_idx];
 	chan->signal = p->phy_signal;
 	chan->noise = p->phy_noise;
 	chan->packets++;
@@ -471,6 +460,7 @@ static void
 handle_packet(struct packet_info* p)
 {
 	struct node_info* n;
+	int i = -1;
 
 	if (conf.port && cli_fd != -1) {
 		net_send_packet(p);
@@ -492,6 +482,20 @@ handle_packet(struct packet_info* p)
 			p->pkt_len, p->phy_rate * 5, p->phy_flags & PHY_FLAG_SHORTPRE,
 			0 /*shortslot*/, p->wlan_type, p->wlan_qos_class,
 			p->wlan_retries);
+
+	/* get channel index for packet */
+	if (p->phy_chan) {
+		/* find channel index from packet channel */
+		for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++)
+			if (channels[i].chan == p->phy_chan)
+				break;
+	}
+	/* not found from pkt, best guess from config but it might be
+	 * unknown (-1) too */
+	if (i < 0 || i >= conf.num_channels || i >= MAX_CHANNELS)
+		p->pkt_chan_idx = conf.current_channel;
+	else
+		p->pkt_chan_idx = i;
 
 	n = node_update(p);
 
