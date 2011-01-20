@@ -619,7 +619,7 @@ get_options(int argc, char** argv)
 	int c;
 	static int n;
 
-	while((c = getopt(argc, argv, "hqsi:t:p:e:d:o:b:c:")) > 0) {
+	while((c = getopt(argc, argv, "hqsi:t:c:p:e:d:o:b:")) > 0) {
 		switch (c) {
 		case 'p':
 			conf.port = optarg;
@@ -658,11 +658,11 @@ get_options(int argc, char** argv)
 			break;
 		case 'h':
 		default:
-			printf("usage: %s [-h] [-q] [-i interface] [-t sec] [-p port] [-e mac] [-d usec] [-w usec] [-o file]\n\n"
+			printf("usage: %s [-h] [-q] [-s] [-i interface] [-t sec] [-c IP] [-p port] [-e mac] [-d ms] [-o file] [-b bytes]\n\n"
 				"Options (default value)\n"
 				"  -h\t\tthis help\n"
-				"  -q\t\tquiet [basically useless]\n"
-				"  -s\t\tscan (change channel automatically)\n"
+				"  -q\t\tquiet\n"
+				"  -s\t\tspectrum analyzer\n"
 				"  -i <intf>\tinterface (wlan0)\n"
 				"  -t <sec>\tnode timeout (60)\n"
 				"  -c <IP>\tconnect to server\n"
