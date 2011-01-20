@@ -807,6 +807,8 @@ auto_change_channel(void)
 		spectrum[conf.current_channel].durations_last =
 				spectrum[conf.current_channel].durations;
 		spectrum[conf.current_channel].durations = 0;
+		iir_average(spectrum[conf.current_channel].durations_avg,
+			    spectrum[conf.current_channel].durations_last);
 	}
 
 	last_channelchange = the_time;

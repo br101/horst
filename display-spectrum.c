@@ -35,7 +35,7 @@ static unsigned int show_nodes;
 void
 update_spectrum_win(WINDOW *win)
 {
-	int i, sig, noi, siga, use, usen, nnodes;
+	int i, sig, noi, siga, use, usen, usean, nnodes;
 	struct chan_node *cn;
 	const char *id;
 
@@ -80,8 +80,9 @@ update_spectrum_win(WINDOW *win)
 			else
 				siga = sig;
 
-			signal_bar(win, sig, siga, SPEC_POS_Y,
-				   SPEC_POS_X + CH_SPACE*i, SPEC_HEIGHT, 2);
+			signal_average_bar(win, sig, siga,
+					   SPEC_POS_Y, SPEC_POS_X + CH_SPACE*i,
+					   SPEC_HEIGHT, 2);
 		}
 
 		if (spectrum[i].noise != 0) {
@@ -93,7 +94,6 @@ update_spectrum_win(WINDOW *win)
 
 		/* usage in percent */
 		use = (spectrum[i].durations_last * 100.0) / conf.channel_time;
-
 		wattron(win, YELLOW);
 		mvwprintw(win, SPEC_HEIGHT + 5, SPEC_POS_X + CH_SPACE*i, "%d", use);
 		wattroff(win, YELLOW);
@@ -130,10 +130,16 @@ update_spectrum_win(WINDOW *win)
 			wattroff(win, ALLBLUE);
 
 			usen = normalize(use, 100, SPEC_HEIGHT);
-			wattron(win, ALLYELLOW);
-			mvwvline(win, SPEC_POS_Y + SPEC_HEIGHT - usen,
-				SPEC_POS_X + CH_SPACE*i + 3, ACS_BLOCK, usen);
-			wattroff(win, ALLYELLOW);
+
+			use = (iir_average_get(spectrum[i].durations_avg) * 100.0)
+				/ conf.channel_time;
+			usean = normalize(use, 100, SPEC_HEIGHT);
+
+			general_average_bar(win, usen, usean,
+					    SPEC_POS_Y + SPEC_HEIGHT,
+					    SPEC_POS_X + CH_SPACE*i + 3,
+					    SPEC_HEIGHT, 1,
+					    YELLOW, ALLYELLOW);
 		}
 	}
 

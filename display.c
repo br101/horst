@@ -118,27 +118,56 @@ get_packet_type_color(int type)
 
 
 void
-signal_bar(WINDOW *win, int sig, int siga, int y, int x, int height, int width)
+signal_average_bar(WINDOW *win, int val, int avg, int y, int x, int height,
+		   int width)
 {
 	int i;
-	if (siga <= sig) {
+	if (avg <= val) {
 		wattron(win, ALLGREEN);
 		for (i = 0; i < width; i++)
-			mvwvline(win, y + siga, x + i, ACS_BLOCK, sig - siga);
+			mvwvline(win, y + avg, x + i, ACS_BLOCK, val - avg);
 		wattron(win, A_BOLD);
 		for (i = 0; i < width; i++)
-			mvwvline(win, y + sig, x + i, '=', height - sig);
+			mvwvline(win, y + val, x + i, '=', height - val);
 	}
 	else {
 		wattron(win, GREEN);
 		wattron(win, A_BOLD);
 		for (i = 0; i < width; i++)
-			mvwvline(win, y + sig, x + i, '=', siga - sig);
+			mvwvline(win, y + val, x + i, '=', avg - val);
 		wattron(win, ALLGREEN);
 		for (i = 0; i < width; i++)
-			mvwvline(win, y + siga, x + i, '=', height - siga);
+			mvwvline(win, y + avg, x + i, '=', height - avg);
 	}
 	wattroff(win, A_BOLD);
+	wattroff(win, ALLGREEN);
+}
+
+
+void
+general_average_bar(WINDOW *win, int val, int avg, int y, int x,
+		    int height, int width, short color, short color_avg)
+{
+	int i;
+	if (avg >= val) {
+		wattron(win, color_avg);
+		for (i = 0; i < width; i++)
+			mvwvline(win, y - avg, x + i, ACS_BLOCK, avg - val);
+		wattron(win, A_BOLD);
+		for (i = 0; i < width; i++)
+			mvwvline(win, y - val, x + i, '=', val);
+	}
+	else {
+		wattron(win, color);
+		wattron(win, A_BOLD);
+		for (i = 0; i < width; i++)
+			mvwvline(win, y - val, x + i, '=', val - avg);
+		wattron(win, color_avg);
+		for (i = 0; i < width; i++)
+			mvwvline(win, y - avg, x + i, '=', avg);
+	}
+	wattroff(win, A_BOLD);
+	wattroff(win, color_avg);
 }
 
 

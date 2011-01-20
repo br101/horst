@@ -251,6 +251,7 @@ struct channel_info {
 	unsigned long		bytes;
 	unsigned long		durations;
 	unsigned long		durations_last;
+	unsigned long		durations_avg;
 	struct list_head	nodes;
 	unsigned int		num_nodes;
 };

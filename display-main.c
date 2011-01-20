@@ -193,7 +193,7 @@ update_status_win(struct packet_info* p)
 		else
 			mvwprintw(stat_win, 0, 1, "Sig: %5d", p->phy_signal);
 
-		signal_bar(stat_win, sig, siga, 4, 2, stat_height, 2);
+		signal_average_bar(stat_win, sig, siga, 4, 2, stat_height, 2);
 
 		if (p->phy_noise) {
 			wattron(stat_win, ALLRED);

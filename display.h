@@ -50,7 +50,12 @@ int
 get_packet_type_color(int type);
 
 void
-signal_bar(WINDOW *win, int sig, int siga, int y, int x, int height, int width);
+signal_average_bar(WINDOW *win, int sig, int siga, int y, int x,
+		   int height, int width);
+
+void
+general_average_bar(WINDOW *win, int val, int avg, int y, int x,
+		    int height, int width, short color, short color_avg);
 
 void
 update_display(struct packet_info* pkg, struct node_info* node);
