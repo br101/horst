@@ -148,12 +148,13 @@ show_sort_win(void)
 static void
 update_status_win(struct packet_info* p, struct node_info* n)
 {
-	int sig, noi, rate, bps, dps, bpsn, usen;
-	int max = 0, avg = 0;
+	int sig, siga, noi, rate, bps, dps, bpsn, usen, max = 0;
 	float use;
 	int max_stat_bar = stat_height - 4;
 
-	werase(stat_win);
+	if (p != NULL)
+		werase(stat_win);
+
 	wattron(stat_win, WHITE);
 	mvwvline(stat_win, 0, 0, ACS_VLINE, stat_height);
 
@@ -175,22 +176,18 @@ update_status_win(struct packet_info* p, struct node_info* n)
 		if (n != NULL && n->phy_sig_max < 0)
 			max = normalize_db(-n->phy_sig_max, max_stat_bar);
 
-		if (n != NULL)
-			avg = normalize_db(-iir_average_get(n->phy_sig_avg), max_stat_bar);
+		if (n != NULL && n->pkt_count >= 8)
+			siga = normalize_db(-iir_average_get(n->phy_sig_avg),
+					    max_stat_bar);
+		else
+			siga = sig;
 
 		wattron(stat_win, GREEN);
 		mvwprintw(stat_win, 0, 1, "SN:  %03d/", p->phy_signal);
 		if (max > 1)
 			mvwprintw(stat_win, max + 4, 2, "--");
-		wattron(stat_win, ALLGREEN);
-		mvwvline(stat_win, sig + 4, 2, ACS_BLOCK, stat_height - sig);
-		mvwvline(stat_win, sig + 4, 3, ACS_BLOCK, stat_height - sig);
 
-		if (avg > 1) {
-			wattron(stat_win, A_BOLD);
-			mvwvline(stat_win, avg + 4, 2, '=', stat_height - avg);
-			wattron(stat_win, A_BOLD);
-		}
+		signal_bar(stat_win, sig, siga, 4, 2, stat_height, 2);
 
 		wattron(stat_win, RED);
 		mvwprintw(stat_win, 0, 10, "%03d", p->phy_noise);

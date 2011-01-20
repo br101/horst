@@ -50,6 +50,9 @@ int
 get_packet_type_color(int type);
 
 void
+signal_bar(WINDOW *win, int sig, int siga, int y, int x, int height, int width);
+
+void
 update_display(struct packet_info* pkg, struct node_info* node);
 
 void

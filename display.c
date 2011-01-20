@@ -117,6 +117,31 @@ get_packet_type_color(int type)
 }
 
 
+void
+signal_bar(WINDOW *win, int sig, int siga, int y, int x, int height, int width)
+{
+	int i;
+	if (siga <= sig) {
+		wattron(win, ALLGREEN);
+		for (i = 0; i < width; i++)
+			mvwvline(win, y + siga, x + i, ACS_BLOCK, sig - siga);
+		wattron(win, A_BOLD);
+		for (i = 0; i < width; i++)
+			mvwvline(win, y + sig, x + i, '=', height - sig);
+	}
+	else {
+		wattron(win, GREEN);
+		wattron(win, A_BOLD);
+		for (i = 0; i < width; i++)
+			mvwvline(win, y + sig, x + i, '=', siga - sig);
+		wattron(win, ALLGREEN);
+		for (i = 0; i < width; i++)
+			mvwvline(win, y + siga, x + i, '=', height - siga);
+	}
+	wattroff(win, A_BOLD);
+}
+
+
 /******************* STATUS *******************/
 
 static void
