@@ -552,8 +552,8 @@ receive_any(void)
 	if (srv_fd != -1) {
 		FD_SET(srv_fd, &read_fds);
 	}
-	tv.tv_sec = 1;
-	tv.tv_usec = 0;
+	tv.tv_sec = 0;
+	tv.tv_usec = min(conf.channel_time, 1000000);
 	mfd = max(mon, srv_fd) + 1;
 
 	ret = select(mfd, &read_fds, &write_fds, &excpt_fds, &tv);

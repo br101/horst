@@ -84,7 +84,8 @@ kilo_mega_ize(unsigned int val);
 
 #define TOGGLE_BIT(_x, _m) (_x) ^= (_m)
 
-#define max(x,y) ((x) > (y) ? (x) : (y))
+#define max(_x, _y) ((_x) > (_y) ? (_x) : (_y))
+#define min(_x, _y) ((_x) < (_y) ? (_x) : (_y))
 
 /* Fixed Point IIR Averaging Filter:
  *
