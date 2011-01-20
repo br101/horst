@@ -580,7 +580,8 @@ receive_any(void)
 	}
 	if (ret == 0) { /* timeout */
 #if !DO_DEBUG
-		update_display_clock();
+		if (!conf.quiet)
+			update_display_clock();
 #endif
 		return;
 	}
