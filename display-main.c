@@ -152,7 +152,7 @@ update_status_win(struct packet_info* p)
 {
 	int sig, siga, noi, bps, dps, bpsn, usen;
 	float use;
-	int max_stat_bar = stat_height - 4;
+	int max_stat_bar = stat_height - 3;
 	struct channel_info* chan = NULL;
 
 	if (p != NULL)
@@ -193,12 +193,12 @@ update_status_win(struct packet_info* p)
 		else
 			mvwprintw(stat_win, 0, 1, "Sig: %5d", p->phy_signal);
 
-		signal_average_bar(stat_win, sig, siga, 4, 2, stat_height, 2);
+		signal_average_bar(stat_win, sig, siga, 3, 2, stat_height, 2);
 
 		if (p->phy_noise) {
 			wattron(stat_win, ALLRED);
-			mvwvline(stat_win, noi + 4, 2, '=', stat_height - noi);
-			mvwvline(stat_win, noi + 4, 3, '=', stat_height - noi);
+			mvwvline(stat_win, noi + 3, 2, '=', stat_height - noi);
+			mvwvline(stat_win, noi + 3, 3, '=', stat_height - noi);
 		}
 	}
 
