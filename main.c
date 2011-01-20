@@ -501,6 +501,11 @@ handle_packet(struct packet_info* p)
 	if (!conf.have_noise && p->phy_noise)
 		conf.have_noise = 1;
 
+	/* if current channel is unknown (this is a mac80211 bug), guess it from
+	 * the packet */
+	if (conf.current_channel < 0 && p->pkt_chan_idx >= 0)
+		conf.current_channel = p->pkt_chan_idx;
+
 	n = node_update(p);
 
 	if (n)
