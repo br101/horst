@@ -103,10 +103,8 @@
 
 struct packet_info {
 	/* general */
-	unsigned int		pkt_types;	/* bitmask of packet types in this pkt */
+	unsigned int		pkt_types;	/* bitmask of packet types */
 	unsigned int		pkt_len;	/* packet length */
-	unsigned int		pkt_duration;	/* packet "airtime" */
-	int			pkt_chan_idx;	/* received while on channel */
 
 	/* wlan phy (from radiotap) */
 	int			phy_signal;	/* signal strength (usually dBm) */
@@ -114,7 +112,7 @@ struct packet_info {
 	int			phy_snr;	/* signal to noise ratio */
 	unsigned int		phy_rate;	/* physical rate */
 	unsigned int		phy_freq;	/* frequency from driver */
-	unsigned int		phy_chan;	/* channel from driver */
+	unsigned short		phy_chan;	/* channel from driver */
 	unsigned int		phy_flags;	/* A, B, G, shortpre */
 
 	/* wlan mac */
@@ -130,7 +128,6 @@ struct packet_info {
 	unsigned char		wlan_qos_class;	/* for QDATA frames */
 	unsigned int		wlan_nav;	/* frame NAV duration */
 	unsigned int		wlan_seqno;	/* sequence number */
-	unsigned int		wlan_retries;	/* retry count for this frame (calculated) */
 
 	/* flags */
 	unsigned int		wlan_wep:1,	/* WEP on/off */
@@ -142,6 +139,11 @@ struct packet_info {
 	unsigned int		olsr_type;
 	unsigned int		olsr_neigh;
 	unsigned int		olsr_tc;
+
+	/* calculated from other values */
+	unsigned int		pkt_duration;	/* packet "airtime" */
+	int			pkt_chan_idx;	/* received while on channel */
+	int			wlan_retries;	/* retry count for this frame */
 };
 
 struct essid_info;
