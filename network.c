@@ -39,7 +39,7 @@ static int netmon_fd;
 
 struct net_packet_info {
 	/* general */
-	int			pkt_types;	/* bitmask of packet types in this pkt */
+	int			pkt_types;	/* bitmask of packet types */
 	int			pkt_len;	/* packet length */
 
 	/* wlan phy (from radiotap) */
