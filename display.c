@@ -503,6 +503,7 @@ init_display(void)
 	update_display(NULL, NULL);
 
 	signal(SIGWINCH, window_change_handler);
+	conf.display_initialized = 1;
 }
 
 

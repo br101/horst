@@ -872,20 +872,15 @@ main(int argc, char** argv)
 	gettimeofday(&stats.stats_time, NULL);
 	gettimeofday(&the_time, NULL);
 
-	#if !DO_DEBUG
-	if (!conf.quiet)
-		init_display();
-	#endif
-
 	if (conf.serveraddr) {
 		mon = net_open_client_socket(conf.serveraddr, conf.port);
 		init_channels(); //TODO: get from server
 	}
 	else {
 		mon = open_packet_socket(conf.ifname, sizeof(buffer), conf.recv_buffer_size);
-		if (mon < 0) {
+		if (mon < 0)
 			err(1, "Couldn't open packet socket");
-		}
+
 		conf.arphrd = device_get_arptype();
 		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
 		conf.arphrd != ARPHRD_IEEE80211_RADIOTAP) {
@@ -895,11 +890,13 @@ main(int argc, char** argv)
 		init_channels();
 	}
 
+	if (!conf.quiet && !DO_DEBUG)
+		init_display();
+
 	if (conf.dumpfile != NULL) {
 		DF = fopen(conf.dumpfile, "w");
-		if (DF == NULL) {
+		if (DF == NULL)
 			err(1, "Couldn't open dump file");
-		}
 	}
 
 	if (!conf.serveraddr && conf.port)
@@ -946,7 +943,7 @@ printlog(const char *fmt, ...)
 	vsnprintf(&buf[1], 127, fmt, ap);
 	va_end(ap);
 
-	if (conf.quiet || DO_DEBUG)
+	if (conf.quiet || DO_DEBUG || !conf.display_initialized)
 		printf("%s\n", &buf[1]);
 	else {
 		/* fix up string for display log */
