@@ -43,7 +43,7 @@ static int netmon_fd;
 enum pkt_type {
 	PROTO_PKT_INFO		= 0,
 	PROTO_CHAN_LIST		= 1,
-	PROTO_COMMAND		= 3,
+	PROTO_COMMAND		= 2,
 };
 
 
@@ -63,6 +63,17 @@ struct net_cmd {
 
 	int command;
 	int status;
+} __attribute__ ((packed));
+
+
+struct net_chan_list {
+	struct net_header	proto;
+
+	unsigned char num_channels;
+	struct {
+		unsigned char chan;
+		unsigned char freq;
+	} channel[1];
 } __attribute__ ((packed));
 
 
@@ -287,6 +298,52 @@ net_receive_command(unsigned char *buffer, int len)
 
 
 int
+net_send_chan_list(int fd)
+{
+	char* buf;
+	struct net_chan_list *nc;
+	int i;
+
+	buf = malloc(sizeof(nc) + conf.num_channels - 1);
+	if (buf == NULL)
+		return 0;
+
+	nc = (struct net_chan_list *)buf;
+	nc->proto.version = PROTO_VERSION;
+	nc->proto.type	= PROTO_CHAN_LIST;
+
+	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++) {
+		nc->channel[i].chan = channels[i].chan;
+		nc->channel[i].freq = channels[i].freq;
+	}
+	nc->num_channels = i;
+
+	net_write(fd, (unsigned char *)buf, sizeof(nc) + 2*(i - 1));
+	return 0;
+}
+
+
+void
+net_receive_chan_list(unsigned char *buffer, int len)
+{
+	struct net_chan_list *nc;
+	int i;
+
+	if (len < sizeof(struct net_chan_list))
+		return;
+
+	nc = (struct net_chan_list *)buffer;
+
+	for (i = 0; i < nc->num_channels && i < MAX_CHANNELS; i++) {
+		channels[i].chan = nc->channel[i].chan;
+		channels[i].freq = nc->channel[i].freq;
+	}
+	conf.num_channels = i;
+	init_channels();
+}
+
+
+int
 net_receive(int fd, unsigned char* buffer, size_t bufsize)
 {
 	struct net_header *nh;
@@ -307,6 +364,8 @@ net_receive(int fd, unsigned char* buffer, size_t bufsize)
 
 	if (nh->type == PROTO_PKT_INFO)
 		net_receive_packet(buffer, len);
+	else if (nh->type == PROTO_CHAN_LIST)
+		net_receive_chan_list(buffer, len);
 	else if (nh->type == PROTO_COMMAND)
 		net_receive_command(buffer, len);
 
@@ -331,6 +390,7 @@ int net_handle_server_conn( void )
 	cli_fd = accept(srv_fd, (struct sockaddr*)&cin, &cinlen);
 
 	printlog("Accepting client");
+	net_send_chan_list(cli_fd);
 
 	//read(cli_fd,line,sizeof(line));
 	return 0;

@@ -831,10 +831,6 @@ init_channels(void)
 {
 	int i, freq, ch;
 
-	conf.current_channel = -1;
-
-	/* get all available channels */
-	conf.num_channels = wext_get_channels(mon, conf.ifname, channels);
 	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++) {
 		INIT_LIST_HEAD(&spectrum[i].nodes);
 		ewma_init(&spectrum[i].signal_avg, 1024, 8);
@@ -872,9 +868,10 @@ main(int argc, char** argv)
 	gettimeofday(&stats.stats_time, NULL);
 	gettimeofday(&the_time, NULL);
 
+	conf.current_channel = -1;
+
 	if (conf.serveraddr) {
 		mon = net_open_client_socket(conf.serveraddr, conf.port);
-		init_channels(); //TODO: get from server
 	}
 	else {
 		mon = open_packet_socket(conf.ifname, sizeof(buffer), conf.recv_buffer_size);
@@ -887,6 +884,9 @@ main(int argc, char** argv)
 			printf("Wrong monitor type! Please use radiotap or prism2 headers\n");
 			exit(1);
 		}
+
+		/* get available channels */
+		conf.num_channels = wext_get_channels(mon, conf.ifname, channels);
 		init_channels();
 	}
 
