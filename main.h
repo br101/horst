@@ -309,9 +309,6 @@ extern struct timeval the_time;
 	channels[conf.current_channel].chan : 0)
 
 void
-finish_all(int sig);
-
-void
 free_lists(void);
 
 void

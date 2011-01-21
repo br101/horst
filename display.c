@@ -424,7 +424,7 @@ handle_user_input(void)
 		break;
 
 	case 'q': case 'Q':
-		finish_all(0);
+		exit(0);
 
 	case 'r': case 'R':
 		print_dump_win("\n- RESET -");
@@ -507,7 +507,7 @@ init_display(void)
 
 
 void
-finish_display(int sig)
+finish_display(void)
 {
 	endwin();
 }

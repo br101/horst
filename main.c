@@ -711,8 +711,8 @@ free_lists(void)
 }
 
 
-void
-finish_all(int sig)
+static void
+finish_all(void)
 {
 	free_lists();
 
@@ -730,10 +730,22 @@ finish_all(int sig)
 	}
 
 	if (!conf.quiet) {
-		finish_display(sig);
+		finish_display();
 	}
 #endif
+}
+
+
+static void
+sigint_handler(int sig)
+{
 	exit(0);
+}
+
+static void
+exit_handler(void)
+{
+	finish_all();
 }
 
 
@@ -853,8 +865,9 @@ main(int argc, char** argv)
 
 	get_options(argc, argv);
 
-	signal(SIGINT, finish_all);
+	signal(SIGINT, sigint_handler);
 	signal(SIGPIPE, sigpipe_handler);
+	atexit(exit_handler);
 
 	gettimeofday(&stats.stats_time, NULL);
 	gettimeofday(&the_time, NULL);

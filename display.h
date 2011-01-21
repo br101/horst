@@ -73,6 +73,6 @@ void
 init_display(void);
 
 void
-finish_display(int sig);
+finish_display(void);
 
 #endif
