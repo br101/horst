@@ -224,7 +224,8 @@ update_menu(void)
 		attron(KEYMARK); printw("N"); attroff(KEYMARK); printw("odes");
 	}
 #undef KEYMARK
-	mvwprintw(stdscr, LINES-1, COLS-15, "|%s", conf.ifname);
+	mvwprintw(stdscr, LINES-1, COLS-15, "|%s",
+		  conf.serveraddr ? conf.serveraddr : conf.ifname);
 	wattroff(stdscr, BLACKONWHITE);
 
 	update_mini_status();
