@@ -439,7 +439,7 @@ print_dump_win(const char *str)
 	wattron(dump_win, RED);
 	wprintw(dump_win, str);
 	wattroff(dump_win, RED);
-	wnoutrefresh(dump_win);
+	wrefresh(dump_win);
 }
 
 

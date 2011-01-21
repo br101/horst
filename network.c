@@ -39,15 +39,32 @@ static int netmon_fd;
 
 #define PROTO_VERSION	1
 
+
 enum pkt_type {
 	PROTO_PKT_INFO		= 0,
 	PROTO_CHAN_LIST		= 1,
+	PROTO_COMMAND		= 3,
 };
+
 
 struct net_header {
 	unsigned char version;
 	unsigned char type;
 } __attribute__ ((packed));
+
+
+enum net_command {
+	NET_CMD_RESERVED	= 0,
+	NET_CMD_REJECT		= 1,
+};
+
+struct net_cmd {
+	struct net_header	proto;
+
+	int command;
+	int status;
+} __attribute__ ((packed));
+
 
 struct net_packet_info {
 	struct net_header	proto;
@@ -123,9 +140,28 @@ net_init_server_socket(char* rport)
 
 
 int
-net_send_packet(struct packet_info *p)
+net_write(int fd, unsigned char* buf, size_t len)
 {
 	int ret;
+	ret = write(fd, buf, len);
+	if (ret == -1) {
+		if (errno == EPIPE) {
+			printlog("Client has closed");
+			close(fd);
+			if (fd == cli_fd)
+				cli_fd = -1;
+		}
+		else
+			printlog("ERROR: write in net_send_packet");
+		return 0;
+	}
+	return 1;
+}
+
+
+int
+net_send_packet(struct packet_info *p)
+{
 	struct net_packet_info np;
 
 	np.proto.version = PROTO_VERSION;
@@ -160,17 +196,21 @@ net_send_packet(struct packet_info *p)
 	np.olsr_neigh	= htole32(p->olsr_neigh);
 	np.olsr_tc	= htole32(p->olsr_tc);
 
-	ret = write(cli_fd, &np, sizeof(np));
-	if (ret == -1) {
-		if (errno == EPIPE) {
-			printlog("Client has closed");
-			close(cli_fd);
-			cli_fd = -1;
-		}
-		else {
-			printlog("ERROR: write in net_send_packet");
-		}
-	}
+	net_write(cli_fd, (unsigned char *)&np, sizeof(np));
+	return 0;
+}
+
+
+int
+net_send_cmd(int fd, enum net_command cmd)
+{
+	struct net_cmd nc;
+
+	nc.proto.version = PROTO_VERSION;
+	nc.proto.type	= PROTO_COMMAND;
+	nc.command = cmd;
+
+	net_write(fd, (unsigned char *)&nc, sizeof(nc));
 	return 0;
 }
 
@@ -231,6 +271,21 @@ net_receive_packet(unsigned char *buffer, int len)
 }
 
 
+void
+net_receive_command(unsigned char *buffer, int len)
+{
+	struct net_cmd *nc;
+
+	if (len < sizeof(struct net_cmd))
+		return;
+
+	nc = (struct net_cmd *)buffer;
+
+	if (nc->command == NET_CMD_REJECT)
+		printlog("Server rejected us\n");
+}
+
+
 int
 net_receive(int fd, unsigned char* buffer, size_t bufsize)
 {
@@ -252,6 +307,8 @@ net_receive(int fd, unsigned char* buffer, size_t bufsize)
 
 	if (nh->type == PROTO_PKT_INFO)
 		net_receive_packet(buffer, len);
+	else if (nh->type == PROTO_COMMAND)
+		net_receive_command(buffer, len);
 
 	return 1;
 }
@@ -261,9 +318,13 @@ int net_handle_server_conn( void )
 {
 	struct sockaddr_in cin;
 	socklen_t cinlen;
+	int tmp_fd;
 
 	if (cli_fd != -1) {
-		printlog("can only handle one client");
+		printlog("Can only handle one client, rejecting");
+		tmp_fd = accept(srv_fd, (struct sockaddr*)&cin, &cinlen);
+		net_send_cmd(tmp_fd, NET_CMD_REJECT);
+		close(tmp_fd);
 		return -1;
 	}
 
