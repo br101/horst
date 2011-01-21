@@ -49,7 +49,7 @@ void handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes)
 	*((int *)user) = h->len;
 	if (pcap_bufsize < h->len)
 	{
-		printlog(stderr, "ERROR: Buffer(%d) too small for %d bytes\n",
+		printlog("ERROR: Buffer(%d) too small for %d bytes",
 			 pcap_bufsize, h->len);
 		*((int *)user) = pcap_bufsize;
 	}

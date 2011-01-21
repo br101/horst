@@ -930,11 +930,14 @@ printlog(const char *fmt, ...)
 	va_list ap;
 
 	va_start(ap, fmt);
-	vsnprintf(buf, 128, fmt, ap);
+	vsnprintf(&buf[1], 127, fmt, ap);
 	va_end(ap);
 
 	if (conf.quiet || DO_DEBUG)
-		printf("%s", buf);
-	else
+		printf("%s\n", &buf[1]);
+	else {
+		/* fix up string for display log */
+		buf[0] = '\n';
 		display_log(buf);
+	}
 }

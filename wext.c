@@ -86,7 +86,7 @@ wext_get_channels(int fd, const char* devname,
 	}
 
 	if(range.we_version_compiled < 16) {
-		printlog("ERROR: wext version %d too old to get channels\n",
+		printlog("ERROR: wext version %d too old to get channels",
 			 range.we_version_compiled);
 		return 0;
 	}
