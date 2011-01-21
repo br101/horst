@@ -483,11 +483,6 @@ handle_packet(struct packet_info* p)
 		return;
 	}
 
-	p->pkt_duration = ieee80211_frame_duration(p->phy_flags & PHY_FLAG_MODE_MASK,
-			p->pkt_len, p->phy_rate * 5, p->phy_flags & PHY_FLAG_SHORTPRE,
-			0 /*shortslot*/, p->wlan_type, p->wlan_qos_class,
-			p->wlan_retries);
-
 	/* get channel index for packet */
 	if (p->phy_chan) {
 		/* find channel index from packet channel */
@@ -515,6 +510,11 @@ handle_packet(struct packet_info* p)
 
 	if (n)
 		p->wlan_retries = n->wlan_retries_last;
+
+	p->pkt_duration = ieee80211_frame_duration(p->phy_flags & PHY_FLAG_MODE_MASK,
+			p->pkt_len, p->phy_rate * 5, p->phy_flags & PHY_FLAG_SHORTPRE,
+			0 /*shortslot*/, p->wlan_type, p->wlan_qos_class,
+			p->wlan_retries);
 
 	update_history(p);
 	update_statistics(p);
