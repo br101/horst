@@ -98,14 +98,14 @@ net_init_server_socket(char* rport)
 	struct sockaddr_in sock_in;
 	int reuse = 1;
 
-	printf("using server port %s\n", rport);
+	printlog("Initializing server port %s\n", rport);
 
 	sock_in.sin_family = AF_INET;
 	sock_in.sin_addr.s_addr = htonl(INADDR_ANY);
 	sock_in.sin_port = htons(atoi(rport));
 
 	if ((srv_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-		err(1, "socket");
+		err(1, "Could not open server socket");
 	}
 
 	if (setsockopt(srv_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
@@ -163,12 +163,12 @@ net_send_packet(struct packet_info *p)
 	ret = write(cli_fd, &np, sizeof(np));
 	if (ret == -1) {
 		if (errno == EPIPE) {
-			printf("client has closed\n");
+			printlog("Client has closed");
 			close(cli_fd);
 			cli_fd = -1;
 		}
 		else {
-			perror("write");
+			printlog("ERROR: write in net_send_packet");
 		}
 	}
 	return 0;
@@ -246,7 +246,7 @@ net_receive(int fd, unsigned char* buffer, size_t bufsize)
 	nh = (struct net_header *)buffer;
 
 	if (nh->version != PROTO_VERSION) {
-		err(1, "version %x", nh->version);
+		printlog("ERROR: protocol version %x", nh->version);
 		return 0;
 	}
 
@@ -269,7 +269,7 @@ int net_handle_server_conn( void )
 
 	cli_fd = accept(srv_fd, (struct sockaddr*)&cin, &cinlen);
 
-	printlog("horst: accepting client\n");
+	printlog("Accepting client\n");
 
 	//read(cli_fd,line,sizeof(line));
 	return 0;
@@ -283,7 +283,7 @@ net_open_client_socket(char* serveraddr, char* rport)
 	struct addrinfo *result, *rp;
 	int ret;
 
-	printlog("connecting to server %s port %s\n", serveraddr, rport);
+	printlog("Connecting to server %s port %s\n", serveraddr, rport);
 
 	/* Obtain address(es) matching host/port */
 	memset(&saddr, 0, sizeof(struct addrinfo));
@@ -294,7 +294,7 @@ net_open_client_socket(char* serveraddr, char* rport)
 
 	ret = getaddrinfo(serveraddr, rport, &saddr, &result);
 	if (ret != 0) {
-		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(ret));
+		fprintf(stderr, "Could not resolve: %s\n", gai_strerror(ret));
 		exit(EXIT_FAILURE);
 	}
 
@@ -316,12 +316,12 @@ net_open_client_socket(char* serveraddr, char* rport)
 	if (rp == NULL) {
 		/* No address succeeded */
 		freeaddrinfo(result);
-		err(1, "could not connect");
+		err(1, "Could not connect");
 	}
 
 	freeaddrinfo(result);
 
-	printlog("connected\n");
+	printlog("Connected to server %s\n", serveraddr);
 	return netmon_fd;
 }
 

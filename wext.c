@@ -38,7 +38,7 @@ wext_set_channel(int fd, const char* devname, int chan)
 	iwr.u.freq.e = 1;
 
 	if (ioctl(fd, SIOCSIWFREQ, &iwr) < 0) {
-		//perror("ioctl[SIOCSIWFREQ]");
+		printlog("ERROR: wext set channel");
 		return 0;
 	}
 	return 1;
@@ -54,7 +54,7 @@ wext_get_freq(int fd, const char* devname)
 	strncpy(iwr.ifr_name, devname, IFNAMSIZ);
 
 	if (ioctl(fd, SIOCGIWFREQ, &iwr) < 0) {
-		//perror("ioctl[SIOCGIWFREQ]");
+		printlog("ERROR: wext get freq");
 		return 0;
 	}
 
@@ -81,13 +81,13 @@ wext_get_channels(int fd, const char* devname,
 	iwr.u.data.flags = 0;
 
 	if (ioctl(fd, SIOCGIWRANGE, &iwr) < 0) {
-		perror("ioctl[SIOCSIWRANGE]");
+		printlog("ERROR: wext get channel list");
 		return 0;
 	}
 
 	if(range.we_version_compiled < 16) {
-		printf("WEXT version %d too old to get channels\n",
-		       range.we_version_compiled);
+		printlog("ERROR: wext version %d too old to get channels\n",
+			 range.we_version_compiled);
 		return 0;
 	}
 

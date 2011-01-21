@@ -49,7 +49,8 @@ void handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes)
 	*((int *)user) = h->len;
 	if (pcap_bufsize < h->len)
 	{
-		fprintf(stderr, "Buffer(%d) too small for %d bytes\n", pcap_bufsize, h->len);
+		printlog(stderr, "ERROR: Buffer(%d) too small for %d bytes\n",
+			 pcap_bufsize, h->len);
 		*((int *)user) = pcap_bufsize;
 	}
 	memmove(pcap_buffer, bytes, *((int *)user));
@@ -61,9 +62,7 @@ open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size)
 {
 	char error[PCAP_ERRBUF_SIZE];
 	if (NULL == (pcap_fp = pcap_open_live(devname, bufsize, 1, PCAP_TIMEOUT, error)))
-	{
 		return -1;
-	}
 	return 0;
 }
 
@@ -92,9 +91,7 @@ recv_packet(unsigned char* buffer, size_t bufsize)
 	pcap_buffer = buffer;
 	pcap_bufsize = bufsize;
 	if (0 == pcap_dispatch(pcap_fp, 1, handler, (u_char *)&ret))
-	{
 		return -1;
-	}
 	return ret;
 }
 
@@ -122,11 +119,11 @@ device_index(int fd, const char *devname)
 	req.ifr_addr.sa_family = AF_INET;
 
 	if (ioctl(fd, SIOCGIFINDEX, &req) < 0)
-		err(1, "interface %s not found", devname);
+		err(1, "Interface %s not found", devname);
 
-	if (req.ifr_ifindex < 0) {
-		err(1, "interface %s not found", devname);
-	}
+	if (req.ifr_ifindex < 0)
+		err(1, "Interface %s not found", devname);
+
 	DEBUG("index %d\n", req.ifr_ifindex);
 	return req.ifr_ifindex;
 }
@@ -140,9 +137,8 @@ device_promisc(int fd, const char *devname, int on)
 	strncpy(req.ifr_name, devname, IFNAMSIZ);
 	req.ifr_addr.sa_family = AF_INET;
 
-	if (ioctl(fd, SIOCGIFFLAGS, &req) < 0) {
-		err(1, "could not get device flags for %s", devname);
-	}
+	if (ioctl(fd, SIOCGIFFLAGS, &req) < 0)
+		err(1, "Could not get device flags for %s", devname);
 
 	/* put interface up in any case */
 	req.ifr_flags |= IFF_UP;
@@ -152,9 +148,8 @@ device_promisc(int fd, const char *devname, int on)
 	else
 		req.ifr_flags &= ~IFF_PROMISC;
 
-	if (ioctl(fd, SIOCSIFFLAGS, &req) < 0) {
-		err(1, "could not set promisc mode for %s", devname);
-	}
+	if (ioctl(fd, SIOCSIFFLAGS, &req) < 0)
+		err(1, "Could not set promisc mode for %s", devname);
 }
 
 
@@ -169,9 +164,8 @@ device_get_arptype(void)
 	memset(&ifr, 0, sizeof(ifr));
 	strncpy(ifr.ifr_name, mon_ifname, sizeof(ifr.ifr_name));
 
-	if (ioctl(mon_fd, SIOCGIFHWADDR, &ifr) < 0) {
-		err(1, "could not get arptype");
-	}
+	if (ioctl(mon_fd, SIOCGIFHWADDR, &ifr) < 0)
+		err(1, "Could not get arptype");
 	DEBUG("ARPTYPE %d\n", ifr.ifr_hwaddr.sa_family);
 	return ifr.ifr_hwaddr.sa_family;
 }
@@ -213,7 +207,7 @@ open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size)
 
 	mon_fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 	if (mon_fd < 0)
-		err(1, "could not create socket");
+		err(1, "Could not create packet socket");
 
 	/* bind only to one interface */
 	ifindex = device_index(mon_fd, devname);

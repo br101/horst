@@ -871,12 +871,12 @@ main(int argc, char** argv)
 	else {
 		mon = open_packet_socket(conf.ifname, sizeof(buffer), conf.recv_buffer_size);
 		if (mon < 0) {
-			err(1, "couldn't open packet socket");
+			err(1, "Couldn't open packet socket");
 		}
 		conf.arphrd = device_get_arptype();
 		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
 		conf.arphrd != ARPHRD_IEEE80211_RADIOTAP) {
-			printf("wrong monitor type. please use radiotap or prism2 headers\n");
+			printf("Wrong monitor type! Please use radiotap or prism2 headers\n");
 			exit(1);
 		}
 		init_channels();
@@ -885,7 +885,7 @@ main(int argc, char** argv)
 	if (conf.dumpfile != NULL) {
 		DF = fopen(conf.dumpfile, "w");
 		if (DF == NULL) {
-			err(1, "couldn't open dump file");
+			err(1, "Couldn't open dump file");
 		}
 	}
 
@@ -912,7 +912,8 @@ change_channel(int c)
 	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++) {
 		if (channels[i].chan == c) {
 			if (wext_set_channel(mon, conf.ifname, channels[i].freq) == 0) {
-				printlog("could not set channel");
+				printlog("ERROR: could not set channel %d",
+					 channels[i].chan);
 				return;
 			}
 			conf.current_channel = i;
