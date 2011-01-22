@@ -111,7 +111,8 @@ struct net_packet_info {
 
 	/* flags */
 	unsigned int		wlan_wep:1,	/* WEP on/off */
-				wlan_retry:1;
+				wlan_retry:1,
+				_reserved:30;
 
 	/* IP */
 	unsigned int		ip_src;
@@ -174,6 +175,7 @@ net_send_packet(struct packet_info *p)
 	np.wlan_seqno	= htole32(p->wlan_seqno);
 	np.wlan_wep	= p->wlan_wep;
 	np.wlan_retry	= p->wlan_retry;
+	np._reserved	= 0; /* don't send out uninitialized memory */
 	np.ip_src	= p->ip_src;
 	np.ip_dst	= p->ip_dst;
 	np.olsr_type	= htole32(p->olsr_type);
