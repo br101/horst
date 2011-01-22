@@ -27,9 +27,9 @@ int
 recv_packet(int fd, unsigned char* buffer, size_t bufsize);
 
 void
-close_packet_socket(void);
+close_packet_socket(int fd, char* ifname);
 
 int
-device_get_arptype(void);
+device_get_arptype(int fd, char* ifname);
 
 #endif // _CAPTURE_H_

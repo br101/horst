@@ -31,7 +31,6 @@
 #include "capture.h"
 #include "util.h"
 
-extern fd_set fds;
 
 #ifdef PCAP
 
@@ -97,17 +96,13 @@ recv_packet(unsigned char* buffer, size_t bufsize)
 
 
 void
-close_packet_socket(void)
+close_packet_socket(int fd)
 {
 	pcap_close(pcap_fp);
 }
 
 
 #else /* use PACKET SOCKET */
-
-
-static int mon_fd = 0;
-static char* mon_ifname;
 
 
 static int
@@ -157,14 +152,14 @@ device_promisc(int fd, const char *devname, int on)
  *  Get the hardware type of the given interface as ARPHRD_xxx constant.
  */
 int
-device_get_arptype(void)
+device_get_arptype(int fd, char* ifname)
 {
 	struct ifreq ifr;
 
 	memset(&ifr, 0, sizeof(ifr));
-	strncpy(ifr.ifr_name, mon_ifname, sizeof(ifr.ifr_name));
+	strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
 
-	if (ioctl(mon_fd, SIOCGIFHWADDR, &ifr) < 0)
+	if (ioctl(fd, SIOCGIFHWADDR, &ifr) < 0)
 		err(1, "Could not get arptype");
 	DEBUG("ARPTYPE %d\n", ifr.ifr_hwaddr.sa_family);
 	return ifr.ifr_hwaddr.sa_family;
@@ -200,10 +195,9 @@ int
 open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size)
 {
 	int ret;
+	int mon_fd;
 	int ifindex;
 	struct sockaddr_ll sall;
-
-	mon_ifname = devname;
 
 	mon_fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 	if (mon_fd < 0)
@@ -236,11 +230,11 @@ recv_packet(int fd, unsigned char* buffer, size_t bufsize)
 
 
 void
-close_packet_socket(void)
+close_packet_socket(int fd, char* ifname)
 {
-	if (mon_fd > 0) {
-		device_promisc(mon_fd, mon_ifname, 0);
-		close(mon_fd);
+	if (fd > 0) {
+		device_promisc(fd, ifname, 0);
+		close(fd);
 	}
 }
 

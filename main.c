@@ -427,7 +427,7 @@ finish_all(void)
 	free_lists();
 
 	if (!conf.serveraddr) {
-		close_packet_socket();
+		close_packet_socket(mon, conf.ifname);
 	}
 
 	if (DF != NULL) {
@@ -556,10 +556,10 @@ main(int argc, char** argv)
 	}
 	else {
 		mon = open_packet_socket(conf.ifname, sizeof(buffer), conf.recv_buffer_size);
-		if (mon < 0)
+		if (mon <= 0)
 			err(1, "Couldn't open packet socket");
 
-		conf.arphrd = device_get_arptype();
+		conf.arphrd = device_get_arptype(mon, conf.ifname);
 		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
 		conf.arphrd != ARPHRD_IEEE80211_RADIOTAP) {
 			printf("Wrong monitor type! Please use radiotap or prism2 headers\n");
