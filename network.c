@@ -270,7 +270,7 @@ net_send_chan_list(int fd)
 	struct net_chan_list *nc;
 	int i;
 
-	buf = malloc(sizeof(nc) + conf.num_channels - 1);
+	buf = malloc(sizeof(struct net_chan_list) + 2*(conf.num_channels - 1));
 	if (buf == NULL)
 		return 0;
 
@@ -284,7 +284,8 @@ net_send_chan_list(int fd)
 	}
 	nc->num_channels = i;
 
-	net_write(fd, (unsigned char *)buf, sizeof(nc) + 2*(i - 1));
+	net_write(fd, (unsigned char *)buf, sizeof(struct net_chan_list) + 2*(i - 1));
+	free(buf);
 	return 0;
 }
 
@@ -344,6 +345,8 @@ int net_handle_server_conn( void )
 	struct sockaddr_in cin;
 	socklen_t cinlen;
 
+	cinlen = sizeof(cin);
+	memset(&cin, 0, sizeof(struct sockaddr_in));
 	cli_fd = accept(srv_fd, (struct sockaddr*)&cin, &cinlen);
 
 	printlog("Accepting client");
@@ -364,6 +367,7 @@ net_init_server_socket(char* rport)
 
 	printlog("Initializing server port %s", rport);
 
+	memset(&sock_in, 0, sizeof(struct sockaddr_in));
 	sock_in.sin_family = AF_INET;
 	sock_in.sin_addr.s_addr = htonl(INADDR_ANY);
 	sock_in.sin_port = htons(atoi(rport));
