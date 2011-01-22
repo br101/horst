@@ -32,79 +32,6 @@
 #include "util.h"
 
 
-#ifdef PCAP
-
-#include <pcap.h>
-
-#define PCAP_TIMEOUT 200
-
-static unsigned char* pcap_buffer;
-static size_t pcap_bufsize;
-static pcap_t *pcap_fp = NULL;
-
-
-void handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes)
-{
-	*((int *)user) = h->len;
-	if (pcap_bufsize < h->len)
-	{
-		printlog("ERROR: Buffer(%d) too small for %d bytes",
-			 pcap_bufsize, h->len);
-		*((int *)user) = pcap_bufsize;
-	}
-	memmove(pcap_buffer, bytes, *((int *)user));
-}
-
-
-int
-open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size)
-{
-	char error[PCAP_ERRBUF_SIZE];
-	if (NULL == (pcap_fp = pcap_open_live(devname, bufsize, 1, PCAP_TIMEOUT, error)))
-		return -1;
-	return 0;
-}
-
-
-int
-device_get_arptype(void)
-{
-	if (pcap_fp != NULL) {
-		switch (pcap_datalink(pcap_fp)) {
-		case DLT_IEEE802_11_RADIO:
-			return 803;
-		case DLT_PRISM_HEADER:
-			return 802;
-		default:
-			return 801;
-		}
-	}
-	return -1;
-}
-
-
-int
-recv_packet(unsigned char* buffer, size_t bufsize)
-{
-	int ret = 0; 
-	pcap_buffer = buffer;
-	pcap_bufsize = bufsize;
-	if (0 == pcap_dispatch(pcap_fp, 1, handler, (u_char *)&ret))
-		return -1;
-	return ret;
-}
-
-
-void
-close_packet_socket(int fd)
-{
-	pcap_close(pcap_fp);
-}
-
-
-#else /* use PACKET SOCKET */
-
-
 static int
 device_index(int fd, const char *devname)
 {
@@ -237,5 +164,3 @@ close_packet_socket(int fd, char* ifname)
 		close(fd);
 	}
 }
-
-#endif // PCAP
