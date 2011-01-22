@@ -341,36 +341,29 @@ receive_any(void)
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);
 	FD_ZERO(&excpt_fds);
-
 	FD_SET(0, &read_fds);
 	FD_SET(mon, &read_fds);
-	if (srv_fd != -1) {
+	if (srv_fd != -1)
 		FD_SET(srv_fd, &read_fds);
-	}
+
 	tv.tv_sec = 0;
 	tv.tv_usec = min(conf.channel_time, 1000000);
 	mfd = max(mon, srv_fd) + 1;
 
 	ret = select(mfd, &read_fds, &write_fds, &excpt_fds, &tv);
-	if (ret == -1 && errno == EINTR) { /* interrupted */
+	if (ret == -1 && errno == EINTR) /* interrupted */
 		return;
-	}
 	if (ret == 0) { /* timeout */
-#if !DO_DEBUG
-		if (!conf.quiet)
+		if (!conf.quiet && !DO_DEBUG)
 			update_display_clock();
-#endif
 		return;
 	}
-	if (ret < 0) {
+	else if (ret < 0) /* error */
 		err(1, "select()");
-	}
 
 	/* stdin */
-	if (FD_ISSET(0, &read_fds)) {
-		if (!conf.quiet)
-			handle_user_input();
-	}
+	if (FD_ISSET(0, &read_fds) && !conf.quiet)
+		handle_user_input();
 
 	/* local packet or client */
 	if (FD_ISSET(mon, &read_fds)) {
@@ -381,9 +374,8 @@ receive_any(void)
 	}
 
 	/* server */
-	if (srv_fd != -1 && FD_ISSET(srv_fd, &read_fds)) {
+	if (FD_ISSET(srv_fd, &read_fds))
 		net_handle_server_conn();
-	}
 }
 
 
