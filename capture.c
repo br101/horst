@@ -133,6 +133,7 @@ open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size)
 	/* bind only to one interface */
 	ifindex = device_index(mon_fd, devname);
 
+	memset(&sall, 0, sizeof(struct sockaddr_ll));
 	sall.sll_ifindex = ifindex;
 	sall.sll_family = AF_PACKET;
 	sall.sll_protocol = htons(ETH_P_ALL);
