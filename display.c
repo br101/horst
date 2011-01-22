@@ -208,8 +208,8 @@ update_menu(void)
 
 #define KEYMARK A_UNDERLINE
 	attron(KEYMARK); printw("Q"); attroff(KEYMARK); printw("uit ");
-	attron(KEYMARK); printw("P"); attroff(KEYMARK); printw("aus ");
-	attron(KEYMARK); printw("R"); attroff(KEYMARK); printw("est ");
+	attron(KEYMARK); printw("P"); attroff(KEYMARK); printw("ause ");
+	attron(KEYMARK); printw("R"); attroff(KEYMARK); printw("eset ");
 	attron(KEYMARK); printw("H"); attroff(KEYMARK); printw("ist ");
 	attron(KEYMARK); printw("E"); attroff(KEYMARK); printw("SSID St");
 	attron(KEYMARK); printw("a"); attroff(KEYMARK); printw("ts ");
