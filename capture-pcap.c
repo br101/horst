@@ -1,6 +1,7 @@
 /* horst - Highly Optimized Radio Scanning Tool
  *
  * Copyright (C) 2005-2011 Bruno Randolf (br1@einfach.org)
+ * Copyright (C) 2007 Sven-Ola Tuecke
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -39,8 +40,7 @@ static pcap_t *pcap_fp = NULL;
 void handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes)
 {
 	*((int *)user) = h->len;
-	if (pcap_bufsize < h->len)
-	{
+	if (pcap_bufsize < h->len) {
 		printlog("ERROR: Buffer(%d) too small for %d bytes",
 			 (int)pcap_bufsize, h->len);
 		*((int *)user) = pcap_bufsize;

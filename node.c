@@ -78,9 +78,8 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		if (p->wlan_retry && p->wlan_seqno == n->wlan_seqno) {
 			n->wlan_retries_all++;
 			n->wlan_retries_last++;
-		} else {
+		} else
 			n->wlan_retries_last = 0;
-		}
 		n->wlan_seqno = p->wlan_seqno;
 	}
 }
@@ -93,9 +92,8 @@ node_update(struct packet_info* p)
 
 	if (p->wlan_src[0] == 0 && p->wlan_src[1] == 0 &&
 	    p->wlan_src[2] == 0 && p->wlan_src[3] == 0 &&
-	    p->wlan_src[4] == 0 && p->wlan_src[5] == 0) {
+	    p->wlan_src[4] == 0 && p->wlan_src[5] == 0)
 		return NULL;
-	}
 
 	/* find node by wlan source address */
 	list_for_each_entry(n, &nodes, list) {
@@ -127,16 +125,14 @@ timeout_nodes(void)
 	struct node_info *n, *m;
 	struct chan_node *cn, *cn2;
 
-	if ((the_time.tv_sec - last_nodetimeout.tv_sec) < conf.node_timeout ) {
+	if ((the_time.tv_sec - last_nodetimeout.tv_sec) < conf.node_timeout )
 		return;
-	}
 
 	list_for_each_entry_safe(n, m, &nodes, list) {
 		if (n->last_seen < (the_time.tv_sec - conf.node_timeout)) {
 			list_del(&n->list);
-			if (n->essid != NULL) {
+			if (n->essid != NULL)
 				remove_node_from_essid(n);
-			}
 			list_for_each_entry_safe(cn, cn2, &n->on_channels, node_list) {
 				list_del(&cn->node_list);
 				list_del(&cn->chan_list);

@@ -45,9 +45,8 @@ update_essid_split_status(struct essid_info* e)
 			n, ether_sprintf(n->last_pkt.wlan_src));
 		DEBUG(" bssid %s\n", ether_sprintf(n->wlan_bssid));
 
-		if (n->wlan_mode == WLAN_MODE_AP) {
+		if (n->wlan_mode == WLAN_MODE_AP)
 			continue;
-		}
 
 		if (last_bssid && memcmp(last_bssid, n->wlan_bssid, MAC_LEN) != 0) {
 			e->split = 1;
@@ -95,9 +94,8 @@ update_essids(struct packet_info* p, struct node_info* n)
 	struct essid_info* e;
 
 	/* only check beacons (XXX: what about PROBE?) */
-	if (!IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON)) {
+	if (!IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON))
 		return;
-	}
 
 	if (n == NULL)
 		return;
@@ -126,9 +124,8 @@ update_essids(struct packet_info* p, struct node_info* n)
 	}
 
 	/* if node had another essid before, remove it there */
-	if (n->essid != NULL && n->essid != e) {
+	if (n->essid != NULL && n->essid != e)
 		remove_node_from_essid(n);
-	}
 
 	/* new node */
 	if (n->essid == NULL) {

@@ -192,15 +192,13 @@ net_receive_packet(unsigned char *buffer, int len)
 	struct packet_info pkt;
 	struct packet_info* p = &pkt;
 
-	if (len < sizeof(struct net_packet_info)) {
+	if (len < sizeof(struct net_packet_info))
 		return 0;
-	}
 
 	np = (struct net_packet_info *)buffer;
 
-	if (np->phy_rate == 0) {
+	if (np->phy_rate == 0)
 		return 0;
-	}
 
 	memset(&pkt, 0, sizeof(pkt));
 	p->pkt_types	= le32toh(np->pkt_types);
@@ -319,9 +317,8 @@ net_receive(int fd, unsigned char* buffer, size_t bufsize)
 
 	len = recv(fd, buffer, bufsize, MSG_DONTWAIT);
 
-	if (len < sizeof(struct net_header)) {
+	if (len < sizeof(struct net_header))
 		return 0;
-	}
 
 	nh = (struct net_header *)buffer;
 
@@ -371,21 +368,17 @@ net_init_server_socket(char* rport)
 	sock_in.sin_addr.s_addr = htonl(INADDR_ANY);
 	sock_in.sin_port = htons(atoi(rport));
 
-	if ((srv_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+	if ((srv_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		err(1, "Could not open server socket");
-	}
 
-	if (setsockopt(srv_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
+	if (setsockopt(srv_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0)
 		err(1, "setsockopt SO_REUSEADDR");
-	}
 
-	if (bind(srv_fd, (struct sockaddr*)&sock_in, sizeof(sock_in)) < 0) {
+	if (bind(srv_fd, (struct sockaddr*)&sock_in, sizeof(sock_in)) < 0)
 		err(1, "bind");
-	}
 
-	if (listen(srv_fd, 0) < 0) {
+	if (listen(srv_fd, 0) < 0)
 		err(1, "listen");
-	}
 }
 
 
@@ -412,16 +405,14 @@ net_open_client_socket(char* serveraddr, char* rport)
 	}
 
 	/* getaddrinfo() returns a list of address structures.
-	   Try each address until we successfully connect. */
+	 * Try each address until we successfully connect. */
 	for (rp = result; rp != NULL; rp = rp->ai_next) {
 		netmon_fd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-		if (netmon_fd == -1) {
+		if (netmon_fd == -1)
 			continue;
-		}
 
-		if (connect(netmon_fd, rp->ai_addr, rp->ai_addrlen) != -1) {
+		if (connect(netmon_fd, rp->ai_addr, rp->ai_addrlen) != -1)
 			break; /* Success */
-		}
 
 		close(netmon_fd);
 	}
@@ -441,13 +432,12 @@ net_open_client_socket(char* serveraddr, char* rport)
 
 void
 net_finish(void) {
-	if (srv_fd != -1) {
+	if (srv_fd != -1)
 		close(srv_fd);
-	}
-	if (cli_fd != -1) {
+
+	if (cli_fd != -1)
 		close(cli_fd);
-	}
-	if (netmon_fd) {
+
+	if (netmon_fd)
 		close(netmon_fd);
-	}
 }

@@ -105,28 +105,26 @@ printlog(const char *fmt, ...)
 static void
 update_history(struct packet_info* p)
 {
-	if (p->phy_signal == 0) {
+	if (p->phy_signal == 0)
 		return;
-	}
 
 	hist.signal[hist.index] = p->phy_signal;
 	hist.noise[hist.index] = p->phy_noise;
 	hist.rate[hist.index] = p->phy_rate;
 	hist.type[hist.index] = p->wlan_type;
 	hist.retry[hist.index] = p->wlan_retry;
+
 	hist.index++;
-	if (hist.index == MAX_HISTORY) {
+	if (hist.index == MAX_HISTORY)
 		hist.index = 0;
-	}
 }
 
 
 static void
 update_statistics(struct packet_info* p)
 {
-	if (p->phy_rate == 0) {
+	if (p->phy_rate == 0)
 		return;
-	}
 
 	stats.packets++;
 	stats.bytes += p->pkt_len;
@@ -215,9 +213,8 @@ filter_packet(struct packet_info* p)
 {
 	int i;
 
-	if (conf.filter_off) {
+	if (conf.filter_off)
 		return 0;
-	}
 
 	if (!(p->pkt_types & conf.filter_pkt)) {
 		stats.filtered_packets++;
@@ -417,20 +414,17 @@ finish_all(void)
 {
 	free_lists();
 
-	if (!conf.serveraddr) {
+	if (!conf.serveraddr)
 		close_packet_socket(mon, conf.ifname);
-	}
 
-	if (DF != NULL) {
+	if (DF != NULL)
 		fclose(DF);
-	}
 
 #if !DO_DEBUG
 	net_finish();
 
-	if (!conf.quiet) {
+	if (!conf.quiet)
 		finish_display();
-	}
 #endif
 }
 
@@ -544,9 +538,8 @@ main(int argc, char** argv)
 
 	conf.current_channel = -1;
 
-	if (conf.serveraddr) {
+	if (conf.serveraddr)
 		mon = net_open_client_socket(conf.serveraddr, conf.port);
-	}
 	else {
 		mon = open_packet_socket(conf.ifname, sizeof(buffer), conf.recv_buffer_size);
 		if (mon <= 0)

@@ -460,9 +460,8 @@ update_main_win(struct packet_info *p)
 int
 main_input(char key)
 {
-	if (sort_win != NULL) {
+	if (sort_win != NULL)
 		return sort_input(key);
-	}
 
 	switch(key) {
 	case 'o': case 'O':
