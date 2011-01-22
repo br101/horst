@@ -44,7 +44,7 @@ void init_display_main(void);
 void update_main_win(struct packet_info *pkt);
 void update_dump_win(struct packet_info* pkt);
 int main_input(int c);
-void print_dump_win(const char *str);
+void print_dump_win(const char *str, int refresh);
 void resize_display_main(void);
 
 /* smaller config windows */
@@ -310,7 +310,7 @@ update_display_clock(void)
 void
 display_log(const char *string)
 {
-	print_dump_win(string);
+	print_dump_win(string, show_win == NULL);
 }
 
 
@@ -421,14 +421,15 @@ handle_user_input(void)
 	switch(key) {
 	case ' ': case 'p': case 'P':
 		conf.paused = conf.paused ? 0 : 1;
-		print_dump_win(conf.paused ? "\n- PAUSED -" : "\n- RESUME -");
+		print_dump_win(conf.paused ? "\n- PAUSED -" : "\n- RESUME -",
+			       show_win == NULL);
 		break;
 
 	case 'q': case 'Q':
 		exit(0);
 
 	case 'r': case 'R':
-		print_dump_win("\n- RESET -");
+		print_dump_win("\n- RESET -", show_win == NULL);
 		free_lists();
 		essids.split_active = 0;
 		essids.split_essid = NULL;

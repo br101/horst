@@ -46,6 +46,22 @@ static int stat_height;
 
 #define STAT_WIDTH 11
 
+
+/******************* UTIL *******************/
+
+void
+print_dump_win(const char *str, int refresh)
+{
+	wattron(dump_win, RED);
+	wprintw(dump_win, str);
+	wattroff(dump_win, RED);
+	if (refresh)
+		wrefresh(dump_win);
+	else
+		wnoutrefresh(dump_win);
+}
+
+
 /******************* SORTING *******************/
 
 static int
@@ -428,16 +444,6 @@ update_dump_win(struct packet_info* p)
 		}
 	}
 	wattroff(dump_win, A_BOLD);
-}
-
-
-void
-print_dump_win(const char *str)
-{
-	wattron(dump_win, RED);
-	wprintw(dump_win, str);
-	wattroff(dump_win, RED);
-	wrefresh(dump_win);
 }
 
 
