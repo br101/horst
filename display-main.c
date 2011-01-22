@@ -219,15 +219,14 @@ update_status_win(struct packet_info* p)
 }
 
 
-#define COL_IP		3
-#define COL_SNR		COL_IP + 16
+#define COL_SNR		3
 #define COL_RATE	COL_SNR + 9
 #define COL_SOURCE	COL_RATE + 3
 #define COL_STA		COL_SOURCE + 18
 #define COL_BSSID	COL_STA + 2
 #define COL_ENC		COL_BSSID + 20
 #define COL_CHAN	COL_ENC + 2
-#define COL_MESH	COL_CHAN + 3
+#define COL_IP		COL_CHAN + 3
 
 static char spin[4] = {'/', '-', '\\', '|'};
 
@@ -273,7 +272,7 @@ print_list_line(int line, struct node_info* n)
 		mvwprintw(list_win, line, COL_IP, "%s", ip_sprintf(n->ip_src));
 
 	if (n->pkt_types & PKT_TYPE_OLSR)
-		mvwprintw(list_win, line, COL_MESH, "OLSR%s N:%d %s",
+		wprintw(list_win, " OLSR%s N:%d %s",
 			n->pkt_types & PKT_TYPE_OLSR_LQ ? "_LQ" : "",
 			n->olsr_neigh,
 			n->pkt_types & PKT_TYPE_OLSR_GW ? "GW" : "");
@@ -301,10 +300,9 @@ update_list_win(void)
 	mvwprintw(list_win, 0, COL_SOURCE, "SOURCE");
 	mvwprintw(list_win, 0, COL_STA, "M");
 	mvwprintw(list_win, 0, COL_BSSID, "(BSSID)");
-	mvwprintw(list_win, 0, COL_IP, "IP");
 	mvwprintw(list_win, 0, COL_CHAN, "CH");
 	mvwprintw(list_win, 0, COL_ENC, "E");
-	mvwprintw(list_win, 0, COL_MESH, "Mesh");
+	mvwprintw(list_win, 0, COL_IP, "IP/Mesh");
 
 	/* reuse bottom line for information on other win */
 	mvwprintw(list_win, win_split - 1, 0, "CH-Sig");
