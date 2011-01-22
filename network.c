@@ -54,9 +54,9 @@ struct net_header {
 } __attribute__ ((packed));
 
 
+#if 0
 enum net_command {
 	NET_CMD_RESERVED	= 0,
-	NET_CMD_REJECT		= 1,
 };
 
 struct net_cmd {
@@ -65,6 +65,7 @@ struct net_cmd {
 	int command;
 	int status;
 } __attribute__ ((packed));
+#endif
 
 
 struct net_chan_list {
@@ -132,6 +133,7 @@ net_write(int fd, unsigned char* buf, size_t len)
 			close(fd);
 			if (fd == cli_fd)
 				cli_fd = -1;
+			net_init_server_socket(conf.port);
 		}
 		else
 			printlog("ERROR: write in net_send_packet");
@@ -235,6 +237,7 @@ net_receive_packet(unsigned char *buffer, int len)
 }
 
 
+#if 0
 static int
 net_send_cmd(int fd, enum net_command cmd)
 {
@@ -258,10 +261,8 @@ net_receive_command(unsigned char *buffer, int len)
 		return;
 
 	nc = (struct net_cmd *)buffer;
-
-	if (nc->command == NET_CMD_REJECT)
-		printlog("Server rejected us\n");
 }
+#endif
 
 
 static int
@@ -333,9 +334,10 @@ net_receive(int fd, unsigned char* buffer, size_t bufsize)
 		net_receive_packet(buffer, len);
 	else if (nh->type == PROTO_CHAN_LIST)
 		net_receive_chan_list(buffer, len);
+#if 0
 	else if (nh->type == PROTO_COMMAND)
 		net_receive_command(buffer, len);
-
+#endif
 	return 1;
 }
 
@@ -344,20 +346,13 @@ int net_handle_server_conn( void )
 {
 	struct sockaddr_in cin;
 	socklen_t cinlen;
-	int tmp_fd;
-
-	if (cli_fd != -1) {
-		printlog("Can only handle one client, rejecting");
-		tmp_fd = accept(srv_fd, (struct sockaddr*)&cin, &cinlen);
-		net_send_cmd(tmp_fd, NET_CMD_REJECT);
-		close(tmp_fd);
-		return -1;
-	}
 
 	cli_fd = accept(srv_fd, (struct sockaddr*)&cin, &cinlen);
 
 	printlog("Accepting client");
 	net_send_chan_list(cli_fd);
+	close(srv_fd);
+	srv_fd = -1;
 
 	//read(cli_fd,line,sizeof(line));
 	return 0;
@@ -370,7 +365,7 @@ net_init_server_socket(char* rport)
 	struct sockaddr_in sock_in;
 	int reuse = 1;
 
-	printlog("Initializing server port %s\n", rport);
+	printlog("Initializing server port %s", rport);
 
 	sock_in.sin_family = AF_INET;
 	sock_in.sin_addr.s_addr = htonl(INADDR_ANY);
