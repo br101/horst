@@ -19,8 +19,9 @@
 NAME=horst
 DEBUG=0
 PCAP=0
-OBJS=main.o capture.o protocol_parser.o network.o wext.o util.o \
-	ieee80211_util.o listsort.o average.o \
+OBJS=main.o capture.o protocol_parser.o network.o wext.o node.o essid.o \
+	channel.o \
+	util.o ieee80211_util.o listsort.o average.o \
 	display.o display-main.o display-filter.o display-help.o \
 	display-statistics.o display-essid.o display-history.o \
 	display-spectrum.o display-channel.o
@@ -40,6 +41,7 @@ all: $(buildstamp) $(NAME)
 # include dependencies
 average.o: average.h util.h
 capture.o: capture.h util.h
+channel.o: main.h util.h ieee80211_util.h wext.h
 display.o: display.h main.h ieee80211.h
 display-channel.o: display.h main.h
 display-essid.o: display.h main.h util.h
@@ -49,11 +51,13 @@ display-history.o: display.h main.h util.h
 display-main.o: display.h main.h util.h ieee80211.h olsr_header.h listsort.h
 display-spectrum.o: display.h main.h util.h
 display-statistics.o: display.h main.h util.h
+essid.o: main.h util.h ieee80211.h
 ieee80211_util.o: ieee80211.h ieee80211_radiotap.h ieee80211_util.h main.h \
 	util.h
 listsort.o: list.h listsort.h
 main.o: protocol_parser.h display.h network.h main.h capture.h util.h \
 	ieee80211.h ieee80211_util.h wext.h average.h
+node.o: main.h ieee80211.h util.h
 network.o: main.h util.h network.h
 protocol_parser.o: prism_header.h ieee80211_radiotap.h ieee80211.h \
 	ieee80211_util.h olsr_header.h batman_header.h protocol_parser.h \

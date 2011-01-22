@@ -16,6 +16,9 @@
 #ifndef _IEEE80211_UTIL_H_
 #define _IEEE80211_UTIL_H_
 
+#include "ieee80211.h"
+
+
 struct packet_info;
 
 int

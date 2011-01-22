@@ -19,28 +19,24 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <getopt.h>
 #include <signal.h>
 #include <sys/time.h>
-#include <time.h>
 #include <errno.h>
 #include <err.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 
-#include "protocol_parser.h"
-#include "display.h"
-#include "network.h"
 #include "main.h"
-#include "capture.h"
 #include "util.h"
+#include "capture.h"
+#include "protocol_parser.h"
+#include "network.h"
+#include "display.h"
 #include "ieee80211.h"
 #include "ieee80211_util.h"
 #include "wext.h"
-#include "average.h"
+
 
 struct list_head nodes;
 struct essid_meta_info essids;
@@ -61,10 +57,9 @@ struct config conf = {
 
 struct timeval the_time;
 
-static int mon; /* monitoring socket */
+int mon; /* monitoring socket */
+
 static FILE* DF = NULL;
-static struct timeval last_nodetimeout;
-static struct timeval last_channelchange;
 
 /*
  * receive packet buffer
@@ -80,247 +75,30 @@ static fd_set excpt_fds;
 static struct timeval tv;
 
 
-static void
-copy_nodeinfo(struct node_info* n, struct packet_info* p)
+struct node_info* node_update(struct packet_info* p);
+void update_essids(struct packet_info* p, struct node_info* n);
+void timeout_nodes(void);
+void auto_change_channel(int mon);
+void get_current_channel(int mon);
+
+
+void __attribute__ ((format (printf, 1, 2)))
+printlog(const char *fmt, ...)
 {
-	memcpy(&(n->last_pkt), p, sizeof(struct packet_info));
-	// update timestamp
-	n->last_seen = time(NULL);
-	n->pkt_count++;
-	n->pkt_types |= p->pkt_types;
-	if (p->ip_src)
-		n->ip_src = p->ip_src;
-	if (p->wlan_mode)
-		n->wlan_mode = p->wlan_mode;
-	if (p->olsr_tc)
-		n->olsr_tc = p->olsr_tc;
-	if (p->olsr_neigh)
-		n->olsr_neigh = p->olsr_neigh;
-	if (p->pkt_types & PKT_TYPE_OLSR)
-		n->olsr_count++;
-	if (p->wlan_bssid[0] != 0xff &&
-	    !(p->wlan_bssid[0] == 0 && p->wlan_bssid[1] == 0 &&
-	      p->wlan_bssid[2] == 0 && p->wlan_bssid[3] == 0 &&
-	      p->wlan_bssid[4] == 0 && p->wlan_bssid[5] == 0)) {
-		memcpy(n->wlan_bssid, p->wlan_bssid, MAC_LEN);
+	char buf[128];
+	va_list ap;
+
+	va_start(ap, fmt);
+	vsnprintf(&buf[1], 127, fmt, ap);
+	va_end(ap);
+
+	if (conf.quiet || DO_DEBUG || !conf.display_initialized)
+		printf("%s\n", &buf[1]);
+	else {
+		/* fix up string for display log */
+		buf[0] = '\n';
+		display_log(buf);
 	}
-	if (IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON)) {
-		n->wlan_tsf = p->wlan_tsf;
-		n->wlan_bintval = p->wlan_bintval;
-	}
-	ewma_add(&n->phy_snr_avg, p->phy_snr);
-	if (p->phy_snr > n->phy_snr_max)
-		n->phy_snr_max = p->phy_snr;
-	if (p->phy_signal > n->phy_sig_max || n->phy_sig_max == 0)
-		n->phy_sig_max = p->phy_signal;
-	if ((n->phy_snr_min == 0 && p->phy_snr > 0) || p->phy_snr < n->phy_snr_min)
-		n->phy_snr_min = p->phy_snr;
-	if (p->wlan_channel != 0)
-		n->wlan_channel = p->wlan_channel;
-	else if (p->pkt_chan_idx >= 0)
-		n->wlan_channel = channels[p->pkt_chan_idx].chan;
-
-	if (!IEEE80211_IS_CTRL(p->wlan_type))
-		n->wlan_wep = p->wlan_wep;
-	if (p->wlan_seqno != 0) {
-		if (p->wlan_retry && p->wlan_seqno == n->wlan_seqno) {
-			n->wlan_retries_all++;
-			n->wlan_retries_last++;
-		} else {
-			n->wlan_retries_last = 0;
-		}
-		n->wlan_seqno = p->wlan_seqno;
-	}
-}
-
-
-static struct node_info*
-node_update(struct packet_info* p)
-{
-	struct node_info* n;
-
-	if (p->wlan_src[0] == 0 && p->wlan_src[1] == 0 &&
-	    p->wlan_src[2] == 0 && p->wlan_src[3] == 0 &&
-	    p->wlan_src[4] == 0 && p->wlan_src[5] == 0) {
-		return NULL;
-	}
-
-	/* find node by wlan source address */
-	list_for_each_entry(n, &nodes, list) {
-		if (memcmp(p->wlan_src, n->last_pkt.wlan_src, MAC_LEN) == 0) {
-			DEBUG("node found %p\n", n);
-			break;
-		}
-	}
-
-	/* not found */
-	if (&n->list == &nodes) {
-		DEBUG("node adding\n");
-		n = malloc(sizeof(struct node_info));
-		memset(n, 0, sizeof(struct node_info));
-		n->essid = NULL;
-		ewma_init(&n->phy_snr_avg, 1024, 8);
-		INIT_LIST_HEAD(&n->on_channels);
-		list_add_tail(&n->list, &nodes);
-	}
-
-	copy_nodeinfo(n, p);
-
-	return n;
-}
-
-
-static void
-update_essid_split_status(struct essid_info* e)
-{
-	struct node_info* n;
-	unsigned char* last_bssid = NULL;
-
-	e->split = 0;
-
-	/* essid can't be split if it only contains 1 node */
-	if (e->num_nodes <= 1 && essids.split_essid == e) {
-		essids.split_active = 0;
-		essids.split_essid = NULL;
-		return;
-	}
-
-	/* check for split */
-	list_for_each_entry(n, &e->nodes, essid_nodes) {
-		DEBUG("SPLIT      node %p src %s",
-			n, ether_sprintf(n->last_pkt.wlan_src));
-		DEBUG(" bssid %s\n", ether_sprintf(n->wlan_bssid));
-
-		if (n->wlan_mode == WLAN_MODE_AP) {
-			continue;
-		}
-
-		if (last_bssid && memcmp(last_bssid, n->wlan_bssid, MAC_LEN) != 0) {
-			e->split = 1;
-			DEBUG("SPLIT *** DETECTED!!!\n");
-		}
-		last_bssid = n->wlan_bssid;
-	}
-
-	/* if a split occurred on this essid, record it */
-	if (e->split > 0) {
-		DEBUG("SPLIT *** active\n");
-		essids.split_active = 1;
-		essids.split_essid = e;
-	}
-	else if (e == essids.split_essid) {
-		DEBUG("SPLIT *** ok now\n");
-		essids.split_active = 0;
-		essids.split_essid = NULL;
-	}
-}
-
-
-static void
-remove_node_from_essid(struct node_info* n)
-{
-	DEBUG("SPLIT   remove node from old essid\n");
-	list_del(&n->essid_nodes);
-	n->essid->num_nodes--;
-
-	update_essid_split_status(n->essid);
-
-	/* delete essid if it has no more nodes */
-	if (n->essid->num_nodes == 0) {
-		DEBUG("SPLIT   essid empty, delete\n");
-		list_del(&n->essid->list);
-		free(n->essid);
-	}
-	n->essid = NULL;
-}
-
-
-static void
-check_ibss_split(struct packet_info* p, struct node_info* n)
-{
-	struct essid_info* e;
-
-	/* only check beacons (XXX: what about PROBE?) */
-	if (!IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON)) {
-		return;
-	}
-
-	if (n == NULL)
-		return;
-
-	DEBUG("SPLIT check ibss '%s' node %s ", p->wlan_essid,
-		ether_sprintf(p->wlan_src));
-	DEBUG("bssid %s\n", ether_sprintf(p->wlan_bssid));
-
-	/* find essid if already recorded */
-	list_for_each_entry(e, &essids.list, list) {
-		if (strncmp(e->essid, p->wlan_essid, MAX_ESSID_LEN) == 0) {
-			DEBUG("SPLIT   essid found\n");
-			break;
-		}
-	}
-
-	/* if not add new essid */
-	if (&e->list == &essids.list) {
-		DEBUG("SPLIT   essid not found, adding new\n");
-		e = malloc(sizeof(struct essid_info));
-		strncpy(e->essid, p->wlan_essid, MAX_ESSID_LEN);
-		e->num_nodes = 0;
-		e->split = 0;
-		INIT_LIST_HEAD(&e->nodes);
-		list_add_tail(&e->list, &essids.list);
-	}
-
-	/* if node had another essid before, remove it there */
-	if (n->essid != NULL && n->essid != e) {
-		remove_node_from_essid(n);
-	}
-
-	/* new node */
-	if (n->essid == NULL) {
-		DEBUG("SPLIT   node not found, adding new %s\n",
-			ether_sprintf(p->wlan_src));
-		list_add_tail(&n->essid_nodes, &e->nodes);
-		e->num_nodes++;
-		n->essid = e;
-	}
-
-	update_essid_split_status(e);
-}
-
-
-static int
-filter_packet(struct packet_info* p)
-{
-	int i;
-
-	if (conf.filter_off) {
-		return 0;
-	}
-
-	if (!(p->pkt_types & conf.filter_pkt)) {
-		stats.filtered_packets++;
-		return 1;
-	}
-
-	if (MAC_NOT_EMPTY(conf.filterbssid) &&
-	    memcmp(p->wlan_bssid, conf.filterbssid, MAC_LEN) != 0) {
-		stats.filtered_packets++;
-		return 1;
-	}
-
-	if (conf.do_macfilter) {
-		for (i = 0; i < MAX_FILTERMAC; i++) {
-			if (MAC_NOT_EMPTY(p->wlan_src) &&
-			    conf.filtermac_enabled[i] &&
-			    memcmp(p->wlan_src, conf.filtermac[i], MAC_LEN) == 0) {
-				return 0;
-			}
-		}
-		stats.filtered_packets++;
-		return 1;
-	}
-	return 0;
 }
 
 
@@ -432,32 +210,38 @@ write_to_file(struct packet_info* p)
 }
 
 
-static void
-timeout_nodes(void)
+static int
+filter_packet(struct packet_info* p)
 {
-	struct node_info *n, *m;
-	struct chan_node *cn, *cn2;
+	int i;
 
-	if ((the_time.tv_sec - last_nodetimeout.tv_sec) < conf.node_timeout ) {
-		return;
+	if (conf.filter_off) {
+		return 0;
 	}
 
-	list_for_each_entry_safe(n, m, &nodes, list) {
-		if (n->last_seen < (the_time.tv_sec - conf.node_timeout)) {
-			list_del(&n->list);
-			if (n->essid != NULL) {
-				remove_node_from_essid(n);
+	if (!(p->pkt_types & conf.filter_pkt)) {
+		stats.filtered_packets++;
+		return 1;
+	}
+
+	if (MAC_NOT_EMPTY(conf.filterbssid) &&
+	    memcmp(p->wlan_bssid, conf.filterbssid, MAC_LEN) != 0) {
+		stats.filtered_packets++;
+		return 1;
+	}
+
+	if (conf.do_macfilter) {
+		for (i = 0; i < MAX_FILTERMAC; i++) {
+			if (MAC_NOT_EMPTY(p->wlan_src) &&
+			    conf.filtermac_enabled[i] &&
+			    memcmp(p->wlan_src, conf.filtermac[i], MAC_LEN) == 0) {
+				return 0;
 			}
-			list_for_each_entry_safe(cn, cn2, &n->on_channels, node_list) {
-				list_del(&cn->node_list);
-				list_del(&cn->chan_list);
-				cn->chan->num_nodes--;
-				free(cn);
-			}
-			free(n);
 		}
+		stats.filtered_packets++;
+		return 1;
 	}
-	last_nodetimeout = the_time;
+	return 0;
 }
 
 
@@ -519,7 +303,7 @@ handle_packet(struct packet_info* p)
 	update_history(p);
 	update_statistics(p);
 	update_spectrum(p, n);
-	check_ibss_split(p, n);
+	update_essids(p, n);
 
 #if !DO_DEBUG
 	update_display(p, n);
@@ -603,6 +387,79 @@ receive_any(void)
 }
 
 
+void
+free_lists(void)
+{
+	int i;
+	struct essid_info *e, *f;
+	struct node_info *ni, *mi;
+	struct chan_node *cn, *cn2;
+
+	/* free node list */
+	list_for_each_entry_safe(ni, mi, &nodes, list) {
+		DEBUG("free node %s\n", ether_sprintf(ni->last_pkt.wlan_src));
+		list_del(&ni->list);
+		free(ni);
+	}
+
+	/* free essids */
+	list_for_each_entry_safe(e, f, &essids.list, list) {
+		DEBUG("free essid '%s'\n", e->essid);
+		list_del(&e->list);
+		free(e);
+	}
+
+	/* free channel nodes */
+	for (i = 0; i < conf.num_channels; i++) {
+		list_for_each_entry_safe(cn, cn2, &spectrum[i].nodes, chan_list) {
+			DEBUG("free chan_node %p\n", cn);
+			list_del(&cn->chan_list);
+			cn->chan->num_nodes--;
+			free(cn);
+		}
+	}
+}
+
+
+static void
+finish_all(void)
+{
+	free_lists();
+
+	if (!conf.serveraddr) {
+		close_packet_socket();
+	}
+
+	if (DF != NULL) {
+		fclose(DF);
+	}
+
+#if !DO_DEBUG
+	if (conf.port) {
+		net_finish();
+	}
+
+	if (!conf.quiet) {
+		finish_display();
+	}
+#endif
+}
+
+
+static void
+exit_handler(void)
+{
+	finish_all();
+}
+
+
+static void
+sigint_handler(int sig)
+{
+	exit(0);
+}
+
+
 static void
 sigpipe_handler(int sig)
 {
@@ -677,75 +534,65 @@ get_options(int argc, char** argv)
 }
 
 
-void
-free_lists(void)
+int
+main(int argc, char** argv)
 {
-	int i;
-	struct essid_info *e, *f;
-	struct node_info *ni, *mi;
-	struct chan_node *cn, *cn2;
+	INIT_LIST_HEAD(&essids.list);
+	INIT_LIST_HEAD(&nodes);
 
-	/* free node list */
-	list_for_each_entry_safe(ni, mi, &nodes, list) {
-		DEBUG("free node %s\n", ether_sprintf(ni->last_pkt.wlan_src));
-		list_del(&ni->list);
-		free(ni);
+	get_options(argc, argv);
+
+	signal(SIGINT, sigint_handler);
+	signal(SIGPIPE, sigpipe_handler);
+	atexit(exit_handler);
+
+	gettimeofday(&stats.stats_time, NULL);
+	gettimeofday(&the_time, NULL);
+
+	conf.current_channel = -1;
+
+	if (conf.serveraddr) {
+		mon = net_open_client_socket(conf.serveraddr, conf.port);
 	}
+	else {
+		mon = open_packet_socket(conf.ifname, sizeof(buffer), conf.recv_buffer_size);
+		if (mon < 0)
+			err(1, "Couldn't open packet socket");
 
-	/* free essids */
-	list_for_each_entry_safe(e, f, &essids.list, list) {
-		DEBUG("free essid '%s'\n", e->essid);
-		list_del(&e->list);
-		free(e);
-	}
-
-	/* free channel nodes */
-	for (i = 0; i < conf.num_channels; i++) {
-		list_for_each_entry_safe(cn, cn2, &spectrum[i].nodes, chan_list) {
-			DEBUG("free chan_node %p\n", cn);
-			list_del(&cn->chan_list);
-			cn->chan->num_nodes--;
-			free(cn);
+		conf.arphrd = device_get_arptype();
+		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
+		conf.arphrd != ARPHRD_IEEE80211_RADIOTAP) {
+			printf("Wrong monitor type! Please use radiotap or prism2 headers\n");
+			exit(1);
 		}
-	}
-}
 
-
-static void
-finish_all(void)
-{
-	free_lists();
-
-	if (!conf.serveraddr) {
-		close_packet_socket();
+		/* get available channels */
+		conf.num_channels = wext_get_channels(mon, conf.ifname, channels);
+		init_channels();
+		get_current_channel(mon);
 	}
 
-	if (DF != NULL) {
-		fclose(DF);
+	if (!conf.quiet && !DO_DEBUG)
+		init_display();
+
+	if (conf.dumpfile != NULL) {
+		DF = fopen(conf.dumpfile, "w");
+		if (DF == NULL)
+			err(1, "Couldn't open dump file");
 	}
 
-#if !DO_DEBUG
-	if (conf.port) {
-		net_finish();
+	if (!conf.serveraddr && conf.port)
+		net_init_server_socket(conf.port);
+
+	for ( /* ever */ ;;)
+	{
+		receive_any();
+		gettimeofday(&the_time, NULL);
+		timeout_nodes();
+		auto_change_channel(mon);
 	}
-
-	if (!conf.quiet) {
-		finish_display();
-	}
-#endif
-}
-
-
-static void
-sigint_handler(int sig)
-{
-	exit(0);
-}
-
-static void
-exit_handler(void)
-{
-	finish_all();
+	/* will never */
+	return 0;
 }
 
 
@@ -789,165 +636,3 @@ void print_rate_duration_table(void)
 	}
 }
 #endif
-
-
-void
-auto_change_channel(void)
-{
-	int new_chan;
-
-	if (the_time.tv_sec == last_channelchange.tv_sec &&
-	    (the_time.tv_usec - last_channelchange.tv_usec) < conf.channel_time)
-		return; /* too early */
-
-	if (conf.do_change_channel) {
-		new_chan = conf.current_channel + 1;
-		if (new_chan >= conf.num_channels || new_chan >= MAX_CHANNELS ||
-		    (conf.channel_max && new_chan >= conf.channel_max))
-			new_chan = 0;
-
-		if (wext_set_channel(mon, conf.ifname, channels[new_chan].freq) == 0)
-			printlog("auto change channel could not set channel");
-		else
-			conf.current_channel = new_chan;
-	}
-
-	/* also if channel was not changed, keep stats only for every channel_time.
-	 * display code uses durations_last to get a more stable view */
-	if (conf.current_channel >= 0) {
-		spectrum[conf.current_channel].durations_last =
-				spectrum[conf.current_channel].durations;
-		spectrum[conf.current_channel].durations = 0;
-		ewma_add(&spectrum[conf.current_channel].durations_avg,
-			 spectrum[conf.current_channel].durations_last);
-	}
-
-	last_channelchange = the_time;
-}
-
-
-void
-init_channels(void)
-{
-	int i, freq, ch;
-
-	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++) {
-		INIT_LIST_HEAD(&spectrum[i].nodes);
-		ewma_init(&spectrum[i].signal_avg, 1024, 8);
-		ewma_init(&spectrum[i].durations_avg, 1024, 8);
-	}
-
-	/* get current channel &  map to our channel array */
-	freq = wext_get_freq(mon, conf.ifname);
-	if (freq == 0)
-		return;
-
-	ch = ieee80211_frequency_to_channel(freq);
-	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++)
-		if (channels[i].chan == ch)
-			break;
-
-	if (i < MAX_CHANNELS)
-		conf.current_channel = i;
-	DEBUG("***%d\n", conf.current_channel);
-}
-
-
-int
-main(int argc, char** argv)
-{
-	INIT_LIST_HEAD(&essids.list);
-	INIT_LIST_HEAD(&nodes);
-
-	get_options(argc, argv);
-
-	signal(SIGINT, sigint_handler);
-	signal(SIGPIPE, sigpipe_handler);
-	atexit(exit_handler);
-
-	gettimeofday(&stats.stats_time, NULL);
-	gettimeofday(&the_time, NULL);
-
-	conf.current_channel = -1;
-
-	if (conf.serveraddr) {
-		mon = net_open_client_socket(conf.serveraddr, conf.port);
-	}
-	else {
-		mon = open_packet_socket(conf.ifname, sizeof(buffer), conf.recv_buffer_size);
-		if (mon < 0)
-			err(1, "Couldn't open packet socket");
-
-		conf.arphrd = device_get_arptype();
-		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
-		conf.arphrd != ARPHRD_IEEE80211_RADIOTAP) {
-			printf("Wrong monitor type! Please use radiotap or prism2 headers\n");
-			exit(1);
-		}
-
-		/* get available channels */
-		conf.num_channels = wext_get_channels(mon, conf.ifname, channels);
-		init_channels();
-	}
-
-	if (!conf.quiet && !DO_DEBUG)
-		init_display();
-
-	if (conf.dumpfile != NULL) {
-		DF = fopen(conf.dumpfile, "w");
-		if (DF == NULL)
-			err(1, "Couldn't open dump file");
-	}
-
-	if (!conf.serveraddr && conf.port)
-		net_init_server_socket(conf.port);
-
-	for ( /* ever */ ;;)
-	{
-		receive_any();
-		gettimeofday(&the_time, NULL);
-		timeout_nodes();
-		auto_change_channel();
-	}
-	/* will never */
-	return 0;
-}
-
-
-void
-change_channel(int c)
-{
-	int i;
-
-	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++) {
-		if (channels[i].chan == c) {
-			if (wext_set_channel(mon, conf.ifname, channels[i].freq) == 0) {
-				printlog("ERROR: could not set channel %d",
-					 channels[i].chan);
-				return;
-			}
-			conf.current_channel = i;
-			break;
-		}
-	}
-}
-
-
-void __attribute__ ((format (printf, 1, 2)))
-printlog(const char *fmt, ...)
-{
-	char buf[128];
-	va_list ap;
-
-	va_start(ap, fmt);
-	vsnprintf(&buf[1], 127, fmt, ap);
-	va_end(ap);
-
-	if (conf.quiet || DO_DEBUG || !conf.display_initialized)
-		printf("%s\n", &buf[1]);
-	else {
-		/* fix up string for display log */
-		buf[0] = '\n';
-		display_log(buf);
-	}
-}
