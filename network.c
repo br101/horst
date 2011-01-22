@@ -31,6 +31,7 @@
 #include "util.h"
 #include "network.h"
 
+
 extern struct config conf;
 
 int srv_fd = -1;
@@ -120,37 +121,7 @@ struct net_packet_info {
 } __attribute__ ((packed));
 
 
-void
-net_init_server_socket(char* rport)
-{
-	struct sockaddr_in sock_in;
-	int reuse = 1;
-
-	printlog("Initializing server port %s\n", rport);
-
-	sock_in.sin_family = AF_INET;
-	sock_in.sin_addr.s_addr = htonl(INADDR_ANY);
-	sock_in.sin_port = htons(atoi(rport));
-
-	if ((srv_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-		err(1, "Could not open server socket");
-	}
-
-	if (setsockopt(srv_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
-		err(1, "setsockopt SO_REUSEADDR");
-	}
-
-	if (bind(srv_fd, (struct sockaddr*)&sock_in, sizeof(sock_in)) < 0) {
-		err(1, "bind");
-	}
-
-	if (listen(srv_fd, 0) < 0) {
-		err(1, "listen");
-	}
-}
-
-
-int
+static int
 net_write(int fd, unsigned char* buf, size_t len)
 {
 	int ret;
@@ -212,25 +183,7 @@ net_send_packet(struct packet_info *p)
 }
 
 
-int
-net_send_cmd(int fd, enum net_command cmd)
-{
-	struct net_cmd nc;
-
-	nc.proto.version = PROTO_VERSION;
-	nc.proto.type	= PROTO_COMMAND;
-	nc.command = cmd;
-
-	net_write(fd, (unsigned char *)&nc, sizeof(nc));
-	return 0;
-}
-
-
-/*
- * return 0 - error
- *	  1 - ok
- */
-int
+static int
 net_receive_packet(unsigned char *buffer, int len)
 {
 	struct net_packet_info *np;
@@ -282,7 +235,21 @@ net_receive_packet(unsigned char *buffer, int len)
 }
 
 
-void
+static int
+net_send_cmd(int fd, enum net_command cmd)
+{
+	struct net_cmd nc;
+
+	nc.proto.version = PROTO_VERSION;
+	nc.proto.type	= PROTO_COMMAND;
+	nc.command = cmd;
+
+	net_write(fd, (unsigned char *)&nc, sizeof(nc));
+	return 0;
+}
+
+
+static void
 net_receive_command(unsigned char *buffer, int len)
 {
 	struct net_cmd *nc;
@@ -297,7 +264,7 @@ net_receive_command(unsigned char *buffer, int len)
 }
 
 
-int
+static int
 net_send_chan_list(int fd)
 {
 	char* buf;
@@ -323,7 +290,7 @@ net_send_chan_list(int fd)
 }
 
 
-void
+static void
 net_receive_chan_list(unsigned char *buffer, int len)
 {
 	struct net_chan_list *nc;
@@ -394,6 +361,36 @@ int net_handle_server_conn( void )
 
 	//read(cli_fd,line,sizeof(line));
 	return 0;
+}
+
+
+void
+net_init_server_socket(char* rport)
+{
+	struct sockaddr_in sock_in;
+	int reuse = 1;
+
+	printlog("Initializing server port %s\n", rport);
+
+	sock_in.sin_family = AF_INET;
+	sock_in.sin_addr.s_addr = htonl(INADDR_ANY);
+	sock_in.sin_port = htons(atoi(rport));
+
+	if ((srv_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+		err(1, "Could not open server socket");
+	}
+
+	if (setsockopt(srv_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
+		err(1, "setsockopt SO_REUSEADDR");
+	}
+
+	if (bind(srv_fd, (struct sockaddr*)&sock_in, sizeof(sock_in)) < 0) {
+		err(1, "bind");
+	}
+
+	if (listen(srv_fd, 0) < 0) {
+		err(1, "listen");
+	}
 }
 
 
