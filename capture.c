@@ -238,8 +238,10 @@ recv_packet(int fd, unsigned char* buffer, size_t bufsize)
 void
 close_packet_socket(void)
 {
-	device_promisc(mon_fd, mon_ifname, 0);
-	close(mon_fd);
+	if (mon_fd > 0) {
+		device_promisc(mon_fd, mon_ifname, 0);
+		close(mon_fd);
+	}
 }
 
 #endif // PCAP
