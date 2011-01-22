@@ -251,15 +251,14 @@ handle_packet(struct packet_info* p)
 	struct node_info* n;
 	int i = -1;
 
-	if (conf.port && cli_fd != -1) {
+	if (cli_fd != -1)
 		net_send_packet(p);
-	}
-	if (conf.dumpfile != NULL) {
+
+	if (conf.dumpfile != NULL)
 		write_to_file(p);
-	}
-	if (conf.quiet || conf.paused) {
+
+	if (conf.quiet || conf.paused)
 		return;
-	}
 
 	/* in display mode */
 	if (filter_packet(p)) {
@@ -427,9 +426,7 @@ finish_all(void)
 	}
 
 #if !DO_DEBUG
-	if (conf.port) {
-		net_finish();
-	}
+	net_finish();
 
 	if (!conf.quiet) {
 		finish_display();
@@ -465,7 +462,7 @@ get_options(int argc, char** argv)
 	int c;
 	static int n;
 
-	while((c = getopt(argc, argv, "hqsi:t:c:p:e:d:o:b:")) > 0) {
+	while((c = getopt(argc, argv, "hqsCi:t:c:p:e:d:o:b:")) > 0) {
 		switch (c) {
 		case 'p':
 			conf.port = optarg;
@@ -502,9 +499,12 @@ get_options(int argc, char** argv)
 		case 'c':
 			conf.serveraddr = optarg;
 			break;
+		case 'C':
+			conf.allow_client = 1;
+			break;
 		case 'h':
 		default:
-			printf("usage: %s [-h] [-q] [-s] [-i interface] [-t sec] [-c IP] [-p port] [-e mac] [-d ms] [-o file] [-b bytes]\n\n"
+			printf("usage: %s [-h] [-q] [-s] [-i interface] [-t sec] [-c IP] [-C] [-p port] [-e mac] [-d ms] [-o file] [-b bytes]\n\n"
 				"Options (default value)\n"
 				"  -h\t\tthis help\n"
 				"  -q\t\tquiet\n"
@@ -512,6 +512,7 @@ get_options(int argc, char** argv)
 				"  -i <intf>\tinterface (wlan0)\n"
 				"  -t <sec>\tnode timeout (60)\n"
 				"  -c <IP>\tconnect to server\n"
+				"  -C allow client connection (server)\n"
 				"  -p <port>\tuse port (4444)\n"
 				"  -e <mac>\tfilter all macs except these (multiple)\n"
 				"  -d <ms>\tdisplay update interval (100)\n"
@@ -573,7 +574,7 @@ main(int argc, char** argv)
 			err(1, "Couldn't open dump file");
 	}
 
-	if (!conf.serveraddr && conf.port)
+	if (!conf.serveraddr && conf.port && conf.allow_client)
 		net_init_server_socket(conf.port);
 
 	for ( /* ever */ ;;)

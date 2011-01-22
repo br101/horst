@@ -292,6 +292,7 @@ struct config {
 	unsigned int		filter_off:1,
 				do_macfilter:1,
 				do_change_channel:1,
+				allow_client:1,
 	/* this isn't exactly config, but wtf... */
 				have_noise:1,
 				display_initialized:1;
