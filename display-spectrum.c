@@ -44,22 +44,26 @@ update_spectrum_win(WINDOW *win)
 	box(win, 0 , 0);
 	print_centered(win, 0, COLS, " \"Spectrum Analyzer\" ");
 
+	mvwhline(win, SPEC_HEIGHT + 1, 1, ACS_HLINE, COLS - 2);
+	mvwvline(win, SPEC_POS_Y, 4, ACS_VLINE, LINES - SPEC_POS_Y - 2);
+
 	mvwprintw(win, SPEC_HEIGHT + 2, 1, "CHA");
-	wattron(win, GREEN);
-	mvwprintw(win, SPEC_HEIGHT + 3, 1, "Sig");
 	wattron(win, BLUE);
 	mvwprintw(win, SPEC_HEIGHT + 4, 1, "Nod");
 	wattron(win, YELLOW);
 	mvwprintw(win, SPEC_HEIGHT + 5, 1, "Use");
-	wattroff(win, YELLOW);
-
+	for(i = 80; i > 0; i -= 20) {
+		sig = normalize(i, 100, SPEC_HEIGHT);
+		mvwprintw(win, SPEC_POS_Y + sig, 1, "%d%%", 100-i);
+	}
+	wattron(win, GREEN);
+	mvwprintw(win, SPEC_HEIGHT + 3, 1, "Sig");
 	mvwprintw(win, SPEC_POS_Y + 1, 1, "dBm");
 	for(i = -30; i > -100; i -= 10) {
 		sig = normalize_db(-i, SPEC_HEIGHT);
 		mvwprintw(win, SPEC_POS_Y + sig, 1, "%d", i);
 	}
-	mvwhline(win, SPEC_HEIGHT + 1, 1, ACS_HLINE, COLS - 2);
-	mvwvline(win, SPEC_POS_Y, 4, ACS_VLINE, LINES - SPEC_POS_Y - 2);
+	wattroff(win, GREEN);
 
 	for (i = 0; i < conf.num_channels && SPEC_POS_X + CH_SPACE*i+4 < COLS; i++) {
 		mvwprintw(win, SPEC_HEIGHT + 2, SPEC_POS_X + CH_SPACE*i,

@@ -48,6 +48,7 @@ update_history_win(WINDOW *win)
 	mvwhline(win, SIGN_POS+2, 1, ACS_HLINE, col);
 	mvwvline(win, 1, 4, ACS_VLINE, LINES-3);
 
+	wattron(win, GREEN);
 	mvwprintw(win, 1, 1, "dBm");
 	mvwprintw(win, normalize_db(30, SIGN_POS), 1, "-30");
 	mvwprintw(win, normalize_db(40, SIGN_POS), 1, "-40");
@@ -58,7 +59,6 @@ update_history_win(WINDOW *win)
 	mvwprintw(win, normalize_db(90, SIGN_POS), 1, "-90");
 	mvwprintw(win, SIGN_POS-1, 1, "-99");
 
-	wattron(win, GREEN);
 	mvwprintw(win, 1, col-6, "Signal");
 	wattron(win, RED);
 	mvwprintw(win, 2, col-5, "Noise");
