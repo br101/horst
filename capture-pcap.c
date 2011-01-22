@@ -28,6 +28,7 @@
 void __attribute__ ((format (printf, 1, 2)))
 printlog(const char *fmt, ...);
 
+
 #define PCAP_TIMEOUT 200
 
 static unsigned char* pcap_buffer;
@@ -52,9 +53,13 @@ int
 open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size)
 {
 	char error[PCAP_ERRBUF_SIZE];
-	if (NULL == (pcap_fp = pcap_open_live(devname, bufsize, 1, PCAP_TIMEOUT, error)))
+	pcap_fp = pcap_open_live(devname, bufsize, 1, PCAP_TIMEOUT, error);
+	if (pcap_fp == NULL) {
+		fprintf(stderr, "Couldn't open pcap device: %s\n", error);
 		return -1;
-	return 0;
+	}
+
+	return pcap_fileno(pcap_fp);
 }
 
 
@@ -90,5 +95,6 @@ recv_packet(int fd, unsigned char* buffer, size_t bufsize)
 void
 close_packet_socket(int fd, char* ifname)
 {
-	pcap_close(pcap_fp);
+	if (pcap_fp != NULL)
+		pcap_close(pcap_fp);
 }
