@@ -41,6 +41,7 @@ all: $(buildstamp) $(NAME)
 # include dependencies
 average.o: average.h util.h
 capture.o: capture.h util.h
+capture-pcap.o: capture.h util.h
 channel.o: main.h util.h ieee80211_util.h wext.h
 display.o: display.h main.h ieee80211.h
 display-channel.o: display.h main.h
