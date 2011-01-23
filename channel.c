@@ -60,7 +60,7 @@ int
 auto_change_channel(int mon)
 {
 	int new_chan;
-	int ret = 0;
+	int ret = 1;
 
 	if (the_time.tv_sec == last_channelchange.tv_sec &&
 	    (the_time.tv_usec - last_channelchange.tv_usec) < conf.channel_time)
