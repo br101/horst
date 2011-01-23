@@ -45,6 +45,7 @@ enum pkt_type {
 	PROTO_PKT_INFO		= 0,
 	PROTO_CHAN_LIST		= 1,
 	PROTO_CONF_CHAN		= 2,
+	PROTO_CONF_FILTER	= 3,
 };
 
 
@@ -61,6 +62,19 @@ struct net_conf_chan {
 	unsigned char upper;
 	unsigned char channel;
 	int dwell_time;
+
+} __attribute__ ((packed));
+
+
+struct net_conf_filter {
+	struct net_header	proto;
+
+	unsigned char	filtermac[MAX_FILTERMAC][MAC_LEN];
+	char		filtermac_enabled[MAX_FILTERMAC];
+	unsigned char	filterbssid[MAC_LEN];
+	int		filter_pkt;
+	unsigned char	filter_off;
+
 } __attribute__ ((packed));
 
 
@@ -72,6 +86,7 @@ struct net_chan_list {
 		unsigned char chan;
 		unsigned char freq;
 	} channel[1];
+
 } __attribute__ ((packed));
 
 
@@ -116,6 +131,7 @@ struct net_packet_info {
 	int			olsr_type;
 	int			olsr_neigh;
 	int			olsr_tc;
+
 } __attribute__ ((packed));
 
 
@@ -272,6 +288,49 @@ net_receive_conf_chan(unsigned char *buffer, int len)
 }
 
 
+int
+net_send_conf_filter(int fd)
+{
+	struct net_conf_filter nc;
+	int i;
+
+	nc.proto.version = PROTO_VERSION;
+	nc.proto.type = PROTO_CONF_FILTER;
+
+	for (i = 0; i < MAX_FILTERMAC; i++) {
+		memcpy(nc.filtermac[i], conf.filtermac[i], MAC_LEN);
+		nc.filtermac_enabled[i] = conf.filtermac_enabled[i];
+	}
+	memcpy(nc.filterbssid, conf.filterbssid, MAC_LEN);
+	nc.filter_pkt = htole32(conf.filter_pkt);
+	nc.filter_off = conf.filter_off;
+
+	net_write(fd, (unsigned char *)&nc, sizeof(nc));
+	return 0;
+}
+
+
+static void
+net_receive_conf_filter(unsigned char *buffer, int len)
+{
+	struct net_conf_filter *nc;
+	int i;
+
+	if (len < sizeof(struct net_conf_filter))
+		return;
+
+	nc = (struct net_conf_filter *)buffer;
+
+	for (i = 0; i < MAX_FILTERMAC; i++) {
+		memcpy(conf.filtermac[i], nc->filtermac[i], MAC_LEN);
+		conf.filtermac_enabled[i] = nc->filtermac_enabled[i];
+	}
+	memcpy(conf.filterbssid, nc->filterbssid, MAC_LEN);
+	conf.filter_pkt = le32toh(nc->filter_pkt);
+	conf.filter_off = nc->filter_off;
+}
+
+
 static int
 net_send_chan_list(int fd)
 {
@@ -337,13 +396,23 @@ net_receive(int fd, unsigned char* buffer, size_t bufsize)
 		return 0;
 	}
 
-	if (nh->type == PROTO_PKT_INFO)
+	switch (nh->type) {
+	case PROTO_PKT_INFO:
 		net_receive_packet(buffer, len);
-	else if (nh->type == PROTO_CHAN_LIST)
+		break;
+	case PROTO_CHAN_LIST:
 		net_receive_chan_list(buffer, len);
-	else if (nh->type == PROTO_CONF_CHAN)
+		break;
+	case PROTO_CONF_CHAN:
 		net_receive_conf_chan(buffer, len);
-
+		break;
+	case PROTO_CONF_FILTER:
+		net_receive_conf_filter(buffer, len);
+		break;
+	default:
+		printlog("ERROR: unknown net packet type");
+		return 0;
+	}
 	return 1;
 }
 
@@ -358,8 +427,11 @@ int net_handle_server_conn( void )
 	cli_fd = accept(srv_fd, (struct sockaddr*)&cin, &cinlen);
 
 	printlog("Accepting client");
+
+	/* send initial config */
 	net_send_chan_list(cli_fd);
 	net_send_conf_chan(cli_fd);
+	net_send_conf_filter(cli_fd);
 
 	/* we only accept one client, so close server socket */
 	close(srv_fd);

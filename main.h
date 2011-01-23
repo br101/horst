@@ -290,10 +290,10 @@ struct config {
 	unsigned char		filterbssid[MAC_LEN];
 	int			filter_pkt;
 	unsigned int		filter_off:1,
-				do_macfilter:1,
 				do_change_channel:1,
 				allow_client:1,
 	/* this isn't exactly config, but wtf... */
+				do_macfilter:1,
 				have_noise:1,
 				display_initialized:1;
 	int			arphrd; // the device ARP type
