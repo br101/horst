@@ -25,6 +25,7 @@
 #include "main.h"
 #include "util.h"
 #include "ieee80211.h"
+#include "network.h"
 
 #define CHECKED(_x) (conf.filter_pkt & (_x)) ? '*' : ' '
 #define CHECK_ETHER(_mac) MAC_NOT_EMPTY(_mac) ? '*' : ' '
@@ -199,6 +200,8 @@ filter_input(WINDOW *win, int c)
 		if (conf.filtermac_enabled[i])
 			conf.do_macfilter = 1;
 	}
+
+	net_send_filter_config();
 
 	update_filter_win(win);
 	return 1;

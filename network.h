@@ -39,6 +39,9 @@ net_server_send_channel_config(void);
 void
 net_client_send_channel_config(void);
 
+void
+net_send_filter_config(void);
+
 int
 net_receive(int fd, unsigned char* buffer, size_t* buflen, size_t maxlen);
 
