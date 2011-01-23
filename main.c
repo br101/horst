@@ -278,6 +278,13 @@ handle_packet(struct packet_info* p)
 	struct node_info* n;
 	int i = -1;
 
+	/* filter on server side only */
+	if (!conf.serveraddr && filter_packet(p)) {
+		if (!conf.quiet && !conf.paused)
+			update_display_clock();
+		return;
+	}
+
 	if (cli_fd != -1)
 		net_send_packet(p);
 
@@ -286,12 +293,6 @@ handle_packet(struct packet_info* p)
 
 	if (conf.quiet || conf.paused)
 		return;
-
-	/* in display mode */
-	if (filter_packet(p)) {
-		update_display_clock();
-		return;
-	}
 
 	/* get channel index for packet */
 	if (p->phy_chan) {
