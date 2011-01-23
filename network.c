@@ -263,12 +263,14 @@ net_receive_conf_chan(unsigned char *buffer, int len)
 	conf.channel_max = nc->upper;
 	conf.channel_time = le32toh(nc->dwell_time);
 
-	if (cli_fd > -1) { /* server */
-		if (nc->channel != conf.current_channel)
+	if (nc->channel != conf.current_channel) {
+		if (cli_fd > -1) /* server */
 			change_channel(nc->channel);
+		else { /* client */
+			conf.current_channel = nc->channel;
+			update_spectrum_durations();
+		}
 	}
-	else
-		conf.current_channel = nc->channel;
 }
 
 

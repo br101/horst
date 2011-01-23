@@ -41,6 +41,21 @@ change_channel(int idx)
 }
 
 
+void
+update_spectrum_durations(void)
+{
+	/* also if channel was not changed, keep stats only for every channel_time.
+	 * display code uses durations_last to get a more stable view */
+	if (conf.current_channel >= 0) {
+		spectrum[conf.current_channel].durations_last =
+				spectrum[conf.current_channel].durations;
+		spectrum[conf.current_channel].durations = 0;
+		ewma_add(&spectrum[conf.current_channel].durations_avg,
+			 spectrum[conf.current_channel].durations_last);
+	}
+}
+
+
 int
 auto_change_channel(int mon)
 {
@@ -58,16 +73,6 @@ auto_change_channel(int mon)
 			new_chan = 0;
 
 		ret = change_channel(new_chan);
-	}
-
-	/* also if channel was not changed, keep stats only for every channel_time.
-	 * display code uses durations_last to get a more stable view */
-	if (conf.current_channel >= 0) {
-		spectrum[conf.current_channel].durations_last =
-				spectrum[conf.current_channel].durations;
-		spectrum[conf.current_channel].durations = 0;
-		ewma_add(&spectrum[conf.current_channel].durations_avg,
-			 spectrum[conf.current_channel].durations_last);
 	}
 
 	last_channelchange = the_time;

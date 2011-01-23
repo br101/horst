@@ -582,9 +582,11 @@ main(int argc, char** argv)
 		receive_any();
 		gettimeofday(&the_time, NULL);
 		timeout_nodes();
-		if (!conf.serveraddr) {
-			if (auto_change_channel(mon))
+		if (!conf.serveraddr) { /* server */
+			if (auto_change_channel(mon)) {
 				net_server_send_channel_config();
+				update_spectrum_durations();
+			}
 		}
 	}
 	/* will never */

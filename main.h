@@ -322,6 +322,9 @@ void
 init_channels(void);
 
 void
+update_spectrum_durations(void);
+
+void
 handle_packet(struct packet_info* p);
 
 void __attribute__ ((format (printf, 1, 2)))
