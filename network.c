@@ -44,7 +44,7 @@ static int netmon_fd;
 enum pkt_type {
 	PROTO_PKT_INFO		= 0,
 	PROTO_CHAN_LIST		= 1,
-	PROTO_COMMAND		= 2,
+	PROTO_CONF_CHAN		= 2,
 };
 
 
@@ -54,18 +54,14 @@ struct net_header {
 } __attribute__ ((packed));
 
 
-#if 0
-enum net_command {
-	NET_CMD_RESERVED	= 0,
-};
-
-struct net_cmd {
+struct net_conf_chan {
 	struct net_header	proto;
 
-	int command;
-	int status;
+	unsigned char do_change;
+	unsigned char upper;
+	unsigned char channel;
+	int dwell_time;
 } __attribute__ ((packed));
-#endif
 
 
 struct net_chan_list {
@@ -137,7 +133,7 @@ net_write(int fd, unsigned char* buf, size_t len)
 			net_init_server_socket(conf.port);
 		}
 		else
-			printlog("ERROR: write in net_send_packet");
+			printlog("ERROR: in net_write");
 		return 0;
 	}
 	return 1;
@@ -237,15 +233,17 @@ net_receive_packet(unsigned char *buffer, int len)
 }
 
 
-#if 0
-static int
-net_send_cmd(int fd, enum net_command cmd)
+int
+net_send_conf_chan(int fd)
 {
-	struct net_cmd nc;
+	struct net_conf_chan nc;
 
 	nc.proto.version = PROTO_VERSION;
-	nc.proto.type	= PROTO_COMMAND;
-	nc.command = cmd;
+	nc.proto.type	= PROTO_CONF_CHAN;
+	nc.do_change = conf.do_change_channel;
+	nc.upper = conf.channel_max;
+	nc.channel = conf.current_channel;
+	nc.dwell_time = htole32(conf.channel_time);
 
 	net_write(fd, (unsigned char *)&nc, sizeof(nc));
 	return 0;
@@ -253,16 +251,25 @@ net_send_cmd(int fd, enum net_command cmd)
 
 
 static void
-net_receive_command(unsigned char *buffer, int len)
+net_receive_conf_chan(unsigned char *buffer, int len)
 {
-	struct net_cmd *nc;
+	struct net_conf_chan *nc;
 
-	if (len < sizeof(struct net_cmd))
+	if (len < sizeof(struct net_conf_chan))
 		return;
 
-	nc = (struct net_cmd *)buffer;
+	nc = (struct net_conf_chan *)buffer;
+	conf.do_change_channel = nc->do_change;
+	conf.channel_max = nc->upper;
+	conf.channel_time = le32toh(nc->dwell_time);
+
+	if (cli_fd > -1) { /* server */
+		if (nc->channel != conf.current_channel)
+			change_channel(nc->channel);
+	}
+	else
+		conf.current_channel = nc->channel;
 }
-#endif
 
 
 static int
@@ -334,10 +341,9 @@ net_receive(int fd, unsigned char* buffer, size_t bufsize)
 		net_receive_packet(buffer, len);
 	else if (nh->type == PROTO_CHAN_LIST)
 		net_receive_chan_list(buffer, len);
-#if 0
-	else if (nh->type == PROTO_COMMAND)
-		net_receive_command(buffer, len);
-#endif
+	else if (nh->type == PROTO_CONF_CHAN)
+		net_receive_conf_chan(buffer, len);
+
 	return 1;
 }
 
@@ -353,10 +359,12 @@ int net_handle_server_conn( void )
 
 	printlog("Accepting client");
 	net_send_chan_list(cli_fd);
+	net_send_conf_chan(cli_fd);
+
+	/* we only accept one client, so close server socket */
 	close(srv_fd);
 	srv_fd = -1;
 
-	//read(cli_fd,line,sizeof(line));
 	return 0;
 }
 
@@ -446,4 +454,19 @@ net_finish(void) {
 
 	if (netmon_fd)
 		close(netmon_fd);
+}
+
+
+void
+net_client_send_channel_config(void)
+{
+	net_send_conf_chan(netmon_fd);
+}
+
+
+void
+net_server_send_channel_config(void)
+{
+	if (cli_fd > -1)
+		net_send_conf_chan(cli_fd);
 }

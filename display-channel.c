@@ -23,6 +23,7 @@
 
 #include "display.h"
 #include "main.h"
+#include "network.h"
 
 
 void
@@ -35,9 +36,9 @@ update_channel_win(WINDOW *win)
 		  conf.do_change_channel ? '*' : ' ');
 	mvwprintw(win, 3, 2, "d: Channel dwell time: %d ms   ",
 		  conf.channel_time/1000);
-	mvwprintw(win, 4, 2, "u: Upper channel limit: %d", conf.channel_max);
+	mvwprintw(win, 4, 2, "u: Upper channel limit: %d  ", conf.channel_max);
 
-	mvwprintw(win, 6, 2, "m: Manually change channel:");
+	mvwprintw(win, 6, 2, "m: Manually change channel: %d ", CONF_CURRENT_CHANNEL);
 
 	print_centered(win, 9, 39, "[ Press key or ENTER ]");
 
@@ -84,13 +85,21 @@ channel_input(WINDOW *win, int c)
 		curs_set(0);
 		noecho();
 		sscanf(buf, "%d", &x);
-		if (x > 0)
-			change_channel(x);
+		x = find_channel_index(x);
+		if (x >= 0) {
+			if (!conf.serveraddr)
+				change_channel(x);
+			else
+				conf.current_channel = x;
+		}
 		break;
 
 	default:
 		return 0; /* didn't handle input */
 	}
+
+	if (conf.serveraddr)
+		net_client_send_channel_config();
 
 	update_channel_win(win);
 	return 1;

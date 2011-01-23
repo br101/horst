@@ -312,8 +312,11 @@ extern struct timeval the_time;
 void
 free_lists(void);
 
-void
-change_channel(int c);
+int
+change_channel(int idx);
+
+int
+find_channel_index(int c);
 
 void
 init_channels(void);

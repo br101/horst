@@ -28,14 +28,28 @@
 static struct timeval last_channelchange;
 extern int mon; /* monitoring socket */
 
-void
+
+int
+change_channel(int idx)
+{
+	if (wext_set_channel(mon, conf.ifname, channels[idx].freq) == 0) {
+		printlog("ERROR: could not set channel %d", channels[idx].chan);
+		return 0;
+	}
+	conf.current_channel = idx;
+	return 1;
+}
+
+
+int
 auto_change_channel(int mon)
 {
 	int new_chan;
+	int ret = 0;
 
 	if (the_time.tv_sec == last_channelchange.tv_sec &&
 	    (the_time.tv_usec - last_channelchange.tv_usec) < conf.channel_time)
-		return; /* too early */
+		return 0; /* too early */
 
 	if (conf.do_change_channel) {
 		new_chan = conf.current_channel + 1;
@@ -43,10 +57,7 @@ auto_change_channel(int mon)
 		    (conf.channel_max && new_chan >= conf.channel_max))
 			new_chan = 0;
 
-		if (wext_set_channel(mon, conf.ifname, channels[new_chan].freq) == 0)
-			printlog("auto change channel could not set channel");
-		else
-			conf.current_channel = new_chan;
+		ret = change_channel(new_chan);
 	}
 
 	/* also if channel was not changed, keep stats only for every channel_time.
@@ -60,6 +71,7 @@ auto_change_channel(int mon)
 	}
 
 	last_channelchange = the_time;
+	return ret;
 }
 
 
@@ -76,10 +88,21 @@ init_channels(void)
 }
 
 
+int
+find_channel_index(int c)
+{
+	int i = -1;
+	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++)
+		if (channels[i].chan == c)
+			return i;
+	return -1;
+}
+
+
 void
 get_current_channel(int mon)
 {
-	int i, freq, ch;
+	int freq, ch;
 
 	/* get current channel &  map to our channel array */
 	freq = wext_get_freq(mon, conf.ifname);
@@ -87,30 +110,9 @@ get_current_channel(int mon)
 		return;
 
 	ch = ieee80211_frequency_to_channel(freq);
-	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++)
-		if (channels[i].chan == ch)
-			break;
+	ch = find_channel_index(ch);
 
-	if (i < MAX_CHANNELS)
-		conf.current_channel = i;
+	if (ch >= 0)
+		conf.current_channel = ch;
 	DEBUG("***%d\n", conf.current_channel);
-}
-
-
-void
-change_channel(int c)
-{
-	int i;
-
-	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++) {
-		if (channels[i].chan == c) {
-			if (wext_set_channel(mon, conf.ifname, channels[i].freq) == 0) {
-				printlog("ERROR: could not set channel %d",
-					 channels[i].chan);
-				return;
-			}
-			conf.current_channel = i;
-			break;
-		}
-	}
 }

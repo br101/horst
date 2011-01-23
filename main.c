@@ -78,7 +78,7 @@ static struct timeval tv;
 struct node_info* node_update(struct packet_info* p);
 void update_essids(struct packet_info* p, struct node_info* n);
 void timeout_nodes(void);
-void auto_change_channel(int mon);
+int auto_change_channel(int mon);
 void get_current_channel(int mon);
 
 
@@ -341,10 +341,13 @@ receive_any(void)
 	FD_SET(mon, &read_fds);
 	if (srv_fd != -1)
 		FD_SET(srv_fd, &read_fds);
+	if (cli_fd != -1)
+		FD_SET(cli_fd, &read_fds);
 
 	tv.tv_sec = 0;
 	tv.tv_usec = min(conf.channel_time, 1000000);
-	mfd = max(mon, srv_fd) + 1;
+	mfd = max(mon, srv_fd);
+	mfd = max(mfd, cli_fd) + 1;
 
 	ret = select(mfd, &read_fds, &write_fds, &excpt_fds, &tv);
 	if (ret == -1 && errno == EINTR) /* interrupted */
@@ -372,6 +375,10 @@ receive_any(void)
 	/* server */
 	if (FD_ISSET(srv_fd, &read_fds))
 		net_handle_server_conn();
+
+	/* from client to server */
+	if (FD_ISSET(cli_fd, &read_fds))
+		net_receive(cli_fd, buffer, sizeof(buffer));
 }
 
 
@@ -575,7 +582,10 @@ main(int argc, char** argv)
 		receive_any();
 		gettimeofday(&the_time, NULL);
 		timeout_nodes();
-		auto_change_channel(mon);
+		if (!conf.serveraddr) {
+			if (auto_change_channel(mon))
+				net_server_send_channel_config();
+		}
 	}
 	/* will never */
 	return 0;

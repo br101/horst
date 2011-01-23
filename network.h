@@ -33,6 +33,12 @@ int net_handle_server_conn(void);
 int
 net_send_packet(struct packet_info *pkt);
 
+void
+net_server_send_channel_config(void);
+
+void
+net_client_send_channel_config(void);
+
 int
 net_receive(int fd, unsigned char* buffer, size_t bufsize);
 
