@@ -614,7 +614,7 @@ main(int argc, char** argv)
 		timeout_nodes();
 		if (!conf.serveraddr) { /* server */
 			if (auto_change_channel(mon)) {
-				net_server_send_channel_config();
+				net_send_channel_config();
 				update_spectrum_durations();
 			}
 		}

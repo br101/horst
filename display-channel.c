@@ -98,10 +98,7 @@ channel_input(WINDOW *win, int c)
 		return 0; /* didn't handle input */
 	}
 
-	if (conf.serveraddr)
-		net_client_send_channel_config();
-	else if (conf.allow_client && cli_fd > -1)
-		net_server_send_channel_config();
+	net_send_channel_config();
 
 	update_channel_win(win);
 	return 1;

@@ -34,10 +34,7 @@ int
 net_send_packet(struct packet_info *pkt);
 
 void
-net_server_send_channel_config(void);
-
-void
-net_client_send_channel_config(void);
+net_send_channel_config(void);
 
 void
 net_send_filter_config(void);

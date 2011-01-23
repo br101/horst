@@ -555,18 +555,14 @@ net_finish(void) {
 
 
 void
-net_client_send_channel_config(void)
+net_send_channel_config(void)
 {
-	net_send_conf_chan(netmon_fd);
-}
-
-
-void
-net_server_send_channel_config(void)
-{
-	if (cli_fd > -1)
+	if (conf.serveraddr)
+		net_send_conf_chan(netmon_fd);
+	else if (conf.allow_client && cli_fd > -1)
 		net_send_conf_chan(cli_fd);
 }
+
 
 void
 net_send_filter_config(void)
