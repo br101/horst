@@ -244,11 +244,12 @@ net_receive_packet(unsigned char *buffer, int len)
 	p.olsr_tc	= le32toh(np->olsr_tc);
 
 	handle_packet(&p);
-	return 1;
+
+	return sizeof(struct net_packet_info);
 }
 
 
-int
+void
 net_send_conf_chan(int fd)
 {
 	struct net_conf_chan nc;
@@ -261,17 +262,16 @@ net_send_conf_chan(int fd)
 	nc.dwell_time = htole32(conf.channel_time);
 
 	net_write(fd, (unsigned char *)&nc, sizeof(nc));
-	return 0;
 }
 
 
-static void
+static int
 net_receive_conf_chan(unsigned char *buffer, int len)
 {
 	struct net_conf_chan *nc;
 
 	if (len < sizeof(struct net_conf_chan))
-		return;
+		return 0;
 
 	nc = (struct net_conf_chan *)buffer;
 	conf.do_change_channel = nc->do_change;
@@ -284,6 +284,8 @@ net_receive_conf_chan(unsigned char *buffer, int len)
 		conf.current_channel = nc->channel;
 		update_spectrum_durations();
 	}
+
+	return sizeof(struct net_conf_chan);
 }
 
 
@@ -309,14 +311,14 @@ net_send_conf_filter(int fd)
 }
 
 
-static void
+static int
 net_receive_conf_filter(unsigned char *buffer, int len)
 {
 	struct net_conf_filter *nc;
 	int i;
 
 	if (len < sizeof(struct net_conf_filter))
-		return;
+		return 0;
 
 	nc = (struct net_conf_filter *)buffer;
 
@@ -327,6 +329,8 @@ net_receive_conf_filter(unsigned char *buffer, int len)
 	memcpy(conf.filterbssid, nc->filterbssid, MAC_LEN);
 	conf.filter_pkt = le32toh(nc->filter_pkt);
 	conf.filter_off = nc->filter_off;
+
+	return sizeof(struct net_conf_filter);
 }
 
 
@@ -357,16 +361,19 @@ net_send_chan_list(int fd)
 }
 
 
-static void
+static int
 net_receive_chan_list(unsigned char *buffer, int len)
 {
 	struct net_chan_list *nc;
 	int i;
 
 	if (len < sizeof(struct net_chan_list))
-		return;
+		return 0;
 
 	nc = (struct net_chan_list *)buffer;
+
+	if (len < sizeof(struct net_chan_list) + 2*(nc->num_channels - 1))
+		return 0;
 
 	for (i = 0; i < nc->num_channels && i < MAX_CHANNELS; i++) {
 		channels[i].chan = nc->channel[i].chan;
@@ -374,21 +381,14 @@ net_receive_chan_list(unsigned char *buffer, int len)
 	}
 	conf.num_channels = i;
 	init_channels();
+	return sizeof(struct net_chan_list) + 2*(nc->num_channels - 1);
 }
 
 
 int
-net_receive(int fd, unsigned char* buffer, size_t bufsize)
+try_receive_packet(unsigned char* buf, int len)
 {
-	struct net_header *nh;
-	int len;
-
-	len = recv(fd, buffer, bufsize, MSG_DONTWAIT);
-
-	if (len < sizeof(struct net_header))
-		return 0;
-
-	nh = (struct net_header *)buffer;
+	struct net_header *nh = (struct net_header *)buf;
 
 	if (nh->version != PROTO_VERSION) {
 		printlog("ERROR: protocol version %x", nh->version);
@@ -397,22 +397,48 @@ net_receive(int fd, unsigned char* buffer, size_t bufsize)
 
 	switch (nh->type) {
 	case PROTO_PKT_INFO:
-		net_receive_packet(buffer, len);
+		len = net_receive_packet(buf, len);
 		break;
 	case PROTO_CHAN_LIST:
-		net_receive_chan_list(buffer, len);
+		len = net_receive_chan_list(buf, len);
 		break;
 	case PROTO_CONF_CHAN:
-		net_receive_conf_chan(buffer, len);
+		len = net_receive_conf_chan(buf, len);
 		break;
 	case PROTO_CONF_FILTER:
-		net_receive_conf_filter(buffer, len);
+		len = net_receive_conf_filter(buf, len);
 		break;
 	default:
 		printlog("ERROR: unknown net packet type");
-		return 0;
+		len = 0;
 	}
-	return 1;
+
+	return len; /* the number of bytes we have consumed */
+}
+
+
+int
+net_receive(int fd, unsigned char* buffer, size_t* buflen, size_t maxlen)
+{
+	int len, consumed = 0;
+
+	len = recv(fd, buffer + *buflen, maxlen - *buflen, MSG_DONTWAIT);
+
+	if (len < 0)
+		return 0;
+
+	*buflen += len;
+
+	while (*buflen > sizeof(struct net_header)) {
+		len = try_receive_packet(buffer + consumed, *buflen);
+		if (len == 0)
+			break;
+		*buflen -= len;
+		consumed += len;
+	}
+	memmove(buffer, buffer + consumed, *buflen);
+
+	return consumed;
 }
 
 

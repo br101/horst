@@ -40,7 +40,7 @@ void
 net_client_send_channel_config(void);
 
 int
-net_receive(int fd, unsigned char* buffer, size_t bufsize);
+net_receive(int fd, unsigned char* buffer, size_t* buflen, size_t maxlen);
 
 int
 net_open_client_socket(char* server, char* rport);

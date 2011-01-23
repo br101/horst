@@ -61,12 +61,27 @@ int mon; /* monitoring socket */
 
 static FILE* DF = NULL;
 
-/*
- * receive packet buffer
+/* receive packet buffer
+ *
+ * due to the way we receive packets the network (TCP connection) we have to
+ * expect the reception of partial packet as well as the reception of several
+ * packets at one. thus we implement a buffered receive where partially received
+ * data stays in the buffer.
+ *
+ * we need two buffers: one for packet capture or receiving from the server and
+ * another one for data the clients sends to the server.
+ *
+ * not sure if this is also an issue with local packet capture, but it is not
+ * implemented there.
+ *
  * size: max 80211 frame (2312) + space for prism2 header (144)
- * or radiotap header (usually only 26) + some extra
- */
+ * or radiotap header (usually only 26) + some extra */
 static unsigned char buffer[2312 + 200];
+static size_t buflen;
+
+/* for packets from client to server */
+static unsigned char cli_buffer[500];
+static size_t cli_buflen;
 
 /* for select */
 static fd_set read_fds;
@@ -382,7 +397,7 @@ receive_any(void)
 	/* local packet or client */
 	if (FD_ISSET(mon, &read_fds)) {
 		if (conf.serveraddr)
-			net_receive(mon, buffer, sizeof(buffer));
+			net_receive(mon, buffer, &buflen, sizeof(buffer));
 		else
 			local_receive_packet(mon, buffer, sizeof(buffer));
 	}
@@ -393,7 +408,7 @@ receive_any(void)
 
 	/* from client to server */
 	if (FD_ISSET(cli_fd, &read_fds))
-		net_receive(cli_fd, buffer, sizeof(buffer));
+		net_receive(cli_fd, cli_buffer, &cli_buflen, sizeof(cli_buffer));
 }
 
 
