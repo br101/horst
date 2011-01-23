@@ -60,7 +60,7 @@ struct net_conf_chan {
 
 	unsigned char do_change;
 	unsigned char upper;
-	unsigned char channel;
+	char channel;
 	int dwell_time;
 
 } __attribute__ ((packed));
