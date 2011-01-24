@@ -636,34 +636,34 @@ void print_rate_duration_table(void)
 	printf("6M\t9\t12M\t18M\t24M\t36M\t48M\t54M\n");
 	for (i=10; i<=2304; i+=10) {
 		printf("%d:\t%d\t%d\t", i,
-			ieee80211_frame_duration(PHY_FLAG_G, i, 10, 0),
-			ieee80211_frame_duration(PHY_FLAG_G, i, 10, 1));
+			ieee80211_frame_duration(PHY_FLAG_G, i, 10, 0, 0, IEEE80211_FTYPE_DATA, 0, 0),
+			ieee80211_frame_duration(PHY_FLAG_G, i, 10, 1, 0, IEEE80211_FTYPE_DATA, 0, 0));
 		printf("%d\t%d\t",
-			ieee80211_frame_duration(PHY_FLAG_G, i, 20, 0),
-			ieee80211_frame_duration(PHY_FLAG_G, i, 20, 1));
+			ieee80211_frame_duration(PHY_FLAG_G, i, 20, 0, 0, IEEE80211_FTYPE_DATA, 0, 0),
+			ieee80211_frame_duration(PHY_FLAG_G, i, 20, 1, 0, IEEE80211_FTYPE_DATA, 0, 0));
 		printf("%d\t%d\t",
-			ieee80211_frame_duration(PHY_FLAG_G, i, 55, 0),
-			ieee80211_frame_duration(PHY_FLAG_G, i, 55, 1));
+			ieee80211_frame_duration(PHY_FLAG_G, i, 55, 0, 0, IEEE80211_FTYPE_DATA, 0, 0),
+			ieee80211_frame_duration(PHY_FLAG_G, i, 55, 1, 0, IEEE80211_FTYPE_DATA, 0, 0));
 		printf("%d\t%d\t",
-			ieee80211_frame_duration(PHY_FLAG_G, i, 110, 0),
-			ieee80211_frame_duration(PHY_FLAG_G, i, 110, 1));
+			ieee80211_frame_duration(PHY_FLAG_G, i, 110, 0, 0, IEEE80211_FTYPE_DATA, 0, 0),
+			ieee80211_frame_duration(PHY_FLAG_G, i, 110, 1, 0, IEEE80211_FTYPE_DATA, 0, 0));
 
 		printf("%d\t",
-			ieee80211_frame_duration(PHY_FLAG_G, i, 60, 1));
+			ieee80211_frame_duration(PHY_FLAG_G, i, 60, 1, 0, IEEE80211_FTYPE_DATA, 0, 0));
 		printf("%d\t",
-			ieee80211_frame_duration(PHY_FLAG_G, i, 90, 1));
+			ieee80211_frame_duration(PHY_FLAG_G, i, 90, 1, 0, IEEE80211_FTYPE_DATA, 0, 0));
 		printf("%d\t",
-			ieee80211_frame_duration(PHY_FLAG_G, i, 120, 1)),
+			ieee80211_frame_duration(PHY_FLAG_G, i, 120, 1, 0, IEEE80211_FTYPE_DATA, 0, 0)),
 		printf("%d\t",
-			ieee80211_frame_duration(PHY_FLAG_G, i, 180, 1)),
+			ieee80211_frame_duration(PHY_FLAG_G, i, 180, 1, 0, IEEE80211_FTYPE_DATA, 0, 0)),
 		printf("%d\t",
-			ieee80211_frame_duration(PHY_FLAG_G, i, 240, 1)),
+			ieee80211_frame_duration(PHY_FLAG_G, i, 240, 1, 0, IEEE80211_FTYPE_DATA, 0, 0)),
 		printf("%d\t",
-			ieee80211_frame_duration(PHY_FLAG_G, i, 360, 1));
+			ieee80211_frame_duration(PHY_FLAG_G, i, 360, 1, 0, IEEE80211_FTYPE_DATA, 0, 0));
 		printf("%d\t",
-			ieee80211_frame_duration(PHY_FLAG_G, i, 480, 1)),
+			ieee80211_frame_duration(PHY_FLAG_G, i, 480, 1, 0, IEEE80211_FTYPE_DATA, 0, 0)),
 		printf("%d\n",
-			ieee80211_frame_duration(PHY_FLAG_G, i, 540, 1));
+			ieee80211_frame_duration(PHY_FLAG_G, i, 540, 1, 0, IEEE80211_FTYPE_DATA, 0, 0));
 	}
 }
 #endif
