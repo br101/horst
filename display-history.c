@@ -35,7 +35,7 @@ update_history_win(WINDOW *win)
 {
 	int i;
 	int col = COLS-2;
-	int sig, noi, rat;
+	int sig, noi = 0, rat;
 
 	if (col > MAX_HISTORY)
 		col = 4 + MAX_HISTORY;
