@@ -43,6 +43,9 @@ static int(*sortfunc)(const struct list_head*, const struct list_head*) = NULL;
 static int win_split;
 static int stat_height;
 
+static struct ewma usen_avg;
+static struct ewma bpsn_avg;
+
 
 /******************* UTIL *******************/
 
@@ -187,6 +190,9 @@ update_status_win(struct packet_info* p)
 
 	rpsp = rps * 100.0 / pps;
 
+	ewma_add(&usen_avg, usen);
+	ewma_add(&bpsn_avg, bpsn);
+
 	if (p != NULL) {
 		sig = normalize_db(-p->phy_signal, max_stat_bar);
 		if (p->phy_noise)
@@ -222,16 +228,15 @@ update_status_win(struct packet_info* p)
 
 	wattron(stat_win, CYAN);
 	mvwprintw(stat_win, 1, 1, "bps:%6s", kilo_mega_ize(bps));
-	wattron(stat_win, ALLCYAN);
-	mvwvline(stat_win, stat_height - bpsn, 5, ACS_BLOCK, bpsn);
-	mvwvline(stat_win, stat_height - bpsn, 6, ACS_BLOCK, bpsn);
+	general_average_bar(stat_win, bpsn, ewma_read(&bpsn_avg),
+			    stat_height, 5, max_stat_bar, 2,
+			    CYAN, ALLCYAN);
 
 	wattron(stat_win, YELLOW);
 	mvwprintw(stat_win, 2, 1, "Use:%5.1f%%", use);
-	wattron(stat_win, ALLYELLOW);
-	mvwvline(stat_win, stat_height - usen, 8, ACS_BLOCK, usen);
-	mvwvline(stat_win, stat_height - usen, 9, ACS_BLOCK, usen);
-	wattroff(stat_win, ALLYELLOW);
+	general_average_bar(stat_win, usen, ewma_read(&usen_avg),
+			    stat_height, 8, max_stat_bar, 2,
+			    YELLOW, ALLYELLOW);
 
 	mvwprintw(stat_win, 3, 1, "Retry: %2.0f%%", rpsp);
 
@@ -512,6 +517,9 @@ init_display_main(void)
 
 	dump_win = newwin(stat_height, COLS - STAT_WIDTH, win_split, 0);
 	scrollok(dump_win, TRUE);
+
+	ewma_init(&usen_avg, 1024, 8);
+	ewma_init(&bpsn_avg, 1024, 8);
 }
 
 
