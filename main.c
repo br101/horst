@@ -404,11 +404,11 @@ receive_any(void)
 	}
 
 	/* server */
-	if (FD_ISSET(srv_fd, &read_fds))
+	if (srv_fd > -1 && FD_ISSET(srv_fd, &read_fds))
 		net_handle_server_conn();
 
 	/* from client to server */
-	if (FD_ISSET(cli_fd, &read_fds))
+	if (cli_fd > -1 && FD_ISSET(cli_fd, &read_fds))
 		net_receive(cli_fd, cli_buffer, &cli_buflen, sizeof(cli_buffer));
 }
 
