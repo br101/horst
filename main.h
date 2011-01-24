@@ -104,18 +104,18 @@
 struct packet_info {
 	/* general */
 	unsigned int		pkt_types;	/* bitmask of packet types */
-	unsigned int		pkt_len;	/* packet length */
 
 	/* wlan phy (from radiotap) */
 	int			phy_signal;	/* signal strength (usually dBm) */
 	int			phy_noise;	/* noise level (usually dBm) */
-	int			phy_snr;	/* signal to noise ratio */
+	unsigned int		phy_snr;	/* signal to noise ratio */
 	unsigned int		phy_rate;	/* physical rate */
 	unsigned int		phy_freq;	/* frequency from driver */
 	unsigned char		phy_chan;	/* channel from driver */
 	unsigned int		phy_flags;	/* A, B, G, shortpre */
 
 	/* wlan mac */
+	unsigned int		wlan_len;	/* packet length */
 	unsigned int		wlan_type;	/* frame control field */
 	unsigned char		wlan_src[MAC_LEN];
 	unsigned char		wlan_dst[MAC_LEN];

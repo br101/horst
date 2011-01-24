@@ -142,17 +142,17 @@ update_statistics(struct packet_info* p)
 		return;
 
 	stats.packets++;
-	stats.bytes += p->pkt_len;
+	stats.bytes += p->wlan_len;
 
 	if (p->phy_rate > 0 && p->phy_rate < MAX_RATES) {
 		stats.duration += p->pkt_duration;
 		stats.packets_per_rate[p->phy_rate]++;
-		stats.bytes_per_rate[p->phy_rate] += p->pkt_len;
+		stats.bytes_per_rate[p->phy_rate] += p->wlan_len;
 		stats.duration_per_rate[p->phy_rate] += p->pkt_duration;
 	}
 	if (p->wlan_type >= 0 && p->wlan_type < MAX_FSTYPE) {
 		stats.packets_per_type[p->wlan_type]++;
-		stats.bytes_per_type[p->wlan_type] += p->pkt_len;
+		stats.bytes_per_type[p->wlan_type] += p->wlan_len;
 		if (p->phy_rate > 0 && p->phy_rate < MAX_RATES)
 			stats.duration_per_type[p->wlan_type] += p->pkt_duration;
 	}
@@ -172,7 +172,7 @@ update_spectrum(struct packet_info* p, struct node_info* n)
 	chan->signal = p->phy_signal;
 	chan->noise = p->phy_noise;
 	chan->packets++;
-	chan->bytes += p->pkt_len;
+	chan->bytes += p->wlan_len;
 	chan->durations += p->pkt_duration;
 	ewma_add(&chan->signal_avg, -chan->signal);
 
@@ -228,7 +228,7 @@ write_to_file(struct packet_info* p)
 	fprintf(DF, "%s, ", ether_sprintf(p->wlan_bssid));
 	fprintf(DF, "%x, %d, %d, %d, %d, %d, ",
 		p->pkt_types, p->phy_signal, p->phy_noise, p->phy_snr,
-		p->pkt_len, p->phy_rate);
+		p->wlan_len, p->phy_rate);
 	fprintf(DF, "%016llx, ", (unsigned long long)p->wlan_tsf);
 	fprintf(DF, "%s, %d, %d, %d, ",
 		p->wlan_essid, p->wlan_mode, p->wlan_channel, p->wlan_wep);
@@ -322,10 +322,12 @@ handle_packet(struct packet_info* p)
 	if (n)
 		p->wlan_retries = n->wlan_retries_last;
 
-	p->pkt_duration = ieee80211_frame_duration(p->phy_flags & PHY_FLAG_MODE_MASK,
-			p->pkt_len, p->phy_rate * 5, p->phy_flags & PHY_FLAG_SHORTPRE,
-			0 /*shortslot*/, p->wlan_type, p->wlan_qos_class,
-			p->wlan_retries);
+	p->pkt_duration = ieee80211_frame_duration(
+				p->phy_flags & PHY_FLAG_MODE_MASK,
+				p->wlan_len, p->phy_rate * 5,
+				p->phy_flags & PHY_FLAG_SHORTPRE,
+				0 /*shortslot*/, p->wlan_type, p->wlan_qos_class,
+				p->wlan_retries);
 
 	update_history(p);
 	update_statistics(p);

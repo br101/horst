@@ -94,27 +94,27 @@ struct net_packet_info {
 	struct net_header	proto;
 
 	/* general */
-	int			pkt_types;	/* bitmask of packet types */
-	int			pkt_len;	/* packet length */
+	unsigned int		pkt_types;	/* bitmask of packet types */
 
 	/* wlan phy (from radiotap) */
 	int			phy_signal;	/* signal strength (usually dBm) */
 	int			phy_noise;	/* noise level (usually dBm) */
-	int			phy_snr;	/* signal to noise ratio */
-	int			phy_rate;	/* physical rate */
-	int			phy_freq;	/* frequency (unused) */
+	unsigned int		phy_snr;	/* signal to noise ratio */
+	unsigned int		phy_rate;	/* physical rate */
+	unsigned int		phy_freq;	/* frequency (unused) */
 	unsigned char		phy_chan;	/* channel from driver */
-	int			phy_flags;	/* A, B, G, shortpre */
+	unsigned int		phy_flags;	/* A, B, G, shortpre */
 
 	/* wlan mac */
-	int			wlan_type;	/* frame control field */
+	unsigned int		wlan_len;	/* packet length */
+	unsigned int		wlan_type;	/* frame control field */
 	unsigned char		wlan_src[MAC_LEN];
 	unsigned char		wlan_dst[MAC_LEN];
 	unsigned char		wlan_bssid[MAC_LEN];
 	char			wlan_essid[MAX_ESSID_LEN];
 	u_int64_t		wlan_tsf;	/* timestamp from beacon */
 	unsigned int		wlan_bintval;	/* beacon interval */
-	int			wlan_mode;	/* AP, STA or IBSS */
+	unsigned int		wlan_mode;	/* AP, STA or IBSS */
 	unsigned char		wlan_channel;	/* channel from beacon, probe */
 	unsigned char		wlan_qos_class;	/* for QDATA frames */
 	unsigned int		wlan_nav;	/* frame NAV duration */
@@ -128,9 +128,9 @@ struct net_packet_info {
 	/* IP */
 	unsigned int		ip_src;
 	unsigned int		ip_dst;
-	int			olsr_type;
-	int			olsr_neigh;
-	int			olsr_tc;
+	unsigned int		olsr_type;
+	unsigned int		olsr_neigh;
+	unsigned int		olsr_tc;
 
 } __attribute__ ((packed));
 
@@ -165,7 +165,6 @@ net_send_packet(struct packet_info *p)
 	np.proto.type	= PROTO_PKT_INFO;
 
 	np.pkt_types	= htole32(p->pkt_types);
-	np.pkt_len	= htole32(p->pkt_len);
 	np.phy_signal	= htole32(p->phy_signal);
 	np.phy_noise	= htole32(p->phy_noise);
 	np.phy_snr	= htole32(p->phy_snr);
@@ -173,6 +172,7 @@ net_send_packet(struct packet_info *p)
 	np.phy_freq	= htole32(p->phy_freq);
 	np.phy_chan	= p->phy_chan;
 	np.phy_flags	= htole32(p->phy_flags);
+	np.wlan_len	= htole32(p->wlan_len);
 	np.wlan_type	= htole32(p->wlan_type);
 	memcpy(np.wlan_src, p->wlan_src, MAC_LEN);
 	memcpy(np.wlan_dst, p->wlan_dst, MAC_LEN);
@@ -215,7 +215,6 @@ net_receive_packet(unsigned char *buffer, int len)
 
 	memset(&p, 0, sizeof(p));
 	p.pkt_types	= le32toh(np->pkt_types);
-	p.pkt_len	= le32toh(np->pkt_len);
 	p.phy_signal	= le32toh(np->phy_signal);
 	p.phy_noise	= le32toh(np->phy_noise);
 	p.phy_snr	= le32toh(np->phy_snr);
@@ -223,6 +222,7 @@ net_receive_packet(unsigned char *buffer, int len)
 	p.phy_freq	= le32toh(np->phy_freq);
 	p.phy_chan	= np->phy_chan;
 	p.phy_flags	= le32toh(np->phy_flags);
+	p.wlan_len	= le32toh(np->wlan_len);
 	p.wlan_type	= le32toh(np->wlan_type);
 	memcpy(p.wlan_src, np->wlan_src, MAC_LEN);
 	memcpy(p.wlan_dst, np->wlan_dst, MAC_LEN);
