@@ -90,8 +90,12 @@ struct net_chan_list {
 } __attribute__ ((packed));
 
 
+#define PKT_INFO_VERSION	1
+
 struct net_packet_info {
 	struct net_header	proto;
+
+	unsigned char		version;
 
 	/* general */
 	unsigned int		pkt_types;	/* bitmask of packet types */
@@ -166,6 +170,7 @@ net_send_packet(struct packet_info *p)
 	np.proto.version = PROTO_VERSION;
 	np.proto.type	= PROTO_PKT_INFO;
 
+	np.version	= PKT_INFO_VERSION;
 	np.pkt_types	= htole32(p->pkt_types);
 	np.phy_signal	= htole32(p->phy_signal);
 	np.phy_noise	= htole32(p->phy_noise);
@@ -217,6 +222,9 @@ net_receive_packet(unsigned char *buffer, int len)
 	np = (struct net_packet_info *)buffer;
 
 	if (np->phy_rate == 0)
+		return 0;
+
+	if (np->version != PKT_INFO_VERSION)
 		return 0;
 
 	memset(&p, 0, sizeof(p));
