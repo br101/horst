@@ -39,7 +39,7 @@ update_statistics_win(WINDOW *win)
 {
 	int i;
 	int line;
-	int bps, dps;
+	int bps, dps, pps, rps;
 	float duration;
 
 	werase(win);
@@ -52,17 +52,24 @@ update_statistics_win(WINDOW *win)
 		return; /* avoid floating point exceptions */
 	}
 
-	mvwprintw(win, 2, 2, "Packets: %d",stats.packets );
-	mvwprintw(win, 3, 2, "Bytes:   %s (%d)",  kilo_mega_ize(stats.bytes), stats.bytes );
-	mvwprintw(win, 4, 2, "Average: ~%d B/Pkt", stats.bytes/stats.packets);
+	mvwprintw(win, 2, 2, "Packets: %d", stats.packets );
+	mvwprintw(win, 3, 2, "Bytes:   %s (%d)",
+		  kilo_mega_ize(stats.bytes), stats.bytes );
+	mvwprintw(win, 4, 2, "Average: ~%d B/Pkt", stats.bytes / stats.packets);
 
-	get_per_second(stats.bytes, stats.duration, &bps, &dps);
+	mvwprintw(win, 2, 40, "Retries:       %3.1f%% (%d)",
+		  stats.retries * 100.0 / stats.packets, stats.retries);
+
+	get_per_second(stats.bytes, stats.duration, stats.packets, stats.retries,
+		       &bps, &dps, &pps, &rps);
+
 	bps = bps * 8;
 
-	mvwprintw(win, 2, 40, "Total bit/sec: %s (%d)", kilo_mega_ize(bps), bps);
-
+	mvwprintw(win, 3, 40, "Total bit/sec: %s (%d)",
+		  kilo_mega_ize(bps), bps);
 	wattron(win, A_BOLD);
-	mvwprintw(win, 3, 40, "Total Usage:   %3.1f%% (%d)", dps * 1.0 / 10000, dps ); /* usec in % */
+	mvwprintw(win, 4, 40, "Total Usage:   %3.1f%% (%d)",
+		  dps * 1.0 / 10000, dps ); /* usec in % */
 	wattroff(win, A_BOLD);
 
 	line = 6;

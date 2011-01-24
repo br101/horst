@@ -64,11 +64,13 @@ int spectrum_input(WINDOW *win, int c);
 /******************* HELPERS *******************/
 
 void
-get_per_second(unsigned int bytes, unsigned int duration, int *bps, int *dps)
+get_per_second(unsigned int bytes, unsigned int duration,
+	       unsigned int packets, unsigned int retries,
+	       int *bps, int *dps, int *pps, int *rps)
 {
 	static struct timeval last;
-	static unsigned long last_bytes, last_dur;
-	static int last_bps, last_dps;
+	static unsigned long last_bytes, last_dur, last_pkts, last_retr;
+	static int last_bps, last_dps, last_pps, last_rps;
 	float timediff;
 
 	/* reacalculate only every second or more */
@@ -77,12 +79,18 @@ get_per_second(unsigned int bytes, unsigned int duration, int *bps, int *dps)
 	if (timediff >= 1.0) {
 		last_dps = (1.0*(duration - last_dur)) / timediff;
 		last_bps = (1.0*(bytes - last_bytes)) / timediff;
+		last_pps = (1.0*(packets - last_pkts)) / timediff;
+		last_rps = (1.0*(retries - last_retr)) / timediff;
 		last = the_time;
 		last_dur = duration;
 		last_bytes = bytes;
+		last_pkts = packets;
+		last_retr = retries;
 	}
 	*bps = last_bps;
 	*dps = last_dps;
+	*pps = last_pps;
+	*rps = last_rps;
 }
 
 

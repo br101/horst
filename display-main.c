@@ -44,9 +44,6 @@ static int win_split;
 static int stat_height;
 
 
-#define STAT_WIDTH 11
-
-
 /******************* UTIL *******************/
 
 void
@@ -163,12 +160,15 @@ show_sort_win(void)
 
 /******************* WINDOWS *******************/
 
+#define STAT_WIDTH 11
+#define STAT_START 4
+
 static void
 update_status_win(struct packet_info* p)
 {
-	int sig, siga, noi, bps, dps, bpsn, usen;
-	float use;
-	int max_stat_bar = stat_height - 3;
+	int sig, siga, noi, bps, dps, pps, rps, bpsn, usen;
+	float use, rpsp;
+	int max_stat_bar = stat_height - STAT_START;
 	struct channel_info* chan = NULL;
 
 	if (p != NULL)
@@ -177,13 +177,15 @@ update_status_win(struct packet_info* p)
 	wattron(stat_win, WHITE);
 	mvwvline(stat_win, 0, 0, ACS_VLINE, stat_height);
 
-	get_per_second(stats.bytes, stats.duration, &bps, &dps);
-
+	get_per_second(stats.bytes, stats.duration, stats.packets, stats.retries,
+		       &bps, &dps, &pps, &rps);
 	bps *= 8;
 	bpsn = normalize(bps, 32000000, max_stat_bar); //theoretical: 54000000
 
 	use = dps * 1.0 / 10000; /* usec, in percent */
 	usen = normalize(use, 100, max_stat_bar);
+
+	rpsp = rps * 100.0 / pps;
 
 	if (p != NULL) {
 		sig = normalize_db(-p->phy_signal, max_stat_bar);
@@ -209,12 +211,12 @@ update_status_win(struct packet_info* p)
 		else
 			mvwprintw(stat_win, 0, 1, "Sig: %5d", p->phy_signal);
 
-		signal_average_bar(stat_win, sig, siga, 3, 2, stat_height, 2);
+		signal_average_bar(stat_win, sig, siga, STAT_START, 2, stat_height, 2);
 
 		if (p->phy_noise) {
 			wattron(stat_win, ALLRED);
-			mvwvline(stat_win, noi + 3, 2, '=', stat_height - noi);
-			mvwvline(stat_win, noi + 3, 3, '=', stat_height - noi);
+			mvwvline(stat_win, noi + STAT_START, 2, '=', stat_height - noi);
+			mvwvline(stat_win, noi + STAT_START, 3, '=', stat_height - noi);
 		}
 	}
 
@@ -231,18 +233,21 @@ update_status_win(struct packet_info* p)
 	mvwvline(stat_win, stat_height - usen, 9, ACS_BLOCK, usen);
 	wattroff(stat_win, ALLYELLOW);
 
+	mvwprintw(stat_win, 3, 1, "Retry: %2.0f%%", rpsp);
+
 	wnoutrefresh(stat_win);
 }
 
 
-#define COL_SNR		3
-#define COL_RATE	COL_SNR + 9
+#define COL_PKT		3
+#define COL_CHAN	COL_PKT + 7
+#define COL_SNR		COL_CHAN + 3
+#define COL_RATE	COL_SNR + 3
 #define COL_SOURCE	COL_RATE + 3
 #define COL_STA		COL_SOURCE + 18
 #define COL_BSSID	COL_STA + 2
 #define COL_ENC		COL_BSSID + 20
-#define COL_CHAN	COL_ENC + 2
-#define COL_IP		COL_CHAN + 3
+#define COL_IP		COL_ENC + 2
 
 static char spin[4] = {'/', '-', '\\', '|'};
 
@@ -263,8 +268,11 @@ print_list_line(int line, struct node_info* n)
 
 	mvwprintw(list_win, line, 1, "%c", spin[n->pkt_count % 4]);
 
-	mvwprintw(list_win, line, COL_SNR, "%2d/%2d/%2d",
-		p->phy_snr, n->phy_snr_max, ewma_read(&n->phy_snr_avg));
+	mvwprintw(list_win, line, COL_PKT, "%.0f/%.0f%%",
+		  n->pkt_count * 100.0 / stats.packets,
+		  n->wlan_retries_all * 100.0 / n->pkt_count);
+
+	mvwprintw(list_win, line, COL_SNR, "%2d", ewma_read(&n->phy_snr_avg));
 
 	if (n->wlan_mode == WLAN_MODE_AP )
 		mvwprintw(list_win, line, COL_STA,"A");
@@ -296,6 +304,7 @@ print_list_line(int line, struct node_info* n)
 	if (n->pkt_types & PKT_TYPE_BATMAN)
 		wprintw(list_win, " BAT");
 
+
 	wattroff(list_win, A_BOLD);
 	wattroff(list_win, GREEN);
 	wattroff(list_win, RED);
@@ -311,12 +320,13 @@ update_list_win(void)
 	werase(list_win);
 	wattron(list_win, WHITE);
 	box(list_win, 0 , 0);
-	mvwprintw(list_win, 0, COL_SNR, "SN/MX/AV");
+	mvwprintw(list_win, 0, COL_PKT, "Pk/Re%%");
+	mvwprintw(list_win, 0, COL_CHAN, "CH");
+	mvwprintw(list_win, 0, COL_SNR, "SN");
 	mvwprintw(list_win, 0, COL_RATE, "RT");
 	mvwprintw(list_win, 0, COL_SOURCE, "SOURCE");
 	mvwprintw(list_win, 0, COL_STA, "M");
 	mvwprintw(list_win, 0, COL_BSSID, "(BSSID)");
-	mvwprintw(list_win, 0, COL_CHAN, "CH");
 	mvwprintw(list_win, 0, COL_ENC, "E");
 	mvwprintw(list_win, 0, COL_IP, "IP/Mesh");
 

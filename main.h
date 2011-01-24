@@ -219,6 +219,7 @@ extern struct history hist;
 
 struct statistics {
 	unsigned long		packets;
+	unsigned long		retries;
 	unsigned long		bytes;
 	unsigned long		duration;
 

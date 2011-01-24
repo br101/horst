@@ -143,6 +143,8 @@ update_statistics(struct packet_info* p)
 
 	stats.packets++;
 	stats.bytes += p->wlan_len;
+	if (p->wlan_retry)
+		stats.retries++;
 
 	if (p->phy_rate > 0 && p->phy_rate < MAX_RATES) {
 		stats.duration += p->pkt_duration;
