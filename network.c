@@ -120,10 +120,11 @@ struct net_packet_info {
 	unsigned int		wlan_nav;	/* frame NAV duration */
 	unsigned int		wlan_seqno;	/* sequence number */
 
-	/* flags */
-	unsigned int		wlan_wep:1,	/* WEP on/off */
-				wlan_retry:1,
-				_reserved:30;
+#define PKT_WLAN_FLAG_WEP	0x1
+#define PKT_WLAN_FLAG_RETRY	0x2
+
+	/* bitfields are not portable - endianness is not guaranteed */
+	unsigned int		wlan_flags;
 
 	/* IP */
 	unsigned int		ip_src;
@@ -185,9 +186,12 @@ net_send_packet(struct packet_info *p)
 	np.wlan_qos_class = p->wlan_qos_class;
 	np.wlan_nav	= htole32(p->wlan_nav);
 	np.wlan_seqno	= htole32(p->wlan_seqno);
-	np.wlan_wep	= p->wlan_wep;
-	np.wlan_retry	= p->wlan_retry;
-	np._reserved	= 0; /* don't send out uninitialized memory */
+	np.wlan_flags = 0;
+	if (p->wlan_wep)
+		np.wlan_flags |= PKT_WLAN_FLAG_WEP;
+	if (p->wlan_retry)
+		np.wlan_flags |= PKT_WLAN_FLAG_RETRY;
+	np.wlan_flags	= htole32(np.wlan_flags);
 	np.ip_src	= p->ip_src;
 	np.ip_dst	= p->ip_dst;
 	np.olsr_type	= htole32(p->olsr_type);
@@ -235,8 +239,11 @@ net_receive_packet(unsigned char *buffer, int len)
 	p.wlan_qos_class = np->wlan_qos_class;
 	p.wlan_nav	= le32toh(np->wlan_nav);
 	p.wlan_seqno	= le32toh(np->wlan_seqno);
-	p.wlan_wep	= np->wlan_wep;
-	p.wlan_retry	= np->wlan_retry;
+	np->wlan_flags	= le32toh(np->wlan_flags);
+	if (np->wlan_flags & PKT_WLAN_FLAG_WEP)
+		p.wlan_wep = 1;
+	if (np->wlan_flags & PKT_WLAN_FLAG_RETRY)
+		p.wlan_retry = 1;
 	p.ip_src	= np->ip_src;
 	p.ip_dst	= np->ip_dst;
 	p.olsr_type	= le32toh(np->olsr_type);
