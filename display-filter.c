@@ -31,6 +31,7 @@
 #define CHECK_ETHER(_mac) MAC_NOT_EMPTY(_mac) ? '*' : ' '
 #define CHECK_FILTER_EN(_i) conf.filtermac_enabled[_i] ? '*' : ' '
 #define MAC_COL 30
+#define FILTER_MAX 25
 
 void
 update_filter_win(WINDOW *win)
@@ -71,6 +72,7 @@ update_filter_win(WINDOW *win)
 	mvwprintw(win, l++, 2, "T: [%c] TCP", CHECKED(PKT_TYPE_TCP));
 	mvwprintw(win, l++, 2, "O: [%c] OLSR", CHECKED(PKT_TYPE_OLSR));
 	mvwprintw(win, l++, 2, "B: [%c] BATMAN", CHECKED(PKT_TYPE_BATMAN));
+	mvwprintw(win, l++, 2, "M: [%c] MeshCruzer", CHECKED(PKT_TYPE_MESHZ));
 
 	l = 4;
 	wattron(win, WHITE);
@@ -96,7 +98,7 @@ update_filter_win(WINDOW *win)
 	mvwprintw(win, l++, MAC_COL, "o: [%c] All Filters Off", conf.filter_off ? '*' : ' ' );
 	wattroff(win, A_BOLD);
 
-	print_centered(win, 24, 57, "[ Press key or ENTER ]");
+	print_centered(win, FILTER_MAX, 57, "[ Press key or ENTER ]");
 
 	wrefresh(win);
 }
@@ -143,10 +145,12 @@ filter_input(WINDOW *win, int c)
 	case 'T': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_TCP); break;
 	case 'O': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_OLSR|PKT_TYPE_OLSR_LQ|PKT_TYPE_OLSR_GW); break;
 	case 'B': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_BATMAN); break;
+	case 'M': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_MESHZ); break;
 
 	case 's':
 		echo();
-		print_centered(win, 24, 57, "[ Enter new BSSID and ENTER ]");
+		print_centered(win, FILTER_MAX, 57,
+			       "[ Enter new BSSID and ENTER ]");
 		mvwprintw(win, 5, MAC_COL + 4, ">");
 		mvwgetnstr(win, 5, MAC_COL + 7, buf, 17);
 		noecho();
@@ -160,7 +164,8 @@ filter_input(WINDOW *win, int c)
 		}
 		else {
 			echo();
-			print_centered(win, 24, 57, "[ Enter new MAC %d and ENTER ]", i+1);
+			print_centered(win, FILTER_MAX, 57,
+				       "[ Enter new MAC %d and ENTER ]", i+1);
 			mvwprintw(win, 9 + i, MAC_COL + 4, ">");
 			mvwgetnstr(win, 9 + i, MAC_COL + 7, buf, 17);
 			noecho();

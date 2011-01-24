@@ -304,6 +304,8 @@ print_list_line(int line, struct node_info* n)
 	if (n->pkt_types & PKT_TYPE_BATMAN)
 		wprintw(list_win, " BAT");
 
+	if (n->pkt_types & (PKT_TYPE_MESHZ))
+		wprintw(list_win, " MC");
 
 	wattroff(list_win, A_BOLD);
 	wattroff(list_win, GREEN);
@@ -403,6 +405,16 @@ update_dump_win(struct packet_info* p)
 			case LQ_TC_MESSAGE: wprintw(dump_win, "LQ_TC"); break;
 			default: wprintw(dump_win, "(%d)", p->olsr_type);
 		}
+	}
+	else if (p->pkt_types & PKT_TYPE_BATMAN) {
+		wprintw(dump_win, "%-7s%s", "BAT", ip_sprintf(p->ip_src));
+		wprintw(dump_win, " -> %s", ip_sprintf(p->ip_dst));
+	}
+	else if (p->pkt_types & PKT_TYPE_MESHZ) {
+		wprintw(dump_win, "%-7s%s",
+			p->tcpudp_port == 9256 ? "MC_NBR" : "MC_RT",
+			ip_sprintf(p->ip_src));
+		wprintw(dump_win, " -> %s", ip_sprintf(p->ip_dst));
 	}
 	else if (p->pkt_types & PKT_TYPE_UDP) {
 		wprintw(dump_win, "%-7s%s", "UDP", ip_sprintf(p->ip_src));

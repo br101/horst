@@ -129,6 +129,7 @@ struct net_packet_info {
 	/* IP */
 	unsigned int		ip_src;
 	unsigned int		ip_dst;
+	unsigned int		tcpudp_port;
 	unsigned int		olsr_type;
 	unsigned int		olsr_neigh;
 	unsigned int		olsr_tc;
@@ -194,6 +195,7 @@ net_send_packet(struct packet_info *p)
 	np.wlan_flags	= htole32(np.wlan_flags);
 	np.ip_src	= p->ip_src;
 	np.ip_dst	= p->ip_dst;
+	np.tcpudp_port	= htole32(p->tcpudp_port);
 	np.olsr_type	= htole32(p->olsr_type);
 	np.olsr_neigh	= htole32(p->olsr_neigh);
 	np.olsr_tc	= htole32(p->olsr_tc);
@@ -246,6 +248,7 @@ net_receive_packet(unsigned char *buffer, int len)
 		p.wlan_retry = 1;
 	p.ip_src	= np->ip_src;
 	p.ip_dst	= np->ip_dst;
+	p.tcpudp_port	= le32toh(np->tcpudp_port);
 	p.olsr_type	= le32toh(np->olsr_type);
 	p.olsr_neigh	= le32toh(np->olsr_neigh);
 	p.olsr_tc	= le32toh(np->olsr_tc);

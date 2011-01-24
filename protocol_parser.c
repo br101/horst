@@ -43,6 +43,8 @@ static int parse_ip_header(unsigned char** buf, int len, struct packet_info* p);
 static int parse_udp_header(unsigned char** buf, int len, struct packet_info* p);
 static int parse_olsr_packet(unsigned char** buf, int len, struct packet_info* p);
 static int parse_batman_packet(unsigned char** buf, int len, struct packet_info* p);
+static int parse_meshcruzer_packet(unsigned char** buf, int len,
+				   struct packet_info* p, int port);
 
 
 /* return 1 if we parsed enough = min ieee header */
@@ -597,14 +599,19 @@ parse_udp_header(unsigned char** buf, int len, struct packet_info* p)
 
 	DEBUG("UPD dest port: %d\n", ntohs(uh->dest));
 
+	p->tcpudp_port = ntohs(uh->dest);
+
 	*buf = *buf + 8;
 	len = len - 8;
 
-	if (ntohs(uh->dest) == 698) /* OLSR */
+	if (p->tcpudp_port == 698) /* OLSR */
 		return parse_olsr_packet(buf, len, p);
 
-	if (ntohs(uh->dest) == BAT_PORT) /* batman */
+	if (p->tcpudp_port == BAT_PORT) /* batman */
 		return parse_batman_packet(buf, len, p);
+
+	if (p->tcpudp_port == 9256 || p->tcpudp_port == 9257 ) /* MeshCruzer */
+		return parse_meshcruzer_packet(buf, len, p, p->tcpudp_port);
 
 	return 0;
 }
@@ -683,6 +690,15 @@ static int
 parse_batman_packet(unsigned char** buf, int len, struct packet_info* p)
 {
 	p->pkt_types |= PKT_TYPE_BATMAN;
+
+	return 0;
+}
+
+
+static int
+parse_meshcruzer_packet(unsigned char** buf, int len, struct packet_info* p, int port)
+{
+	p->pkt_types |= PKT_TYPE_MESHZ;
 
 	return 0;
 }
