@@ -83,7 +83,7 @@ update_statistics_win(WINDOW *win)
 	mvwprintw(win, line++, 2, "RATE");
 	wattroff(win, A_BOLD);
 	mvwhline(win, line++, 2, '-', COLS-4);
-	for (i = 1; i < MAX_RATES; i++) {
+	for (i = 1; i < MAX_RATES && line < LINES - 2; i++) {
 		if (stats.packets_per_rate[i] > 0) {
 			wattron(win, A_BOLD);
 			mvwprintw(win, line, 2, "%3dM", i/2);
@@ -109,17 +109,20 @@ update_statistics_win(WINDOW *win)
 	}
 
 	line++;
-	mvwprintw(win, line, STAT_PACK_POS, " Packets");
-	mvwprintw(win, line, STAT_BYTE_POS, "   Bytes");
-	mvwprintw(win, line, STAT_BPP_POS, "~B/P");
-	mvwprintw(win, line, STAT_PP_POS, "Pkts%%");
-	mvwprintw(win, line, STAT_BP_POS, "Byte%%");
-	wattron(win, A_BOLD);
-	mvwprintw(win, line, STAT_AIR_POS, "Usage%%");
-	mvwprintw(win, line++, 2, "TYPE");
-	wattroff(win, A_BOLD);
-	mvwhline(win, line++, 2, '-', COLS - 4);
-	for (i = 0; i < MAX_FSTYPE; i++) {
+	if (line < LINES - 2) {
+		mvwprintw(win, line, STAT_PACK_POS, " Packets");
+		mvwprintw(win, line, STAT_BYTE_POS, "   Bytes");
+		mvwprintw(win, line, STAT_BPP_POS, "~B/P");
+		mvwprintw(win, line, STAT_PP_POS, "Pkts%%");
+		mvwprintw(win, line, STAT_BP_POS, "Byte%%");
+		wattron(win, A_BOLD);
+		mvwprintw(win, line, STAT_AIR_POS, "Usage%%");
+		mvwprintw(win, line++, 2, "TYPE");
+		wattroff(win, A_BOLD);
+	}
+	if (line < LINES - 2)
+		mvwhline(win, line++, 2, '-', COLS - 4);
+	for (i = 0; i < MAX_FSTYPE && line < LINES - 2; i++) {
 		if (stats.packets_per_type[i] > 0) {
 			wattron(win, get_packet_type_color(i));
 			wattron(win, A_BOLD);
