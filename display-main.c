@@ -170,7 +170,7 @@ static void
 update_status_win(struct packet_info* p)
 {
 	int sig, siga, noi, bps, dps, pps, rps, bpsn, usen;
-	float use, rpsp;
+	float use, rpsp = 0.0;
 	int max_stat_bar = stat_height - STAT_START;
 	struct channel_info* chan = NULL;
 
@@ -188,7 +188,8 @@ update_status_win(struct packet_info* p)
 	use = dps * 1.0 / 10000; /* usec, in percent */
 	usen = normalize(use, 100, max_stat_bar);
 
-	rpsp = rps * 100.0 / pps;
+	if (pps)
+		rpsp = rps * 100.0 / pps;
 
 	ewma_add(&usen_avg, usen);
 	ewma_add(&bpsn_avg, bpsn);
