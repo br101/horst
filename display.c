@@ -33,8 +33,8 @@
 
 WINDOW *conf_win = NULL;
 WINDOW *show_win = NULL;
-static char conf_win_current;
-static char show_win_current;
+static int conf_win_current;
+static int show_win_current;
 
 static struct timeval last_time;
 
@@ -260,7 +260,7 @@ update_show_win(void)
 
 
 static void
-show_window(char which)
+show_window(int which)
 {
 	if (show_win != NULL && show_win_current == which) {
 		delwin(show_win);
@@ -280,7 +280,7 @@ show_window(char which)
 
 
 static void
-show_conf_window(char key)
+show_conf_window(int key)
 {
 	if (conf_win != NULL &&
 	    (conf_win_current == key || key == '\r' || key == KEY_ENTER)) {
