@@ -169,7 +169,7 @@ show_sort_win(void)
 static void
 update_status_win(struct packet_info* p)
 {
-	int sig, siga, noi, bps, dps, pps, rps, bpsn, usen;
+	int sig, siga, noi = 0, bps, dps, pps, rps, bpsn, usen;
 	float use, rpsp = 0.0;
 	int max_stat_bar = stat_height - STAT_START;
 	struct channel_info* chan = NULL;
@@ -220,7 +220,7 @@ update_status_win(struct packet_info* p)
 
 		signal_average_bar(stat_win, sig, siga, STAT_START, 2, stat_height, 2);
 
-		if (p->phy_noise) {
+		if (noi) {
 			wattron(stat_win, ALLRED);
 			mvwvline(stat_win, noi + STAT_START, 2, '=', stat_height - noi);
 			mvwvline(stat_win, noi + STAT_START, 3, '=', stat_height - noi);
