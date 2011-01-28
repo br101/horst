@@ -553,7 +553,7 @@ get_options(int argc, char** argv)
 				"  -e <mac>\tfilter all macs except these (multiple)\n"
 				"  -d <ms>\tdisplay update interval (100)\n"
 				"  -o <filename>\twrite packet info into file\n"
-				"  -b <bytes>\treceive buffer size (6750000)\n"
+				"  -b <bytes>\treceive buffer size (not set)\n"
 				"\n",
 				argv[0]);
 			exit(0);

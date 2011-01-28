@@ -144,7 +144,8 @@ open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size)
 
 	device_promisc(mon_fd, devname, 1);
 
-	set_receive_buffer(mon_fd, recv_buffer_size);
+	if (recv_buffer_size)
+		set_receive_buffer(mon_fd, recv_buffer_size);
 
 	return mon_fd;
 }

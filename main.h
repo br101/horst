@@ -90,7 +90,7 @@
 #define CHANNEL_TIME		250000	/* 250 msec */
 /* update display every 100ms - "10 frames per sec should be enough for everyone" ;) */
 #define DISPLAY_UPDATE_INTERVAL 100000	/* usec */
-#define RECV_BUFFER_SIZE	6750000	/* 54Mbps in byte */
+#define RECV_BUFFER_SIZE	0	/* not used by default */
 #define DEFAULT_PORT		"4444"	/* string because of getaddrinfo() */
 
 #ifndef ARPHRD_IEEE80211_RADIOTAP
