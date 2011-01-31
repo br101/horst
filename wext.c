@@ -28,13 +28,18 @@
 #include "util.h"
 
 int
-wext_set_channel(int fd, const char* devname, int chan)
+wext_set_freq(int fd, const char* devname, int freq)
 {
 	struct iwreq iwr;
 
 	memset(&iwr, 0, sizeof(iwr));
 	strncpy(iwr.ifr_name, devname, IFNAMSIZ);
-	iwr.u.freq.m = chan * 100000;
+
+	/* different drivers return different frequencies in channel list
+	 * (e.g. ipw2200 vs mac80211) try to fix them up here */
+	if (freq < 10000)
+		freq *= 100000;
+	iwr.u.freq.m = freq;
 	iwr.u.freq.e = 1;
 
 	if (ioctl(fd, SIOCSIWFREQ, &iwr) < 0) {

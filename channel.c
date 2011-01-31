@@ -32,7 +32,7 @@ extern int mon; /* monitoring socket */
 int
 change_channel(int idx)
 {
-	if (wext_set_channel(mon, conf.ifname, channels[idx].freq) == 0) {
+	if (wext_set_freq(mon, conf.ifname, channels[idx].freq) == 0) {
 		printlog("ERROR: could not set channel %d", channels[idx].chan);
 		return 0;
 	}

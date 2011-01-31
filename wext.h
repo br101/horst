@@ -23,7 +23,7 @@
 #include "main.h"
 
 int
-wext_set_channel(int fd, const char* devname, int chan);
+wext_set_freq(int fd, const char* devname, int chan);
 
 int
 wext_get_freq(int fd, const char* devname);
