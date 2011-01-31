@@ -67,8 +67,15 @@ convert_string_to_mac(const char* string, unsigned char* mac);
 int
 normalize(float val, int max_val, int max);
 
-#define normalize_db(_val, _max) \
-	normalize((_val) - 30, 70, (_max))
+static inline int normalize_db(int val, int max)
+{
+	if (val <= 30)
+		return 0;
+	else if (val >= 70)
+		return max;
+	else
+		return normalize(val - 30, 70, max);
+}
 
 char
 get_packet_type_char(int type);
