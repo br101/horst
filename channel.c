@@ -46,18 +46,27 @@ auto_change_channel(int mon)
 {
 	int new_chan;
 	int ret = 1;
+	int start_chan;
 
 	if (the_time.tv_sec == last_channelchange.tv_sec &&
 	    (the_time.tv_usec - last_channelchange.tv_usec) < conf.channel_time)
 		return 0; /* too early */
 
 	if (conf.do_change_channel) {
-		new_chan = conf.current_channel + 1;
-		if (new_chan >= conf.num_channels || new_chan >= MAX_CHANNELS ||
-		    (conf.channel_max && new_chan >= conf.channel_max))
-			new_chan = 0;
+		start_chan = new_chan = conf.current_channel;
+		do {
+			new_chan = new_chan + 1;
+			if (new_chan >= conf.num_channels ||
+			    new_chan >= MAX_CHANNELS ||
+			    (conf.channel_max && new_chan >= conf.channel_max))
+				new_chan = 0;
 
-		ret = change_channel(new_chan);
+			ret = change_channel(new_chan);
+
+		/* try setting different channels in case we get errors only
+		 * on some channels (e.g. ipw2200 reports channel 14 but cannot
+		 * be set to use it). stop if we tried all channels */
+		} while (ret != 1 && new_chan != start_chan);
 	}
 
 	last_channelchange = the_time;
