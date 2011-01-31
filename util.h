@@ -71,7 +71,7 @@ static inline int normalize_db(int val, int max)
 {
 	if (val <= 30)
 		return 0;
-	else if (val >= 70)
+	else if (val >= 100)
 		return max;
 	else
 		return normalize(val - 30, 70, max);
