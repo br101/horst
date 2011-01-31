@@ -34,11 +34,7 @@ wext_set_freq(int fd, const char* devname, int freq)
 
 	memset(&iwr, 0, sizeof(iwr));
 	strncpy(iwr.ifr_name, devname, IFNAMSIZ);
-
-	/* different drivers return different frequencies in channel list
-	 * (e.g. ipw2200 vs mac80211) try to fix them up here */
-	if (freq < 10000)
-		freq *= 100000;
+	freq *= 100000;
 	iwr.u.freq.m = freq;
 	iwr.u.freq.e = 1;
 
@@ -97,9 +93,14 @@ wext_get_channels(int fd, const char* devname,
 	}
 
 	for(i = 0; i < range.num_frequency && i < MAX_CHANNELS; i++) {
-	      DEBUG("  Channel %.2d: %dMHz\n", range.freq[i].i, range.freq[i].m);
-	      channels[i].chan = range.freq[i].i;
-	      channels[i].freq = range.freq[i].m;
+		DEBUG("  Channel %.2d: %dMHz\n", range.freq[i].i, range.freq[i].m);
+		channels[i].chan = range.freq[i].i;
+		/* different drivers return different frequencies
+		 * (e.g. ipw2200 vs mac80211) try to fix them up here */
+		if (range.freq[i].m > 100000000)
+			channels[i].freq = range.freq[i].m / 100000;
+		else
+			channels[i].freq = range.freq[i].m;
 	}
 	return range.num_frequency;
 }
