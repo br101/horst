@@ -49,14 +49,14 @@ update_history_win(WINDOW *win)
 	mvwvline(win, 1, 4, ACS_VLINE, LINES-3);
 
 	wattron(win, GREEN);
-	mvwprintw(win, 1, 1, "dBm");
-	mvwprintw(win, normalize_db(30, SIGN_POS), 1, "-30");
-	mvwprintw(win, normalize_db(40, SIGN_POS), 1, "-40");
-	mvwprintw(win, normalize_db(50, SIGN_POS), 1, "-50");
-	mvwprintw(win, normalize_db(60, SIGN_POS), 1, "-60");
-	mvwprintw(win, normalize_db(70, SIGN_POS), 1, "-70");
-	mvwprintw(win, normalize_db(80, SIGN_POS), 1, "-80");
-	mvwprintw(win, normalize_db(90, SIGN_POS), 1, "-90");
+	mvwprintw(win, 2, 1, "dBm");
+	mvwprintw(win, normalize_db(30, SIGN_POS - 1) + 1, 1, "-30");
+	mvwprintw(win, normalize_db(40, SIGN_POS - 1) + 1, 1, "-40");
+	mvwprintw(win, normalize_db(50, SIGN_POS - 1) + 1, 1, "-50");
+	mvwprintw(win, normalize_db(60, SIGN_POS - 1) + 1, 1, "-60");
+	mvwprintw(win, normalize_db(70, SIGN_POS - 1) + 1, 1, "-70");
+	mvwprintw(win, normalize_db(80, SIGN_POS - 1) + 1, 1, "-80");
+	mvwprintw(win, normalize_db(90, SIGN_POS - 1) + 1, 1, "-90");
 	mvwprintw(win, SIGN_POS-1, 1, "-99");
 
 	mvwprintw(win, 1, col-6, "Signal");
@@ -88,16 +88,16 @@ update_history_win(WINDOW *win)
 
 	while (col > 4 && hist.signal[i] != 0)
 	{
-		sig = normalize_db(-hist.signal[i], SIGN_POS);
+		sig = normalize_db(-hist.signal[i], SIGN_POS - 1);
 		if (hist.noise[i])
-			noi = normalize_db(-hist.noise[i], SIGN_POS);
+			noi = normalize_db(-hist.noise[i], SIGN_POS - 1);
 
 		wattron(win, ALLGREEN);
-		mvwvline(win, sig, col, ACS_BLOCK, SIGN_POS-sig);
+		mvwvline(win, sig + 1, col, ACS_BLOCK, SIGN_POS - sig - 1);
 
 		if (hist.noise[i]) {
 			wattron(win, ALLRED);
-			mvwvline(win, noi, col, '=', SIGN_POS-noi);
+			mvwvline(win, noi + 1, col, '=', SIGN_POS - noi -1);
 		}
 
 		wattron(win, get_packet_type_color(hist.type[i]));
