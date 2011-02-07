@@ -23,7 +23,7 @@
 #include "list.h"
 #include "average.h"
 
-#define VERSION "3.0-rc1"
+#define VERSION "3.0"
 
 #ifndef DO_DEBUG
 #define DO_DEBUG 0
