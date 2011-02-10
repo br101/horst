@@ -27,6 +27,35 @@
 #include "wext.h"
 #include "util.h"
 
+
+#if defined(__APPLE__)
+
+
+int
+wext_set_freq(int fd, const char* devname, int freq)
+{
+	return 0;
+}
+
+
+int
+wext_get_freq(int fd, const char* devname)
+{
+	return 0;
+}
+
+
+int
+wext_get_channels(int fd, const char* devname,
+		  struct chan_freq channels[MAX_CHANNELS])
+{
+	return 0;
+}
+
+
+#else
+
+
 int
 wext_set_freq(int fd, const char* devname, int freq)
 {
@@ -104,3 +133,5 @@ wext_get_channels(int fd, const char* devname,
 	}
 	return range.num_frequency;
 }
+
+#endif

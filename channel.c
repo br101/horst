@@ -25,6 +25,35 @@
 #include "wext.h"
 
 
+#if defined(__APPLE__)
+
+int
+change_channel(int idx)
+{
+	return 0;
+}
+
+int
+auto_change_channel(int mon)
+{
+	return 0;
+}
+
+int
+find_channel_index(int c)
+{
+	return -1;
+}
+
+void
+get_current_channel(int mon)
+{
+}
+
+
+#else
+
+
 static struct timeval last_channelchange;
 extern int mon; /* monitoring socket */
 
@@ -74,19 +103,6 @@ auto_change_channel(int mon)
 }
 
 
-void
-init_channels(void)
-{
-	int i;
-
-	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++) {
-		INIT_LIST_HEAD(&spectrum[i].nodes);
-		ewma_init(&spectrum[i].signal_avg, 1024, 8);
-		ewma_init(&spectrum[i].durations_avg, 1024, 8);
-	}
-}
-
-
 int
 find_channel_index(int c)
 {
@@ -114,4 +130,19 @@ get_current_channel(int mon)
 	if (ch >= 0)
 		conf.current_channel = ch;
 	DEBUG("***%d\n", conf.current_channel);
+}
+
+#endif
+
+
+void
+init_channels(void)
+{
+	int i;
+
+	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++) {
+		INIT_LIST_HEAD(&spectrum[i].nodes);
+		ewma_init(&spectrum[i].signal_avg, 1024, 8);
+		ewma_init(&spectrum[i].durations_avg, 1024, 8);
+	}
 }

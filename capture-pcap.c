@@ -53,9 +53,26 @@ int
 open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size)
 {
 	char error[PCAP_ERRBUF_SIZE];
-	pcap_fp = pcap_open_live(devname, bufsize, 1, PCAP_TIMEOUT, error);
+	int ret;
+
+	pcap_fp = pcap_create(devname, error);
 	if (pcap_fp == NULL) {
-		fprintf(stderr, "Couldn't open pcap device: %s\n", error);
+		fprintf(stderr, "Couldn't create pcap: %s\n", error);
+		return -1;
+	}
+
+	pcap_set_promisc(pcap_fp, 1);
+
+#if defined(__APPLE__)
+	if (pcap_can_set_rfmon(pcap_fp))
+		pcap_set_rfmon(pcap_fp, 1);
+	else
+		err(1, "Couldn't activate monitor mode");
+#endif
+
+	ret = pcap_activate(pcap_fp);
+	if (ret < 0) {
+		fprintf(stderr, "Can't activate pcap: %d\n", ret);
 		return -1;
 	}
 

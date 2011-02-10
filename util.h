@@ -21,8 +21,21 @@
 #define _UTIL_H_
 
 #include <stdio.h>
+
+#ifdef _ALLBSD_SOURCE
+#include <machine/endian.h>
+#elif __linux__
 #include <endian.h>
+#endif
+
+#if defined(__APPLE__)
+#include <libkern/OSByteOrder.h>
+#define bswap_16 OSSwapInt16
+#define bswap_32 OSSwapInt32
+#define bswap_64 OSSwapInt64
+#else
 #include <byteswap.h>
+#endif
 
 #if DO_DEBUG
 #define DEBUG(...) printf(__VA_ARGS__)

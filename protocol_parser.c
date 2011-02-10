@@ -22,6 +22,7 @@
 #include <sys/socket.h>
 #include <net/if_arp.h>
 #include <netinet/ip.h>
+#define __FAVOR_BSD
 #include <netinet/udp.h>
 
 #include "prism_header.h"
@@ -62,8 +63,7 @@ parse_packet(unsigned char* buf, int len, struct packet_info* p)
 			return 0;
 	}
 
-	if (conf.arphrd == ARPHRD_IEEE80211 ||
-	    conf.arphrd == ARPHRD_IEEE80211_PRISM ||
+	if (conf.arphrd == ARPHRD_IEEE80211_PRISM ||
 	    conf.arphrd == ARPHRD_IEEE80211_RADIOTAP) {
 		DEBUG("before parse 80211 len: %d\n", len);
 		len = parse_80211_header(&buf, len, p);
@@ -559,23 +559,23 @@ parse_llc(unsigned char ** buf, int len, struct packet_info* p)
 static int
 parse_ip_header(unsigned char** buf, int len, struct packet_info* p)
 {
-	struct iphdr* ih;
+	struct ip* ih;
 
 	DEBUG("* parse IP\n");
 
-	if (len < sizeof(struct iphdr))
+	if (len < sizeof(struct ip))
 		return -1;
 
-	ih = (struct iphdr*)*buf;
+	ih = (struct ip*)*buf;
 
-	DEBUG("*** IP SRC: %s\n", ip_sprintf(ih->saddr));
-	DEBUG("*** IP DST: %s\n", ip_sprintf(ih->daddr));
-	p->ip_src = ih->saddr;
-	p->ip_dst = ih->daddr;
+	DEBUG("*** IP SRC: %s\n", ip_sprintf(ih->ip_src.s_addr));
+	DEBUG("*** IP DST: %s\n", ip_sprintf(ih->ip_dst.s_addr));
+	p->ip_src = ih->ip_src.s_addr;
+	p->ip_dst = ih->ip_dst.s_addr;
 	p->pkt_types |= PKT_TYPE_IP;
 
-	DEBUG("IP proto: %d\n", ih->protocol);
-	switch (ih->protocol) {
+	DEBUG("IP proto: %d\n", ih->ip_p);
+	switch (ih->ip_p) {
 	case IPPROTO_UDP: p->pkt_types |= PKT_TYPE_UDP; break;
 	/* all others set the type and return. no more parsing */
 	case IPPROTO_ICMP: p->pkt_types |= PKT_TYPE_ICMP; return 0;
@@ -583,8 +583,8 @@ parse_ip_header(unsigned char** buf, int len, struct packet_info* p)
 	}
 
 
-	*buf = *buf + ih->ihl * 4;
-	return len - ih->ihl * 4;
+	*buf = *buf + ih->ip_hl * 4;
+	return len - ih->ip_hl * 4;
 }
 
 
@@ -598,9 +598,9 @@ parse_udp_header(unsigned char** buf, int len, struct packet_info* p)
 
 	uh = (struct udphdr*)*buf;
 
-	DEBUG("UPD dest port: %d\n", ntohs(uh->dest));
+	DEBUG("UPD dest port: %d\n", ntohs(uh->uh_dport));
 
-	p->tcpudp_port = ntohs(uh->dest);
+	p->tcpudp_port = ntohs(uh->uh_dport);
 
 	*buf = *buf + 8;
 	len = len - 8;
