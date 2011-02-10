@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <pcap.h>
+#include <err.h>
 
 #include "capture.h"
 #include "util.h"
