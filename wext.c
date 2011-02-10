@@ -20,9 +20,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <linux/wireless.h>
 
 #include "wext.h"
 #include "util.h"
@@ -54,6 +51,11 @@ wext_get_channels(int fd, const char* devname,
 
 
 #else
+
+
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <linux/wireless.h>
 
 
 int
