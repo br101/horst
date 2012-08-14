@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH HORST 8 "August  9, 2012"
+.TH HORST 8 "August 14, 2012"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 horst \- Highly Optimized Radio Scanning Tool
@@ -57,52 +57,81 @@ Can filter specific packet types source addresses or BSSIDs
 Client/server support for monitoring on remote nodes
 
 .SH OPTIONS
-Defaults in parenthesis.
 .TP
 .BI \-h
 Show summary of options.
 .TP
 .BI \-q
-Be quiet.
+Quiet mode. Don't show user interface. This is only useful in conjuction with running in server mode (-C) or writing to a file (-o).
 .TP
 .BI \-s
-Show spectrum analyzer.
+Show "spectrum analyzer". The same can be achieved by running \fBhorst\fP as normal and pressing the button 's' (Spec); then 'c' (Chan) and 'a' (Automatically change channel).
 .TP
 .BI \-i\  intf
-Operate on given interface (wlan0).
+Operate on given interface instead of the default "wlan0". Note that the interface is assumed to be in monitor mode already. See MONITOR MODE below on more information about monitor mode.
 .TP
 .BI \-t\  sec
-node timeout (60)
+Timeout (remove) nodes after not receiving packets from them for this time in seconds (default: 60 sec).
 .TP
 .BI \-c\  IP
-connect to server
+Connect to a \fBhorst\fP instance running in server-mode at the specified IP address.
 .TP
 .BI \-C
-allow client connection (server)
+Allow client connections. Server mode. Only one client connection is supported at the moment (default: off).
 .TP
 .BI \-p\  port
-use port (4444)
+Use the specified port (default: 4444) for client/server connections.
 .TP
 .BI \-e\  mac
-filter all macs except these (multiple)
+Filter all MAC adresses except these. This option can be specified multiple times to show only packets originating from the specified MAC adresses.
 .TP
 .BI \-d\  ms
-display update interval (100)
+Display update interval. The default value of 100ms can be increased to reduce CPU load.
 .TP
 .BI \-o\  filename
-write packet info into file
+Write a summary packet info into file.
 .TP
 .BI \-b\  bytes
-receive buffer size (not set)
+Receive buffer size. The receive buffer size can be explicitly set to tune memory consumption and reduce lost packets.
+
+.SH MONITOR MODE
+
+\fBhorst\fP should work with any wireleass LAN card and driver which supports monitor mode, with either "prism2" or "radiotap" headers. This includes most modern mac80211-based drivers.
+
+You have to put your card in monitor mode and set the channel manually before
+you start \fBhorst\fP. Usually this has to be done as root.
+
+.TP
+Using iw:
+.nf
+iw wlan0 interface add mon0 type monitor
+.fi
+
+.TP
+Using iwconfig:
+.nf
+iwconfig wlan0 mode monitor
+iwconfig wlan0 channel 1
+ifconfig wlan0 up
+.fi
+
+.TP
+Using madwifi:
+wlanconfig wlan0 create wlandev wifi0 wlanmode monitor
+
+.TP
+Using hostap:
+.nf
+iwconfig wlan0 mode monitor
+iwpriv wlan0 monitor_type 1
+.fi
 
 .SH SEE ALSO
 .BR tcpdump (1),
 .BR wireshark (1),
 .BR kismet (1),
-the
 .BI README
-file also explains how to configure your wireless device in monitor
-mode.
+
 .SH AUTHOR
 horst was written by Bruno Randolf <br1@einfach.org>.
 .PP
