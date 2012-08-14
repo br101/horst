@@ -1,7 +1,7 @@
 HORST - Horsts OLSR Radio Scanning Tool (or)
 HORST - Highly Optimized Radio Scanning Tool
 --------------------------------------------
-Copyright (C) 2005-2011 Bruno Randolf (br1@einfach.org)
+Copyright (C) 2005-2012 Bruno Randolf (br1@einfach.org)
 
 Licensed under the GNU Public License (GPL) V2
 
@@ -15,6 +15,8 @@ problems in the mesh network.
 
 See the man page for more detailled and up-to-date info:
 	$ man -l horst.1
+	(or)
+	$ nroff -mandoc horst.1
 
 
 = Description =
@@ -40,32 +42,6 @@ simple text (ncurses) interface.
 
 "horst" should work with any wlan card which can do monitor mode, with either
 "prism2" or "radiotap" headers.
-
-
-= Usage =
-
-you have to put your card in monitor mode and set the channel manually before
-you start the tool (it does not rotate channels like kismet):
-
-1.) put card in monitor mode:
-	hostap:
-	# iwconfig wlan0 mode monitor
-
-	madwifi:
-	# wlanconfig wlan0 create wlandev wifi0 wlanmode monitor
-
-2.) for hostap: enable prism headers in monitor mode
-	# iwpriv wlan0 monitor_type 1
-
-3.) tune to a channel
-	# iwconfig wlan0 channel 10
-	# ifconfig wlan0 up
-
-4.) start tool
-	# ./horst
-
-5.) see options
-	# ./horst --help
 
 
 = Interpreting the Output =
