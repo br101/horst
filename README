@@ -13,6 +13,9 @@ networks and the OLSR mesh routing protocol. it can be used discover the best
 OLSR nodes in the neighbourhood, to optimize antenna positions and to discover
 problems in the mesh network.
 
+See the man page for more detailled and up-to-date info:
+	$ man -l horst.1
+
 
 = Description =
 
@@ -118,3 +121,4 @@ Sven-Ola Tuecke
 Robert Schuster
 Jonathan Guerin
 David Rowe
+Antoine Beaupré
