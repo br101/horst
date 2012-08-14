@@ -1,0 +1,110 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH HORST 8 "August  9, 2012"
+.\" Please adjust this date whenever revising the manpage.
+.SH NAME
+horst \- Highly Optimized Radio Scanning Tool
+.SH SYNOPSIS
+.B horst
+.RB [\| \-h \|]
+.RB [\| \-q \|]
+.RB [\| \-s \|] 
+.RB [\| \-i 
+.IR interface \|] 
+.RB [\| \-t
+.IR sec \|] 
+.RB [\| \-c
+.IR IP \|] 
+.RB [\| \-C \|] 
+.RB [\| \-p
+.IR port \|] 
+.RB [\| \-e
+.IR mac \|] 
+.RB [\| \-d
+.IR ms \|] 
+.RB [\| \-o
+.IR file \|] 
+.RB [\| \-b
+.IR bytes \|]
+.SH DESCRIPTION
+\fBhorst\fP is a small, lightweight IEEE802.11 wireless LAN analyzer
+with a text interface. Its basic function is similar to tcpdump,
+Wireshark or Kismet, but it's much smaller and shows different,
+aggregated information which is not easily available from other
+tools. It is mainly targeted at debugging wireless LANs with a focus
+on ad\-hoc (IBSS) mode in larger mesh networks. It can be useful to get
+a quick overview of what's going on on all wireless LAN channels and
+to identify problems.
+.IP \[bu] 2
+Shows signal/noise values per station
+.IP \[bu] 2
+Calculates channel utilization ("usage") by adding up the amount of time the packets actually occupy the medium
+.IP \[bu] 2
+"Spectrum Analyzer" shows signal levels and usage per channel Graphical packet history, with signal/noise, packet type and physical rate
+.IP \[bu] 2
+Shows all stations per ESSID and the live TSF per node as it is counting
+.IP \[bu] 2
+Detects IBSS "splits" (same ESSID but different BSSID \- this  is a common driver problem)
+.IP \[bu] 2
+Statistics of packets/bytes per physical rate and per packet type
+.IP \[bu] 2
+Has some support for mesh protocols (OLSR and batman)
+.IP \[bu] 2
+Can filter specific packet types source addresses or BSSIDs
+.IP \[bu] 2
+Client/server support for monitoring on remote nodes
+
+.SH OPTIONS
+Defaults in parenthesis.
+.TP
+.BI \-h
+Show summary of options.
+.TP
+.BI \-q
+Be quiet.
+.TP
+.BI \-s
+Show spectrum analyzer.
+.TP
+.BI \-i\  intf
+Operate on given interface (wlan0).
+.TP
+.BI \-t\  sec
+node timeout (60)
+.TP
+.BI \-c\  IP
+connect to server
+.TP
+.BI \-C
+allow client connection (server)
+.TP
+.BI \-p\  port
+use port (4444)
+.TP
+.BI \-e\  mac
+filter all macs except these (multiple)
+.TP
+.BI \-d\  ms
+display update interval (100)
+.TP
+.BI \-o\  filename
+write packet info into file
+.TP
+.BI \-b\  bytes
+receive buffer size (not set)
+
+.SH SEE ALSO
+.BR tcpdump (1),
+.BR wireshark (1),
+.BR kismet (1),
+the
+.BI README
+file also explains how to configure your wireless device in monitor
+mode.
+.SH AUTHOR
+horst was written by Bruno Randolf <br1@einfach.org>.
+.PP
+This manual page was written by Antoine Beaupré <anarcat@debian.org>,
+for the Debian project (and may be used by others).
