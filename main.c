@@ -621,7 +621,8 @@ main(int argc, char** argv)
 			if (auto_change_channel(mon)) {
 				net_send_channel_config();
 				update_spectrum_durations();
-				update_display(NULL, NULL);
+				if (!DO_DEBUG)
+					update_display(NULL, NULL);
 			}
 		}
 	}
