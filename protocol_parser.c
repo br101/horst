@@ -369,6 +369,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 			break;
 		case IEEE80211_STYPE_QOS_DATA:
 			/* TODO: ouch, should properly define a qos header */
+			p->pkt_types |= PKT_TYPE_QDATA;
 			p->wlan_qos_class = wh->addr4[0] & 0x7;
 			DEBUG("***QDATA %x\n", p->wlan_qos_class);
 			break;
