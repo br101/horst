@@ -114,7 +114,7 @@ struct packet_info {
 	int			phy_signal;	/* signal strength (usually dBm) */
 	int			phy_noise;	/* noise level (usually dBm) */
 	unsigned int		phy_snr;	/* signal to noise ratio */
-	unsigned int		phy_rate;	/* physical rate */
+	unsigned int		phy_rate;	/* physical rate * 10 (=in 100kbps) */
 	unsigned int		phy_freq;	/* frequency from driver */
 	unsigned char		phy_chan;	/* channel from driver */
 	unsigned int		phy_flags;	/* A, B, G, shortpre */

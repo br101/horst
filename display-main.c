@@ -249,7 +249,7 @@ update_status_win(struct packet_info* p)
 #define COL_CHAN	COL_PKT + 7
 #define COL_SNR		COL_CHAN + 3
 #define COL_RATE	COL_SNR + 3
-#define COL_SOURCE	COL_RATE + 3
+#define COL_SOURCE	COL_RATE + 4
 #define COL_STA		COL_SOURCE + 18
 #define COL_BSSID	COL_STA + 2
 #define COL_ENC		COL_BSSID + 20
@@ -291,7 +291,7 @@ print_list_line(int line, struct node_info* n)
 
 	mvwprintw(list_win, line, COL_ENC, n->wlan_wep ? "W" : "");
 
-	mvwprintw(list_win, line, COL_RATE, "%2d", p->phy_rate/2);
+	mvwprintw(list_win, line, COL_RATE, "%3d q", p->phy_rate/10);
 	mvwprintw(list_win, line, COL_SOURCE, "%s", ether_sprintf(p->wlan_src));
 	mvwprintw(list_win, line, COL_BSSID, "(%s)", ether_sprintf(n->wlan_bssid));
 
@@ -331,7 +331,7 @@ update_list_win(void)
 	mvwprintw(list_win, 0, COL_PKT, "Pk/Re%%");
 	mvwprintw(list_win, 0, COL_CHAN, "CH");
 	mvwprintw(list_win, 0, COL_SNR, "SN");
-	mvwprintw(list_win, 0, COL_RATE, "RT");
+	mvwprintw(list_win, 0, COL_RATE, "RAT");
 	mvwprintw(list_win, 0, COL_SOURCE, "SOURCE");
 	mvwprintw(list_win, 0, COL_STA, "M");
 	mvwprintw(list_win, 0, COL_BSSID, "(BSSID)");
@@ -344,10 +344,10 @@ update_list_win(void)
 		wprintw(list_win, "/No");
 		nadd = 3;
 	}
-	wprintw(list_win, "-RT-SOURCE");
-	mvwprintw(list_win, win_split - 1, 28 + nadd, "(BSSID)");
-	mvwprintw(list_win, win_split - 1, 48 + nadd, "TYPE");
-	mvwprintw(list_win, win_split - 1, 55 + nadd, "INFO");
+	wprintw(list_win, "-RAT-SOURCE");
+	mvwprintw(list_win, win_split - 1, 29 + nadd, "(BSSID)");
+	mvwprintw(list_win, win_split - 1, 49 + nadd, "TYPE");
+	mvwprintw(list_win, win_split - 1, 56 + nadd, "INFO");
 	mvwprintw(list_win, win_split - 1, COLS-10, "LiveStatus");
 
 	if (sortfunc)
@@ -393,7 +393,7 @@ update_dump_win(struct packet_info* p)
 		wprintw(dump_win, "/%02d ", -p->phy_noise);
 	else
 		wprintw(dump_win, " ");
-	wprintw(dump_win, "%2d ", p->phy_rate/2);
+	wprintw(dump_win, "%3d ", p->phy_rate/10);
 	wprintw(dump_win, "%s ", ether_sprintf(p->wlan_src));
 	wprintw(dump_win, "(%s) ", ether_sprintf(p->wlan_bssid));
 

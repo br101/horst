@@ -125,20 +125,20 @@ parse_prism_header(unsigned char** buf, int len, struct packet_info* p)
 		p->phy_snr = ph->signal.data - ph->noise.data; //XXX rssi?
 	}
 
-	p->phy_rate = ph->rate.data;
+	p->phy_rate = ph->rate.data * 10;
 
 	/* just in case...*/
 	if (p->phy_snr < 0)
 		p->phy_snr = -p->phy_snr;
 	if (p->phy_snr > 99)
 		p->phy_snr = 99;
-	if (p->phy_rate == 0 || p->phy_rate > 108) {
+	if (p->phy_rate == 0 || p->phy_rate > 1080) {
 		/* assume min rate, guess mode from channel */
 		DEBUG("*** fixing wrong rate\n");
 		if (ph->channel.data > 14)
-			p->phy_rate = 12; /* 6 * 2 */
+			p->phy_rate = 120; /* 6 * 2 */
 		else
-			p->phy_rate = 2; /* 1 * 2 */
+			p->phy_rate = 20; /* 1 * 2 */
 	}
 
 	/* guess phy mode */
@@ -169,6 +169,7 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 	unsigned char* b; /* current byte */
 	int i;
 	u16 rt_len, x;
+	unsigned char known, flags, ht20, lgi;
 
 	DEBUG("RADIOTAP HEADER\n");
 
@@ -193,8 +194,8 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 	present = le32toh(rh->it_present); // in case it moved
 
 	/* radiotap bitmap has 32 bit, but we are only interrested until
-	 * bit 12 (IEEE80211_RADIOTAP_DB_ANTSIGNAL) => i<13 */
-	for (i = 0; i < 13 && b - *buf < rt_len; i++) {
+	 * bit 19 (IEEE80211_RADIOTAP_MCS) => i<20 */
+	for (i = 0; i < 20 && b - *buf < rt_len; i++) {
 		if ((present >> i) & 1) {
 			DEBUG("1");
 			switch (i) {
@@ -226,7 +227,7 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 				/* we are only interrested in these: */
 				case IEEE80211_RADIOTAP_RATE:
 					DEBUG("[rate %0x]", *b);
-					p->phy_rate = (*b);
+					p->phy_rate = (*b)*10;
 					b++;
 					break;
 				case IEEE80211_RADIOTAP_DBM_ANTSIGNAL:
@@ -281,6 +282,67 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 					}
 					b = b + 2;
 					break;
+				case IEEE80211_RADIOTAP_MCS:
+					/* Ref http://www.radiotap.org/defined-fields/MCS */
+					b++;
+					known = *b;
+					DEBUG("[MCS known %0x", *b);
+					b++;
+					flags = *b;
+					DEBUG(" flags %0x ", *b);
+					b++;//b = b + 2;
+					DEBUG(" index %0x]", *b);
+
+					if (known & IEEE80211_RADIOTAP_MCS_HAVE_BW) {
+						ht20 = (flags & IEEE80211_RADIOTAP_MCS_BW_MASK) == IEEE80211_RADIOTAP_MCS_BW_20;
+						DEBUG(" HT20 %d", ht20);
+					} else
+						ht20 = 1; /* assume HT20 if not present */
+
+					if (known & IEEE80211_RADIOTAP_MCS_HAVE_GI) {
+						lgi = !(flags & IEEE80211_RADIOTAP_MCS_SGI);
+						DEBUG(" LGI %d", lgi);
+					} else
+						lgi = 1; /* assume long GI if not present */
+
+					/* MCS Index, http://en.wikipedia.org/wiki/IEEE_802.11n-2009#Data_rates */
+					switch (*b) {
+						case 0:  p->phy_rate = ht20 ? (lgi ? 65 : 72) : (lgi ? 135 : 150); break;
+						case 1:  p->phy_rate = ht20 ? (lgi ? 130 : 144) : (lgi ? 270 : 300); break;
+						case 2:  p->phy_rate = ht20 ? (lgi ? 195 : 217) : (lgi ? 405 : 450); break;
+						case 3:  p->phy_rate = ht20 ? (lgi ? 260 : 289) : (lgi ? 540 : 600); break;
+						case 4:  p->phy_rate = ht20 ? (lgi ? 390 : 433) : (lgi ? 810 : 900); break;
+						case 5:  p->phy_rate = ht20 ? (lgi ? 520 : 578) : (lgi ? 1080 : 1200); break;
+						case 6:  p->phy_rate = ht20 ? (lgi ? 585 : 650) : (lgi ? 1215 : 1350); break;
+						case 7:  p->phy_rate = ht20 ? (lgi ? 650 : 722) : (lgi ? 1350 : 1500); break;
+						case 8:  p->phy_rate = ht20 ? (lgi ? 130 : 144) : (lgi ? 270 : 300); break;
+						case 9:  p->phy_rate = ht20 ? (lgi ? 260 : 289) : (lgi ? 540 : 600); break;
+						case 10: p->phy_rate = ht20 ? (lgi ? 390 : 433) : (lgi ? 810 : 900); break;
+						case 11: p->phy_rate = ht20 ? (lgi ? 520 : 578) : (lgi ? 1080 : 1200); break;
+						case 12: p->phy_rate = ht20 ? (lgi ? 780 : 867) : (lgi ? 1620 : 1800); break;
+						case 13: p->phy_rate = ht20 ? (lgi ? 1040 : 1156) : (lgi ? 2160 : 2400); break;
+						case 14: p->phy_rate = ht20 ? (lgi ? 1170 : 1300) : (lgi ? 2430 : 2700); break;
+						case 15: p->phy_rate = ht20 ? (lgi ? 1300 : 1444) : (lgi ? 2700 : 3000); break;
+						case 16: p->phy_rate = ht20 ? (lgi ? 195 : 217) : (lgi ? 405 : 450); break;
+						case 17: p->phy_rate = ht20 ? (lgi ? 39 : 433) : (lgi ? 810 : 900); break;
+						case 18: p->phy_rate = ht20 ? (lgi ? 585 : 650) : (lgi ? 1215 : 1350); break;
+						case 19: p->phy_rate = ht20 ? (lgi ? 78 : 867) : (lgi ? 1620 : 1800); break;
+						case 20: p->phy_rate = ht20 ? (lgi ? 1170 : 1300) : (lgi ? 2430 : 2700); break;
+						case 21: p->phy_rate = ht20 ? (lgi ? 1560 : 1733) : (lgi ? 3240 : 3600); break;
+						case 22: p->phy_rate = ht20 ? (lgi ? 1755 : 1950) : (lgi ? 3645 : 4050); break;
+						case 23: p->phy_rate = ht20 ? (lgi ? 1950 : 2167) : (lgi ? 4050 : 4500); break;
+						case 24: p->phy_rate = ht20 ? (lgi ? 260 : 288) : (lgi ? 540 : 600); break;
+						case 25: p->phy_rate = ht20 ? (lgi ? 520 : 576) : (lgi ? 1080 : 1200); break;
+						case 26: p->phy_rate = ht20 ? (lgi ? 780 : 868) : (lgi ? 1620 : 1800); break;
+						case 27: p->phy_rate = ht20 ? (lgi ? 1040 : 1156) : (lgi ? 2160 : 2400); break;
+						case 28: p->phy_rate = ht20 ? (lgi ? 1560 : 1732) : (lgi ? 3240 : 3600); break;
+						case 29: p->phy_rate = ht20 ? (lgi ? 2080 : 2312) : (lgi ? 4320 : 4800); break;
+						case 30: p->phy_rate = ht20 ? (lgi ? 2340 : 2600) : (lgi ? 4860 : 5400); break;
+						case 31: p->phy_rate = ht20 ? (lgi ? 2600 : 2888) : (lgi ? 5400 : 6000); break;
+					}
+					DEBUG(" RATE %d ", p->phy_rate);
+					b++;
+					break;
 			}
 		}
 		else {
@@ -305,20 +367,20 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 	/* sanitize */
 	if (p->phy_snr > 99)
 		p->phy_snr = 99;
-	if (p->phy_rate == 0 || p->phy_rate > 108) {
+	if (p->phy_rate == 0 || p->phy_rate > 6000) {
 		/* assume min rate for mode */
 		DEBUG("*** fixing wrong rate\n");
 		if (p->phy_flags & PHY_FLAG_A)
-			p->phy_rate = 12; /* 6 * 2 */
+			p->phy_rate = 120; /* 6 * 2 */
 		else if (p->phy_flags & PHY_FLAG_B)
-			p->phy_rate = 2; /* 1 * 2 */
+			p->phy_rate = 20; /* 1 * 2 */
 		else if (p->phy_flags & PHY_FLAG_G)
-			p->phy_rate = 12; /* 6 * 2 */
+			p->phy_rate = 120; /* 6 * 2 */
 		else
-			p->phy_rate = 2;
+			p->phy_rate = 20;
 	}
 
-	DEBUG("\nrate: %d\n", p->phy_rate);
+	DEBUG("\nrate: %.2f\n", (float)p->phy_rate/10);
 	DEBUG("signal: %d\n", p->phy_signal);
 	DEBUG("noise: %d\n", p->phy_noise);
 	DEBUG("snr: %d\n", p->phy_snr);
