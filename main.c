@@ -282,7 +282,7 @@ handle_packet(struct packet_info* p)
 
 	/* filter on server side only */
 	if (!conf.serveraddr && filter_packet(p)) {
-		if (!conf.quiet && !conf.paused)
+		if (!conf.quiet && !conf.paused && !DO_DEBUG)
 			update_display_clock();
 		return;
 	}
@@ -396,7 +396,7 @@ receive_any(void)
 		err(1, "select()");
 
 	/* stdin */
-	if (FD_ISSET(0, &read_fds) && !conf.quiet)
+	if (FD_ISSET(0, &read_fds) && !conf.quiet && !DO_DEBUG)
 		handle_user_input();
 
 	/* local packet or client */
