@@ -70,18 +70,18 @@ update_history_win(WINDOW *win)
 	wattron(win, A_BOLD);
 	wattron(win, BLUE);
 	mvwprintw(win, 4, col-4, "Rate");
-	mvwprintw(win, RATE_POS-12, 1, "54M");
-	mvwprintw(win, RATE_POS-11, 1, "48M");
-	mvwprintw(win, RATE_POS-10, 1, "36M");
-	mvwprintw(win, RATE_POS-9, 1, "24M");
-	mvwprintw(win, RATE_POS-8, 1, "18M");
-	mvwprintw(win, RATE_POS-7, 1, "12M");
-	mvwprintw(win, RATE_POS-6, 1, "11M");
-	mvwprintw(win, RATE_POS-5, 1, " 9M");
-	mvwprintw(win, RATE_POS-4, 1, " 6M");
-	mvwprintw(win, RATE_POS-3, 1, "5.M");
-	mvwprintw(win, RATE_POS-2, 1, " 2M");
-	mvwprintw(win, RATE_POS-1, 1, " 1M");
+	mvwprintw(win, RATE_POS-12, 1, "300");
+	mvwprintw(win, RATE_POS-11, 1, "275");
+	mvwprintw(win, RATE_POS-10, 1, "250");
+	mvwprintw(win, RATE_POS-9, 1, "225");
+	mvwprintw(win, RATE_POS-8, 1, "200");
+	mvwprintw(win, RATE_POS-7, 1, "175");
+	mvwprintw(win, RATE_POS-6, 1, "150");
+	mvwprintw(win, RATE_POS-5, 1, "125");
+	mvwprintw(win, RATE_POS-4, 1, "100");
+	mvwprintw(win, RATE_POS-3, 1, " 75");
+	mvwprintw(win, RATE_POS-2, 1, " 50");
+	mvwprintw(win, RATE_POS-1, 1, " 25");
 	wattroff(win, A_BOLD);
 
 	i = hist.index - 1;
@@ -107,7 +107,7 @@ update_history_win(WINDOW *win)
 		if (hist.retry[i])
 			mvwprintw(win, TYPE_POS+1, col, "r");
 
-		rat = hist.rate[i];
+		rat = hist.rate[i]/250;
 
 		wattron(win, A_BOLD);
 		wattron(win, BLUE);

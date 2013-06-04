@@ -125,7 +125,7 @@ update_history(struct packet_info* p)
 
 	hist.signal[hist.index] = p->phy_signal;
 	hist.noise[hist.index] = p->phy_noise;
-	hist.rate[hist.index] = p->phy_rate_idx;
+	hist.rate[hist.index] = p->phy_rate;
 	hist.type[hist.index] = p->wlan_type;
 	hist.retry[hist.index] = p->wlan_retry;
 
