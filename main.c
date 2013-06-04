@@ -125,7 +125,7 @@ update_history(struct packet_info* p)
 
 	hist.signal[hist.index] = p->phy_signal;
 	hist.noise[hist.index] = p->phy_noise;
-	hist.rate[hist.index] = p->phy_rate;
+	hist.rate[hist.index] = p->phy_rate_idx;
 	hist.type[hist.index] = p->wlan_type;
 	hist.retry[hist.index] = p->wlan_retry;
 
@@ -138,7 +138,7 @@ update_history(struct packet_info* p)
 static void
 update_statistics(struct packet_info* p)
 {
-	if (p->phy_rate == 0)
+	if (p->phy_rate_idx == 0)
 		return;
 
 	stats.packets++;
@@ -146,16 +146,17 @@ update_statistics(struct packet_info* p)
 	if (p->wlan_retry)
 		stats.retries++;
 
-	if (p->phy_rate > 0 && p->phy_rate < MAX_RATES) {
+	if (p->phy_rate_idx > 0 && p->phy_rate_idx < MAX_RATES) {
 		stats.duration += p->pkt_duration;
-		stats.packets_per_rate[p->phy_rate]++;
-		stats.bytes_per_rate[p->phy_rate] += p->wlan_len;
-		stats.duration_per_rate[p->phy_rate] += p->pkt_duration;
+		stats.packets_per_rate[p->phy_rate_idx]++;
+		stats.bytes_per_rate[p->phy_rate_idx] += p->wlan_len;
+		stats.duration_per_rate[p->phy_rate_idx] += p->pkt_duration;
 	}
+
 	if (p->wlan_type >= 0 && p->wlan_type < MAX_FSTYPE) {
 		stats.packets_per_type[p->wlan_type]++;
 		stats.bytes_per_type[p->wlan_type] += p->wlan_len;
-		if (p->phy_rate > 0 && p->phy_rate < MAX_RATES)
+		if (p->phy_rate_idx > 0 && p->phy_rate_idx < MAX_RATES)
 			stats.duration_per_type[p->wlan_type] += p->pkt_duration;
 	}
 }
@@ -326,7 +327,7 @@ handle_packet(struct packet_info* p)
 
 	p->pkt_duration = ieee80211_frame_duration(
 				p->phy_flags & PHY_FLAG_MODE_MASK,
-				p->wlan_len, p->phy_rate * 5,
+				p->wlan_len, p->phy_rate,
 				p->phy_flags & PHY_FLAG_SHORTPRE,
 				0 /*shortslot*/, p->wlan_type, p->wlan_qos_class,
 				p->wlan_retries);

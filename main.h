@@ -40,7 +40,7 @@
 #define MAX_HISTORY		255
 #define MAX_CHANNELS		64
 #define MAX_ESSID_LEN		32
-#define MAX_RATES		109	/* in 500kbps steps: 54 * 2 + 1 for array index */
+#define MAX_RATES		44	/* 12 legacy rates and 32 MCS */
 #define MAX_FSTYPE		0xff
 #define MAX_FILTERMAC		9
 
@@ -115,6 +115,8 @@ struct packet_info {
 	int			phy_noise;	/* noise level (usually dBm) */
 	unsigned int		phy_snr;	/* signal to noise ratio */
 	unsigned int		phy_rate;	/* physical rate * 10 (=in 100kbps) */
+	unsigned char		phy_rate_idx;	/* MCS index */
+	unsigned char		phy_rate_flags;	/* MCS flags */
 	unsigned int		phy_freq;	/* frequency from driver */
 	unsigned char		phy_chan;	/* channel from driver */
 	unsigned int		phy_flags;	/* A, B, G, shortpre */

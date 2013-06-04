@@ -141,6 +141,8 @@ parse_prism_header(unsigned char** buf, int len, struct packet_info* p)
 			p->phy_rate = 20; /* 1 * 2 */
 	}
 
+	p->phy_rate_idx = rate_to_index(p->phy_rate);
+
 	/* guess phy mode */
 	if (ph->channel.data > 14)
 		p->phy_flags |= PHY_FLAG_A;
@@ -227,7 +229,8 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 				/* we are only interrested in these: */
 				case IEEE80211_RADIOTAP_RATE:
 					DEBUG("[rate %0x]", *b);
-					p->phy_rate = (*b)*10;
+					p->phy_rate = (*b)*5; /* rate is in 500kbps */
+					p->phy_rate_idx = rate_to_index(p->phy_rate);
 					b++;
 					break;
 				case IEEE80211_RADIOTAP_DBM_ANTSIGNAL:
@@ -305,41 +308,11 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 					} else
 						lgi = 1; /* assume long GI if not present */
 
-					/* MCS Index, http://en.wikipedia.org/wiki/IEEE_802.11n-2009#Data_rates */
-					switch (*b) {
-						case 0:  p->phy_rate = ht20 ? (lgi ? 65 : 72) : (lgi ? 135 : 150); break;
-						case 1:  p->phy_rate = ht20 ? (lgi ? 130 : 144) : (lgi ? 270 : 300); break;
-						case 2:  p->phy_rate = ht20 ? (lgi ? 195 : 217) : (lgi ? 405 : 450); break;
-						case 3:  p->phy_rate = ht20 ? (lgi ? 260 : 289) : (lgi ? 540 : 600); break;
-						case 4:  p->phy_rate = ht20 ? (lgi ? 390 : 433) : (lgi ? 810 : 900); break;
-						case 5:  p->phy_rate = ht20 ? (lgi ? 520 : 578) : (lgi ? 1080 : 1200); break;
-						case 6:  p->phy_rate = ht20 ? (lgi ? 585 : 650) : (lgi ? 1215 : 1350); break;
-						case 7:  p->phy_rate = ht20 ? (lgi ? 650 : 722) : (lgi ? 1350 : 1500); break;
-						case 8:  p->phy_rate = ht20 ? (lgi ? 130 : 144) : (lgi ? 270 : 300); break;
-						case 9:  p->phy_rate = ht20 ? (lgi ? 260 : 289) : (lgi ? 540 : 600); break;
-						case 10: p->phy_rate = ht20 ? (lgi ? 390 : 433) : (lgi ? 810 : 900); break;
-						case 11: p->phy_rate = ht20 ? (lgi ? 520 : 578) : (lgi ? 1080 : 1200); break;
-						case 12: p->phy_rate = ht20 ? (lgi ? 780 : 867) : (lgi ? 1620 : 1800); break;
-						case 13: p->phy_rate = ht20 ? (lgi ? 1040 : 1156) : (lgi ? 2160 : 2400); break;
-						case 14: p->phy_rate = ht20 ? (lgi ? 1170 : 1300) : (lgi ? 2430 : 2700); break;
-						case 15: p->phy_rate = ht20 ? (lgi ? 1300 : 1444) : (lgi ? 2700 : 3000); break;
-						case 16: p->phy_rate = ht20 ? (lgi ? 195 : 217) : (lgi ? 405 : 450); break;
-						case 17: p->phy_rate = ht20 ? (lgi ? 39 : 433) : (lgi ? 810 : 900); break;
-						case 18: p->phy_rate = ht20 ? (lgi ? 585 : 650) : (lgi ? 1215 : 1350); break;
-						case 19: p->phy_rate = ht20 ? (lgi ? 78 : 867) : (lgi ? 1620 : 1800); break;
-						case 20: p->phy_rate = ht20 ? (lgi ? 1170 : 1300) : (lgi ? 2430 : 2700); break;
-						case 21: p->phy_rate = ht20 ? (lgi ? 1560 : 1733) : (lgi ? 3240 : 3600); break;
-						case 22: p->phy_rate = ht20 ? (lgi ? 1755 : 1950) : (lgi ? 3645 : 4050); break;
-						case 23: p->phy_rate = ht20 ? (lgi ? 1950 : 2167) : (lgi ? 4050 : 4500); break;
-						case 24: p->phy_rate = ht20 ? (lgi ? 260 : 288) : (lgi ? 540 : 600); break;
-						case 25: p->phy_rate = ht20 ? (lgi ? 520 : 576) : (lgi ? 1080 : 1200); break;
-						case 26: p->phy_rate = ht20 ? (lgi ? 780 : 868) : (lgi ? 1620 : 1800); break;
-						case 27: p->phy_rate = ht20 ? (lgi ? 1040 : 1156) : (lgi ? 2160 : 2400); break;
-						case 28: p->phy_rate = ht20 ? (lgi ? 1560 : 1732) : (lgi ? 3240 : 3600); break;
-						case 29: p->phy_rate = ht20 ? (lgi ? 2080 : 2312) : (lgi ? 4320 : 4800); break;
-						case 30: p->phy_rate = ht20 ? (lgi ? 2340 : 2600) : (lgi ? 4860 : 5400); break;
-						case 31: p->phy_rate = ht20 ? (lgi ? 2600 : 2888) : (lgi ? 5400 : 6000); break;
-					}
+					p->phy_rate_idx = 12 + *b;
+					p->phy_rate_flags = flags;
+
+					p->phy_rate = mcs_index_to_rate(*b, ht20, lgi);
+
 					DEBUG(" RATE %d ", p->phy_rate);
 					b++;
 					break;
@@ -381,6 +354,7 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 	}
 
 	DEBUG("\nrate: %.2f\n", (float)p->phy_rate/10);
+	DEBUG("rate_idx: %d\n", p->phy_rate_idx);
 	DEBUG("signal: %d\n", p->phy_signal);
 	DEBUG("noise: %d\n", p->phy_noise);
 	DEBUG("snr: %d\n", p->phy_snr);

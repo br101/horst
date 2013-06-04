@@ -86,7 +86,10 @@ update_statistics_win(WINDOW *win)
 	for (i = 1; i < MAX_RATES && line < LINES - 2; i++) {
 		if (stats.packets_per_rate[i] > 0) {
 			wattron(win, A_BOLD);
-			mvwprintw(win, line, 2, "%3dM", i/2);
+			if (i<12)
+				mvwprintw(win, line, 2, "%3dM", rate_index_to_rate(i)/10);
+			else
+				mvwprintw(win, line, 2, "MCS%d", i - 12);
 			wattroff(win, A_BOLD);
 			mvwprintw(win, line, STAT_PACK_POS, "%8d",
 				stats.packets_per_rate[i]);

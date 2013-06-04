@@ -90,7 +90,7 @@ struct net_chan_list {
 } __attribute__ ((packed));
 
 
-#define PKT_INFO_VERSION	1
+#define PKT_INFO_VERSION	2
 
 struct net_packet_info {
 	struct net_header	proto;
@@ -138,6 +138,8 @@ struct net_packet_info {
 	unsigned int		olsr_neigh;
 	unsigned int		olsr_tc;
 
+	unsigned char		phy_rate_idx;
+	unsigned char		phy_rate_flags;
 } __attribute__ ((packed));
 
 
@@ -176,6 +178,8 @@ net_send_packet(struct packet_info *p)
 	np.phy_noise	= htole32(p->phy_noise);
 	np.phy_snr	= htole32(p->phy_snr);
 	np.phy_rate	= htole32(p->phy_rate);
+	np.phy_rate_idx	= p->phy_rate_idx;
+	np.phy_rate_flags = p->phy_rate_flags;
 	np.phy_freq	= htole32(p->phy_freq);
 	np.phy_chan	= p->phy_chan;
 	np.phy_flags	= htole32(p->phy_flags);
@@ -233,6 +237,8 @@ net_receive_packet(unsigned char *buffer, int len)
 	p.phy_noise	= le32toh(np->phy_noise);
 	p.phy_snr	= le32toh(np->phy_snr);
 	p.phy_rate	= le32toh(np->phy_rate);
+	p.phy_rate_idx	= np->phy_rate_idx;
+	p.phy_rate_flags= np->phy_rate_flags;
 	p.phy_freq	= le32toh(np->phy_freq);
 	p.phy_chan	= np->phy_chan;
 	p.phy_flags	= le32toh(np->phy_flags);

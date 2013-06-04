@@ -107,21 +107,8 @@ update_history_win(WINDOW *win)
 		if (hist.retry[i])
 			mvwprintw(win, TYPE_POS+1, col, "r");
 
-		switch (hist.rate[i]/2) {
-			case 54: rat = 12; break;
-			case 48: rat = 11; break;
-			case 36: rat = 10; break;
-			case 24: rat = 9; break;
-			case 18: rat = 8; break;
-			case 12: rat = 7; break;
-			case 11: rat = 6; break;
-			case 9: rat = 5; break;
-			case 6: rat = 4; break;
-			case 5: rat = 3; break;
-			case 2: rat = 2; break;
-			case 1: rat = 1; break;
-			default: rat = 0;
-		}
+		rat = hist.rate[i];
+
 		wattron(win, A_BOLD);
 		wattron(win, BLUE);
 		mvwvline(win, RATE_POS - rat, col, 'x', rat);
