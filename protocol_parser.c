@@ -264,6 +264,7 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 					break;
 				case IEEE80211_RADIOTAP_CHANNEL:
 					/* channel & channel type */
+					if (((long)b)%2) b++; // align to 16 bit boundary
 					p->phy_freq = le16toh(*(u_int16_t*)b);
 					p->phy_chan =
 						ieee80211_frequency_to_channel(p->phy_freq);
@@ -287,30 +288,24 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 					break;
 				case IEEE80211_RADIOTAP_MCS:
 					/* Ref http://www.radiotap.org/defined-fields/MCS */
-					b++;
-					known = *b;
-					DEBUG("[MCS known %0x", *b);
-					b++;
-					flags = *b;
-					DEBUG(" flags %0x ", *b);
-					b++;//b = b + 2;
-					DEBUG(" index %0x]", *b);
+					known = *b++;
+					flags = *b++;
+					DEBUG("[MCS known %0x flags %0x index %0x]", known, flags, *b);
 
-					if (known & IEEE80211_RADIOTAP_MCS_HAVE_BW) {
+					if (known & IEEE80211_RADIOTAP_MCS_HAVE_BW)
 						ht20 = (flags & IEEE80211_RADIOTAP_MCS_BW_MASK) == IEEE80211_RADIOTAP_MCS_BW_20;
-						DEBUG(" HT20 %d", ht20);
-					} else
+					else
 						ht20 = 1; /* assume HT20 if not present */
 
-					if (known & IEEE80211_RADIOTAP_MCS_HAVE_GI) {
+					if (known & IEEE80211_RADIOTAP_MCS_HAVE_GI)
 						lgi = !(flags & IEEE80211_RADIOTAP_MCS_SGI);
-						DEBUG(" LGI %d", lgi);
-					} else
+					else
 						lgi = 1; /* assume long GI if not present */
+
+					DEBUG(" %s %s", ht20 ? "HT20" : "HT40", lgi ? "LGI" : "SGI");
 
 					p->phy_rate_idx = 12 + *b;
 					p->phy_rate_flags = flags;
-
 					p->phy_rate = mcs_index_to_rate(*b, ht20, lgi);
 
 					DEBUG(" RATE %d ", p->phy_rate);
