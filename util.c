@@ -37,16 +37,21 @@ static struct pkt_names mgmt_names[] = {
 	{ 'A', "REASRP" },		/* IEEE80211_STYPE_REASSOC_RESP	0x0030 */
 	{ 'p', "PROBRQ" },		/* IEEE80211_STYPE_PROBE_REQ	0x0040 */
 	{ 'P', "PROBRP" },		/* IEEE80211_STYPE_PROBE_RESP	0x0050 */
-	{}, {}, 			/* unused */
+	{ 'T', "TIMING" },		/* Timing Advertisement		0x0060 */
+	{ '-', "-RESV-" },		/* RESERVED */
 	{ 'B', "BEACON" },		/* IEEE80211_STYPE_BEACON	0x0080 */
 	{ 't', "ATIM" },		/* IEEE80211_STYPE_ATIM		0x0090 */
 	{ 'D', "DISASC" },		/* IEEE80211_STYPE_DISASSOC	0x00A0 */
 	{ 'u', "AUTH" },		/* IEEE80211_STYPE_AUTH		0x00B0 */
 	{ 'U', "DEAUTH" },		/* IEEE80211_STYPE_DEAUTH	0x00C0 */
-	{ 'T', "ACTION" },		/* IEEE80211_STYPE_ACTION	0x00D0 */
+	{ 'C', "ACTION" },		/* IEEE80211_STYPE_ACTION	0x00D0 */
+	{ 'c', "ACTNOA" },		/* Action No Ack		0x00E0 */
 };
 
 static struct pkt_names ctrl_names[] = {
+	{ 'w', "CTWRAP" },		/* Control Wrapper		0x0070 */
+	{ 'b', "BACKRQ" },		/* IEEE80211_STYPE_BACK_REQ	0x0080 */
+	{ 'B', "BACK" },		/* IEEE80211_STYPE_BACK		0x0090 */
 	{ 's', "PSPOLL" },		/* IEEE80211_STYPE_PSPOLL	0x00A0 */
 	{ 'R', "RTS" },			/* IEEE80211_STYPE_RTS		0x00B0 */
 	{ 'C', "CTS" },			/* IEEE80211_STYPE_CTS		0x00C0 */
@@ -76,7 +81,7 @@ static struct pkt_names data_names[] = {
 
 #define DATA_NAME_INDEX(_i) (((_i) & IEEE80211_FCTL_STYPE)>>4)
 #define MGMT_NAME_INDEX(_i) (((_i) & IEEE80211_FCTL_STYPE)>>4)
-#define CTRL_NAME_INDEX(_i) ((((_i) & IEEE80211_FCTL_STYPE)>>4)-10)
+#define CTRL_NAME_INDEX(_i) ((((_i) & IEEE80211_FCTL_STYPE)>>4)-7)
 
 
 int
