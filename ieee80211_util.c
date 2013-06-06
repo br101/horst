@@ -364,7 +364,7 @@ rate_to_index(int rate)
 		case 110: return 6;
 		case 90: return 5;
 		case 60: return 4;
-		case 50: return 3;
+		case 55: return 3;
 		case 20: return 2;
 		case 10: return 1;
 		default: return 0;
@@ -385,7 +385,7 @@ rate_index_to_rate(int idx)
 		case 6: return 110;
 		case 5: return 90;
 		case 4: return 60;
-		case 3: return 50;
+		case 3: return 55;
 		case 2: return 20;
 		case 1: return 10;
 		default: return 0;
