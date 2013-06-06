@@ -95,6 +95,11 @@ update_filter_win(WINDOW *win)
 	}
 
 	l++;
+	wattron(win, RED);
+	mvwprintw(win, l++, MAC_COL, "*: [%c] Bad FCS", CHECKED(PKT_TYPE_BADFCS));
+	wattroff(win, RED);
+
+	l++;
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, MAC_COL, "o: [%c] All Filters Off", conf.filter_off ? '*' : ' ' );
 	wattroff(win, A_BOLD);
@@ -148,6 +153,7 @@ filter_input(WINDOW *win, int c)
 	case 'O': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_OLSR|PKT_TYPE_OLSR_LQ|PKT_TYPE_OLSR_GW); break;
 	case 'B': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_BATMAN); break;
 	case 'M': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_MESHZ); break;
+	case '*': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_BADFCS); break;
 
 	case 's':
 		echo();
@@ -191,15 +197,13 @@ filter_input(WINDOW *win, int c)
 	}
 
 	/* convenience: */
-	/* if one of the individual mgmt frames is deselected we dont want to see all mgmt frames */
-	if ((conf.filter_pkt & PKT_TYPE_ALL_MGMT) != PKT_TYPE_ALL_MGMT)
-		conf.filter_pkt = conf.filter_pkt & ~PKT_TYPE_MGMT;
-	/* same for ctl */
-	if ((conf.filter_pkt & PKT_TYPE_ALL_CTRL) != PKT_TYPE_ALL_CTRL)
-		conf.filter_pkt = conf.filter_pkt & ~PKT_TYPE_CTRL;
-	/* same for data */
-	if ((conf.filter_pkt & PKT_TYPE_ALL_DATA) != PKT_TYPE_ALL_DATA)
-		conf.filter_pkt = conf.filter_pkt & ~PKT_TYPE_DATA;
+	/* if one of the individual subtype frames is selected we enable the general frame type */
+	if (conf.filter_pkt & PKT_TYPE_ALL_MGMT)
+		conf.filter_pkt |= PKT_TYPE_MGMT;
+	if (conf.filter_pkt & PKT_TYPE_ALL_CTRL)
+		conf.filter_pkt |= PKT_TYPE_CTRL;
+	if (conf.filter_pkt & PKT_TYPE_ALL_DATA)
+		conf.filter_pkt |= PKT_TYPE_DATA;
 
 	/* recalculate filter flag */
 	conf.do_macfilter = 0;

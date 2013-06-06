@@ -172,6 +172,8 @@ convert_string_to_mac(const char* string, unsigned char* mac)
 char
 get_packet_type_char(int type)
 {
+	if (type == 1) /* special case for bad FCS */
+		return '*';
 	switch (type & IEEE80211_FCTL_FTYPE) {
 	case IEEE80211_FTYPE_MGMT:
 		if (MGMT_NAME_INDEX(type) < sizeof(mgmt_names)/sizeof(struct pkt_names)) {
@@ -199,6 +201,8 @@ get_packet_type_char(int type)
 const char*
 get_packet_type_name(int type)
 {
+	if (type == 1) /* special case for bad FCS */
+		return "BADFCS";
 	switch (type & IEEE80211_FCTL_FTYPE) {
 	case IEEE80211_FTYPE_MGMT:
 		if (MGMT_NAME_INDEX(type) < sizeof(mgmt_names)/sizeof(struct pkt_names)) {

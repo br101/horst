@@ -387,6 +387,9 @@ update_dump_win(struct packet_info* p)
 	if (p->pkt_types & PKT_TYPE_IP)
 		wattron(dump_win, A_BOLD);
 
+	if (p->phy_flags & PHY_FLAG_BADFCS)
+		wattron(dump_win, RED);
+
 	wprintw(dump_win, "\n%02d ", p->phy_chan);
 	wprintw(dump_win, "-%02d", -p->phy_signal);
 	if (conf.have_noise)
@@ -399,6 +402,9 @@ update_dump_win(struct packet_info* p)
 
 	if (p->wlan_retry)
 		wprintw(dump_win, "[r]");
+
+	if (p->phy_flags & PHY_FLAG_BADFCS)
+		wprintw(dump_win, "*BADFCS* ");
 
 	if (p->pkt_types & PKT_TYPE_OLSR) {
 		wprintw(dump_win, "%-7s%s ", "OLSR", ip_sprintf(p->ip_src));

@@ -116,6 +116,8 @@ print_centered(WINDOW* win, int line, int cols, const char *fmt, ...)
 int
 get_packet_type_color(int type)
 {
+	if (type == 1) /* special case for bad FCS */
+		return RED;
 	switch (type & IEEE80211_FCTL_FTYPE) {
 		case IEEE80211_FTYPE_DATA: return BLUE;
 		case IEEE80211_FTYPE_CTL: return WHITE;

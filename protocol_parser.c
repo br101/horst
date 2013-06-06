@@ -257,6 +257,7 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 					}
 					if (*b & IEEE80211_RADIOTAP_F_BADFCS) {
 						p->phy_flags |= PHY_FLAG_BADFCS;
+						p->pkt_types |= PKT_TYPE_BADFCS;
 						DEBUG(" badfcs");
 					}
 					DEBUG("]");
@@ -393,7 +394,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 
 	switch (p->wlan_type & IEEE80211_FCTL_FTYPE) {
 	case IEEE80211_FTYPE_DATA:
-		p->pkt_types = PKT_TYPE_DATA;
+		p->pkt_types |= PKT_TYPE_DATA;
 		switch (p->wlan_type & IEEE80211_FCTL_STYPE) {
 		case IEEE80211_STYPE_NULLFUNC:
 			p->pkt_types |= PKT_TYPE_NULL;
@@ -430,7 +431,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 		break;
 
 	case IEEE80211_FTYPE_CTL:
-		p->pkt_types = PKT_TYPE_CTRL;
+		p->pkt_types |= PKT_TYPE_CTRL;
 		switch (p->wlan_type & IEEE80211_FCTL_STYPE) {
 		case IEEE80211_STYPE_RTS:
 			p->pkt_types |= PKT_TYPE_RTS;
@@ -470,7 +471,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 		break;
 
 	case IEEE80211_FTYPE_MGMT:
-		p->pkt_types = PKT_TYPE_MGMT;
+		p->pkt_types |= PKT_TYPE_MGMT;
 		whm = (struct ieee80211_mgmt*)*buf;
 		sa = whm->sa;
 		da = whm->da;

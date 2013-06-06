@@ -126,7 +126,7 @@ update_history(struct packet_info* p)
 	hist.signal[hist.index] = p->phy_signal;
 	hist.noise[hist.index] = p->phy_noise;
 	hist.rate[hist.index] = p->phy_rate;
-	hist.type[hist.index] = p->wlan_type;
+	hist.type[hist.index] = (p->phy_flags & PHY_FLAG_BADFCS) ? 1 : p->wlan_type;
 	hist.retry[hist.index] = p->wlan_retry;
 
 	hist.index++;
@@ -138,6 +138,8 @@ update_history(struct packet_info* p)
 static void
 update_statistics(struct packet_info* p)
 {
+	int type = (p->phy_flags & PHY_FLAG_BADFCS) ? 1 : p->wlan_type;
+
 	if (p->phy_rate_idx == 0)
 		return;
 
@@ -153,11 +155,11 @@ update_statistics(struct packet_info* p)
 		stats.duration_per_rate[p->phy_rate_idx] += p->pkt_duration;
 	}
 
-	if (p->wlan_type >= 0 && p->wlan_type < MAX_FSTYPE) {
-		stats.packets_per_type[p->wlan_type]++;
-		stats.bytes_per_type[p->wlan_type] += p->wlan_len;
+	if (type >= 0 && type < MAX_FSTYPE) {
+		stats.packets_per_type[type]++;
+		stats.bytes_per_type[type] += p->wlan_len;
 		if (p->phy_rate_idx > 0 && p->phy_rate_idx < MAX_RATES)
-			stats.duration_per_type[p->wlan_type] += p->pkt_duration;
+			stats.duration_per_type[type] += p->pkt_duration;
 	}
 }
 
@@ -249,7 +251,7 @@ filter_packet(struct packet_info* p)
 	if (conf.filter_off)
 		return 0;
 
-	if (!(p->pkt_types & conf.filter_pkt)) {
+	if (p->pkt_types & ~conf.filter_pkt) {
 		stats.filtered_packets++;
 		return 1;
 	}

@@ -90,6 +90,9 @@ node_update(struct packet_info* p)
 {
 	struct node_info* n;
 
+	if (p->phy_flags & PHY_FLAG_BADFCS)
+		return NULL;
+
 	if (p->wlan_src[0] == 0 && p->wlan_src[1] == 0 &&
 	    p->wlan_src[2] == 0 && p->wlan_src[3] == 0 &&
 	    p->wlan_src[4] == 0 && p->wlan_src[5] == 0)
