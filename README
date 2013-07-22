@@ -10,10 +10,10 @@ Licensed under the GNU Public License (GPL) V2
 
 "horst" is a scanning and analysis tool for IEEE802.11 wireless ad-hoc (IBSS)
 networks and the OLSR mesh routing protocol. it can be used discover the best
-OLSR nodes in the neighbourhood, to optimize antenna positions and to discover
+OLSR nodes in the neighborhood, to optimize antenna positions and to discover
 problems in the mesh network.
 
-See the man page for more detailled and up-to-date info:
+See the man page for more detailed and up-to-date info:
 	$ man -l horst.1
 	(or)
 	$ nroff -mandoc horst.1
@@ -28,11 +28,11 @@ IBSS as one. this information however is very important for setting up,
 debugging and optimizing wireless mesh networks.
 
 "horst" aims to fill this gap and lists each single node of an ad-hoc network
-seperately, showing the signal strength (SNR) of the last received packet. this
+separately, showing the signal strength (SNR) of the last received packet. this
 way you can see which nodes are part of a specific ad-hoc cell (BSSID), discover
 problems with ad-hoc cell merging ("cell splitting" - a problem of many wlan
-drivers), which of the nodes send OLSR packets, wether they use the OLSR link
-quality exension, how many neighbors they see, etc.
+drivers), which of the nodes send OLSR packets, whether they use the OLSR link
+quality extension, how many neighbors they see, etc.
 
 to do this, it uses the monitor mode including prism2 or radiotap headers (for
 the signal strength information) of the wlan cards and listens to all packets
