@@ -74,7 +74,7 @@ static struct pkt_names data_names[] = {
 	{ 'F', "QDCFPL" },		/* IEEE80211_STYPE_QOS_DATA_CFPOLL	0x00A0 */
 	{ 'F', "QDCFKP" },		/* IEEE80211_STYPE_QOS_DATA_CFACKPOLL	0x00B0 */
 	{ 'N', "QDNULL" },		/* IEEE80211_STYPE_QOS_NULLFUNC		0x00C0 */
-	{ 'f', "QCFACK" },		/* IEEE80211_STYPE_QOS_CFACK		0x00D0 */
+	{ '-', "-RESV-" },		/* RESERVED				0x00D0 */
 	{ 'f', "QCFPLL" },		/* IEEE80211_STYPE_QOS_CFPOLL		0x00E0 */
 	{ 'f', "QCFKPL" },		/* IEEE80211_STYPE_QOS_CFACKPOLL	0x00F0 */
 };
