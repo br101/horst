@@ -251,9 +251,6 @@ update_status_win(struct packet_info* p)
 #define COL_RATE	COL_SNR + 3
 #define COL_SOURCE	COL_RATE + 4
 #define COL_STA		COL_SOURCE + 18
-#define COL_BSSID	COL_STA + 2
-#define COL_ENC		COL_BSSID + 20
-#define COL_IP		COL_ENC + 2
 
 static char spin[4] = {'/', '-', '\\', '|'};
 
@@ -278,28 +275,29 @@ print_list_line(int line, struct node_info* n)
 		  n->pkt_count * 100.0 / stats.packets,
 		  n->wlan_retries_all * 100.0 / n->pkt_count);
 
-	mvwprintw(list_win, line, COL_SNR, "%2d", ewma_read(&n->phy_snr_avg));
-
-	if (n->wlan_mode == WLAN_MODE_AP )
-		mvwprintw(list_win, line, COL_STA,"A");
-	else if (n->wlan_mode == WLAN_MODE_IBSS )
-		mvwprintw(list_win, line, COL_STA, "I");
-	else if (n->wlan_mode == WLAN_MODE_STA )
-		mvwprintw(list_win, line, COL_STA, "S");
-	else if (n->wlan_mode == WLAN_MODE_PROBE )
-		mvwprintw(list_win, line, COL_STA, "P");
-
-	mvwprintw(list_win, line, COL_ENC, n->wlan_wep ? "W" : "");
-
-	mvwprintw(list_win, line, COL_RATE, "%3d q", p->phy_rate/10);
-	mvwprintw(list_win, line, COL_SOURCE, "%s", ether_sprintf(p->wlan_src));
-	mvwprintw(list_win, line, COL_BSSID, "(%s)", ether_sprintf(n->wlan_bssid));
-
 	if (n->wlan_channel)
 		mvwprintw(list_win, line, COL_CHAN, "%2d", n->wlan_channel );
 
+	mvwprintw(list_win, line, COL_SNR, "%2d", ewma_read(&n->phy_snr_avg));
+	mvwprintw(list_win, line, COL_RATE, "%3d q", p->phy_rate/10);
+	mvwprintw(list_win, line, COL_SOURCE, "%s", ether_sprintf(p->wlan_src));
+
+	if (n->wlan_mode == WLAN_MODE_AP )
+		mvwprintw(list_win, line, COL_STA,"AP    '%s'", (n->essid != NULL) ? n->essid->essid : "");
+	else if (n->wlan_mode == WLAN_MODE_IBSS )
+		mvwprintw(list_win, line, COL_STA, "ADHOC '%s'", (n->essid != NULL) ? n->essid->essid : "");
+	else if (n->wlan_mode == WLAN_MODE_STA )
+		mvwprintw(list_win, line, COL_STA, "STA   '%s'",
+			  (n->wlan_ap_node != NULL && n->wlan_ap_node->essid != NULL) ? n->wlan_ap_node->essid->essid : "");
+	else if (n->wlan_mode == WLAN_MODE_PROBE )
+		mvwprintw(list_win, line, COL_STA, "PROBE");
+
+	wprintw(list_win, n->wlan_wep ? " ENC" : "");
+	wprintw(list_win, n->wlan_wpa ? "(WPA)" : "");
+	wprintw(list_win, n->wlan_rsn ? "(RSN)" : "");
+
 	if (n->pkt_types & PKT_TYPE_IP)
-		mvwprintw(list_win, line, COL_IP, "%s", ip_sprintf(n->ip_src));
+		wprintw(list_win, " %s", ip_sprintf(n->ip_src));
 
 	if (n->pkt_types & PKT_TYPE_OLSR)
 		wprintw(list_win, " OLSR%s N:%d %s",
@@ -333,10 +331,8 @@ update_list_win(void)
 	mvwprintw(list_win, 0, COL_SNR, "SN");
 	mvwprintw(list_win, 0, COL_RATE, "RAT");
 	mvwprintw(list_win, 0, COL_SOURCE, "SOURCE");
-	mvwprintw(list_win, 0, COL_STA, "M");
-	mvwprintw(list_win, 0, COL_BSSID, "(BSSID)");
-	mvwprintw(list_win, 0, COL_ENC, "E");
-	mvwprintw(list_win, 0, COL_IP, "IP/Mesh");
+	mvwprintw(list_win, 0, COL_STA, "MODE");
+	mvwprintw(list_win, 0, COL_STA + 6, "Info");
 
 	/* reuse bottom line for information on other win */
 	mvwprintw(list_win, win_split - 1, 0, "CH-Sig");
