@@ -396,9 +396,6 @@ update_dump_win(struct packet_info* p)
 	wprintw(dump_win, "%s ", ether_sprintf(p->wlan_src));
 	wprintw(dump_win, "(%s) ", ether_sprintf(p->wlan_bssid));
 
-	if (p->wlan_retry)
-		wprintw(dump_win, "[r]");
-
 	if (p->phy_flags & PHY_FLAG_BADFCS)
 		wprintw(dump_win, "*BADFCS* ");
 
@@ -473,6 +470,10 @@ update_dump_win(struct packet_info* p)
 			}
 		}
 	}
+
+	if (p->wlan_retry)
+		wprintw(dump_win, " [r]");
+
 	wattroff(dump_win, A_BOLD);
 }
 
