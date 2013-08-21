@@ -96,8 +96,9 @@ update_essids(struct packet_info* p, struct node_info* n)
 	if (p->phy_flags & PHY_FLAG_BADFCS)
 		return; /* ignore */
 
-	/* only check beacons (XXX: what about PROBE?) */
-	if (!IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON))
+	/* only check beacons and probe response frames */
+	if (!IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON) &&
+	    !IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_PROBE_RESP))
 		return;
 
 	if (n == NULL)
