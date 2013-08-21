@@ -89,8 +89,8 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 	else if (p->pkt_chan_idx >= 0)
 		n->wlan_channel = channels[p->pkt_chan_idx].chan;
 
-	if ((IEEE80211_IS_DATA(p->wlan_type) &&
-	     !IEEE80211_IS_DATA_STYPE(p->wlan_type, IEEE80211_STYPE_QOS_NULLFUNC)) ||
+	if (IEEE80211_IS_DATA_STYPE(p->wlan_type, IEEE80211_STYPE_DATA) ||
+	    IEEE80211_IS_DATA_STYPE(p->wlan_type, IEEE80211_STYPE_QOS_DATA) ||
 	    IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON) ||
 	    IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_PROBE_RESP))
 		n->wlan_wep = p->wlan_wep;
