@@ -188,6 +188,7 @@ struct node_info {
 	unsigned int		wlan_retries_last;
 	unsigned int		wlan_seqno;
 	struct essid_info*	essid;
+	struct node_info*	wlan_ap_node;
 
 	unsigned int		wlan_wep:1,	/* WEP active? */
 				wlan_wpa:1,

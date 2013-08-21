@@ -35,6 +35,8 @@ void remove_node_from_essid(struct node_info* n);
 static void
 copy_nodeinfo(struct node_info* n, struct packet_info* p)
 {
+	struct node_info* ap;
+
 	memcpy(&(n->last_pkt), p, sizeof(struct packet_info));
 	// update timestamp
 	n->last_seen = time(NULL);
@@ -55,6 +57,18 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 	      p->wlan_bssid[2] == 0 && p->wlan_bssid[3] == 0 &&
 	      p->wlan_bssid[4] == 0 && p->wlan_bssid[5] == 0)) {
 		memcpy(n->wlan_bssid, p->wlan_bssid, MAC_LEN);
+
+		if (n->wlan_mode == WLAN_MODE_STA && n->wlan_ap_node == NULL) {
+			/* find AP node for this BSSID */
+			list_for_each_entry(ap, &nodes, list) {
+				if (memcmp(p->wlan_bssid, ap->last_pkt.wlan_src, MAC_LEN) == 0) {
+					DEBUG("AP node found %p\n", ap);
+					DEBUG("AP node ESSID %s\n", ap->essid->essid);
+					n->wlan_ap_node = ap;
+					break;
+				}
+			}
+		}
 	}
 	if (IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON) ||
 	    IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_PROBE_RESP)) {
@@ -75,7 +89,8 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 	else if (p->pkt_chan_idx >= 0)
 		n->wlan_channel = channels[p->pkt_chan_idx].chan;
 
-	if (IEEE80211_IS_DATA(p->wlan_type) ||
+	if ((IEEE80211_IS_DATA(p->wlan_type) &&
+	     !IEEE80211_IS_DATA_STYPE(p->wlan_type, IEEE80211_STYPE_QOS_NULLFUNC)) ||
 	    IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON) ||
 	    IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_PROBE_RESP))
 		n->wlan_wep = p->wlan_wep;
