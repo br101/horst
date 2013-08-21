@@ -56,7 +56,7 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 	      p->wlan_bssid[4] == 0 && p->wlan_bssid[5] == 0)) {
 		memcpy(n->wlan_bssid, p->wlan_bssid, MAC_LEN);
 	}
-	if (IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON) |
+	if (IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON) ||
 	    IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_PROBE_RESP)) {
 		n->wlan_tsf = p->wlan_tsf;
 		n->wlan_bintval = p->wlan_bintval;
@@ -75,7 +75,9 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 	else if (p->pkt_chan_idx >= 0)
 		n->wlan_channel = channels[p->pkt_chan_idx].chan;
 
-	if (!IEEE80211_IS_CTRL(p->wlan_type))
+	if (IEEE80211_IS_DATA(p->wlan_type) ||
+	    IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON) ||
+	    IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_PROBE_RESP))
 		n->wlan_wep = p->wlan_wep;
 
 	if (p->wlan_seqno != 0) {
