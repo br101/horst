@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH HORST 8 "August 14, 2012"
+.TH HORST 8 "August 21, 2013"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 horst \- Highly Optimized Radio Scanning Tool
@@ -125,6 +125,158 @@ Using hostap:
 iwconfig wlan0 mode monitor
 iwpriv wlan0 monitor_type 1
 .fi
+
+.SH OUTPUT FILE FORMAT
+
+The format of the output file (-o flag) is a comma separated list of the following fields in the following order, one packet each line.
+
+.TP
+packet_type
+802.11 MAC packet type name like below:
+
+        BADFCS    Bad frame checksum
+
+        Management frames:
+        ASOCRQ    Association request
+        ASOCRP    Associaion response
+        REASRQ    Reassociation request
+        REASRP    Reassociation response
+        PROBRQ    Probe request
+        PROBRP    Probe response
+        TIMING    Timing Advertisement
+        BEACON    Beacon
+        ATIM      ATIM
+        DISASC    Disassociation
+        AUTH      Authentication
+        DEAUTH    Deauthentication
+        ACTION    Action
+        ACTNOA    Action No Ack
+
+        Control frames:
+        CTWRAP    Control Wrapper
+        BACKRQ    Block Ack Request
+        BACK      Block Ack
+        PSPOLL    PS-Poll
+        RTS       RTS
+        CTS       CTS
+        ACK       ACK
+        CFEND     CF-End
+        CFENDK    CF-End + CF-Ack
+
+        Data frames:
+        DATA      Data
+        DCFACK    Data + CF-Ack
+        DCFPLL    Data + CF-Poll
+        DCFKPL    Data + CF-Ack + CF-Poll
+        NULL      Null (no data)
+        CFACK     CF-Ack (no data)
+        CFPOLL    CF-Poll (no data)
+        CFCKPL    CF-Ack + CF-Poll (no data)
+        QDATA     QoS Data
+        QDCFCK    QoS Data + CF-Ack
+        QDCFPL    QoS Data + CF-Poll
+        QDCFKP    QoS Data + CF-Ack + CF-Poll
+        QDNULL    QoS Null (no data)
+        QCFPLL    QoS CF-Poll (no data)
+        QCFKPL    QoS CF-Ack + CF-Poll (no data)
+
+.TP
+ wlan_src
+ Source MAC address
+
+.TP
+wlan_dst
+Destination MAC address
+
+.TP
+wlan_bssid
+BSSID
+
+.TP
+pkt_types
+Packet types, similar to packet_type (above) but as a bit field (types can overlap, e.g. DATA + IP) and can include more info, like IP, ARP, BATMAN, OLSR...
+        CTRL      0x000001
+        MGMT      0x000002
+        DATA      0x000004
+        BADFCS    0x000008
+        BEACON    0x000010
+        PROBE     0x000020
+        ASSOC     0x000040
+        AUTH      0x000080
+        RTS       0x000100
+        CTS       0x000200
+        ACK       0x000400
+        NULL      0x000800
+        ARP       0x001000
+        IP        0x002000
+        ICMP      0x004000
+        UDP       0x008000
+        TCP       0x010000
+        OLSR      0x020000
+        OLSR_LQ   0x040000
+        OLSR_GW   0x080000
+        BATMAN    0x100000
+        MESHZ     0x200000
+        QDATA     0x400000
+
+.TP
+phy_signal
+Signal strength in dBm
+
+.TP
+phy_noise
+Noise in dBm
+
+.TP
+phy_snr
+Signal to Noise ratio in dB
+
+.TP
+wlan_len
+Packet length (MAC)
+
+.TP
+phy_rate
+Physical data rate
+
+.TP
+wlan_tsf
+TFS timer value
+
+.TP
+wlan_essid
+ESSID, network name
+
+.TP
+wlan_mode
+        AP        0x01
+        IBSS      0x02
+        STA       0x04
+        PROBE     0x08
+
+.TP
+wlan_channel
+Channel number
+
+.TP
+wlan_wep
+Encryption in use
+
+.TP
+ip_src
+IP source address (if available)
+
+.TP
+ip_dst
+IP destionation address (if available)
+
+.TP
+olsr_type
+OLSR message type (if applicable)
+
+.TP
+olsr_neigh
+OLSR number of neighbours (if applicable)
 
 .SH SEE ALSO
 .BR tcpdump (1),
