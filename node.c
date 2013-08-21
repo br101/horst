@@ -56,9 +56,12 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 	      p->wlan_bssid[4] == 0 && p->wlan_bssid[5] == 0)) {
 		memcpy(n->wlan_bssid, p->wlan_bssid, MAC_LEN);
 	}
-	if (IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON)) {
+	if (IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON) |
+	    IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_PROBE_RESP)) {
 		n->wlan_tsf = p->wlan_tsf;
 		n->wlan_bintval = p->wlan_bintval;
+		n->wlan_wpa = p->wlan_wpa;
+		n->wlan_rsn = p->wlan_rsn;
 	}
 	ewma_add(&n->phy_snr_avg, p->phy_snr);
 	if (p->phy_snr > n->phy_snr_max)
@@ -74,6 +77,7 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 
 	if (!IEEE80211_IS_CTRL(p->wlan_type))
 		n->wlan_wep = p->wlan_wep;
+
 	if (p->wlan_seqno != 0) {
 		if (p->wlan_retry && p->wlan_seqno == n->wlan_seqno) {
 			n->wlan_retries_all++;

@@ -140,7 +140,9 @@ struct packet_info {
 
 	/* flags */
 	unsigned int		wlan_wep:1,	/* WEP on/off */
-				wlan_retry:1;
+				wlan_retry:1,
+				wlan_wpa:1,
+				wlan_rsn:1;
 
 	/* IP */
 	unsigned int		ip_src;
@@ -187,8 +189,9 @@ struct node_info {
 	unsigned int		wlan_seqno;
 	struct essid_info*	essid;
 
-	unsigned int		wlan_wep:1;	/* WEP active? */
-
+	unsigned int		wlan_wep:1,	/* WEP active? */
+				wlan_wpa:1,
+				wlan_rsn:1;
 	/* IP */
 	unsigned int		ip_src;		/* IP address (if known) */
 	unsigned int		olsr_count;	/* number of OLSR packets */

@@ -149,14 +149,15 @@ ieee802_11_parse_elems(unsigned char *start, size_t len, struct packet_info *p)
 			elems->challenge = pos;
 			elems->challenge_len = elen;
 			break;
+#endif
 		case WLAN_EID_WPA:
 			if (elen >= 4 && pos[0] == 0x00 && pos[1] == 0x50 &&
 			    pos[2] == 0xf2) {
 				/* Microsoft OUI (00:50:F2) */
 				if (pos[3] == 1) {
 					/* OUI Type 1 - WPA IE */
-					elems->wpa = pos;
-					elems->wpa_len = elen;
+					p->wlan_wpa=1;
+#if 0
 				} else if (elen >= 5 && pos[3] == 2) {
 					if (pos[4] == 0) {
 						elems->wmm_info = pos;
@@ -165,13 +166,16 @@ ieee802_11_parse_elems(unsigned char *start, size_t len, struct packet_info *p)
 						elems->wmm_param = pos;
 						elems->wmm_param_len = elen;
 					}
+#endif
 				}
 			}
 			break;
 		case WLAN_EID_RSN:
-			elems->rsn = pos;
-			elems->rsn_len = elen;
+			//elems->rsn = pos;
+			//elems->rsn_len = elen;
+			p->wlan_rsn = 1;
 			break;
+#if 0
 		case WLAN_EID_ERP_INFO:
 			elems->erp_info = pos;
 			elems->erp_info_len = elen;
