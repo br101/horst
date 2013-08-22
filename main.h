@@ -98,6 +98,7 @@
 #define DISPLAY_UPDATE_INTERVAL 100000	/* usec */
 #define RECV_BUFFER_SIZE	0	/* not used by default */
 #define DEFAULT_PORT		"4444"	/* string because of getaddrinfo() */
+#define DEFAULT_CONTROL_PIPE	"/tmp/horst"
 
 #ifndef ARPHRD_IEEE80211_RADIOTAP
 #define ARPHRD_IEEE80211_RADIOTAP 803    /* IEEE 802.11 + radiotap header */
@@ -299,6 +300,7 @@ struct config {
 	char*			dumpfile;
 	int			recv_buffer_size;
 	char*			serveraddr;
+	char*			control_pipe;
 
 	unsigned char		filtermac[MAX_FILTERMAC][MAC_LEN];
 	char			filtermac_enabled[MAX_FILTERMAC];
@@ -307,6 +309,7 @@ struct config {
 	unsigned int		filter_off:1,
 				do_change_channel:1,
 				allow_client:1,
+				allow_control:1,
 	/* this isn't exactly config, but wtf... */
 				do_macfilter:1,
 				have_noise:1,
@@ -344,5 +347,8 @@ handle_packet(struct packet_info* p);
 
 void __attribute__ ((format (printf, 1, 2)))
 printlog(const char *fmt, ...);
+
+void
+horst_pause(int pause);
 
 #endif

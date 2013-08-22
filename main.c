@@ -19,6 +19,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <getopt.h>
 #include <signal.h>
@@ -36,6 +37,7 @@
 #include "ieee80211.h"
 #include "ieee80211_util.h"
 #include "wext.h"
+#include "control.h"
 
 
 struct list_head nodes;
@@ -53,6 +55,7 @@ struct config conf = {
 	.filter_pkt		= 0xffffff,
 	.recv_buffer_size	= RECV_BUFFER_SIZE,
 	.port			= DEFAULT_PORT,
+	.control_pipe		= DEFAULT_CONTROL_PIPE
 };
 
 struct timeval the_time;
@@ -240,6 +243,7 @@ write_to_file(struct packet_info* p)
 	fprintf(DF, "%s, ", ip_sprintf(p->ip_src));
 	fprintf(DF, "%s, ", ip_sprintf(p->ip_dst));
 	fprintf(DF, "%d, %d, %d\n", p->olsr_type, p->olsr_neigh, p->olsr_tc);
+	fflush(DF);
 }
 
 
@@ -293,7 +297,7 @@ handle_packet(struct packet_info* p)
 	if (cli_fd != -1)
 		net_send_packet(p);
 
-	if (conf.dumpfile != NULL)
+	if (conf.dumpfile != NULL && !conf.paused)
 		write_to_file(p);
 
 	if (conf.quiet || conf.paused)
@@ -381,10 +385,13 @@ receive_any(void)
 		FD_SET(srv_fd, &read_fds);
 	if (cli_fd != -1)
 		FD_SET(cli_fd, &read_fds);
+	if (ctlpipe != -1)
+		FD_SET(ctlpipe, &read_fds);
 
 	tv.tv_sec = 0;
 	tv.tv_usec = min(conf.channel_time, 1000000);
 	mfd = max(mon, srv_fd);
+	mfd = max(mfd, ctlpipe);
 	mfd = max(mfd, cli_fd) + 1;
 
 	ret = select(mfd, &read_fds, &write_fds, &excpt_fds, &tv);
@@ -417,6 +424,15 @@ receive_any(void)
 	/* from client to server */
 	if (cli_fd > -1 && FD_ISSET(cli_fd, &read_fds))
 		net_receive(cli_fd, cli_buffer, &cli_buflen, sizeof(cli_buffer));
+
+	/* named pipe */
+	if (ctlpipe > -1 && FD_ISSET(ctlpipe, &read_fds)) {
+		/* because of named pipe limitations we need to close and re-open it */
+		control_receive_command();
+		close(ctlpipe);
+		FD_CLR(ctlpipe, &read_fds);
+		control_init_pipe();
+	}
 }
 
 
@@ -465,6 +481,9 @@ finish_all(void)
 	if (DF != NULL)
 		fclose(DF);
 
+	if (conf.allow_control)
+		control_finish();
+
 #if !DO_DEBUG
 	net_finish();
 
@@ -501,7 +520,7 @@ get_options(int argc, char** argv)
 	int c;
 	static int n;
 
-	while((c = getopt(argc, argv, "hqsCi:t:c:p:e:d:o:b:")) > 0) {
+	while((c = getopt(argc, argv, "hqsCi:t:c:p:e:d:o:b:X::x:")) > 0) {
 		switch (c) {
 		case 'p':
 			conf.port = optarg;
@@ -541,9 +560,17 @@ get_options(int argc, char** argv)
 		case 'C':
 			conf.allow_client = 1;
 			break;
+		case 'X':
+			if (optarg != NULL)
+				conf.control_pipe = optarg;
+			conf.allow_control = 1;
+			break;
+		case 'x':
+			control_send_command(optarg);
+			exit(0);
 		case 'h':
 		default:
-			printf("usage: %s [-h] [-q] [-s] [-i interface] [-t sec] [-c IP] [-C] [-p port] [-e mac] [-d ms] [-o file] [-b bytes]\n\n"
+			printf("usage: %s [-h] [-q] [-s] [-i interface] [-t sec] [-c IP] [-C] [-p port] [-e mac] [-d ms] [-o file] [-b bytes] [-X name] -x [command]\\n\n"
 				"Options (default value)\n"
 				"  -h\t\tthis help\n"
 				"  -q\t\tquiet\n"
@@ -557,6 +584,8 @@ get_options(int argc, char** argv)
 				"  -d <ms>\tdisplay update interval (100)\n"
 				"  -o <filename>\twrite packet info into file\n"
 				"  -b <bytes>\treceive buffer size (not set)\n"
+				"  -X <filename>\tcontrol socket (/tmp/horst)\n"
+				"  -x <command>\tsend control command\n"
 				"\n",
 				argv[0]);
 			exit(0);
@@ -582,6 +611,11 @@ main(int argc, char** argv)
 	gettimeofday(&the_time, NULL);
 
 	conf.current_channel = -1;
+
+	if (conf.allow_control) {
+		printlog("Allowing control socket");
+		control_init_pipe();
+	}
 
 	if (conf.serveraddr)
 		mon = net_open_client_socket(conf.serveraddr, conf.port);
@@ -631,6 +665,14 @@ main(int argc, char** argv)
 	}
 	/* will never */
 	return 0;
+}
+
+
+void
+horst_pause(int pause)
+{
+	conf.paused = pause;
+	printlog(conf.paused ? "\n- PAUSED -" : "\n- RESUME -");
 }
 
 
