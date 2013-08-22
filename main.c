@@ -570,21 +570,22 @@ get_options(int argc, char** argv)
 			exit(0);
 		case 'h':
 		default:
-			printf("usage: %s [-h] [-q] [-s] [-i interface] [-t sec] [-c IP] [-C] [-p port] [-e mac] [-d ms] [-o file] [-b bytes] [-X name] -x [command]\\n\n"
-				"Options (default value)\n"
+			printf("\nUsage: %s [-h] [-q] [-s] [-i interface] [-t sec] [-c IP] [-C] [-p port]\n"
+				"\t\t[-e mac] [-d ms] [-o file] [-b bytes] [-X[name]] [-x command]\n\n"
+				"Options:\tDescription (default value)\n"
 				"  -h\t\tthis help\n"
-				"  -q\t\tquiet\n"
+				"  -q\t\tquiet, no output\n"
 				"  -s\t\tspectrum analyzer\n"
 				"  -i <intf>\tinterface (wlan0)\n"
 				"  -t <sec>\tnode timeout (60)\n"
 				"  -c <IP>\tconnect to server\n"
-				"  -C allow client connection (server)\n"
-				"  -p <port>\tuse port (4444)\n"
+				"  -C\t\tallow client connection (server)\n"
+				"  -p <port>\tport number (4444)\n"
 				"  -e <mac>\tfilter all macs except these (multiple)\n"
 				"  -d <ms>\tdisplay update interval (100)\n"
 				"  -o <filename>\twrite packet info into file\n"
 				"  -b <bytes>\treceive buffer size (not set)\n"
-				"  -X <filename>\tcontrol socket (/tmp/horst)\n"
+				"  -X[filename]\tallow control socket (/tmp/horst)\n"
 				"  -x <command>\tsend control command\n"
 				"\n",
 				argv[0]);

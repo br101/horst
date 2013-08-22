@@ -28,6 +28,10 @@ horst \- Highly Optimized Radio Scanning Tool
 .IR file \|] 
 .RB [\| \-b
 .IR bytes \|]
+.RB [\| \-X
+.IR name \|]
+.RB [\| \-x
+.IR command \|]
 .SH DESCRIPTION
 \fBhorst\fP is a small, lightweight IEEE802.11 wireless LAN analyzer
 with a text interface. Its basic function is similar to tcpdump,
@@ -93,6 +97,23 @@ Write a summary packet info into file.
 .TP
 .BI \-b\  bytes
 Receive buffer size. The receive buffer size can be explicitly set to tune memory consumption and reduce lost packets.
+.TP
+.BI "\-X"
+Accept control commands on a named pipe (default /tmp/horst).
+.TP
+.BI "\-X"name
+Accept control commands on a named pipe with given name or set pipe name used with -x.
+.TP
+.BI \-x\  command
+Send control command to another horst process who was started with -X and then exit. Currently implemented commands are:
+    pause              Pause horst processing
+    resume             Resume horst processing
+    channel=X          Set channel channel number
+    channel_auto=X     Automatically change channels (1 or 0)
+    channel_dwell=X    Set channel dwell time when automatically changing channel (ms)
+    channel_upper=X    Set max channel when automatically changing channel
+
+
 
 .SH MONITOR MODE
 
