@@ -396,8 +396,10 @@ update_dump_win(struct packet_info* p)
 	wprintw(dump_win, "%s ", ether_sprintf(p->wlan_src));
 	wprintw(dump_win, "(%s) ", ether_sprintf(p->wlan_bssid));
 
-	if (p->phy_flags & PHY_FLAG_BADFCS)
+	if (p->phy_flags & PHY_FLAG_BADFCS) {
 		wprintw(dump_win, "*BADFCS* ");
+		return;
+	}
 
 	if (p->pkt_types & PKT_TYPE_OLSR) {
 		wprintw(dump_win, "%-7s%s ", "OLSR", ip_sprintf(p->ip_src));
