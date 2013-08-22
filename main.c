@@ -672,7 +672,7 @@ void
 horst_pause(int pause)
 {
 	conf.paused = pause;
-	printlog(conf.paused ? "\n- PAUSED -" : "\n- RESUME -");
+	printlog(conf.paused ? "- PAUSED -" : "- RESUME -");
 }
 
 

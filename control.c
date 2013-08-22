@@ -68,12 +68,10 @@ parse_command(char* in, int len) {
 	/* commands without value */
 
 	if (strcmp(cmd, "pause") == 0) {
-		conf.paused = 1;
-		printlog("\n- PAUSED -");
+		horst_pause(1);
 	}
 	else if (strcmp(cmd, "resume") == 0) {
-		conf.paused = 0;
-		printlog("\n- RESUME -");
+		horst_pause(0);
 	}
 
 	/* all other commands require a value */

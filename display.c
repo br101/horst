@@ -430,9 +430,7 @@ handle_user_input(void)
 
 	switch(key) {
 	case ' ': case 'p': case 'P':
-		conf.paused = conf.paused ? 0 : 1;
-		print_dump_win(conf.paused ? "\n- PAUSED -" : "\n- RESUME -",
-			       show_win == NULL);
+		horst_pause(conf.paused = conf.paused ? 0 : 1);
 		break;
 
 	case 'q': case 'Q':
