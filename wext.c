@@ -85,10 +85,8 @@ wext_get_freq(int fd, const char* devname)
 	memset(&iwr, 0, sizeof(iwr));
 	strncpy(iwr.ifr_name, devname, IFNAMSIZ);
 
-	if (ioctl(fd, SIOCGIWFREQ, &iwr) < 0) {
-		printlog("ERROR: wext get freq");
+	if (ioctl(fd, SIOCGIWFREQ, &iwr) < 0)
 		return 0;
-	}
 
 	DEBUG("FREQ %d %d\n", iwr.u.freq.m, iwr.u.freq.e);
 
