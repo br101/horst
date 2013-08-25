@@ -44,7 +44,7 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 	n->pkt_types |= p->pkt_types;
 	if (p->ip_src)
 		n->ip_src = p->ip_src;
-	if (p->wlan_mode)
+	if (p->wlan_mode && (n->wlan_mode == 0 || n->wlan_mode == WLAN_MODE_PROBE))
 		n->wlan_mode = p->wlan_mode;
 	if (p->olsr_tc)
 		n->olsr_tc = p->olsr_tc;

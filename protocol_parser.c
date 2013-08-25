@@ -524,7 +524,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 			ieee802_11_parse_elems(whm->u.probe_req.variable,
 				len - 24 - 4 /* FCS */,
 				p);
-			p->wlan_mode |= WLAN_MODE_PROBE;
+			p->wlan_mode = WLAN_MODE_PROBE;
 			break;
 
 		case IEEE80211_STYPE_ASSOC_REQ:
