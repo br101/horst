@@ -153,7 +153,7 @@ node_update(struct packet_info* p)
 void
 timeout_nodes(void)
 {
-	struct node_info *n, *m;
+	struct node_info *n, *m, *n2, *m2;
 	struct chan_node *cn, *cn2;
 
 	if ((the_time.tv_sec - last_nodetimeout.tv_sec) < conf.node_timeout )
@@ -169,6 +169,13 @@ timeout_nodes(void)
 				list_del(&cn->chan_list);
 				cn->chan->num_nodes--;
 				free(cn);
+			}
+			/* remove AP pointers to this node */
+			list_for_each_entry_safe(n2, m2, &nodes, list) {
+				if (n2->wlan_ap_node == n) {
+					DEBUG("remove AP ref\n");
+					n->wlan_ap_node = NULL;
+				}
 			}
 			free(n);
 		}
