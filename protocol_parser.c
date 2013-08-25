@@ -460,13 +460,17 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 			break;
 
 		case IEEE80211_STYPE_CFEND:
+		case IEEE80211_STYPE_CFENDACK:
 			da = wh->addr1;
 			sa = wh->addr2;
 			break;
 
-		case IEEE80211_STYPE_CFENDACK:
-			/* dont know, dont care */
-			break;
+		case IEEE80211_STYPE_BACK_REQ:
+		case IEEE80211_STYPE_BACK:
+			p->pkt_types |= PKT_TYPE_ACK;
+			p->wlan_nav = le16toh(wh->duration_id);
+			da = wh->addr1;
+			sa = wh->addr2;
 		}
 		break;
 
