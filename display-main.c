@@ -290,7 +290,7 @@ print_list_line(int line, struct node_info* n)
 		mvwprintw(list_win, line, COL_STA, "STA   '%s'",
 			  (n->wlan_ap_node != NULL && n->wlan_ap_node->essid != NULL) ? n->wlan_ap_node->essid->essid : "");
 	else if (n->wlan_mode == WLAN_MODE_PROBE )
-		mvwprintw(list_win, line, COL_STA, "PROBE");
+		mvwprintw(list_win, line, COL_STA, "PROBE '%s'", p->wlan_essid);
 
 	wprintw(list_win, n->wlan_wep ? " ENC" : "");
 	wprintw(list_win, n->wlan_wpa ? "(WPA)" : "");
