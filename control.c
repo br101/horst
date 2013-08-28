@@ -100,6 +100,9 @@ parse_command(char* in, int len) {
 		printlog("CHANNEL MAX = %d", n);
 		conf.channel_max = n;
 	}
+	else if (strcmp(cmd, "outfile") == 0) {
+		horst_dumpfile_open(val);
+	}
 }
 
 

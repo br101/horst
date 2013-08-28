@@ -351,4 +351,7 @@ printlog(const char *fmt, ...);
 void
 horst_pause(int pause);
 
+void
+horst_dumpfile_open(char* name);
+
 #endif

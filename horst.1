@@ -112,6 +112,10 @@ Send control command to another horst process who was started with -X and then e
     channel_auto=X     Automatically change channels (1 or 0)
     channel_dwell=X    Set channel dwell time when automatically changing channel (ms)
     channel_upper=X    Set max channel when automatically changing channel
+    outfile=X          Write to outfile named X.
+                       If the file is already open, it is cleared and re-openend.
+                       If filename is not specified ("outfile=") any existing file
+                       is closed and no file is written.
 
 
 

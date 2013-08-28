@@ -297,7 +297,7 @@ handle_packet(struct packet_info* p)
 	if (cli_fd != -1)
 		net_send_packet(p);
 
-	if (conf.dumpfile != NULL && !conf.paused)
+	if (conf.dumpfile != NULL && !conf.paused && DF != NULL)
 		write_to_file(p);
 
 	if (conf.quiet || conf.paused)
@@ -478,8 +478,10 @@ finish_all(void)
 	if (!conf.serveraddr)
 		close_packet_socket(mon, conf.ifname);
 
-	if (DF != NULL)
+	if (DF != NULL) {
 		fclose(DF);
+		DF = NULL;
+	}
 
 	if (conf.allow_control)
 		control_finish();
@@ -641,11 +643,8 @@ main(int argc, char** argv)
 	if (!conf.quiet && !DO_DEBUG)
 		init_display();
 
-	if (conf.dumpfile != NULL) {
-		DF = fopen(conf.dumpfile, "w");
-		if (DF == NULL)
-			err(1, "Couldn't open dump file");
-	}
+	if (conf.dumpfile != NULL)
+		horst_dumpfile_open(conf.dumpfile);
 
 	if (!conf.serveraddr && conf.port && conf.allow_client)
 		net_init_server_socket(conf.port);
@@ -674,6 +673,29 @@ horst_pause(int pause)
 {
 	conf.paused = pause;
 	printlog(conf.paused ? "- PAUSED -" : "- RESUME -");
+}
+
+
+void
+horst_dumpfile_open(char* name)
+{
+	if (DF != NULL) {
+		fclose(DF);
+		DF = NULL;
+	}
+
+	if (name == NULL || strlen(name) == 0) {
+		printlog("Not writing outfile");
+		conf.dumpfile = NULL;
+		return;
+	}
+
+	conf.dumpfile = name;
+	DF = fopen(conf.dumpfile, "w");
+	if (DF == NULL)
+		err(1, "Couldn't open dump file");
+
+	printlog("Writing to outfile %s", conf.dumpfile);
 }
 
 
