@@ -379,7 +379,8 @@ receive_any(void)
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);
 	FD_ZERO(&excpt_fds);
-	FD_SET(0, &read_fds);
+	if (!conf.quiet && !DO_DEBUG)
+		FD_SET(0, &read_fds);
 	FD_SET(mon, &read_fds);
 	if (srv_fd != -1)
 		FD_SET(srv_fd, &read_fds);
