@@ -681,7 +681,7 @@ horst_dumpfile_open(char* name)
 	}
 
 	if (name == NULL || strlen(name) == 0) {
-		printlog("Not writing outfile");
+		printlog("- Not writing outfile");
 		conf.dumpfile = NULL;
 		return;
 	}
@@ -691,7 +691,7 @@ horst_dumpfile_open(char* name)
 	if (DF == NULL)
 		err(1, "Couldn't open dump file");
 
-	printlog("Writing to outfile %s", conf.dumpfile);
+	printlog("- Writing to outfile %s", conf.dumpfile);
 }
 
 

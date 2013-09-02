@@ -100,23 +100,23 @@ parse_command(char* in) {
 
 	else if (strcmp(cmd, "channel") == 0) {
 		n = atoi(val);
-		printlog("CHANNEL = %d", n);
+		printlog("- CHANNEL = %d", n);
 		conf.do_change_channel = 0;
 		change_channel(find_channel_index(n));
 	}
 	else if (strcmp(cmd, "channel_auto") == 0) {
 		n = (strcmp(val, "1") == 0);
-		printlog("CHANNEL AUTO = %d", n);
+		printlog("- CHANNEL AUTO = %d", n);
 		conf.do_change_channel = n;
 	}
 	else if (strcmp(cmd, "channel_dwell") == 0) {
 		n = atoi(val);
-		printlog("CHANNEL DWELL = %d", n);
+		printlog("- CHANNEL DWELL = %d", n);
 		conf.channel_time = n*1000;
 	}
 	else if (strcmp(cmd, "channel_upper") == 0) {
 		n = atoi(val);
-		printlog("CHANNEL MAX = %d", n);
+		printlog("- CHANNEL MAX = %d", n);
 		conf.channel_max = n;
 	}
 	else if (strcmp(cmd, "outfile") == 0) {
