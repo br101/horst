@@ -427,13 +427,8 @@ receive_any(void)
 		net_receive(cli_fd, cli_buffer, &cli_buflen, sizeof(cli_buffer));
 
 	/* named pipe */
-	if (ctlpipe > -1 && FD_ISSET(ctlpipe, &read_fds)) {
-		/* because of named pipe limitations we need to close and re-open it */
+	if (ctlpipe > -1 && FD_ISSET(ctlpipe, &read_fds))
 		control_receive_command();
-		close(ctlpipe);
-		FD_CLR(ctlpipe, &read_fds);
-		control_init_pipe();
-	}
 }
 
 

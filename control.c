@@ -33,30 +33,49 @@
 
 int ctlpipe = -1;
 
-
 void
 control_init_pipe()
 {
 	mkfifo(conf.control_pipe, 0666);
-	ctlpipe = open(conf.control_pipe, O_RDONLY|O_NONBLOCK);
+	ctlpipe = open(conf.control_pipe, O_RDWR|O_NONBLOCK);
 }
 
 
 void
 control_send_command(char* cmd)
 {
-	ctlpipe = open(conf.control_pipe, O_WRONLY|O_NONBLOCK);
+	int len = strlen(cmd);
+	char new[len+1];
+	char* pos;
+
+	while (access(conf.control_pipe, F_OK) < 0) {
+		printf("Waiting for control pipe...\n");
+		sleep(1);
+	}
+
+	ctlpipe = open(conf.control_pipe, O_WRONLY);
 	if (ctlpipe < 0)
 		err(1, "Could not open control socket '%s'", conf.control_pipe);
 
-	printf("Sending command: %s\n", cmd);
-	write(ctlpipe, cmd, strlen(cmd));
+	/* always terminate command with newline */
+	strncpy(new, cmd, len);
+	new[len] = '\n';
+	new[len+1] = '\0';
+
+	/* replace : with newline */
+	while ((pos = strchr(new, ':')) != NULL) {
+		*pos = '\n';
+	}
+
+	printf("Sending command: %s\n", new);
+
+	write(ctlpipe, new, len+1);
 	close(ctlpipe);
 }
 
 
 static void
-parse_command(char* in, int len) {
+parse_command(char* in) {
 	char* cmd;
 	char* val;
 	int n;
@@ -109,15 +128,19 @@ parse_command(char* in, int len) {
 void
 control_receive_command() {
 	char buf[MAX_CMD];
+	char *pos = buf;
+	char *end;
 	int len;
 
 	len = read(ctlpipe, buf, MAX_CMD);
-
 	if (len > 0) {
-		if (buf[len-1] == '\n')
-			len--;
 		buf[len] = '\0';
-		parse_command(buf, len);
+		/* we can receive multiple \n separated commands */
+		while ((end = strchr(pos, '\n')) != NULL) {
+			*end = '\0';
+			parse_command(pos);
+			pos = end + 1;
+		}
 	}
 }
 
@@ -125,6 +148,9 @@ control_receive_command() {
 void
 control_finish(void)
 {
+	if (ctlpipe == -1)
+		return;
+
 	close(ctlpipe);
 	unlink(conf.control_pipe);
 	ctlpipe = -1;
