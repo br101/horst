@@ -105,7 +105,7 @@ Accept control commands on a named pipe (default /tmp/horst).
 Accept control commands on a named pipe with given name or set pipe name used with -x.
 .TP
 .BI \-x\  command
-Send control command to another horst process who was started with -X and then exit. Currently implemented commands are:
+Send control command to another horst process who was started with -X and then exit. Multiple commands can be concatenated with ':'. Currently implemented commands are:
     pause              Pause horst processing
     resume             Resume horst processing
     channel=X          Set channel channel number
