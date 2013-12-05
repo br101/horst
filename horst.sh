@@ -13,5 +13,21 @@ if grep -q ath[0-9]: /proc/net/dev;then
 	ip link set dev $WLDEV down
 	wlanconfig $WLDEV destroy
 else
-	horst $*
+	if [ -n "$1" ]; then
+	    # find the phy for device $1
+	    PHY=`iw dev | awk "/phy#[0-9]+/ {phy=\\$1} /Interface/ {if (\\$2 == \"$1\") {sub(\"\#\", \"\", phy); print phy; exit}}"`
+	    if [ -n "$PHY" ]; then
+		shift
+		WLDEV=${PHY}mon0
+		iw phy $PHY interface add $WLDEV type monitor flags fcsfail otherbss
+		ip link set dev $WLDEV up
+		./horst -i $WLDEV $*
+		ip link set dev $WLDEV down
+		iw dev $WLDEV del
+	    else
+		horst $*
+	    fi
+	else
+	    horst $*
+	fi
 fi
