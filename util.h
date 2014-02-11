@@ -44,19 +44,45 @@
 #endif
 
 #if BYTE_ORDER == LITTLE_ENDIAN
+
+#if !defined(le64toh)
 	#define le64toh(x) (x)
+#endif
+#if !defined(le32toh)
 	#define le32toh(x) (x)
+#endif
+#if !defined(le16toh)
 	#define le16toh(x) (x)
+#endif
+#if !defined(htole64)
 	#define htole64(x) (x)
+#endif
+#if !defined(htole32)
 	#define htole32(x) (x)
+#endif
+#if !defined(htole16)
 	#define htole16(x) (x)
+#endif
+
 #else
+#if !defined(le64toh)
 	#define le64toh(x) bswap_64(x)
+#endif
+#if !defined(le32toh)
 	#define le32toh(x) bswap_32(x)
+#endif
+#if !defined(le16toh)
 	#define le16toh(x) bswap_16(x)
+#endif
+#if !defined(htole64)
 	#define htole64(x) bswap_64(x)
+#endif
+#if !defined(htole32)
 	#define htole32(x) bswap_32(x)
+#endif
+#if !defined(htole16)
 	#define htole16(x) bswap_16(x)
+#endif
 #endif
 
 void
