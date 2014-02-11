@@ -18,7 +18,6 @@
 #include <math.h>
 
 #include "ieee80211.h"
-#include "ieee80211_radiotap.h"
 #include "ieee80211_util.h"
 #include "main.h"
 #include "util.h"

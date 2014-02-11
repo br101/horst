@@ -26,7 +26,6 @@
 #include <netinet/udp.h>
 
 #include "prism_header.h"
-#include "ieee80211_radiotap.h"
 #include "ieee80211.h"
 #include "ieee80211_util.h"
 #include "olsr_header.h"
@@ -34,7 +33,8 @@
 #include "protocol_parser.h"
 #include "main.h"
 #include "util.h"
-
+#include "radiotap/radiotap.h"
+#include "radiotap/radiotap_iter.h"
 
 static int parse_prism_header(unsigned char** buf, int len, struct packet_info* p);
 static int parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p);
@@ -163,173 +163,154 @@ parse_prism_header(unsigned char** buf, int len, struct packet_info* p)
 }
 
 
+static void print_radiotap_namespace(struct ieee80211_radiotap_iterator *iter,
+				     struct packet_info* p)
+{
+	uint16_t x;
+	char c;
+	unsigned char known, flags, ht20, lgi;
+
+	switch (iter->this_arg_index) {
+	case IEEE80211_RADIOTAP_TSFT:
+	case IEEE80211_RADIOTAP_FHSS:
+	case IEEE80211_RADIOTAP_LOCK_QUALITY:
+	case IEEE80211_RADIOTAP_TX_ATTENUATION:
+	case IEEE80211_RADIOTAP_DB_TX_ATTENUATION:
+	case IEEE80211_RADIOTAP_DBM_TX_POWER:
+	case IEEE80211_RADIOTAP_TX_FLAGS:
+	case IEEE80211_RADIOTAP_RX_FLAGS:
+	case IEEE80211_RADIOTAP_RTS_RETRIES:
+	case IEEE80211_RADIOTAP_DATA_RETRIES:
+		break;
+	case IEEE80211_RADIOTAP_FLAGS:
+		/* short preamble */
+		DEBUG("[flags %0x", *iter->this_arg);
+		if (*iter->this_arg & IEEE80211_RADIOTAP_F_SHORTPRE) {
+			p->phy_flags |= PHY_FLAG_SHORTPRE;
+			DEBUG(" shortpre");
+		}
+		if (*iter->this_arg & IEEE80211_RADIOTAP_F_BADFCS) {
+			p->phy_flags |= PHY_FLAG_BADFCS;
+			p->pkt_types |= PKT_TYPE_BADFCS;
+			DEBUG(" badfcs");
+		}
+		DEBUG("]");
+		break;
+	case IEEE80211_RADIOTAP_RATE:
+		//TODO check!
+		//printf("\trate: %lf\n", (double)*iter->this_arg/2);
+		DEBUG("[rate %0x]", *iter->this_arg);
+		p->phy_rate = (*iter->this_arg)*5; /* rate is in 500kbps */
+		p->phy_rate_idx = rate_to_index(p->phy_rate);
+		break;
+#define IEEE80211_CHAN_A \
+	(IEEE80211_CHAN_5GHZ | IEEE80211_CHAN_OFDM)
+#define IEEE80211_CHAN_B \
+	(IEEE80211_CHAN_2GHZ | IEEE80211_CHAN_CCK)
+#define IEEE80211_CHAN_G \
+	(IEEE80211_CHAN_2GHZ | IEEE80211_CHAN_DYN)
+	case IEEE80211_RADIOTAP_CHANNEL:
+		/* channel & channel type */
+		p->phy_freq = le16toh(*(uint16_t*)iter->this_arg);
+		p->phy_chan =
+			ieee80211_frequency_to_channel(p->phy_freq);
+		DEBUG("[freq %d chan %d", p->phy_freq, p->phy_chan);
+		iter->this_arg = iter->this_arg + 2;
+		x = le16toh(*(uint16_t*)iter->this_arg);
+		if (x & IEEE80211_CHAN_A) {
+			p->phy_flags |= PHY_FLAG_A;
+			DEBUG("A]");
+		}
+		else if (x & IEEE80211_CHAN_G) {
+			p->phy_flags |= PHY_FLAG_G;
+			DEBUG("G]");
+		}
+		else if (x & IEEE80211_CHAN_B) {
+			p->phy_flags |= PHY_FLAG_B;
+			DEBUG("B]");
+		}
+		break;
+	case IEEE80211_RADIOTAP_DBM_ANTSIGNAL:
+		c = *(char*)iter->this_arg;
+		DEBUG("[sig %0d]", c);
+		if (p->phy_signal == 0 || c > p->phy_signal)
+			p->phy_signal = c;
+		break;
+	case IEEE80211_RADIOTAP_DBM_ANTNOISE:
+		DEBUG("[noi %0x]", *(char*)iter->this_arg);
+		p->phy_noise = *(char*)iter->this_arg;
+		break;
+	case IEEE80211_RADIOTAP_ANTENNA:
+		DEBUG("[ant %0x]", *iter->this_arg);
+		break;
+	case IEEE80211_RADIOTAP_DB_ANTSIGNAL:
+		DEBUG("[snr %0x]", *iter->this_arg);
+		p->phy_snr = *iter->this_arg;
+		break;
+	case IEEE80211_RADIOTAP_DB_ANTNOISE:
+		//printf("\tantnoise: %02d\n", *iter->this_arg);
+		break;
+	case IEEE80211_RADIOTAP_MCS:
+		/* Ref http://www.radiotap.org/defined-fields/MCS */
+		known = *iter->this_arg++;
+		flags = *iter->this_arg++;
+		DEBUG("[MCS known %0x flags %0x index %0x]", known, flags, *iter->this_arg);
+		if (known & IEEE80211_RADIOTAP_MCS_HAVE_BW)
+			ht20 = (flags & IEEE80211_RADIOTAP_MCS_BW_MASK) == IEEE80211_RADIOTAP_MCS_BW_20;
+		else
+			ht20 = 1; /* assume HT20 if not present */
+
+		if (known & IEEE80211_RADIOTAP_MCS_HAVE_GI)
+			lgi = !(flags & IEEE80211_RADIOTAP_MCS_SGI);
+		else
+			lgi = 1; /* assume long GI if not present */
+
+		DEBUG(" %s %s", ht20 ? "HT20" : "HT40", lgi ? "LGI" : "SGI");
+
+		p->phy_rate_idx = 12 + *iter->this_arg;
+		p->phy_rate_flags = flags;
+		p->phy_rate = mcs_index_to_rate(*iter->this_arg, ht20, lgi);
+
+		DEBUG(" RATE %d ", p->phy_rate);
+		break;
+	default:
+		printf("\tBOGUS DATA\n");
+		break;
+	}
+}
+
 static int
 parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 {
 	struct ieee80211_radiotap_header* rh;
-	__le32 present; /* the present bitmap */
-	unsigned char* b; /* current byte */
-	int i;
-	u16 rt_len, x;
-	unsigned char known, flags, ht20, lgi;
-
-	DEBUG("RADIOTAP HEADER\n");
-
-	DEBUG("len: %d\n", len);
-
-	if (len < sizeof(struct ieee80211_radiotap_header))
-		return -1;
+	struct ieee80211_radiotap_iterator iter;
+	int err, rt_len;
 
 	rh = (struct ieee80211_radiotap_header*)*buf;
-	b = *buf + sizeof(struct ieee80211_radiotap_header);
-	present = le32toh(rh->it_present);
 	rt_len = le16toh(rh->it_len);
-	DEBUG("radiotap header len: %d\n", rt_len);
-	DEBUG("%08x\n", present);
 
-	/* check for header extension - ignore for now, just advance current position */
-	while (present & 0x80000000  && b - *buf < rt_len) {
-		DEBUG("extension\n");
-		b = b + 4;
-		present = le32toh(*(__le32*)b);
+	err = ieee80211_radiotap_iterator_init(&iter, rh, rt_len, NULL);
+	if (err) {
+		printf("malformed radiotap header (init returns %d)\n", err);
+		return 3;
 	}
-	present = le32toh(rh->it_present); // in case it moved
 
-	/* radiotap bitmap has 32 bit, but we are only interrested until
-	 * bit 19 (IEEE80211_RADIOTAP_MCS) => i<20 */
-	for (i = 0; i < 20 && b - *buf < rt_len; i++) {
-		if ((present >> i) & 1) {
-			DEBUG("1");
-			switch (i) {
-				/* just ignore the following (advance position only) */
-				case IEEE80211_RADIOTAP_TSFT:
-					DEBUG("[+8]");
-					b = b + 8;
-					break;
-				case IEEE80211_RADIOTAP_DBM_TX_POWER:
-				case IEEE80211_RADIOTAP_ANTENNA:
-				case IEEE80211_RADIOTAP_RTS_RETRIES:
-				case IEEE80211_RADIOTAP_DATA_RETRIES:
-					DEBUG("[+1]");
-					b++;
-					break;
-				case IEEE80211_RADIOTAP_EXT:
-					DEBUG("[+4]");
-					b = b + 4;
-					break;
-				case IEEE80211_RADIOTAP_FHSS:
-				case IEEE80211_RADIOTAP_LOCK_QUALITY:
-				case IEEE80211_RADIOTAP_TX_ATTENUATION:
-				case IEEE80211_RADIOTAP_RX_FLAGS:
-				case IEEE80211_RADIOTAP_TX_FLAGS:
-				case IEEE80211_RADIOTAP_DB_TX_ATTENUATION:
-					DEBUG("[+2]");
-					b = b + 2;
-					break;
-				/* we are only interrested in these: */
-				case IEEE80211_RADIOTAP_RATE:
-					DEBUG("[rate %0x]", *b);
-					p->phy_rate = (*b)*5; /* rate is in 500kbps */
-					p->phy_rate_idx = rate_to_index(p->phy_rate);
-					b++;
-					break;
-				case IEEE80211_RADIOTAP_DBM_ANTSIGNAL:
-					DEBUG("[sig %0x]", *b);
-					p->phy_signal = *(char*)b;
-					b++;
-					break;
-				case IEEE80211_RADIOTAP_DBM_ANTNOISE:
-					DEBUG("[noi %0x]", *b);
-					p->phy_noise = *(char*)b;
-					b++;
-					break;
-				case IEEE80211_RADIOTAP_DB_ANTSIGNAL:
-					DEBUG("[snr %0x]", *b);
-					p->phy_snr = *b;
-					b++;
-					break;
-				case IEEE80211_RADIOTAP_FLAGS:
-					/* short preamble */
-					DEBUG("[flags %0x", *b);
-					if (*b & IEEE80211_RADIOTAP_F_SHORTPRE) {
-						p->phy_flags |= PHY_FLAG_SHORTPRE;
-						DEBUG(" shortpre");
-					}
-					if (*b & IEEE80211_RADIOTAP_F_BADFCS) {
-						p->phy_flags |= PHY_FLAG_BADFCS;
-						p->pkt_types |= PKT_TYPE_BADFCS;
-						DEBUG(" badfcs");
-					}
-					DEBUG("]");
-					b++;
-					break;
-				case IEEE80211_RADIOTAP_CHANNEL:
-					/* channel & channel type */
-					if (((long)b)%2) b++; // align to 16 bit boundary
-					p->phy_freq = le16toh(*(u_int16_t*)b);
-					p->phy_chan =
-						ieee80211_frequency_to_channel(p->phy_freq);
-					DEBUG("[freq %d chan %d", p->phy_freq,
-						p->phy_chan);
-					b = b + 2;
-					x = le16toh(*(u_int16_t*)b);
-					if (x & IEEE80211_CHAN_A) {
-						p->phy_flags |= PHY_FLAG_A;
-						DEBUG("A]");
-					}
-					else if (x & IEEE80211_CHAN_G) {
-						p->phy_flags |= PHY_FLAG_G;
-						DEBUG("G]");
-					}
-					else if (x & IEEE80211_CHAN_B) {
-						p->phy_flags |= PHY_FLAG_B;
-						DEBUG("B]");
-					}
-					b = b + 2;
-					break;
-				case IEEE80211_RADIOTAP_MCS:
-					/* Ref http://www.radiotap.org/defined-fields/MCS */
-					known = *b++;
-					flags = *b++;
-					DEBUG("[MCS known %0x flags %0x index %0x]", known, flags, *b);
-
-					if (known & IEEE80211_RADIOTAP_MCS_HAVE_BW)
-						ht20 = (flags & IEEE80211_RADIOTAP_MCS_BW_MASK) == IEEE80211_RADIOTAP_MCS_BW_20;
-					else
-						ht20 = 1; /* assume HT20 if not present */
-
-					if (known & IEEE80211_RADIOTAP_MCS_HAVE_GI)
-						lgi = !(flags & IEEE80211_RADIOTAP_MCS_SGI);
-					else
-						lgi = 1; /* assume long GI if not present */
-
-					DEBUG(" %s %s", ht20 ? "HT20" : "HT40", lgi ? "LGI" : "SGI");
-
-					p->phy_rate_idx = 12 + *b;
-					p->phy_rate_flags = flags;
-					p->phy_rate = mcs_index_to_rate(*b, ht20, lgi);
-
-					DEBUG(" RATE %d ", p->phy_rate);
-					b++;
-					break;
-			}
-		}
-		else {
-			DEBUG("0");
+	while (!(err = ieee80211_radiotap_iterator_next(&iter))) {
+		if (iter.is_radiotap_ns) {
+			print_radiotap_namespace(&iter, p);
 		}
 	}
+
 	DEBUG("\n");
+	DEBUG("SIG %d NOI %d SNR %d\n", p->phy_signal, p->phy_noise, p->phy_snr);
 
-	if (!(present & (1 << IEEE80211_RADIOTAP_DB_ANTSIGNAL))) {
-		/* no SNR in radiotap, try to calculate */
-		if (present & (1 << IEEE80211_RADIOTAP_DBM_ANTSIGNAL) &&
-		    present & (1 << IEEE80211_RADIOTAP_DBM_ANTNOISE) &&
-		    p->phy_noise < 0)
+	/* no SNR from radiotap, try to calculate, normal case nowadays */
+	if (p->phy_snr == 0 && p->phy_signal < 0) {
+		if (p->phy_noise < 0) {
 			p->phy_snr = p->phy_signal - p->phy_noise;
-		/* HACK: here we just assume noise to be -95dBm */
-		else {
+		} else {
+			/* HACK: here we just assume noise to be -95dBm */
 			p->phy_snr = p->phy_signal + 95;
-			//simulate noise: p->phy_noise = -90;
 		}
 	}
 
