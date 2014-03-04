@@ -54,6 +54,7 @@ struct config conf = {
 	.ifname			= INTERFACE_NAME,
 	.display_interval	= DISPLAY_UPDATE_INTERVAL,
 	.upload_interval	= SERVER_UPLOAD_INTERVAL,
+	.upload_server		= "http://192.168.4.9/posttest.php",
 	.filter_pkt		= 0xffffff,
 	.recv_buffer_size	= RECV_BUFFER_SIZE,
 	.port			= DEFAULT_PORT,

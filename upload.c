@@ -18,6 +18,7 @@
  */
 
 #include <curl/curl.h>
+#include <err.h>
 
 #include "main.h"
 #include "util.h"
@@ -38,10 +39,9 @@ upload_init() {
 	curl_global_init(CURL_GLOBAL_ALL);
 	curl = curl_easy_init();
 	if (!curl) {
-		DEBUG("XXXX curl not init");
-		exit(1);
+		err(1, "Couldn't initialize CURL");
 	}
-	curl_easy_setopt(curl, CURLOPT_URL, "http://192.168.4.9/posttest.php");
+	curl_easy_setopt(curl, CURLOPT_URL, conf.upload_server);
 
 	headers = curl_slist_append(headers, "Content-Type: application/json");
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
@@ -55,22 +55,24 @@ upload_finish(void) {
 }
 
 
-size_t nodes_info_json(char *buf) {
+int nodes_info_json(char *buf) {
 	struct node_info* n;
-	struct packet_info* p;
 	int len = 0;
 
-	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "{ \"id\": \"%s\", ", ether_sprintf(conf.my_mac_addr));
-	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"time\": %d, ", (int)the_time.tv_sec);
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "{ \"id\": \"%s\", ",
+			ether_sprintf(conf.my_mac_addr));
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"time\": %d, ",
+			(int)the_time.tv_sec);
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"seq\": %d, ", seqNo++);
-	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"window\": %d, ", conf.upload_interval);
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"window\": %d, ",
+			conf.upload_interval);
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"maclist\": [");
 
 	list_for_each_entry(n, &nodes, list) {
-		if (n->last_seen <= (the_time.tv_sec - conf.node_timeout))
-			continue;
-		p = &n->last_pkt;
-		len += snprintf(buf+len, UPLOAD_BUF_SIZE, "{\"mac\": \"%s\", \"snr\": %ld}, ", ether_sprintf(p->wlan_src), ewma_read(&n->phy_snr_avg));
+		len += snprintf(buf+len, UPLOAD_BUF_SIZE, "{\"mac\": \"%s\", \"snr\": %ld}%s",
+				ether_sprintf(n->last_pkt.wlan_src),
+				ewma_read(&n->phy_snr_avg),
+				n->list.next == &nodes ? "" : ", ");
 	}
 
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "]}");
@@ -90,7 +92,7 @@ upload_check(void)
 	}
 	last_time = the_time;
 
-	DEBUG("XXX uploading\n");
+	DEBUG("Uploading to %s\n", conf.upload_server);
 
 	ret = nodes_info_json(buffer);
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, buffer);
@@ -98,9 +100,11 @@ upload_check(void)
 
 	ret = curl_easy_perform(curl);
 	if (ret != CURLE_OK) {
-		DEBUG("CURL failed: %s\n", curl_easy_strerror(ret));
+		printlog("ERROR: Upload failed: %s\n", curl_easy_strerror(ret));
 	}
 
 	curl_easy_getinfo (curl, CURLINFO_HTTP_CODE, &ret);
-	DEBUG("*** ret %d", ret);
+	if (ret != 200) {
+		printlog("ERROR: Upload server status code %d\n", ret);
+	}
 }
