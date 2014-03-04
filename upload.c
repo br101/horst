@@ -42,6 +42,9 @@ void
 upload_init() {
 	struct curl_slist *headers=NULL;
 
+	if (conf.upload_server == NULL)
+		return;
+
 	curl_global_init(CURL_GLOBAL_ALL);
 	curl = curl_easy_init();
 	if (!curl) {
@@ -57,6 +60,9 @@ upload_init() {
 
 void
 upload_finish(void) {
+	if (conf.upload_server == NULL)
+		return;
+
 	curl_easy_cleanup(curl);
 	curl_global_cleanup();
 }
@@ -94,9 +100,10 @@ upload_check(void)
 	/*
 	 * upload only in conf.upload_interval intervals (seconds)
 	 */
-	if ((the_time.tv_sec - last_time.tv_sec) < conf.upload_interval) {
+	if ((conf.upload_server == NULL) ||
+	    (the_time.tv_sec - last_time.tv_sec) < conf.upload_interval)
 		return;
-	}
+
 	last_time = the_time;
 
 	DEBUG("Uploading to %s\n", conf.upload_server);
