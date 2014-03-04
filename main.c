@@ -528,7 +528,7 @@ get_options(int argc, char** argv)
 	int c;
 	static int n;
 
-	while((c = getopt(argc, argv, "hqsCi:t:c:p:e:d:o:b:X::x:")) > 0) {
+	while((c = getopt(argc, argv, "hqsCi:t:c:p:e:d:o:b:X::x:u:U:")) > 0) {
 		switch (c) {
 		case 'p':
 			conf.port = optarg;
@@ -576,6 +576,14 @@ get_options(int argc, char** argv)
 		case 'x':
 			control_send_command(optarg);
 			exit(0);
+#if DO_UPLOAD
+		case 'u':
+			conf.upload_interval = atoi(optarg);
+			break;
+		case 'U':
+			conf.upload_server = optarg;
+			break;
+#endif
 		case 'h':
 		default:
 			printf("\nUsage: %s [-h] [-q] [-s] [-i interface] [-t sec] [-c IP] [-C] [-p port]\n"
@@ -595,6 +603,10 @@ get_options(int argc, char** argv)
 				"  -b <bytes>\treceive buffer size (not set)\n"
 				"  -X[filename]\tallow control socket (/tmp/horst)\n"
 				"  -x <command>\tsend control command\n"
+#if DO_UPLOAD
+				"  -u <sec>\tupload interval\n"
+				"  -U <URL>\tupload server URL\n"
+#endif
 				"\n",
 				argv[0]);
 			exit(0);
