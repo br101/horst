@@ -32,6 +32,10 @@
 #define DO_DEBUG 0
 #endif
 
+#ifndef DO_UPLOAD
+#define DO_UPLOAD 0
+#endif
+
 #define MAC_LEN			6
 
 #define MAX_NODES		255
@@ -96,6 +100,7 @@
 #define CHANNEL_TIME		250000	/* 250 msec */
 /* update display every 100ms - "10 frames per sec should be enough for everyone" ;) */
 #define DISPLAY_UPDATE_INTERVAL 100000	/* usec */
+#define SERVER_UPLOAD_INTERVAL	2	/* sec */
 #define RECV_BUFFER_SIZE	0	/* not used by default */
 #define DEFAULT_PORT		"4444"	/* string because of getaddrinfo() */
 #define DEFAULT_CONTROL_PIPE	"/tmp/horst"
@@ -297,6 +302,7 @@ struct config {
 	int			channel_max;
 	int			current_channel;	/* index into channels array */
 	int			display_interval;
+	int			upload_interval;
 	char*			dumpfile;
 	int			recv_buffer_size;
 	char*			serveraddr;

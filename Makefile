@@ -19,13 +19,14 @@
 NAME=horst
 DEBUG=0
 PCAP=0
+UPLOAD=0
 OBJS=main.o capture$(if $(filter 1,$(PCAP)),-pcap).o protocol_parser.o \
 	network.o wext.o node.o essid.o channel.o \
 	util.o ieee80211_util.o listsort.o average.o \
 	display.o display-main.o display-filter.o display-help.o \
 	display-statistics.o display-essid.o display-history.o \
 	display-spectrum.o display-channel.o control.o \
-	radiotap/radiotap.o
+	radiotap/radiotap.o $(if $(filter 1,$(UPLOAD)),upload.o)
 
 LIBS=-lncurses -lm
 CFLAGS+=-Wall -DDO_DEBUG=$(DEBUG) -g
@@ -35,7 +36,12 @@ CFLAGS+=-DPCAP
 LIBS+=-lpcap
 endif
 
-buildstamp=.build_debug$(DEBUG)pcap$(PCAP)
+ifeq ($(UPLOAD),1)
+CFLAGS+=-DDO_UPLOAD
+LIBS+=-lcurl
+endif
+
+buildstamp=.build_debug$(DEBUG)pcap$(PCAP)upload$(UPLOAD)
 
 all: $(buildstamp) $(NAME)
 

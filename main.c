@@ -38,6 +38,7 @@
 #include "ieee80211_util.h"
 #include "wext.h"
 #include "control.h"
+#include "upload.h"
 
 
 struct list_head nodes;
@@ -52,6 +53,7 @@ struct config conf = {
 	.channel_time		= CHANNEL_TIME,
 	.ifname			= INTERFACE_NAME,
 	.display_interval	= DISPLAY_UPDATE_INTERVAL,
+	.upload_interval	= SERVER_UPLOAD_INTERVAL,
 	.filter_pkt		= 0xffffff,
 	.recv_buffer_size	= RECV_BUFFER_SIZE,
 	.port			= DEFAULT_PORT,
@@ -401,6 +403,9 @@ receive_any(void)
 	if (ret == 0) { /* timeout */
 		if (!conf.quiet && !DO_DEBUG)
 			update_display_clock();
+#if DO_UPLOAD
+		upload_check();
+#endif
 		return;
 	}
 	else if (ret < 0) /* error */
@@ -487,6 +492,10 @@ finish_all(void)
 
 	if (!conf.quiet)
 		finish_display();
+#endif
+
+#if DO_UPLOAD
+	upload_finish();
 #endif
 }
 
@@ -645,6 +654,10 @@ main(int argc, char** argv)
 	if (!conf.serveraddr && conf.port && conf.allow_client)
 		net_init_server_socket(conf.port);
 
+#if DO_UPLOAD
+	upload_init();
+#endif
+
 	for ( /* ever */ ;;)
 	{
 		receive_any();
@@ -656,6 +669,9 @@ main(int argc, char** argv)
 				update_spectrum_durations();
 				if (!conf.quiet && !DO_DEBUG)
 					update_display(NULL, NULL);
+#if DO_UPLOAD
+					upload_check();
+#endif
 			}
 		}
 	}
