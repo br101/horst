@@ -32,6 +32,12 @@ static int seqNo = 0;
 static CURL *curl;
 
 
+static size_t curl_write_function(char *ptr, size_t size, size_t nmemb, void *userdata) {
+	// discard response
+	return size*nmemb;
+}
+
+
 void
 upload_init() {
 	struct curl_slist *headers=NULL;
@@ -42,6 +48,7 @@ upload_init() {
 		err(1, "Couldn't initialize CURL");
 	}
 	curl_easy_setopt(curl, CURLOPT_URL, conf.upload_server);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_function);
 
 	headers = curl_slist_append(headers, "Content-Type: application/json");
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
