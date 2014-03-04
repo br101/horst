@@ -71,6 +71,7 @@ upload_finish(void) {
 int nodes_info_json(char *buf) {
 	struct node_info* n;
 	int len = 0;
+	int prev = 0;
 
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "{ \"id\": \"%s\", ",
 			ether_sprintf(conf.my_mac_addr));
@@ -82,10 +83,15 @@ int nodes_info_json(char *buf) {
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"maclist\": [");
 
 	list_for_each_entry(n, &nodes, list) {
-		len += snprintf(buf+len, UPLOAD_BUF_SIZE, "{\"mac\": \"%s\", \"snr\": %ld}%s",
+		/* only send nodes we have seen in the last interval */
+		if (n->last_seen <= (the_time.tv_sec - conf.upload_interval))
+			continue;
+
+		len += snprintf(buf+len, UPLOAD_BUF_SIZE, "%s{\"mac\": \"%s\", \"snr\": %ld}",
+				(prev ? ", " : ""),
 				ether_sprintf(n->last_pkt.wlan_src),
-				ewma_read(&n->phy_snr_avg),
-				n->list.next == &nodes ? "" : ", ");
+				ewma_read(&n->phy_snr_avg));
+		prev = 1;
 	}
 
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "]}");
