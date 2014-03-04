@@ -632,7 +632,7 @@ main(int argc, char** argv)
 		if (mon <= 0)
 			err(1, "Couldn't open packet socket");
 
-		conf.arphrd = device_get_arptype(mon, conf.ifname);
+		conf.arphrd = device_get_hwinfo(mon, conf.ifname, conf.my_mac_addr);
 		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
 		conf.arphrd != ARPHRD_IEEE80211_RADIOTAP) {
 			printf("Wrong monitor type! Please use radiotap or prism2 headers\n");

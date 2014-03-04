@@ -60,7 +60,7 @@ size_t nodes_info_json(char *buf) {
 	struct packet_info* p;
 	int len = 0;
 
-	//len += snprintf(buf+len, UPLOAD_BUF_SIZE, "{ \"id\": \"%s\", ", ether_sprintf(p->wlan_src)); //TODO
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "{ \"id\": \"%s\", ", ether_sprintf(conf.my_mac_addr));
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"time\": %d, ", (int)the_time.tv_sec);
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"seq\": %d, ", seqNo++);
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"window\": %d, ", conf.upload_interval);

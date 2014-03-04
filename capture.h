@@ -30,6 +30,6 @@ void
 close_packet_socket(int fd, char* ifname);
 
 int
-device_get_arptype(int fd, char* ifname);
+device_get_hwinfo(int fd, char* ifname, unsigned char* mac);
 
 #endif // _CAPTURE_H_

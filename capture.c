@@ -79,7 +79,7 @@ device_promisc(int fd, const char *devname, int on)
  *  Get the hardware type of the given interface as ARPHRD_xxx constant.
  */
 int
-device_get_arptype(int fd, char* ifname)
+device_get_hwinfo(int fd, char* ifname, unsigned char* mac)
 {
 	struct ifreq ifr;
 
@@ -89,6 +89,8 @@ device_get_arptype(int fd, char* ifname)
 	if (ioctl(fd, SIOCGIFHWADDR, &ifr) < 0)
 		err(1, "Could not get arptype");
 	DEBUG("ARPTYPE %d\n", ifr.ifr_hwaddr.sa_family);
+	memcpy(mac, ifr.ifr_hwaddr.sa_data, 6);
+	DEBUG("MY MAC %s\n", ether_sprintf(mac));
 	return ifr.ifr_hwaddr.sa_family;
 }
 

@@ -321,6 +321,7 @@ struct config {
 				have_noise:1,
 				display_initialized:1;
 	int			arphrd; // the device ARP type
+	unsigned char		my_mac_addr[MAC_LEN];
 	int			paused;
 	int			num_channels;
 };

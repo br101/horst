@@ -82,7 +82,7 @@ open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size)
 
 
 int
-device_get_arptype(int fd, char* ifname)
+device_get_hwinfo(int fd, char* ifname, unsigned char* mac)
 {
 	if (pcap_fp != NULL) {
 		switch (pcap_datalink(pcap_fp)) {
@@ -94,6 +94,7 @@ device_get_arptype(int fd, char* ifname)
 			return 801;
 		}
 	}
+	/* TODO: mac address not implemented */
 	return -1;
 }
 
