@@ -519,6 +519,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 		case IEEE80211_STYPE_AUTH:
 			if (fc & IEEE80211_FCTL_PROTECTED)
 				p->wlan_wep = 1;
+				/* no break */
 		case IEEE80211_STYPE_DEAUTH:
 			p->pkt_types |= PKT_TYPE_AUTH;
 			break;
