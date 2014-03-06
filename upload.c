@@ -53,7 +53,7 @@ upload_init() {
 	curl_easy_setopt(curl, CURLOPT_URL, conf.upload_server);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_function);
 
-	headers = curl_slist_append(headers, "Content-Type: application/json");
+	headers = curl_slist_append(headers, "Content-Type: application/json; charset=utf-8");
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 }
 
@@ -73,24 +73,24 @@ int nodes_info_json(char *buf) {
 	int len = 0;
 	int prev = 0;
 
-	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "{ \"id\": \"%s\", ",
-			ether_sprintf(conf.my_mac_addr));
-	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"time\": %d, ",
-			(int)the_time.tv_sec);
-	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"seq\": %d, ", seqNo++);
-	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"window\": %d, ",
-			conf.upload_interval);
-	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"maclist\": [");
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "{\"ak\":\"65dd9657-b9f5-40d1-a697-3dc5dc31bbf4\",");
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"ch\":%d,", conf.current_channel);
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"nm\":\"%s\",", ether_sprintf(conf.my_mac_addr));
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"ts\":%d,", (int)the_time.tv_sec);
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"sn\":%d,", seqNo++);
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"sw\":%d,", conf.upload_interval);
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"scans\":[");
 
 	list_for_each_entry(n, &nodes, list) {
 		/* only send nodes we have seen in the last interval */
 		if (n->last_seen <= (the_time.tv_sec - conf.upload_interval))
 			continue;
 
-		len += snprintf(buf+len, UPLOAD_BUF_SIZE, "%s{\"mac\": \"%s\", \"snr\": %ld}",
+		len += snprintf(buf+len, UPLOAD_BUF_SIZE, "%s{\"mac\":\"%s\",\"rssi\":%ld,\"ssid\":\"%s\"}",
 				(prev ? ", " : ""),
 				ether_sprintf(n->last_pkt.wlan_src),
-				ewma_read(&n->phy_snr_avg));
+				ewma_read(&n->phy_snr_avg),
+				(n->essid != NULL) ? n->essid->essid : "");
 		prev = 1;
 	}
 
