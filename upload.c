@@ -96,7 +96,7 @@ int nodes_info_json(char *buf) {
 		len += snprintf(buf+len, UPLOAD_BUF_SIZE, "%s{\"mac\":\"%s\",\"rssi\":%ld,\"ssid\":\"%s\"}",
 				(prev ? ", " : ""),
 				ether_sprintf(n->last_pkt.wlan_src),
-				ewma_read(&n->phy_snr_avg),
+				-ewma_read(&n->phy_sig_avg),
 				(n->essid != NULL) ? n->essid->essid : "");
 		prev = 1;
 	}
