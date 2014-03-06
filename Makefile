@@ -41,9 +41,9 @@ CFLAGS+=-DDO_UPLOAD
 LIBS+=-lcurl
 endif
 
-buildstamp=.build_debug$(DEBUG)pcap$(PCAP)upload$(UPLOAD)
+.PHONY: force
 
-all: $(buildstamp) $(NAME)
+all: $(NAME)
 
 # include dependencies
 average.o: average.h util.h
@@ -60,8 +60,7 @@ display-main.o: display.h main.h util.h ieee80211.h olsr_header.h listsort.h
 display-spectrum.o: display.h main.h util.h
 display-statistics.o: display.h main.h util.h
 essid.o: main.h util.h ieee80211.h
-ieee80211_util.o: ieee80211.h ieee80211_util.h main.h \
-	util.h
+ieee80211_util.o: ieee80211.h ieee80211_util.h main.h util.h
 listsort.o: list.h listsort.h
 main.o: protocol_parser.h display.h network.h main.h capture.h util.h \
 	ieee80211.h ieee80211_util.h wext.h average.h
@@ -75,15 +74,17 @@ radiotap/radiotap.o: radiotap/radiotap.h radiotap/radiotap_iter.h \
 	radiotap/platform.h
 util.o: util.h ieee80211.h
 wext.o: wext.h util.h
+upload.o: main.h util.h
 
 $(NAME): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
+$(OBJS): .buildflags
+
 clean:
 	-rm -f *.o radiotap/*.o *~
 	-rm -f $(NAME)
-	-rm -f .build_*
+	-rm -f .buildflags
 
-$(buildstamp):
-	make clean
-	touch $@
+.buildflags: force
+	echo '$(CFLAGS)' | cmp -s - $@ || echo '$(CFLAGS)' > $@
