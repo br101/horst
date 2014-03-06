@@ -19,6 +19,7 @@
 
 #include <curl/curl.h>
 #include <err.h>
+#include <string.h>
 
 #include "main.h"
 #include "util.h"
@@ -33,7 +34,12 @@ static CURL *curl;
 
 
 static size_t curl_write_function(char *ptr, size_t size, size_t nmemb, void *userdata) {
-	// discard response
+	//printf("recv: %.*s (%d)", (int)(size*nmemb), ptr, (int)(size*nmemb));
+
+	// check response
+	if ((size*nmemb) != 4 || strncmp(ptr, "true", 4) != 0) {
+		printlog("ERROR: Server returned %.*s", (int)(size*nmemb), ptr);
+	}
 	return size*nmemb;
 }
 
@@ -54,6 +60,7 @@ upload_init() {
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_function);
 
 	headers = curl_slist_append(headers, "Content-Type: application/json; charset=utf-8");
+	headers = curl_slist_append(headers, "Accept: application/json;");
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 }
 
