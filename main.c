@@ -681,10 +681,10 @@ main(int argc, char** argv)
 				update_spectrum_durations();
 				if (!conf.quiet && !DO_DEBUG)
 					update_display(NULL, NULL);
-#if DO_UPLOAD
-					upload_check();
-#endif
 			}
+#if DO_UPLOAD
+			upload_check();
+#endif
 		}
 	}
 	/* will never */
