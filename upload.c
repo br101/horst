@@ -110,6 +110,8 @@ void
 upload_check(void)
 {
 	int ret;
+	long code;
+
 	/*
 	 * upload only in conf.upload_interval intervals (seconds)
 	 */
@@ -128,10 +130,15 @@ upload_check(void)
 	ret = curl_easy_perform(curl);
 	if (ret != CURLE_OK) {
 		printlog("ERROR: Upload failed: %s\n", curl_easy_strerror(ret));
+		return;
 	}
 
-	curl_easy_getinfo (curl, CURLINFO_HTTP_CODE, &ret);
-	if (ret != 200) {
-		printlog("ERROR: Upload server status code %d\n", ret);
+	ret = curl_easy_getinfo (curl, CURLINFO_HTTP_CODE, &code);
+	if (ret != CURLE_OK) {
+		printlog("ERROR: Could not get HTTP Response code");
+		return;
+	}
+	if (code != 200) {
+		printlog("ERROR: Upload server status code %ld\n", code);
 	}
 }
