@@ -58,6 +58,7 @@ upload_init() {
 	}
 	curl_easy_setopt(curl, CURLOPT_URL, conf.upload_server);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_function);
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
 
 	headers = curl_slist_append(headers, "Content-Type: application/json; charset=utf-8");
 	headers = curl_slist_append(headers, "Accept: application/json;");
