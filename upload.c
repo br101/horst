@@ -122,7 +122,7 @@ upload_check(void)
 
 	last_time = the_time;
 
-	DEBUG("Uploading to %s\n", conf.upload_server);
+	printlog("Uploading to %s", conf.upload_server);
 
 	ret = nodes_info_json(buffer);
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, buffer);
