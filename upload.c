@@ -20,6 +20,7 @@
 #include <curl/curl.h>
 #include <err.h>
 #include <string.h>
+#include <pthread.h>
 
 #include "main.h"
 #include "util.h"
@@ -30,7 +31,9 @@
 static char buffer[UPLOAD_BUF_SIZE];
 static struct timeval last_time;
 static int seqNo = 0;
+static int timeouts = 0;
 static CURL *curl;
+static pthread_t thread;
 
 
 static size_t curl_write_function(char *ptr, size_t size, size_t nmemb, void *userdata) {
@@ -45,6 +48,7 @@ static size_t curl_write_function(char *ptr, size_t size, size_t nmemb, void *us
 	return size*nmemb;
 }
 
+static char errBuf[CURL_ERROR_SIZE +1];
 
 void
 upload_init() {
@@ -59,8 +63,11 @@ upload_init() {
 		err(1, "Couldn't initialize CURL");
 	}
 	curl_easy_setopt(curl, CURLOPT_URL, conf.upload_server);
+	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_function);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
+	//curl_easy_setopt(curl, CURLOPT_CAINFO, "/root/ca/infsoft.crt");
+	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errBuf);
 
 	headers = curl_slist_append(headers, "Content-Type: application/json; charset=utf-8");
 	headers = curl_slist_append(headers, "Accept: application/json;");
@@ -72,6 +79,10 @@ void
 upload_finish(void) {
 	if (conf.upload_server == NULL)
 		return;
+
+	printlog("waiting for thread...");
+	pthread_join(thread, NULL);
+	printlog("done.");
 
 	curl_easy_cleanup(curl);
 	curl_global_cleanup();
@@ -97,7 +108,7 @@ int nodes_info_json(char *buf) {
 			continue;
 
 		len += snprintf(buf+len, UPLOAD_BUF_SIZE, "%s{\"mac\":\"%s\",\"rssi\":%ld,\"ssid\":\"%s\"}",
-				(count > 0 ? ", " : ""),
+				(count > 0 ? "," : ""),
 				ether_sprintf(n->last_pkt.wlan_src),
 				-ewma_read(&n->phy_sig_avg),
 				(n->essid != NULL) ? n->essid->essid : "");
@@ -111,11 +122,46 @@ int nodes_info_json(char *buf) {
 }
 
 
+void *thread_function(void *arg)
+{
+	int ret;
+	long code;
+
+	printlog("in thread2");
+
+	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (char*)arg);
+	//curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, ret);
+	//CURLOPT_FRESH_CONNECT
+
+	ret = curl_easy_perform(curl);
+	if (ret != CURLE_OK) {
+		printlog("ERROR: Upload failed: %s (%d)\n", curl_easy_strerror(ret), ret);
+		printlog("ERROR: %s", errBuf);
+		if (ret == CURLE_OPERATION_TIMEDOUT)
+			timeouts++;
+		goto err_out;
+	}
+
+	ret = curl_easy_getinfo (curl, CURLINFO_HTTP_CODE, &code);
+	if (ret != CURLE_OK) {
+		printlog("ERROR: Could not get HTTP Response code");
+		goto err_out;
+	}
+	if (code == 200) {
+		printlog("Server sent HTTP Status code OK");
+	} else {
+		printlog("ERROR: Upload server status code %ld\n", code);
+	}
+err_out:
+	printlog("thread done");
+	pthread_exit(NULL);
+}
+
+
 void
 upload_check(void)
 {
 	int ret;
-	long code;
 
 	/*
 	 * upload only in conf.upload_interval intervals (seconds)
@@ -129,23 +175,10 @@ upload_check(void)
 	printlog("Uploading to %s ...", conf.upload_server);
 
 	ret = nodes_info_json(buffer);
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, buffer);
-	curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, ret);
 
-	ret = curl_easy_perform(curl);
-	if (ret != CURLE_OK) {
-		printlog("ERROR: Upload failed: %s\n", curl_easy_strerror(ret));
-		return;
+	ret = pthread_create(&thread, NULL, thread_function, (void *)buffer);
+	if (ret != 0) {
+		printlog("could not create thread");
 	}
-
-	ret = curl_easy_getinfo (curl, CURLINFO_HTTP_CODE, &code);
-	if (ret != CURLE_OK) {
-		printlog("ERROR: Could not get HTTP Response code");
-		return;
-	}
-	if (code == 200) {
-		printlog("Server sent HTTP Status code OK");
-	} else {
-		printlog("ERROR: Upload server status code %ld\n", code);
-	}
+	printlog("upload done");
 }
