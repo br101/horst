@@ -39,6 +39,8 @@ static size_t curl_write_function(char *ptr, size_t size, size_t nmemb, void *us
 	// check response
 	if ((size*nmemb) != 4 || strncmp(ptr, "true", 4) != 0) {
 		printlog("ERROR: Server returned %.*s", (int)(size*nmemb), ptr);
+	} else {
+		printlog("Received 'true' from Server");
 	}
 	return size*nmemb;
 }
@@ -79,7 +81,7 @@ upload_finish(void) {
 int nodes_info_json(char *buf) {
 	struct node_info* n;
 	int len = 0;
-	int prev = 0;
+	int count = 0;
 
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "{\"ak\":\"65dd9657-b9f5-40d1-a697-3dc5dc31bbf4\",");
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"ch\":%d,", conf.current_channel);
@@ -95,14 +97,16 @@ int nodes_info_json(char *buf) {
 			continue;
 
 		len += snprintf(buf+len, UPLOAD_BUF_SIZE, "%s{\"mac\":\"%s\",\"rssi\":%ld,\"ssid\":\"%s\"}",
-				(prev ? ", " : ""),
+				(count > 0 ? ", " : ""),
 				ether_sprintf(n->last_pkt.wlan_src),
 				-ewma_read(&n->phy_sig_avg),
 				(n->essid != NULL) ? n->essid->essid : "");
-		prev = 1;
+		count++;
 	}
 
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "]}");
+
+	printlog("Sending %d scan results", count);
 	return len;
 }
 
@@ -122,7 +126,7 @@ upload_check(void)
 
 	last_time = the_time;
 
-	printlog("Uploading to %s", conf.upload_server);
+	printlog("Uploading to %s ...", conf.upload_server);
 
 	ret = nodes_info_json(buffer);
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, buffer);
@@ -139,7 +143,9 @@ upload_check(void)
 		printlog("ERROR: Could not get HTTP Response code");
 		return;
 	}
-	if (code != 200) {
+	if (code == 200) {
+		printlog("Server sent HTTP Status code OK");
+	} else {
 		printlog("ERROR: Upload server status code %ld\n", code);
 	}
 }

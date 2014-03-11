@@ -302,7 +302,7 @@ handle_packet(struct packet_info* p)
 	if (conf.dumpfile != NULL && !conf.paused && DF != NULL)
 		write_to_file(p);
 
-	if (conf.quiet || conf.paused)
+	if (conf.paused)
 		return;
 
 	/* get channel index for packet */
@@ -346,7 +346,8 @@ handle_packet(struct packet_info* p)
 	update_essids(p, n);
 
 #if !DO_DEBUG
-	update_display(p, n);
+	if (!conf.quiet)
+		update_display(p, n);
 #endif
 }
 
@@ -403,9 +404,6 @@ receive_any(void)
 	if (ret == 0) { /* timeout */
 		if (!conf.quiet && !DO_DEBUG)
 			update_display_clock();
-#if DO_UPLOAD
-		upload_check();
-#endif
 		return;
 	}
 	else if (ret < 0) /* error */
@@ -675,6 +673,9 @@ main(int argc, char** argv)
 		receive_any();
 		gettimeofday(&the_time, NULL);
 		timeout_nodes();
+#if DO_UPLOAD
+		upload_check();
+#endif
 		if (!conf.serveraddr) { /* server */
 			if (auto_change_channel(mon)) {
 				net_send_channel_config();
@@ -682,9 +683,6 @@ main(int argc, char** argv)
 				if (!conf.quiet && !DO_DEBUG)
 					update_display(NULL, NULL);
 			}
-#if DO_UPLOAD
-			upload_check();
-#endif
 		}
 	}
 	/* will never */
