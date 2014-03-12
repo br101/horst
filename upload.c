@@ -172,8 +172,8 @@ upload_init() {
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_function);
 	curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, curl_progress_function);
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
-	//curl_easy_setopt(curl, CURLOPT_CAINFO, "/root/ca/infsoft.crt");
+	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+	curl_easy_setopt(curl, CURLOPT_CAINFO, "/etc/ssl/certs/cacert.pem");
 	curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errBuf);
 
 	headers = curl_slist_append(headers, "Content-Type: application/json; charset=utf-8");
