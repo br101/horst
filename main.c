@@ -622,6 +622,8 @@ main(int argc, char** argv)
 	get_options(argc, argv);
 
 	signal(SIGINT, sigint_handler);
+	signal(SIGTERM, sigint_handler);
+	signal(SIGHUP, sigint_handler);
 	signal(SIGPIPE, sigpipe_handler);
 	atexit(exit_handler);
 
