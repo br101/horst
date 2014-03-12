@@ -273,7 +273,7 @@ net_receive_packet(unsigned char *buffer, int len)
 }
 
 
-void
+static void
 net_send_conf_chan(int fd)
 {
 	struct net_conf_chan nc;
@@ -313,7 +313,7 @@ net_receive_conf_chan(unsigned char *buffer, int len)
 }
 
 
-int
+static int
 net_send_conf_filter(int fd)
 {
 	struct net_conf_filter nc;
@@ -409,7 +409,7 @@ net_receive_chan_list(unsigned char *buffer, int len)
 }
 
 
-int
+static int
 try_receive_packet(unsigned char* buf, int len)
 {
 	struct net_header *nh = (struct net_header *)buf;

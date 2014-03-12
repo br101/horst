@@ -31,8 +31,8 @@
 #include "ieee80211.h"
 
 
-WINDOW *conf_win = NULL;
-WINDOW *show_win = NULL;
+static WINDOW *conf_win = NULL;
+static WINDOW *show_win = NULL;
 static int conf_win_current;
 static int show_win_current;
 
@@ -364,7 +364,7 @@ update_display(struct packet_info* pkt, struct node_info* node)
 
 /******************* RESIZE *******************/
 
-void
+static void
 resize_display_all()
 {
 	resize_display_main();
@@ -383,7 +383,7 @@ resize_display_all()
 }
 
 
-void
+static void
 window_change_handler(int sig) {
 	struct winsize winsz;
 

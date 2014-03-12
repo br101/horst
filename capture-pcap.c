@@ -38,7 +38,8 @@ static size_t pcap_bufsize;
 static pcap_t *pcap_fp = NULL;
 
 
-void handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes)
+static void
+handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes)
 {
 	*((int *)user) = h->len;
 	if (pcap_bufsize < h->len) {

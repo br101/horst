@@ -53,7 +53,8 @@ static int upload_requested = 0;
 /*
  * CURL: check server response
  */
-static size_t curl_write_function(char *ptr, size_t size, size_t nmemb, void *userdata) {
+static size_t
+curl_write_function(char *ptr, size_t size, size_t nmemb, void *userdata) {
 	//printf("recv: %.*s (%d)", (int)(size*nmemb), ptr, (int)(size*nmemb));
 
 	// check response
@@ -70,7 +71,8 @@ static size_t curl_write_function(char *ptr, size_t size, size_t nmemb, void *us
  * CURL: this is used to speed up stopping the thread when an upload is in progress
  * and we would have to wait for a timeout otherwise
  */
-int curl_progress_function(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
+static int
+curl_progress_function(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
 	if (pthread_mutex_trylock(&quit_mutex) != EBUSY) {
 		/* lock again for thead to actually finish  */
 		pthread_mutex_unlock(&quit_mutex);
@@ -83,7 +85,8 @@ int curl_progress_function(void *clientp, double dltotal, double dlnow, double u
 /*
  * CURL: do upload and wait for result
  */
-void do_upload() {
+static void
+do_upload() {
 	int ret;
 	long code;
 
@@ -126,7 +129,8 @@ void do_upload() {
  *
  * the whole upload is done under the upload_mutex
  */
-void *upload_thread_run(void *arg)
+static void *
+upload_thread_run(void *arg)
 {
 	/* run until the quit_mutex is unlocked */
 	while (pthread_mutex_trylock(&quit_mutex) == EBUSY) {
@@ -225,7 +229,8 @@ upload_finish(void) {
 /*
  * convert scan results to JSON
  */
-int nodes_info_to_json(char *buf) {
+static int
+nodes_info_to_json(char *buf) {
 	struct node_info* n;
 	int len = 0;
 	int count = 0;

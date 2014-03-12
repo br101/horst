@@ -216,7 +216,7 @@ ieee80211_is_erp_rate(int phymode, int rate)
 	return 0;
 }
 
-int
+static int
 get_cw_time(int cw_min, int cw_max, int retries, int slottime)
 {
 	int cw = pow(2, (cw_min + retries)) - 1;
@@ -229,11 +229,11 @@ get_cw_time(int cw_min, int cw_max, int retries, int slottime)
 	return (cw * slottime) / 2;
 }
 
-const unsigned char ieee802_1d_to_ac[8] = { 0, 1, 1, 0, 2, 2, 3, 3 };
-				     /* BE	BK	VI	VO */
-const unsigned char ac_to_aifs[4] = {	3,	7,	2,	2};
-const unsigned char ac_to_cwmin[4] = {	4,	4,	3,	2};
-const unsigned int ac_to_cwmax[4] = {	10,	10,	4,	3};
+static const unsigned char ieee802_1d_to_ac[8] = { 0, 1, 1, 0, 2, 2, 3, 3 };
+					    /* BE	BK	VI	VO */
+static const unsigned char ac_to_aifs[4] = {	3,	7,	2,	2};
+static const unsigned char ac_to_cwmin[4] = {	4,	4,	3,	2};
+static const unsigned int ac_to_cwmax[4] = {	10,	10,	4,	3};
 
 /* from mac80211/util.c, modified */
 int
