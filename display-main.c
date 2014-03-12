@@ -495,7 +495,7 @@ update_main_win(struct packet_info *p)
 
 
 int
-main_input(char key)
+main_input(int key)
 {
 	if (sort_win != NULL)
 		return sort_input(key);
