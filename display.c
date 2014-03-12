@@ -365,7 +365,7 @@ update_display(struct packet_info* pkt, struct node_info* node)
 /******************* RESIZE *******************/
 
 static void
-resize_display_all()
+resize_display_all(void)
 {
 	resize_display_main();
 

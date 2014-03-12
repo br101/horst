@@ -86,7 +86,7 @@ curl_progress_function(void *clientp, double dltotal, double dlnow, double ultot
  * CURL: do upload and wait for result
  */
 static void
-do_upload() {
+do_upload(void) {
 	int ret;
 	long code;
 
@@ -155,7 +155,7 @@ upload_thread_run(void *arg)
 
 
 void
-upload_init() {
+upload_init(void) {
 	struct curl_slist *headers=NULL;
 	int ret;
 

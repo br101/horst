@@ -34,7 +34,7 @@
 int ctlpipe = -1;
 
 void
-control_init_pipe()
+control_init_pipe(void)
 {
 	mkfifo(conf.control_pipe, 0666);
 	ctlpipe = open(conf.control_pipe, O_RDWR|O_NONBLOCK);
@@ -126,7 +126,7 @@ parse_command(char* in) {
 
 
 void
-control_receive_command() {
+control_receive_command(void) {
 	char buf[MAX_CMD];
 	char *pos = buf;
 	char *end;
