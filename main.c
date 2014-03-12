@@ -646,8 +646,9 @@ main(int argc, char** argv)
 
 		conf.arphrd = device_get_hwinfo(mon, conf.ifname, conf.my_mac_addr);
 		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
-		conf.arphrd != ARPHRD_IEEE80211_RADIOTAP) {
-			printf("Wrong monitor type! Please use radiotap or prism2 headers\n");
+		    conf.arphrd != ARPHRD_IEEE80211_RADIOTAP) {
+			printf("You need to put your interface into monitor mode!\n");
+			printf("(e.g. 'iw %s interface add mon0 type monitor' and 'horst -i mon0')\n", conf.ifname);
 			exit(1);
 		}
 

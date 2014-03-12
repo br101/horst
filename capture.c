@@ -129,8 +129,10 @@ open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size)
 	struct sockaddr_ll sall;
 
 	mon_fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-	if (mon_fd < 0)
-		err(1, "Could not create packet socket");
+	if (mon_fd < 0) {
+		printf("Could not create packet socket! Please run horst as root!\n");
+		exit(1);
+	}
 
 	/* bind only to one interface */
 	ifindex = device_index(mon_fd, devname);
