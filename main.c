@@ -485,15 +485,15 @@ finish_all(void)
 	if (conf.allow_control)
 		control_finish();
 
+#if DO_UPLOAD
+	upload_finish();
+#endif
+
 #if !DO_DEBUG
 	net_finish();
 
 	if (!conf.quiet)
 		finish_display();
-#endif
-
-#if DO_UPLOAD
-	upload_finish();
 #endif
 }
 
