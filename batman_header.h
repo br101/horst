@@ -22,6 +22,8 @@
 #ifndef _BATMAN_BATMAN_H
 #define _BATMAN_BATMAN_H
 
+#include <stdint.h>
+
 #define BAT_PORT 4305
 #define BAT_UNIDIRECTIONAL 0x80
 #define BAT_DIRECTLINK 0x40

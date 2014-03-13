@@ -20,6 +20,8 @@
 #ifndef _PROTOCOL_NETWORK_H_
 #define _PROTOCOL_NETWORK_H_
 
+#include <stddef.h>
+
 struct packet_info;
 
 extern int srv_fd;

@@ -20,6 +20,8 @@
 #ifndef _CAPTURE_H_
 #define _CAPTURE_H_
 
+#include <stddef.h>
+
 int
 open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size);
 
