@@ -178,8 +178,8 @@ upload_init(void) {
 	curl_easy_setopt(curl, CURLOPT_URL, conf.upload_server);
 	curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
 	curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_write_function);
-	curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, curl_progress_function);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &curl_write_function);
+	curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, &curl_progress_function);
 	curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
 	curl_easy_setopt(curl, CURLOPT_CAINFO, "/etc/ssl/certs/cacert.pem");
