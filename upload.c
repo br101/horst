@@ -216,24 +216,28 @@ upload_finish(void) {
 	if (conf.upload_server == NULL)
 		return;
 
-	/* signal thread to quit */
-	pthread_mutex_unlock(&quit_mutex);
+	if (thread != 0) {
+		/* signal thread to quit */
+		pthread_mutex_unlock(&quit_mutex);
 
-	/* wake up */
-	pthread_mutex_unlock(&upload_mutex);
-	upload_requested = 1;
-	pthread_cond_signal(&upload_cond);
-	pthread_mutex_unlock(&upload_mutex);
+		/* wake up */
+		pthread_mutex_unlock(&upload_mutex);
+		upload_requested = 1;
+		pthread_cond_signal(&upload_cond);
+		pthread_mutex_unlock(&upload_mutex);
 
-	printlog("exit: waiting for upload thread...");
-	pthread_join(thread, NULL);
+		printlog("exit: waiting for upload thread...");
+		pthread_join(thread, NULL);
 
-	pthread_mutex_destroy(&quit_mutex);
-	pthread_mutex_destroy(&upload_mutex);
-	pthread_cond_destroy(&upload_cond);
+		pthread_mutex_destroy(&quit_mutex);
+		pthread_mutex_destroy(&upload_mutex);
+		pthread_cond_destroy(&upload_cond);
+	}
 
-	curl_easy_cleanup(curl);
-	curl_global_cleanup();
+	if (curl != NULL) {
+		curl_easy_cleanup(curl);
+		curl_global_cleanup();
+	}
 }
 
 
