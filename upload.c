@@ -247,7 +247,7 @@ nodes_info_to_json(char *buf) {
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"ch\":%d,", conf.current_channel);
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"nm\":\"%s\",", ether_sprintf(conf.my_mac_addr));
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"ts\":%d,", (int)the_time.tv_sec);
-	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"sn\":%d,", seqNo++);
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"sn\":%d,", seqNo);
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"sw\":%d,", conf.upload_interval);
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"scans\":[");
 
@@ -266,7 +266,8 @@ nodes_info_to_json(char *buf) {
 
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "]}");
 
-	printlog("Sending %d scan results", count);
+	printlog("Sending %d with %d results", seqNo, count);
+	seqNo++;
 	return len;
 }
 
