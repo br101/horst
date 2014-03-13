@@ -38,6 +38,9 @@
 #include "ieee80211_util.h"
 #include "wext.h"
 #include "control.h"
+#include "channel.h"
+#include "node.h"
+#include "essid.h"
 #include "upload.h"
 
 
@@ -93,13 +96,6 @@ static fd_set read_fds;
 static fd_set write_fds;
 static fd_set excpt_fds;
 static struct timeval tv;
-
-
-struct node_info* node_update(struct packet_info* p);
-void update_essids(struct packet_info* p, struct node_info* n);
-void timeout_nodes(void);
-int auto_change_channel(int mon);
-void get_current_channel(int mon);
 
 
 void __attribute__ ((format (printf, 1, 2)))

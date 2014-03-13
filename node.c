@@ -24,12 +24,10 @@
 #include "main.h"
 #include "util.h"
 #include "ieee80211.h"
+#include "essid.h"
 
 
 static struct timeval last_nodetimeout;
-
-
-void remove_node_from_essid(struct node_info* n);
 
 
 static void

@@ -23,6 +23,8 @@
 #include "main.h"
 #include "util.h"
 #include "ieee80211.h"
+#include "essid.h"
+
 
 static void
 update_essid_split_status(struct essid_info* e)
