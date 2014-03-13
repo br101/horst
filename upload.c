@@ -41,13 +41,13 @@ static char errBuf[CURL_ERROR_SIZE+1];
 static pthread_t thread;
 
 /* when quit_mutex is unlocked, this signals the thread to quit */
-static pthread_mutex_t quit_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t quit_mutex;
 
 /* upload_mutex is held while upload is in progress */
-static pthread_mutex_t upload_mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t upload_mutex;
 
 /* used to signal an upload was requested */
-static pthread_cond_t upload_cond = PTHREAD_COND_INITIALIZER;
+static pthread_cond_t upload_cond;
 static int upload_requested = 0;
 
 
@@ -193,8 +193,11 @@ upload_init(void) {
 	srand((int)the_time.tv_usec);
 
 	/*
-	 * start upload thread
+	 * initialize pthread and start upload thread
 	 */
+	pthread_cond_init (&upload_cond, NULL);
+	pthread_mutex_init(&upload_mutex, NULL);
+	pthread_mutex_init(&quit_mutex, NULL);
 	pthread_mutex_lock(&quit_mutex);
 
 	ret = pthread_create(&thread, NULL, upload_thread_run, NULL);
