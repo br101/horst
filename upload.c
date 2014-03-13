@@ -17,11 +17,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include <curl/curl.h>
+#include <unistd.h>
 #include <err.h>
+#include <errno.h>
 #include <string.h>
 #include <pthread.h>
-#include <errno.h>
+#include <curl/curl.h>
 #include "main.h"
 #include "util.h"
 
@@ -92,6 +93,10 @@ do_upload(void) {
 
 	printlog("Uploading to %s ...", conf.upload_server);
 	curl_easy_setopt(curl, CURLOPT_POSTFIELDS, buffer);
+
+	/* add jitter < 900ms to avoid uploads at exactly the same time */
+	usleep(rand() % 900000);
+
 	ret = curl_easy_perform(curl);
 
 	if (ret == CURLE_OPERATION_TIMEDOUT) {
@@ -183,6 +188,9 @@ upload_init(void) {
 	headers = curl_slist_append(headers, "Content-Type: application/json; charset=utf-8");
 	headers = curl_slist_append(headers, "Accept: application/json;");
 	curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+	/* initialize random number generator, used for upload jitter */
+	srand((int)the_time.tv_usec);
 
 	/*
 	 * start upload thread
