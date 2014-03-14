@@ -94,6 +94,9 @@ $(NAME): $(OBJS)
 
 $(OBJS): .buildflags
 
+check:
+	sparse *.[ch]
+
 clean:
 	-rm -f *.o radiotap/*.o *~
 	-rm -f $(NAME)
