@@ -161,8 +161,8 @@ parse_prism_header(unsigned char** buf, int len, struct packet_info* p)
 }
 
 
-static void print_radiotap_namespace(struct ieee80211_radiotap_iterator *iter,
-				     struct packet_info* p)
+static void
+get_radiotap_info(struct ieee80211_radiotap_iterator *iter, struct packet_info* p)
 {
 	uint16_t x;
 	char c;
@@ -295,7 +295,7 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 
 	while (!(err = ieee80211_radiotap_iterator_next(&iter))) {
 		if (iter.is_radiotap_ns) {
-			print_radiotap_namespace(&iter, p);
+			get_radiotap_info(&iter, p);
 		}
 	}
 
