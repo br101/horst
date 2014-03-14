@@ -182,8 +182,10 @@ update_spectrum(struct packet_info* p, struct node_info* n)
 	chan->durations += p->pkt_duration;
 	ewma_add(&chan->signal_avg, -chan->signal);
 
-	if (!n)
+	if (!n) {
+		DEBUG("spec no node\n");
 		return;
+	}
 
 	/* add node to channel if not already there */
 	list_for_each_entry(cn, &chan->nodes, chan_list) {
@@ -258,6 +260,10 @@ filter_packet(struct packet_info* p)
 		return 1;
 	}
 
+	/* cannot trust BSSID or MAC if FCS is bad */
+	if (p->phy_flags & PHY_FLAG_BADFCS)
+		return 0;
+
 	if (MAC_NOT_EMPTY(conf.filterbssid) &&
 	    memcmp(p->wlan_bssid, conf.filterbssid, MAC_LEN) != 0) {
 		stats.filtered_packets++;
@@ -282,7 +288,7 @@ filter_packet(struct packet_info* p)
 void
 handle_packet(struct packet_info* p)
 {
-	struct node_info* n;
+	struct node_info* n = NULL;
 	int i = -1;
 
 	/* filter on server side only */
@@ -324,17 +330,22 @@ handle_packet(struct packet_info* p)
 	if (conf.current_channel < 0 && p->pkt_chan_idx >= 0)
 		conf.current_channel = p->pkt_chan_idx;
 
-	n = node_update(p);
+	if (!(p->phy_flags & PHY_FLAG_BADFCS)) {
+		/* we can't trust any fields except phy_* of packets with bad FCS,
+		 * so we can't do all this here */
+		n = node_update(p);
 
-	if (n)
-		p->wlan_retries = n->wlan_retries_last;
+		if (n)
+			p->wlan_retries = n->wlan_retries_last;
 
-	p->pkt_duration = ieee80211_frame_duration(
+		p->pkt_duration = ieee80211_frame_duration(
 				p->phy_flags & PHY_FLAG_MODE_MASK,
 				p->wlan_len, p->phy_rate,
 				p->phy_flags & PHY_FLAG_SHORTPRE,
-				0 /*shortslot*/, p->wlan_type, p->wlan_qos_class,
+				0 /*shortslot*/, p->wlan_type,
+				p->wlan_qos_class,
 				p->wlan_retries);
+	}
 
 	update_history(p);
 	update_statistics(p);

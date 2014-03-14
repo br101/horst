@@ -59,7 +59,9 @@ parse_packet(unsigned char* buf, int len, struct packet_info* p)
 	}
 	else if (conf.arphrd == ARPHRD_IEEE80211_RADIOTAP) {
 		len = parse_radiotap_header(&buf, len, p);
-		if (len <= 0)
+		if (len == -1) /* Bad FCS, allow packet but stop parsing */
+			return 1;
+		else if (len <= 0)
 			return 0;
 	}
 
@@ -289,8 +291,8 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 
 	err = ieee80211_radiotap_iterator_init(&iter, rh, rt_len, NULL);
 	if (err) {
-		printf("malformed radiotap header (init returns %d)\n", err);
-		return 3;
+		DEBUG("malformed radiotap header (init returns %d)\n", err);
+		return -2;
 	}
 
 	while (!(err = ieee80211_radiotap_iterator_next(&iter))) {
@@ -334,8 +336,14 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 	DEBUG("noise: %d\n", p->phy_noise);
 	DEBUG("snr: %d\n", p->phy_snr);
 
-	*buf = *buf + rt_len;
-	return len - rt_len;
+	if (p->phy_flags & PHY_FLAG_BADFCS) {
+		/* we can't trust frames with a bad FCS - stop parsing */
+		DEBUG("=== bad FCS, stop ===\n");
+		return -1;
+	} else {
+		*buf = *buf + rt_len;
+		return len - rt_len;
+	}
 }
 
 
