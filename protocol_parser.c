@@ -96,7 +96,7 @@ parse_prism_header(unsigned char** buf, int len, struct packet_info* p)
 
 	DEBUG("PRISM2 HEADER\n");
 
-	if (len < sizeof(wlan_ng_prism2_header))
+	if (len > 0 && (size_t)len < sizeof(wlan_ng_prism2_header))
 		return -1;
 
 	ph = (wlan_ng_prism2_header*)*buf;
@@ -128,8 +128,6 @@ parse_prism_header(unsigned char** buf, int len, struct packet_info* p)
 	p->phy_rate = ph->rate.data * 10;
 
 	/* just in case...*/
-	if (p->phy_snr < 0)
-		p->phy_snr = -p->phy_snr;
 	if (p->phy_snr > 99)
 		p->phy_snr = 99;
 	if (p->phy_rate == 0 || p->phy_rate > 1080) {
@@ -584,7 +582,7 @@ parse_ip_header(unsigned char** buf, int len, struct packet_info* p)
 
 	DEBUG("* parse IP\n");
 
-	if (len < sizeof(struct ip))
+	if (len > 0 && (size_t)len < sizeof(struct ip))
 		return -1;
 
 	ih = (struct ip*)*buf;
@@ -614,7 +612,7 @@ parse_udp_header(unsigned char** buf, int len, struct packet_info* p)
 {
 	struct udphdr* uh;
 
-	if (len < sizeof(struct udphdr))
+	if (len > 0 && (size_t)len < sizeof(struct udphdr))
 		return -1;
 
 	uh = (struct udphdr*)*buf;
@@ -645,7 +643,7 @@ parse_olsr_packet(unsigned char** buf, int len, struct packet_info* p)
 	struct olsr* oh;
 	int number, i, msgtype;
 
-	if (len < sizeof(struct olsr))
+	if (len > 0 && (size_t)len < sizeof(struct olsr))
 		return -1;
 
 	oh = (struct olsr*)*buf;

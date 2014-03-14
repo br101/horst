@@ -117,10 +117,10 @@ static inline int normalize_db(int val, int max)
 }
 
 char
-get_packet_type_char(int type);
+get_packet_type_char(unsigned int type);
 
 const char*
-get_packet_type_name(int type);
+get_packet_type_name(unsigned int type);
 
 const char*
 kilo_mega_ize(unsigned int val);

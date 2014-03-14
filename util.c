@@ -172,7 +172,7 @@ convert_string_to_mac(const char* string, unsigned char* mac)
 
 
 char
-get_packet_type_char(int type)
+get_packet_type_char(unsigned int type)
 {
 	if (type == 1) /* special case for bad FCS */
 		return '*';
@@ -201,7 +201,7 @@ get_packet_type_char(int type)
 
 
 const char*
-get_packet_type_name(int type)
+get_packet_type_name(unsigned int type)
 {
 	if (type == 1) /* special case for bad FCS */
 		return "BADFCS";

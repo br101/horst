@@ -179,8 +179,8 @@ struct node_info {
 	unsigned int		pkt_count;	/* nr of packets seen */
 
 	/* wlan phy (from radiotap) */
-	int			phy_snr_min;
-	int			phy_snr_max;
+	unsigned int		phy_snr_min;
+	unsigned int		phy_snr_max;
 	struct ewma		phy_snr_avg;
 	int			phy_sig_max;
 	struct ewma		phy_sig_avg;

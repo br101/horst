@@ -215,7 +215,7 @@ net_send_packet(struct packet_info *p)
 
 
 static int
-net_receive_packet(unsigned char *buffer, int len)
+net_receive_packet(unsigned char *buffer, size_t len)
 {
 	struct net_packet_info *np;
 	struct packet_info p;
@@ -290,7 +290,7 @@ net_send_conf_chan(int fd)
 
 
 static int
-net_receive_conf_chan(unsigned char *buffer, int len)
+net_receive_conf_chan(unsigned char *buffer, size_t len)
 {
 	struct net_conf_chan *nc;
 
@@ -336,7 +336,7 @@ net_send_conf_filter(int fd)
 
 
 static int
-net_receive_conf_filter(unsigned char *buffer, int len)
+net_receive_conf_filter(unsigned char *buffer, size_t len)
 {
 	struct net_conf_filter *nc;
 	int i;
@@ -386,7 +386,7 @@ net_send_chan_list(int fd)
 
 
 static int
-net_receive_chan_list(unsigned char *buffer, int len)
+net_receive_chan_list(unsigned char *buffer, size_t len)
 {
 	struct net_chan_list *nc;
 	int i;
@@ -410,7 +410,7 @@ net_receive_chan_list(unsigned char *buffer, int len)
 
 
 static int
-try_receive_packet(unsigned char* buf, int len)
+try_receive_packet(unsigned char* buf, size_t len)
 {
 	struct net_header *nh = (struct net_header *)buf;
 
