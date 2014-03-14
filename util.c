@@ -98,6 +98,7 @@ normalize(float oval, int max_val, int max) {
 }
 
 
+#if DO_DEBUG
 void
 dump_packet(const unsigned char* buf, int len)
 {
@@ -113,6 +114,13 @@ dump_packet(const unsigned char* buf, int len)
 	}
 	DEBUG("\n");
 }
+#else
+void
+dump_packet(__attribute__((unused)) const unsigned char* buf,
+	    __attribute__((unused)) int len)
+{
+}
+#endif
 
 
 const char*
