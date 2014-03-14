@@ -52,7 +52,7 @@ handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes)
 
 
 int
-open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size)
+open_packet_socket(char* devname, int recv_buffer_size)
 {
 	char error[PCAP_ERRBUF_SIZE];
 	int ret;

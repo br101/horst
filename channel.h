@@ -21,6 +21,6 @@
 #define _CHANNEL_H_
 
 void get_current_channel(int mon);
-int auto_change_channel(int mon);
+int auto_change_channel(void);
 
 #endif

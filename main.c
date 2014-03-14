@@ -343,7 +343,7 @@ handle_packet(struct packet_info* p)
 
 #if !DO_DEBUG
 	if (!conf.quiet)
-		update_display(p, n);
+		update_display(p);
 #endif
 }
 
@@ -502,14 +502,14 @@ exit_handler(void)
 
 
 static void
-sigint_handler(int sig)
+sigint_handler(__attribute__((unused)) int sig)
 {
 	exit(0);
 }
 
 
 static void
-sigpipe_handler(int sig)
+sigpipe_handler(__attribute__((unused)) int sig)
 {
 	/* ignore signal here - we will handle it after write failed */
 }
@@ -636,7 +636,7 @@ main(int argc, char** argv)
 	if (conf.serveraddr)
 		mon = net_open_client_socket(conf.serveraddr, conf.port);
 	else {
-		mon = open_packet_socket(conf.ifname, sizeof(buffer), conf.recv_buffer_size);
+		mon = open_packet_socket(conf.ifname, conf.recv_buffer_size);
 		if (mon <= 0)
 			err(1, "Couldn't open packet socket");
 
@@ -676,11 +676,11 @@ main(int argc, char** argv)
 		upload_check();
 #endif
 		if (!conf.serveraddr) { /* server */
-			if (auto_change_channel(mon)) {
+			if (auto_change_channel()) {
 				net_send_channel_config();
 				update_spectrum_durations();
 				if (!conf.quiet && !DO_DEBUG)
-					update_display(NULL, NULL);
+					update_display(NULL);
 			}
 		}
 	}

@@ -103,10 +103,12 @@ dump_packet(const unsigned char* buf, int len)
 {
 	int i;
 	for (i = 0; i < len; i++) {
-		if ((i % 2) == 0)
+		if ((i % 2) == 0) {
 			DEBUG(" ");
-		if ((i % 16) == 0)
+		}
+		if ((i % 16) == 0) {
 			DEBUG("\n");
+		}
 		DEBUG("%02x", buf[i]);
 	}
 	DEBUG("\n");

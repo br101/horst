@@ -55,7 +55,8 @@ static int upload_requested = 0;
  * CURL: check server response
  */
 static size_t
-curl_write_function(char *ptr, size_t size, size_t nmemb, void *userdata) {
+curl_write_function(char *ptr, size_t size, size_t nmemb,
+		    __attribute__((unused)) void *userdata) {
 	//printf("recv: %.*s (%d)", (int)(size*nmemb), ptr, (int)(size*nmemb));
 
 	// check response
@@ -73,7 +74,11 @@ curl_write_function(char *ptr, size_t size, size_t nmemb, void *userdata) {
  * and we would have to wait for a timeout otherwise
  */
 static int
-curl_progress_function(void *clientp, double dltotal, double dlnow, double ultotal, double ulnow) {
+curl_progress_function(__attribute__((unused)) void *clientp,
+		       __attribute__((unused)) double dltotal,
+		       __attribute__((unused)) double dlnow,
+		       __attribute__((unused)) double ultotal,
+		       __attribute__((unused)) double ulnow) {
 	if (pthread_mutex_trylock(&quit_mutex) != EBUSY) {
 		/* lock again for thead to actually finish  */
 		pthread_mutex_unlock(&quit_mutex);
@@ -135,7 +140,7 @@ do_upload(void) {
  * the whole upload is done under the upload_mutex
  */
 static void *
-upload_thread_run(void *arg)
+upload_thread_run(__attribute__((unused)) void *arg)
 {
 	/* run until the quit_mutex is unlocked */
 	while (pthread_mutex_trylock(&quit_mutex) == EBUSY) {

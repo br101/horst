@@ -122,7 +122,7 @@ set_receive_buffer(int fd, int sockbufsize)
 
 
 int
-open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size)
+open_packet_socket(char* devname, int recv_buffer_size)
 {
 	int ret;
 	int mon_fd;

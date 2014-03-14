@@ -156,7 +156,7 @@ signal_average_bar(WINDOW *win, int val, int avg, int y, int x, int height,
 
 void
 general_average_bar(WINDOW *win, int val, int avg, int y, int x,
-		    int height, int width, short color, short color_avg)
+		    int width, short color, short color_avg)
 {
 	int i;
 	if (avg >= val) {
@@ -325,7 +325,7 @@ display_log(const char *string)
 
 
 void
-update_display(struct packet_info* pkt, struct node_info* node)
+update_display(struct packet_info* pkt)
 {
 	/*
 	 * update only in specific intervals to save CPU time
@@ -379,12 +379,12 @@ resize_display_all(void)
 			mvwin(conf_win, LINES/2-5, COLS/2-20);
 	}
 	update_menu();
-	update_display(NULL, NULL);
+	update_display(NULL);
 }
 
 
 static void
-window_change_handler(int sig) {
+window_change_handler(__attribute__((unused)) int sig) {
 	struct winsize winsz;
 
 	winsz.ws_col = winsz.ws_row = 0;
@@ -465,7 +465,7 @@ handle_user_input(void)
 		break;
 	}
 
-	update_display(NULL, NULL);
+	update_display(NULL);
 }
 
 
@@ -510,7 +510,7 @@ init_display(void)
 		show_window('s');
 
 	update_menu();
-	update_display(NULL, NULL);
+	update_display(NULL);
 
 	signal(SIGWINCH, window_change_handler);
 	conf.display_initialized = 1;

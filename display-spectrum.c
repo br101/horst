@@ -142,8 +142,7 @@ update_spectrum_win(WINDOW *win)
 			general_average_bar(win, usen, usean,
 					    SPEC_POS_Y + SPEC_HEIGHT,
 					    SPEC_POS_X + CH_SPACE*i + 3,
-					    SPEC_HEIGHT, 1,
-					    YELLOW, ALLYELLOW);
+					    1, YELLOW, ALLYELLOW);
 		}
 	}
 

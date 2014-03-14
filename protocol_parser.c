@@ -709,7 +709,9 @@ parse_olsr_packet(unsigned char** buf, int len, struct packet_info* p)
 
 
 static int
-parse_batman_packet(unsigned char** buf, int len, struct packet_info* p)
+parse_batman_packet(__attribute__((unused)) unsigned char** buf,
+		    __attribute__((unused)) int len,
+		    __attribute__((unused)) struct packet_info* p)
 {
 	p->pkt_types |= PKT_TYPE_BATMAN;
 
@@ -718,7 +720,10 @@ parse_batman_packet(unsigned char** buf, int len, struct packet_info* p)
 
 
 static int
-parse_meshcruzer_packet(unsigned char** buf, int len, struct packet_info* p, int port)
+parse_meshcruzer_packet(__attribute__((unused)) unsigned char** buf,
+			__attribute__((unused)) int len,
+			__attribute__((unused)) struct packet_info* p,
+			__attribute__((unused)) int port)
 {
 	p->pkt_types |= PKT_TYPE_MESHZ;
 

@@ -141,7 +141,7 @@ sort_input(int c)
 	case '\r': case KEY_ENTER:
 		delwin(sort_win);
 		sort_win = NULL;
-		update_display(NULL, NULL);
+		update_display(NULL);
 		return 1;
 	}
 	return 0;
@@ -230,13 +230,13 @@ update_status_win(struct packet_info* p)
 	wattron(stat_win, CYAN);
 	mvwprintw(stat_win, 1, 1, "bps:%6s", kilo_mega_ize(bps));
 	general_average_bar(stat_win, bpsn, ewma_read(&bpsn_avg),
-			    stat_height, 5, max_stat_bar, 2,
+			    5, max_stat_bar, 2,
 			    CYAN, ALLCYAN);
 
 	wattron(stat_win, YELLOW);
 	mvwprintw(stat_win, 2, 1, "Use:%5.1f%%", use);
 	general_average_bar(stat_win, usen, ewma_read(&usen_avg),
-			    stat_height, 8, max_stat_bar, 2,
+			    8, max_stat_bar, 2,
 			    YELLOW, ALLYELLOW);
 
 	mvwprintw(stat_win, 3, 1, "Retry: %2.0f%%", rpsp);

@@ -35,7 +35,7 @@ change_channel(int idx)
 }
 
 int
-auto_change_channel(int mon)
+auto_change_channel(void)
 {
 	return 0;
 }
@@ -72,7 +72,7 @@ change_channel(int idx)
 
 
 int
-auto_change_channel(int mon)
+auto_change_channel(void)
 {
 	int new_chan;
 	int ret = 1;

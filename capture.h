@@ -23,7 +23,7 @@
 #include <stddef.h>
 
 int
-open_packet_socket(char* devname, size_t bufsize, int recv_buffer_size);
+open_packet_socket(char* devname, int recv_buffer_size);
 
 int
 recv_packet(int fd, unsigned char* buffer, size_t bufsize);
