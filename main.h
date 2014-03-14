@@ -26,14 +26,10 @@
 #include "list.h"
 #include "average.h"
 
-#define VERSION "3.0"
+#define VERSION "4.0-pre"
 
 #ifndef DO_DEBUG
 #define DO_DEBUG 0
-#endif
-
-#ifndef DO_UPLOAD
-#define DO_UPLOAD 0
 #endif
 
 #define MAC_LEN			6

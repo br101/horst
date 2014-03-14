@@ -16,10 +16,12 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-NAME=horst
+# build options
 DEBUG=0
 PCAP=0
 UPLOAD=0
+
+NAME=horst
 OBJS=main.o capture$(if $(filter 1,$(PCAP)),-pcap).o protocol_parser.o \
 	network.o wext.o node.o essid.o channel.o \
 	util.o ieee80211_util.o listsort.o average.o \
@@ -27,9 +29,12 @@ OBJS=main.o capture$(if $(filter 1,$(PCAP)),-pcap).o protocol_parser.o \
 	display-statistics.o display-essid.o display-history.o \
 	display-spectrum.o display-channel.o control.o \
 	radiotap/radiotap.o $(if $(filter 1,$(UPLOAD)),upload.o)
+LIBS=-lncurses -lm
+CFLAGS+=-Wextra -g
 
-LIBS=-lncurses -lm -lpthread
-CFLAGS+=-Wextra -DDO_DEBUG=$(DEBUG) -g
+ifeq ($(DEBUG),1)
+CFLAGS+=-DDO_DEBUG
+endif
 
 ifeq ($(PCAP),1)
 CFLAGS+=-DPCAP
@@ -37,8 +42,8 @@ LIBS+=-lpcap
 endif
 
 ifeq ($(UPLOAD),1)
-CFLAGS+=-DDO_UPLOAD
-LIBS+=-lcurl
+CFLAGS+=-DUPLOAD
+LIBS+=-lcurl -lpthread
 endif
 
 .PHONY: force

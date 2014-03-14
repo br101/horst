@@ -481,7 +481,7 @@ finish_all(void)
 	if (conf.allow_control)
 		control_finish();
 
-#if DO_UPLOAD
+#if UPLOAD
 	upload_finish();
 #endif
 
@@ -569,7 +569,7 @@ get_options(int argc, char** argv)
 		case 'x':
 			control_send_command(optarg);
 			exit(0);
-#if DO_UPLOAD
+#if UPLOAD
 		case 'u':
 			conf.upload_interval = atoi(optarg);
 			break;
@@ -596,7 +596,7 @@ get_options(int argc, char** argv)
 				"  -b <bytes>\treceive buffer size (not set)\n"
 				"  -X[filename]\tallow control socket (/tmp/horst)\n"
 				"  -x <command>\tsend control command\n"
-#if DO_UPLOAD
+#if UPLOAD
 				"  -u <sec>\tupload interval (2)\n"
 				"  -U <URL>\tupload server URL\n"
 #endif
@@ -663,7 +663,7 @@ main(int argc, char** argv)
 	if (!conf.serveraddr && conf.port && conf.allow_client)
 		net_init_server_socket(conf.port);
 
-#if DO_UPLOAD
+#if UPLOAD
 	upload_init();
 #endif
 
@@ -672,7 +672,7 @@ main(int argc, char** argv)
 		receive_any();
 		gettimeofday(&the_time, NULL);
 		timeout_nodes();
-#if DO_UPLOAD
+#if UPLOAD
 		upload_check();
 #endif
 		if (!conf.serveraddr) { /* server */
