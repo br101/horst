@@ -28,7 +28,7 @@
 
 
 #define MAX_TIMEOUTS 3
-#define UPLOAD_BUF_SIZE 2000
+#define UPLOAD_BUF_SIZE 4000
 
 static char buffer[UPLOAD_BUF_SIZE];
 static struct timeval last_time;
@@ -254,31 +254,41 @@ nodes_info_to_json(char *buf) {
 	struct node_info* n;
 	int len = 0;
 	int count = 0;
+	int ret;
 
-	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "{\"ak\":\"65dd9657-b9f5-40d1-a697-3dc5dc31bbf4\",");
-	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"ch\":%d,", conf.current_channel);
-	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"nm\":\"%s\",", ether_sprintf(conf.my_mac_addr));
-	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"ts\":%d,", (int)the_time.tv_sec);
-	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"sn\":%d,", seqNo);
-	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"sw\":%d,", conf.upload_interval);
-	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "\"scans\":[");
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "{\"ak\":\"65dd9657-b9f5-40d1-a697-3dc5dc31bbf4\",");
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"ch\":%d,", conf.current_channel);
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"nm\":\"%s\",", ether_sprintf(conf.my_mac_addr));
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"ts\":%d,", (int)the_time.tv_sec);
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"sn\":%d,", seqNo);
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"sw\":%d,", conf.upload_interval);
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"scans\":[");
 
 	list_for_each_entry(n, &nodes, list) {
 		/* only send nodes we have seen in the last interval */
 		if (n->last_seen <= (the_time.tv_sec - conf.upload_interval))
 			continue;
 
-		len += snprintf(buf+len, UPLOAD_BUF_SIZE, "%s{\"mac\":\"%s\",\"rssi\":%ld,\"ssid\":\"%s\"}",
+		ret = snprintf(buf+len, UPLOAD_BUF_SIZE-len,
+				"%s{\"mac\":\"%s\",\"rssi\":%ld,\"ssid\":\"%s\"}",
 				(count > 0 ? "," : ""),
 				ether_sprintf(n->last_pkt.wlan_src),
 				-ewma_read(&n->phy_sig_avg),
 				(n->essid != NULL) ? n->essid->essid : "");
+
+		if ((ret >= (UPLOAD_BUF_SIZE-len)) ||		/* snprintf overflow */
+		    ((len + ret) > (UPLOAD_BUF_SIZE - 3))) {	/* not enough space to terminate */
+			printlog("Truncated scan results to fit %d bytes!", UPLOAD_BUF_SIZE);
+			break;
+		}
+
+		len += ret;
 		count++;
 	}
 
-	len += snprintf(buf+len, UPLOAD_BUF_SIZE, "]}");
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "]}");
 
-	printlog("Sending %d with %d results", seqNo, count);
+	printlog("Sending %d with %d results (len %d)", seqNo, count, len);
 	seqNo++;
 	return len;
 }
