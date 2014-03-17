@@ -32,7 +32,7 @@
 
 static char buffer[UPLOAD_BUF_SIZE];
 static struct timeval last_time;
-static int seqNo = 0;
+static unsigned int seqNo = 0;
 static int timeouts = 0;
 
 static CURL *curl;
@@ -61,7 +61,8 @@ curl_write_function(char *ptr, size_t size, size_t nmemb,
 
 	// check response
 	if ((size*nmemb) != 4 || strncmp(ptr, "true", 4) != 0) {
-		printlog("ERROR: Server returned %d bytes: %.*s", (int)(size*nmemb), (int)(size*nmemb), ptr);
+		printlog("ERROR: Server returned %d bytes: %.*s",
+			 (int)(size*nmemb), (int)(size*nmemb), ptr);
 	} else {
 		printlog("Received 'true' from Server");
 	}
@@ -80,7 +81,7 @@ curl_progress_function(__attribute__((unused)) void *clientp,
 		       __attribute__((unused)) double ultotal,
 		       __attribute__((unused)) double ulnow) {
 	if (pthread_mutex_trylock(&quit_mutex) != EBUSY) {
-		/* lock again for thead to actually finish  */
+		/* lock again for thread to actually finish  */
 		pthread_mutex_unlock(&quit_mutex);
 		return 1; /* abort */
 	}
@@ -262,7 +263,7 @@ nodes_info_to_json(char *buf) {
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"ch\":%d,", conf.current_channel);
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"nm\":\"%s\",", ether_sprintf(conf.my_mac_addr));
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"ts\":%d,", (int)the_time.tv_sec);
-	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"sn\":%d,", seqNo);
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"sn\":%u,", seqNo);
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"sw\":%d,", conf.upload_interval);
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"scans\":[");
 
