@@ -117,7 +117,13 @@ ieee802_11_parse_elems(unsigned char *start, size_t len, struct packet_info *p)
 
 		switch (id) {
 		case WLAN_EID_SSID:
-			memcpy(p->wlan_essid, pos, elen);
+			if (elen < MAX_ESSID_LEN-1) {
+				memcpy(p->wlan_essid, pos, elen);
+				p->wlan_essid[elen] = '\0';
+			} else {
+				memcpy(p->wlan_essid, pos, MAX_ESSID_LEN-1);
+				p->wlan_essid[MAX_ESSID_LEN-1] = '\0';
+			}
 			break;
 #if 0
 		case WLAN_EID_SUPP_RATES:
