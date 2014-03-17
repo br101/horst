@@ -120,6 +120,7 @@ update_essids(struct packet_info* p, struct node_info* n)
 		DEBUG("SPLIT   essid not found, adding new\n");
 		e = malloc(sizeof(struct essid_info));
 		strncpy(e->essid, p->wlan_essid, MAX_ESSID_LEN);
+		e->essid[MAX_ESSID_LEN-1] = '\0';
 		e->num_nodes = 0;
 		e->split = 0;
 		INIT_LIST_HEAD(&e->nodes);
