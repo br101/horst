@@ -41,8 +41,8 @@ struct packet_info;
 struct node_info;
 
 void
-get_per_second(unsigned int bytes, unsigned int duration,
-	       unsigned int packets, unsigned int retries,
+get_per_second(unsigned long bytes, unsigned long duration,
+	       unsigned long packets, unsigned long retries,
 	       int *bps, int *dps, int *pps, int *rps);
 
 void __attribute__ ((format (printf, 4, 5)))
