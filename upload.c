@@ -152,8 +152,10 @@ upload_thread_run(__attribute__((unused)) void *arg)
 		}
 
 		/* check quit mutex after wakeup again, it may have changed */
-		if (pthread_mutex_trylock(&quit_mutex) != EBUSY)
+		if (pthread_mutex_trylock(&quit_mutex) != EBUSY) {
+			pthread_mutex_unlock(&upload_mutex);
 			break;
+		}
 
 		do_upload();
 		upload_requested = 0;
