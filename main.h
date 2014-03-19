@@ -297,7 +297,7 @@ struct config {
 	int			node_timeout;
 	int			channel_time;
 	int			channel_max;
-	int			current_channel;	/* index into channels array */
+	int			channel_idx;	/* index into channels array */
 	int			display_interval;
 	int			upload_interval;
 	char*			upload_server;
@@ -329,8 +329,8 @@ extern struct config conf;
 extern struct timeval the_time;
 
 
-#define CONF_CURRENT_CHANNEL (conf.current_channel >= 0 && conf.current_channel < MAX_CHANNELS ? \
-	channels[conf.current_channel].chan : 0)
+#define CONF_CURRENT_CHANNEL (conf.channel_idx >= 0 && conf.channel_idx < MAX_CHANNELS ? \
+	channels[conf.channel_idx].chan : 0)
 
 void
 free_lists(void);

@@ -90,7 +90,7 @@ channel_input(WINDOW *win, int c)
 			if (!conf.serveraddr)
 				change_channel(x);
 			else
-				conf.current_channel = x;
+				conf.channel_idx = x;
 		}
 		break;
 

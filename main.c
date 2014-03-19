@@ -217,12 +217,12 @@ update_spectrum_durations(void)
 {
 	/* also if channel was not changed, keep stats only for every channel_time.
 	 * display code uses durations_last to get a more stable view */
-	if (conf.current_channel >= 0) {
-		spectrum[conf.current_channel].durations_last =
-				spectrum[conf.current_channel].durations;
-		spectrum[conf.current_channel].durations = 0;
-		ewma_add(&spectrum[conf.current_channel].durations_avg,
-			 spectrum[conf.current_channel].durations_last);
+	if (conf.channel_idx >= 0) {
+		spectrum[conf.channel_idx].durations_last =
+				spectrum[conf.channel_idx].durations;
+		spectrum[conf.channel_idx].durations = 0;
+		ewma_add(&spectrum[conf.channel_idx].durations_avg,
+			 spectrum[conf.channel_idx].durations_last);
 	}
 }
 
@@ -317,7 +317,7 @@ handle_packet(struct packet_info* p)
 	/* not found from pkt, best guess from config but it might be
 	 * unknown (-1) too */
 	if (i < 0 || i >= conf.num_channels || i >= MAX_CHANNELS)
-		p->pkt_chan_idx = conf.current_channel;
+		p->pkt_chan_idx = conf.channel_idx;
 	else
 		p->pkt_chan_idx = i;
 
@@ -327,8 +327,8 @@ handle_packet(struct packet_info* p)
 
 	/* if current channel is unknown (this is a mac80211 bug), guess it from
 	 * the packet */
-	if (conf.current_channel < 0 && p->pkt_chan_idx >= 0)
-		conf.current_channel = p->pkt_chan_idx;
+	if (conf.channel_idx < 0 && p->pkt_chan_idx >= 0)
+		conf.channel_idx = p->pkt_chan_idx;
 
 	if (!(p->phy_flags & PHY_FLAG_BADFCS)) {
 		/* we can't trust any fields except phy_* of packets with bad FCS,
@@ -637,7 +637,7 @@ main(int argc, char** argv)
 	gettimeofday(&stats.stats_time, NULL);
 	gettimeofday(&the_time, NULL);
 
-	conf.current_channel = -1;
+	conf.channel_idx = -1;
 
 	if (conf.allow_control) {
 		printlog("Allowing control socket");

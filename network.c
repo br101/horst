@@ -282,7 +282,7 @@ net_send_conf_chan(int fd)
 	nc.proto.type	= PROTO_CONF_CHAN;
 	nc.do_change = conf.do_change_channel;
 	nc.upper = conf.channel_max;
-	nc.channel = conf.current_channel;
+	nc.channel = conf.channel_idx;
 	nc.dwell_time = htole32(conf.channel_time);
 
 	net_write(fd, (unsigned char *)&nc, sizeof(nc));
@@ -302,10 +302,10 @@ net_receive_conf_chan(unsigned char *buffer, size_t len)
 	conf.channel_max = nc->upper;
 	conf.channel_time = le32toh(nc->dwell_time);
 
-	if (cli_fd > -1 && nc->channel != conf.current_channel) /* server */
+	if (cli_fd > -1 && nc->channel != conf.channel_idx) /* server */
 		change_channel(nc->channel);
 	else { /* client */
-		conf.current_channel = nc->channel;
+		conf.channel_idx = nc->channel;
 		update_spectrum_durations();
 	}
 

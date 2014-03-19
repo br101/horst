@@ -66,7 +66,7 @@ change_channel(int idx)
 		printlog("ERROR: could not set channel %d", channels[idx].chan);
 		return 0;
 	}
-	conf.current_channel = idx;
+	conf.channel_idx = idx;
 	return 1;
 }
 
@@ -83,7 +83,7 @@ auto_change_channel(void)
 		return 0; /* too early */
 
 	if (conf.do_change_channel) {
-		start_chan = new_chan = conf.current_channel;
+		start_chan = new_chan = conf.channel_idx;
 		do {
 			new_chan = new_chan + 1;
 			if (new_chan >= conf.num_channels ||
@@ -129,8 +129,8 @@ get_current_channel(int mon)
 	ch = find_channel_index(ch);
 
 	if (ch >= 0)
-		conf.current_channel = ch;
-	DEBUG("***%d\n", conf.current_channel);
+		conf.channel_idx = ch;
+	DEBUG("***%d\n", conf.channel_idx);
 }
 
 #endif
