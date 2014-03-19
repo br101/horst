@@ -260,7 +260,7 @@ nodes_info_to_json(char *buf) {
 	int ret;
 
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "{\"ak\":\"65dd9657-b9f5-40d1-a697-3dc5dc31bbf4\",");
-	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"ch\":%d,", conf.current_channel);
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"ch\":%d,", CONF_CURRENT_CHANNEL);
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"nm\":\"%s\",", ether_sprintf(conf.my_mac_addr));
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"ts\":%d,", (int)the_time.tv_sec);
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"sn\":%u,", seqNo);
