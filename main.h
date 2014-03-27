@@ -180,6 +180,8 @@ struct node_info {
 	struct ewma		phy_snr_avg;
 	int			phy_sig_max;
 	struct ewma		phy_sig_avg;
+	unsigned long		phy_sig_sum;
+	int			phy_sig_count;
 
 	/* wlan mac */
 	unsigned char		wlan_bssid[MAC_LEN];

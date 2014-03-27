@@ -273,11 +273,18 @@ nodes_info_to_json(char *buf) {
 			continue;
 
 		ret = snprintf(buf+len, UPLOAD_BUF_SIZE-len,
-				"%s{\"mac\":\"%s\",\"rssi\":%ld,\"ssid\":\"%s\"}",
+				"%s{\"mac\":\"%s\",\"rssi\":%ld,\"lrssi\":%d,\"wrssi\":%ld,\"ssid\":\"%s\",\"type\":%d}",
 				(count > 0 ? "," : ""),
 				ether_sprintf(n->last_pkt.wlan_src),
+				n->phy_sig_count > 0 ? -(n->phy_sig_sum/n->phy_sig_count) : 0,
+				n->last_pkt.phy_signal,
 				-ewma_read(&n->phy_sig_avg),
-				(n->essid != NULL) ? n->essid->essid : "");
+				(n->essid != NULL) ? n->essid->essid : "",
+				n->wlan_mode);
+
+		/* reset arithmethric average */
+		n->phy_sig_sum = 0;
+		n->phy_sig_count = 0;
 
 		if ((ret >= (UPLOAD_BUF_SIZE-len)) ||		/* snprintf overflow */
 		    ((len + ret) > (UPLOAD_BUF_SIZE - 3))) {	/* not enough space to terminate */

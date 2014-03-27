@@ -77,6 +77,9 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 	}
 	ewma_add(&n->phy_snr_avg, p->phy_snr);
 	ewma_add(&n->phy_sig_avg, -p->phy_signal);
+	n->phy_sig_sum += -p->phy_signal;
+	n->phy_sig_count += 1;
+
 	if (p->phy_snr > n->phy_snr_max)
 		n->phy_snr_max = p->phy_snr;
 	if (p->phy_signal > n->phy_sig_max || n->phy_sig_max == 0)
