@@ -318,7 +318,8 @@ upload_check(void)
 	 * upload only in conf.upload_interval intervals (seconds)
 	 */
 	if ((conf.upload_server == NULL) ||
-	    (the_time.tv_sec - last_time.tv_sec) < conf.upload_interval)
+	    (the_time.tv_sec - last_time.tv_sec) < conf.upload_interval ||
+	    (the_time.tv_sec % conf.upload_interval) != 0)
 		return;
 	last_time = the_time;
 
