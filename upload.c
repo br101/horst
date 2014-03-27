@@ -259,7 +259,8 @@ nodes_info_to_json(char *buf) {
 	int count = 0;
 	int ret;
 
-	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "{\"ak\":\"%s\",", "apikey");
+	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "{\"ak\":\"%s\",",
+			conf.upload_apikey != NULL ? conf.upload_apikey : "");
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"ch\":%d,", CONF_CURRENT_CHANNEL);
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"nm\":\"%s\",", ether_sprintf(conf.my_mac_addr));
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "\"ts\":%d,", (int)the_time.tv_sec);

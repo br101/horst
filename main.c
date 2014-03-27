@@ -532,7 +532,7 @@ get_options(int argc, char** argv)
 	int c;
 	static int n;
 
-	while((c = getopt(argc, argv, "hqsCi:t:c:p:e:d:o:b:X::x:u:U:")) > 0) {
+	while((c = getopt(argc, argv, "hqsCi:t:c:p:e:d:o:b:X::x:u:U:a:")) > 0) {
 		switch (c) {
 		case 'p':
 			conf.port = optarg;
@@ -587,6 +587,9 @@ get_options(int argc, char** argv)
 		case 'U':
 			conf.upload_server = optarg;
 			break;
+		case 'a':
+			conf.upload_apikey = optarg;
+			break;
 #endif
 		case 'h':
 		default:
@@ -610,6 +613,7 @@ get_options(int argc, char** argv)
 #if UPLOAD
 				"  -u <sec>\tupload interval (2)\n"
 				"  -U <URL>\tupload server URL\n"
+				"  -a <string>\tupload API key\n"
 #endif
 				"\n",
 				argv[0]);

@@ -303,6 +303,7 @@ struct config {
 	int			display_interval;
 	int			upload_interval;
 	char*			upload_server;
+	char*			upload_apikey;
 	char*			dumpfile;
 	int			recv_buffer_size;
 	char*			serveraddr;
