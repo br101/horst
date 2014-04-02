@@ -82,6 +82,7 @@
 #define WLAN_MODE_IBSS		0x02
 #define WLAN_MODE_STA		0x04
 #define WLAN_MODE_PROBE		0x08
+#define WLAN_MODE_4ADDR		0x10
 
 #define PHY_FLAG_SHORTPRE	0x0001
 #define PHY_FLAG_BADFCS		0x0002
@@ -128,8 +129,8 @@ struct packet_info {
 	/* wlan mac */
 	unsigned int		wlan_len;	/* packet length */
 	unsigned int		wlan_type;	/* frame control field */
-	unsigned char		wlan_src[MAC_LEN];
-	unsigned char		wlan_dst[MAC_LEN];
+	unsigned char		wlan_src[MAC_LEN]; /* transmitter (TA) */
+	unsigned char		wlan_dst[MAC_LEN]; /* receiver (RA) */
 	unsigned char		wlan_bssid[MAC_LEN];
 	char			wlan_essid[MAX_ESSID_LEN];
 	u_int64_t		wlan_tsf;	/* timestamp from beacon */

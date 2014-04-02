@@ -359,8 +359,8 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 	struct ieee80211_hdr* wh;
 	struct ieee80211_mgmt* whm;
 	int hdrlen;
-	u8* sa = NULL;
-	u8* da = NULL;
+	u8* ra = NULL;
+	u8* ta = NULL;
 	u8* bssid = NULL;
 	u16 fc, cap_i;
 
@@ -404,16 +404,29 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 		p->wlan_seqno = le16toh(wh->seq_ctrl);
 		DEBUG("DATA SEQ %d\n", p->wlan_seqno);
 
-		sa = ieee80211_get_SA(wh);
-		da = ieee80211_get_DA(wh);
+		DEBUG("A1 %s\n", ether_sprintf(wh->addr1));
+		DEBUG("A2 %s\n", ether_sprintf(wh->addr2));
+		DEBUG("A3 %s\n", ether_sprintf(wh->addr3));
+		DEBUG("A4 %s\n", ether_sprintf(wh->addr4));
+		DEBUG("ToDS %d FromDS %d\n", (fc & IEEE80211_FCTL_FROMDS) != 0, (fc & IEEE80211_FCTL_TODS) != 0);
+
+		ra = wh->addr1;
+		ta = wh->addr2;
+		//sa = ieee80211_get_SA(wh);
+		//da = ieee80211_get_DA(wh);
+
 		/* AP, STA or IBSS */
 		if ((fc & IEEE80211_FCTL_FROMDS) == 0 &&
 		    (fc & IEEE80211_FCTL_TODS) == 0)
 			p->wlan_mode = WLAN_MODE_IBSS;
+		else if ((fc & IEEE80211_FCTL_FROMDS) &&
+			 (fc & IEEE80211_FCTL_TODS))
+			p->wlan_mode = WLAN_MODE_4ADDR;
 		else if (fc & IEEE80211_FCTL_FROMDS)
 			p->wlan_mode = WLAN_MODE_AP;
 		else if (fc & IEEE80211_FCTL_TODS)
 			p->wlan_mode = WLAN_MODE_STA;
+
 		/* WEP */
 		if (fc & IEEE80211_FCTL_PROTECTED)
 			p->wlan_wep = 1;
@@ -430,48 +443,52 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 			p->pkt_types |= PKT_TYPE_RTS;
 			p->wlan_nav = le16toh(wh->duration_id);
 			DEBUG("RTS NAV %d\n", p->wlan_nav);
-			sa = wh->addr2;
-			da = wh->addr1;
+			ra = wh->addr1;
+			ta = wh->addr2;
 			break;
 
 		case IEEE80211_STYPE_CTS:
 			p->pkt_types |= PKT_TYPE_CTS;
 			p->wlan_nav = le16toh(wh->duration_id);
 			DEBUG("CTS NAV %d\n", p->wlan_nav);
-			da = wh->addr1;
+			ra = wh->addr1;
 			break;
 
 		case IEEE80211_STYPE_ACK:
 			p->pkt_types |= PKT_TYPE_ACK;
 			p->wlan_nav = le16toh(wh->duration_id);
 			DEBUG("ACK NAV %d\n", p->wlan_nav);
-			da = wh->addr1;
+			ra = wh->addr1;
 			break;
 
 		case IEEE80211_STYPE_PSPOLL:
-			sa = wh->addr2;
+			ra = wh->addr1;
+			bssid = wh->addr1;
+			ta = wh->addr2;
 			break;
 
 		case IEEE80211_STYPE_CFEND:
 		case IEEE80211_STYPE_CFENDACK:
-			da = wh->addr1;
-			sa = wh->addr2;
+			ra = wh->addr1;
+			ta = wh->addr2;
+			bssid = wh->addr2;
 			break;
 
 		case IEEE80211_STYPE_BACK_REQ:
 		case IEEE80211_STYPE_BACK:
 			p->pkt_types |= PKT_TYPE_ACK;
 			p->wlan_nav = le16toh(wh->duration_id);
-			da = wh->addr1;
-			sa = wh->addr2;
+			ra = wh->addr1;
+			ta = wh->addr2;
 		}
 		break;
 
 	case IEEE80211_FTYPE_MGMT:
 		p->pkt_types |= PKT_TYPE_MGMT;
 		whm = (struct ieee80211_mgmt*)*buf;
-		sa = whm->sa;
-		da = whm->da;
+		ta = whm->sa;
+		ra = whm->da;
+		bssid = whm->bssid;
 		p->wlan_seqno = le16toh(wh->seq_ctrl);
 		DEBUG("MGMT SEQ %d\n", p->wlan_seqno);
 
@@ -535,26 +552,28 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 		case IEEE80211_STYPE_DEAUTH:
 			p->pkt_types |= PKT_TYPE_AUTH;
 			break;
+
+		case IEEE80211_STYPE_ACTION:
+			break;
 		}
 		break;
 	}
 
-	if (sa != NULL) {
-		memcpy(p->wlan_src, sa, MAC_LEN);
-		DEBUG("SA    %s\n", ether_sprintf(sa));
+	if (ta != NULL) {
+		memcpy(p->wlan_src, ta, MAC_LEN);
+		DEBUG("TA    %s\n", ether_sprintf(ta));
 	}
-	if (da != NULL) {
-		memcpy(p->wlan_dst, da, MAC_LEN);
-		DEBUG("DA    %s\n", ether_sprintf(da));
+	if (ra != NULL) {
+		memcpy(p->wlan_dst, ra, MAC_LEN);
+		DEBUG("RA    %s\n", ether_sprintf(ra));
 	}
-	if (bssid!=NULL) {
+	if (bssid != NULL) {
 		memcpy(p->wlan_bssid, bssid, MAC_LEN);
 		DEBUG("BSSID %s\n", ether_sprintf(bssid));
 	}
 
 	/* only data frames contain more info, otherwise stop parsing */
-	if (IEEE80211_IS_DATA(p->wlan_type) &&
-	    p->wlan_wep != 1) {
+	if (IEEE80211_IS_DATA(p->wlan_type) && p->wlan_wep != 1) {
 		*buf = *buf + hdrlen;
 		return len - hdrlen;
 	}

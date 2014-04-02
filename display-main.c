@@ -282,15 +282,17 @@ print_list_line(int line, struct node_info* n)
 	mvwprintw(list_win, line, COL_RATE, "%3d q", p->phy_rate/10);
 	mvwprintw(list_win, line, COL_SOURCE, "%s", ether_sprintf(p->wlan_src));
 
-	if (n->wlan_mode == WLAN_MODE_AP )
+	if (n->wlan_mode == WLAN_MODE_AP)
 		mvwprintw(list_win, line, COL_STA,"AP    '%s'", (n->essid != NULL) ? n->essid->essid : "");
-	else if (n->wlan_mode == WLAN_MODE_IBSS )
+	else if (n->wlan_mode == WLAN_MODE_IBSS)
 		mvwprintw(list_win, line, COL_STA, "ADHOC '%s'", (n->essid != NULL) ? n->essid->essid : "");
-	else if (n->wlan_mode == WLAN_MODE_STA )
+	else if (n->wlan_mode == WLAN_MODE_STA)
 		mvwprintw(list_win, line, COL_STA, "STA   '%s'",
 			  (n->wlan_ap_node != NULL && n->wlan_ap_node->essid != NULL) ? n->wlan_ap_node->essid->essid : "");
-	else if (n->wlan_mode == WLAN_MODE_PROBE )
+	else if (n->wlan_mode == WLAN_MODE_PROBE)
 		mvwprintw(list_win, line, COL_STA, "PROBE '%s'", p->wlan_essid);
+	else if (n->wlan_mode == WLAN_MODE_4ADDR)
+			mvwprintw(list_win, line, COL_STA, "4ADDR ");
 
 	wprintw(list_win, n->wlan_wep ? " ENC" : "");
 	wprintw(list_win, n->wlan_wpa ? "(WPA)" : "");
