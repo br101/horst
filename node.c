@@ -66,6 +66,8 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 					break;
 				}
 			}
+			n->wlan_rsn = ap->wlan_rsn;
+			n->wlan_wpa = ap->wlan_wpa;
 		}
 	}
 	if (IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON) ||

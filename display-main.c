@@ -315,7 +315,7 @@ print_list_line(int line, struct node_info* n)
 	else if (n->wlan_wpa)
 		mvwprintw(list_win, line, COL_ENC, "WPA1");
 	else if (n->wlan_wep)
-		mvwprintw(list_win, line, COL_ENC, "WEP");
+		mvwprintw(list_win, line, COL_ENC, "WEP?");
 
 	if (ssid != NULL)
 		mvwprintw(list_win, line, COL_INFO, "'%s'", ssid);
@@ -358,7 +358,7 @@ update_list_win(void)
 	mvwprintw(list_win, 0, COL_RATE, "RAT");
 	mvwprintw(list_win, 0, COL_SOURCE, "TRANSMITTER");
 	mvwprintw(list_win, 0, COL_MODE, "MODE");
-	mvwprintw(list_win, 0, COL_ENC, "ENC");
+	mvwprintw(list_win, 0, COL_ENC, "ENCR");
 	mvwprintw(list_win, 0, COL_INFO, "INFO");
 
 	/* reuse bottom line for information on other win */
