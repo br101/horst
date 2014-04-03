@@ -66,7 +66,7 @@ update_essid_win(WINDOW *win)
 			else
 				wattroff(win, A_BOLD);
 			mvwprintw(win, line, 3, "%2d. %s %s", i++,
-				n->wlan_mode == WLAN_MODE_AP ? "AP  " : "IBSS",
+				(n->wlan_mode & WLAN_MODE_AP) ? "AP  " : "IBSS",
 				ether_sprintf(n->last_pkt.wlan_src));
 			wprintw(win, " (%s)", ether_sprintf(n->wlan_bssid));
 			wprintw(win, " %016llx", n->wlan_tsf);

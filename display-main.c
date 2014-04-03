@@ -250,7 +250,8 @@ update_status_win(struct packet_info* p)
 #define COL_SNR		COL_CHAN + 3
 #define COL_RATE	COL_SNR + 3
 #define COL_SOURCE	COL_RATE + 4
-#define COL_STA		COL_SOURCE + 18
+#define COL_MODE	COL_SOURCE + 18
+#define COL_INFO	COL_MODE + 8
 
 static char spin[4] = {'/', '-', '\\', '|'};
 
@@ -258,6 +259,7 @@ static void
 print_list_line(int line, struct node_info* n)
 {
 	struct packet_info* p = &n->last_pkt;
+	char* ssid = NULL;
 
 	if (n->pkt_types & PKT_TYPE_OLSR)
 		wattron(list_win, GREEN);
@@ -282,17 +284,33 @@ print_list_line(int line, struct node_info* n)
 	mvwprintw(list_win, line, COL_RATE, "%3d q", p->phy_rate/10);
 	mvwprintw(list_win, line, COL_SOURCE, "%s", ether_sprintf(p->wlan_src));
 
-	if (n->wlan_mode == WLAN_MODE_AP)
-		mvwprintw(list_win, line, COL_STA,"AP    '%s'", (n->essid != NULL) ? n->essid->essid : "");
-	else if (n->wlan_mode == WLAN_MODE_IBSS)
-		mvwprintw(list_win, line, COL_STA, "ADHOC '%s'", (n->essid != NULL) ? n->essid->essid : "");
-	else if (n->wlan_mode == WLAN_MODE_STA)
-		mvwprintw(list_win, line, COL_STA, "STA   '%s'",
-			  (n->wlan_ap_node != NULL && n->wlan_ap_node->essid != NULL) ? n->wlan_ap_node->essid->essid : "");
-	else if (n->wlan_mode == WLAN_MODE_PROBE)
-		mvwprintw(list_win, line, COL_STA, "PROBE '%s'", p->wlan_essid);
-	else if (n->wlan_mode == WLAN_MODE_4ADDR)
-			mvwprintw(list_win, line, COL_STA, "4ADDR ");
+	if (n->wlan_mode & WLAN_MODE_AP) {
+		wprintw(list_win, " AP");
+		if (n->essid != NULL)
+			ssid = n->essid->essid;
+	}
+	if (n->wlan_mode & WLAN_MODE_IBSS) {
+		wprintw(list_win, " ADH");
+		if (n->essid != NULL)
+			ssid = n->essid->essid;
+	}
+	if (n->wlan_mode & WLAN_MODE_STA) {
+		wprintw(list_win, " STA");
+		if (n->wlan_ap_node != NULL && n->wlan_ap_node->essid != NULL)
+			ssid = n->wlan_ap_node->essid->essid;
+	}
+	if (n->wlan_mode & WLAN_MODE_PROBE) {
+		wprintw(list_win, " PRB");
+		ssid = p->wlan_essid;
+	}
+	if (n->wlan_mode & WLAN_MODE_4ADDR) {
+			wprintw(list_win, " WDS");
+	}
+
+	if (ssid != NULL)
+		mvwprintw(list_win, line, COL_INFO, "'%s'", ssid);
+	else
+		mvwprintw(list_win, line, COL_INFO, ""); // just move?
 
 	wprintw(list_win, n->wlan_wep ? " ENC" : "");
 	wprintw(list_win, n->wlan_wpa ? "(WPA)" : "");
@@ -332,9 +350,9 @@ update_list_win(void)
 	mvwprintw(list_win, 0, COL_CHAN, "CH");
 	mvwprintw(list_win, 0, COL_SNR, "SN");
 	mvwprintw(list_win, 0, COL_RATE, "RAT");
-	mvwprintw(list_win, 0, COL_SOURCE, "SOURCE");
-	mvwprintw(list_win, 0, COL_STA, "MODE");
-	mvwprintw(list_win, 0, COL_STA + 6, "Info");
+	mvwprintw(list_win, 0, COL_SOURCE, "TRANSMITTER");
+	mvwprintw(list_win, 0, COL_MODE, "MODE");
+	mvwprintw(list_win, 0, COL_INFO, "INFO");
 
 	/* reuse bottom line for information on other win */
 	mvwprintw(list_win, win_split - 1, 0, "CH-Sig");
@@ -342,7 +360,7 @@ update_list_win(void)
 		wprintw(list_win, "/No");
 		nadd = 3;
 	}
-	wprintw(list_win, "-RAT-SOURCE");
+	wprintw(list_win, "-RAT-TRANSMITTER");
 	mvwprintw(list_win, win_split - 1, 29 + nadd, "(BSSID)");
 	mvwprintw(list_win, win_split - 1, 49 + nadd, "TYPE");
 	mvwprintw(list_win, win_split - 1, 56 + nadd, "INFO");

@@ -42,8 +42,8 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 	n->pkt_types |= p->pkt_types;
 	if (p->ip_src)
 		n->ip_src = p->ip_src;
-	if (p->wlan_mode && (n->wlan_mode == 0 || n->wlan_mode == WLAN_MODE_PROBE))
-		n->wlan_mode = p->wlan_mode;
+	if (p->wlan_mode)
+		n->wlan_mode |= p->wlan_mode;
 	if (p->olsr_tc)
 		n->olsr_tc = p->olsr_tc;
 	if (p->olsr_neigh)
@@ -56,7 +56,7 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 	      p->wlan_bssid[4] == 0 && p->wlan_bssid[5] == 0)) {
 		memcpy(n->wlan_bssid, p->wlan_bssid, MAC_LEN);
 
-		if (n->wlan_mode == WLAN_MODE_STA && n->wlan_ap_node == NULL) {
+		if ((n->wlan_mode & WLAN_MODE_STA) && n->wlan_ap_node == NULL) {
 			/* find AP node for this BSSID */
 			list_for_each_entry(ap, &nodes, list) {
 				if (memcmp(p->wlan_bssid, ap->last_pkt.wlan_src, MAC_LEN) == 0) {
