@@ -251,7 +251,8 @@ update_status_win(struct packet_info* p)
 #define COL_RATE	COL_SNR + 3
 #define COL_SOURCE	COL_RATE + 4
 #define COL_MODE	COL_SOURCE + 18
-#define COL_INFO	COL_MODE + 8
+#define COL_ENC		COL_MODE + 9
+#define COL_INFO	COL_ENC + 6
 
 static char spin[4] = {'/', '-', '\\', '|'};
 
@@ -307,14 +308,19 @@ print_list_line(int line, struct node_info* n)
 			wprintw(list_win, " WDS");
 	}
 
+	if (n->wlan_rsn && n->wlan_wpa)
+		mvwprintw(list_win, line, COL_ENC, "WPA12");
+	else if (n->wlan_rsn)
+		mvwprintw(list_win, line, COL_ENC, "WPA2");
+	else if (n->wlan_wpa)
+		mvwprintw(list_win, line, COL_ENC, "WPA1");
+	else if (n->wlan_wep)
+		mvwprintw(list_win, line, COL_ENC, "WEP");
+
 	if (ssid != NULL)
 		mvwprintw(list_win, line, COL_INFO, "'%s'", ssid);
 	else
-		mvwprintw(list_win, line, COL_INFO, ""); // just move?
-
-	wprintw(list_win, n->wlan_wep ? " ENC" : "");
-	wprintw(list_win, n->wlan_wpa ? "(WPA)" : "");
-	wprintw(list_win, n->wlan_rsn ? "(RSN)" : "");
+		wmove(list_win, line, COL_INFO); // just move
 
 	if (n->pkt_types & PKT_TYPE_IP)
 		wprintw(list_win, " %s", ip_sprintf(n->ip_src));
@@ -352,6 +358,7 @@ update_list_win(void)
 	mvwprintw(list_win, 0, COL_RATE, "RAT");
 	mvwprintw(list_win, 0, COL_SOURCE, "TRANSMITTER");
 	mvwprintw(list_win, 0, COL_MODE, "MODE");
+	mvwprintw(list_win, 0, COL_ENC, "ENC");
 	mvwprintw(list_win, 0, COL_INFO, "INFO");
 
 	/* reuse bottom line for information on other win */
