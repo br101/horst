@@ -258,6 +258,7 @@ nodes_info_to_json(char *buf) {
 	int len = 0;
 	int count = 0;
 	int ret;
+	int truncated = 0;
 
 	len += snprintf(buf+len, UPLOAD_BUF_SIZE-len, "{\"ak\":\"%s\",",
 			conf.upload_apikey != NULL ? conf.upload_apikey : "");
@@ -270,8 +271,14 @@ nodes_info_to_json(char *buf) {
 
 	list_for_each_entry(n, &nodes, list) {
 		/* only send nodes we have seen in the last interval */
-		if (n->last_seen <= (the_time.tv_sec - conf.upload_interval))
+		if (n->last_seen <= (the_time.tv_sec - conf.upload_interval) ||
+		    /* and only if we have space */
+		    truncated) {
+			/* otherwise just reset arithmetric average */
+			n->phy_sig_sum = 0;
+			n->phy_sig_count = 0;
 			continue;
+		}
 
 		ret = snprintf(buf+len, UPLOAD_BUF_SIZE-len,
 				"%s{\"mac\":\"%s\",\"rssi\":%ld,\"lrssi\":%d,\"wrssi\":%ld,\"ssid\":\"%s\",\"type\":%d}",
@@ -283,14 +290,15 @@ nodes_info_to_json(char *buf) {
 				(n->essid != NULL) ? n->essid->essid : "",
 				n->wlan_mode);
 
-		/* reset arithmethric average */
+		/* reset arithmetric average */
 		n->phy_sig_sum = 0;
 		n->phy_sig_count = 0;
 
 		if ((ret >= (UPLOAD_BUF_SIZE-len)) ||		/* snprintf overflow */
 		    ((len + ret) > (UPLOAD_BUF_SIZE - 3))) {	/* not enough space to terminate */
 			printlog("Truncated scan results to fit %d bytes!", UPLOAD_BUF_SIZE);
-			break;
+			truncated = 1;
+			continue;
 		}
 
 		len += ret;
