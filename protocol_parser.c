@@ -633,7 +633,10 @@ parse_batman_adv_packet(unsigned char** buf, int len, struct packet_info* p) {
 	if (bp->version == 14) {
 		switch (bp->packet_type) {
 		case BAT_OGM:
-			DEBUG("OGM\n");
+			/* set GW flags only for "original" (not re-sent) OGMs */
+			if (bp->gw_flags != 0 && memcmp(bp->orig, p->wlan_src, MAC_LEN) == 0)
+				p->bat_gw = 1;
+			DEBUG("OGM %d %d\n", bp->gw_flags, p->bat_gw);
 			return 0;
 		case BAT_ICMP:
 			DEBUG("ICMP\n");

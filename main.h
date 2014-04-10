@@ -152,6 +152,7 @@ struct packet_info {
 	/* batman-adv */
 	unsigned char		bat_version;
 	unsigned char		bat_packet_type;
+	unsigned char		bat_gw:1;
 
 	/* IP */
 	unsigned int		ip_src;
@@ -205,6 +206,10 @@ struct node_info {
 	unsigned int		wlan_wep:1,	/* WEP active? */
 				wlan_wpa:1,
 				wlan_rsn:1;
+
+	/* batman */
+	unsigned char		bat_gw:1;
+
 	/* IP */
 	unsigned int		ip_src;		/* IP address (if known) */
 	unsigned int		olsr_count;	/* number of OLSR packets */

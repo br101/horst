@@ -50,6 +50,8 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		n->olsr_neigh = p->olsr_neigh;
 	if (p->pkt_types & PKT_TYPE_OLSR)
 		n->olsr_count++;
+	if (p->bat_gw)
+		n->bat_gw = 1;
 	if (p->wlan_bssid[0] != 0xff &&
 	    !(p->wlan_bssid[0] == 0 && p->wlan_bssid[1] == 0 &&
 	      p->wlan_bssid[2] == 0 && p->wlan_bssid[3] == 0 &&

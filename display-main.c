@@ -333,8 +333,9 @@ print_list_line(int line, struct node_info* n)
 	if (n->pkt_types & PKT_TYPE_BATMAN)
 		wprintw(list_win, "BATMAND");
 
-	if (n->pkt_types & PKT_TYPE_BATADV)
-		wprintw(list_win, "BATMAN");
+	if (n->pkt_types & PKT_TYPE_BATADV) {
+		wprintw(list_win, "BATMAN %s", n->bat_gw ? "GW" : "");
+	}
 
 	if (n->pkt_types & (PKT_TYPE_MESHZ))
 		wprintw(list_win, "MC");
