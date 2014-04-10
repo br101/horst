@@ -30,6 +30,7 @@
 #include "ieee80211_util.h"
 #include "olsr_header.h"
 #include "batman_header.h"
+#include "batman_adv_header-14.h"
 #include "protocol_parser.h"
 #include "main.h"
 #include "util.h"
@@ -44,8 +45,8 @@ static int parse_ip_header(unsigned char** buf, int len, struct packet_info* p);
 static int parse_udp_header(unsigned char** buf, int len, struct packet_info* p);
 static int parse_olsr_packet(unsigned char** buf, int len, struct packet_info* p);
 static int parse_batman_packet(unsigned char** buf, int len, struct packet_info* p);
-static int parse_meshcruzer_packet(unsigned char** buf, int len,
-				   struct packet_info* p, int port);
+static int parse_batman_adv_packet(unsigned char** buf, int len, struct packet_info* p);
+static int parse_meshcruzer_packet(unsigned char** buf, int len, struct packet_info* p, int port);
 
 
 /* return 1 if we parsed enough = min ieee header */
@@ -591,20 +592,68 @@ parse_llc(unsigned char ** buf, int len, struct packet_info* p)
 
 	/* check type in LLC header */
 	*buf = *buf + 6;
-	if (**buf != 0x08)
-		return -1;
-	(*buf)++;
-	if (**buf == 0x06) { /* ARP */
-		p->pkt_types |= PKT_TYPE_ARP;
-		return 0;
+
+	if (ntohs(*((uint16_t*)*buf)) == 0x4305) {
+		DEBUG("BATMAN-ADV\n");
+		(*buf)++; (*buf)++;
+		return parse_batman_adv_packet(buf, len - 8, p);
 	}
-	if (**buf != 0x00)  /* not IP */
-		return -1;
-	(*buf)++;
+	else {
+		if (**buf != 0x08)
+			return -1;
+		(*buf)++;
+		if (**buf == 0x06) { /* ARP */
+			p->pkt_types |= PKT_TYPE_ARP;
+			return 0;
+		}
+		if (**buf != 0x00)  /* not IP */
+			return -1;
+		(*buf)++;
 
-	DEBUG("* parse LLC left %d\n", len - 8);
+		DEBUG("* parse LLC left %d\n", len - 8);
 
-	return len - 8;
+		return len - 8;
+	}
+}
+
+
+static int
+parse_batman_adv_packet(unsigned char** buf, int len, struct packet_info* p) {
+	struct batman_ogm_packet *bp;
+	//batadv_ogm_packet
+	bp = (struct batman_ogm_packet*)*buf;
+
+	p->pkt_types |= PKT_TYPE_BATADV;
+	p->bat_version = bp->version;
+	p->bat_packet_type = bp->packet_type;
+
+	DEBUG("parse bat len %d type %d vers %d\n", len, bp->packet_type, bp->version);
+
+	/* version 14 */
+	if (bp->version == 14) {
+		switch (bp->packet_type) {
+		case BAT_OGM:
+			DEBUG("OGM\n");
+			return 0;
+		case BAT_ICMP:
+			DEBUG("ICMP\n");
+			break;
+		case BAT_UNICAST:
+			DEBUG("UNI %lu\n", sizeof(struct unicast_packet));
+			*buf = *buf + sizeof(struct unicast_packet) + 14;
+			return len - sizeof(struct unicast_packet) - 14;
+		case BAT_BCAST:
+			DEBUG("BCAST\n");
+			break;
+		case BAT_VIS:
+		case BAT_UNICAST_FRAG:
+		case BAT_TT_QUERY:
+		case BAT_ROAM_ADV:
+			break;
+		}
+	}
+
+	return 0;
 }
 
 

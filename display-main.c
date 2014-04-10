@@ -27,6 +27,7 @@
 #include "util.h"
 #include "ieee80211.h"
 #include "olsr_header.h"
+#include "batman_adv_header-14.h"
 #include "listsort.h"
 
 
@@ -332,7 +333,10 @@ print_list_line(int line, struct node_info* n)
 			n->pkt_types & PKT_TYPE_OLSR_GW ? "GW" : "");
 
 	if (n->pkt_types & PKT_TYPE_BATMAN)
-		wprintw(list_win, " BAT");
+		wprintw(list_win, " BATMAND");
+
+	if (n->pkt_types & PKT_TYPE_BATADV)
+		wprintw(list_win, " BATMAN-ADV");
 
 	if (n->pkt_types & (PKT_TYPE_MESHZ))
 		wprintw(list_win, " MC");
@@ -428,6 +432,11 @@ update_dump_win(struct packet_info* p)
 		return;
 	}
 
+	if ((p->pkt_types & PKT_TYPE_BATADV) && p->bat_packet_type == BAT_UNICAST) {
+		/* unicast traffic can carry IP/ICMP which we show below */
+		wprintw(dump_win, "BATMAN ");
+	}
+
 	if (p->pkt_types & PKT_TYPE_OLSR) {
 		wprintw(dump_win, "%-7s%s ", "OLSR", ip_sprintf(p->ip_src));
 		switch (p->olsr_type) {
@@ -441,8 +450,21 @@ update_dump_win(struct packet_info* p)
 		}
 	}
 	else if (p->pkt_types & PKT_TYPE_BATMAN) {
-		wprintw(dump_win, "%-7s%s", "BAT", ip_sprintf(p->ip_src));
+		wprintw(dump_win, "%-7s%s", "BATMAND", ip_sprintf(p->ip_src));
 		wprintw(dump_win, " -> %s", ip_sprintf(p->ip_dst));
+	}
+	else if ((p->pkt_types & PKT_TYPE_BATADV) && p->bat_packet_type != BAT_UNICAST) {
+		wprintw(dump_win, "BATMAN ");
+		switch (p->bat_packet_type) {
+			case BAT_OGM: wprintw(dump_win, "OGM"); break;
+			case BAT_ICMP: wprintw(dump_win, "BAT_ICMP"); break;
+			case BAT_BCAST: wprintw(dump_win, "BCAST"); break;
+			case BAT_VIS: wprintw(dump_win, "VIS"); break;
+			case BAT_UNICAST_FRAG: wprintw(dump_win, "FRAG"); break;
+			case BAT_TT_QUERY: wprintw(dump_win, "TT_QUERY"); break;
+			case BAT_ROAM_ADV: wprintw(dump_win, "ROAM_ADV"); break;
+			default: wprintw(dump_win, "UNKNOWN %d", p->bat_packet_type);
+		}
 	}
 	else if (p->pkt_types & PKT_TYPE_MESHZ) {
 		wprintw(dump_win, "%-7s%s",
