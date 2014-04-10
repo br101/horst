@@ -253,7 +253,8 @@ update_status_win(struct packet_info* p)
 #define COL_SOURCE	COL_RATE + 4
 #define COL_MODE	COL_SOURCE + 18
 #define COL_ENC		COL_MODE + 9
-#define COL_INFO	COL_ENC + 6
+#define COL_ESSID	COL_ENC + 6
+#define COL_INFO	COL_ESSID + 13
 
 static char spin[4] = {'/', '-', '\\', '|'};
 
@@ -319,27 +320,27 @@ print_list_line(int line, struct node_info* n)
 		mvwprintw(list_win, line, COL_ENC, "WEP?");
 
 	if (ssid != NULL)
-		mvwprintw(list_win, line, COL_INFO, "'%s'", ssid);
-	else
-		wmove(list_win, line, COL_INFO); // just move
+		mvwprintw(list_win, line, COL_ESSID, "'%s'", ssid);
 
-	if (n->pkt_types & PKT_TYPE_IP)
-		wprintw(list_win, " %s", ip_sprintf(n->ip_src));
+	wmove(list_win, line, COL_INFO);
 
 	if (n->pkt_types & PKT_TYPE_OLSR)
-		wprintw(list_win, " OLSR%s N:%d %s",
+		wprintw(list_win, "OLSR%s N:%d %s",
 			n->pkt_types & PKT_TYPE_OLSR_LQ ? "_LQ" : "",
 			n->olsr_neigh,
 			n->pkt_types & PKT_TYPE_OLSR_GW ? "GW" : "");
 
 	if (n->pkt_types & PKT_TYPE_BATMAN)
-		wprintw(list_win, " BATMAND");
+		wprintw(list_win, "BATMAND");
 
 	if (n->pkt_types & PKT_TYPE_BATADV)
-		wprintw(list_win, " BATMAN-ADV");
+		wprintw(list_win, "BATMAN");
 
 	if (n->pkt_types & (PKT_TYPE_MESHZ))
-		wprintw(list_win, " MC");
+		wprintw(list_win, "MC");
+
+	if (n->pkt_types & PKT_TYPE_IP)
+		wprintw(list_win, " %s", ip_sprintf(n->ip_src));
 
 	wattroff(list_win, A_BOLD);
 	wattroff(list_win, GREEN);
@@ -363,6 +364,7 @@ update_list_win(void)
 	mvwprintw(list_win, 0, COL_SOURCE, "TRANSMITTER");
 	mvwprintw(list_win, 0, COL_MODE, "MODE");
 	mvwprintw(list_win, 0, COL_ENC, "ENCR");
+	mvwprintw(list_win, 0, COL_ESSID, "ESSID");
 	mvwprintw(list_win, 0, COL_INFO, "INFO");
 
 	/* reuse bottom line for information on other win */
