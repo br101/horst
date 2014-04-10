@@ -325,23 +325,23 @@ print_list_line(int line, struct node_info* n)
 	wmove(list_win, line, COL_INFO);
 
 	if (n->pkt_types & PKT_TYPE_OLSR)
-		wprintw(list_win, "OLSR%s N:%d %s",
+		wprintw(list_win, "OLSR%s N:%d %s ",
 			n->pkt_types & PKT_TYPE_OLSR_LQ ? "_LQ" : "",
 			n->olsr_neigh,
 			n->pkt_types & PKT_TYPE_OLSR_GW ? "GW" : "");
 
 	if (n->pkt_types & PKT_TYPE_BATMAN)
-		wprintw(list_win, "BATMAND");
+		wprintw(list_win, "BATMAND ");
 
 	if (n->pkt_types & PKT_TYPE_BATADV) {
-		wprintw(list_win, "BATMAN %s", n->bat_gw ? "GW" : "");
+		wprintw(list_win, "BATMAN %s", n->bat_gw ? "GW " : "");
 	}
 
 	if (n->pkt_types & (PKT_TYPE_MESHZ))
-		wprintw(list_win, "MC");
+		wprintw(list_win, "MC ");
 
 	if (n->pkt_types & PKT_TYPE_IP)
-		wprintw(list_win, " %s", ip_sprintf(n->ip_src));
+		wprintw(list_win, "%s", ip_sprintf(n->ip_src));
 
 	wattroff(list_win, A_BOLD);
 	wattroff(list_win, GREEN);
