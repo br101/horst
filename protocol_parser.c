@@ -172,6 +172,7 @@ get_radiotap_info(struct ieee80211_radiotap_iterator *iter, struct packet_info* 
 	unsigned char known, flags, ht20, lgi;
 
 	switch (iter->this_arg_index) {
+	/* ignoring these */
 	case IEEE80211_RADIOTAP_TSFT:
 	case IEEE80211_RADIOTAP_FHSS:
 	case IEEE80211_RADIOTAP_LOCK_QUALITY:
@@ -182,6 +183,7 @@ get_radiotap_info(struct ieee80211_radiotap_iterator *iter, struct packet_info* 
 	case IEEE80211_RADIOTAP_RX_FLAGS:
 	case IEEE80211_RADIOTAP_RTS_RETRIES:
 	case IEEE80211_RADIOTAP_DATA_RETRIES:
+	case IEEE80211_RADIOTAP_AMPDU_STATUS:
 		break;
 	case IEEE80211_RADIOTAP_FLAGS:
 		/* short preamble */
@@ -278,7 +280,7 @@ get_radiotap_info(struct ieee80211_radiotap_iterator *iter, struct packet_info* 
 		DEBUG(" RATE %d ", p->phy_rate);
 		break;
 	default:
-		printf("\tBOGUS DATA\n");
+		printlog("UNKNOWN RADIOTAP field %d", iter->this_arg_index);
 		break;
 	}
 }
