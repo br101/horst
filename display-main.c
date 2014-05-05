@@ -320,9 +320,10 @@ print_list_line(int line, struct node_info* n)
 		mvwprintw(list_win, line, COL_ENC, "WEP?");
 
 	if (ssid != NULL)
-		mvwprintw(list_win, line, COL_ESSID, "'%s'", ssid);
+		mvwprintw(list_win, line, COL_ESSID, "%s ", ssid);
 
-	wmove(list_win, line, COL_INFO);
+	if (ssid == NULL || strlen(ssid) < 12)
+		wmove(list_win, line, COL_INFO);
 
 	if (n->pkt_types & PKT_TYPE_OLSR)
 		wprintw(list_win, "OLSR%s N:%d %s ",
