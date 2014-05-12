@@ -83,8 +83,9 @@ network.o: network.c main.h list.h average.h util.h network.h
 node.o: node.c main.h list.h average.h util.h ieee80211.h essid.h
 protocol_parser.o: protocol_parser.c prism_header.h ieee80211.h \
  ieee80211_util.h olsr_header.h batman_header.h protocol_parser.h main.h \
- list.h average.h util.h radiotap/radiotap.h radiotap/radiotap_iter.h \
- radiotap/radiotap.h
+ list.h average.h util.h
+radiotap/radiotap.o: radiotap/radiotap.c radiotap/radiotap_iter.h radiotap/radiotap.h \
+	radiotap/platform.h util.h
 upload.o: upload.c main.h list.h average.h util.h
 util.o: util.c util.h ieee80211.h
 wext.o: wext.c wext.h main.h list.h average.h util.h
