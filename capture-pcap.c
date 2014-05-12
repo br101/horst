@@ -52,7 +52,7 @@ handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes)
 
 
 int
-open_packet_socket(char* devname, int recv_buffer_size)
+open_packet_socket(char* devname, __attribute__((unused)) int recv_buffer_size)
 {
 	char error[PCAP_ERRBUF_SIZE];
 	int ret;
@@ -83,7 +83,9 @@ open_packet_socket(char* devname, int recv_buffer_size)
 
 
 int
-device_get_hwinfo(int fd, char* ifname, unsigned char* mac)
+device_get_hwinfo(__attribute__((unused)) int fd,
+		  __attribute__((unused)) char* ifname,
+		  unsigned char* mac)
 {
 	if (pcap_fp != NULL) {
 		switch (pcap_datalink(pcap_fp)) {
@@ -101,7 +103,8 @@ device_get_hwinfo(int fd, char* ifname, unsigned char* mac)
 
 
 int
-recv_packet(int fd, unsigned char* buffer, size_t bufsize)
+recv_packet(__attribute__((unused)) int fd,
+	    unsigned char* buffer, size_t bufsize)
 {
 	int ret = 0; 
 	pcap_buffer = buffer;
@@ -113,7 +116,8 @@ recv_packet(int fd, unsigned char* buffer, size_t bufsize)
 
 
 void
-close_packet_socket(int fd, char* ifname)
+close_packet_socket(__attribute__((unused)) int fd,
+		    __attribute__((unused)) char* ifname)
 {
 	if (pcap_fp != NULL)
 		pcap_close(pcap_fp);

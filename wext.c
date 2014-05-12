@@ -29,22 +29,26 @@
 
 
 int
-wext_set_freq(int fd, const char* devname, int freq)
+wext_set_freq(__attribute__((unused)) int fd,
+	      __attribute__((unused)) const char* devname,
+	      __attribute__((unused)) int freq)
 {
 	return 0;
 }
 
 
 int
-wext_get_freq(int fd, const char* devname)
+wext_get_freq(__attribute__((unused)) int fd,
+	      __attribute__((unused)) const char* devname)
 {
 	return 0;
 }
 
 
 int
-wext_get_channels(int fd, const char* devname,
-		  struct chan_freq channels[MAX_CHANNELS])
+wext_get_channels(__attribute__((unused)) int fd,
+		  __attribute__((unused)) const char* devname,
+		  __attribute__((unused)) struct chan_freq channels[MAX_CHANNELS])
 {
 	return 0;
 }
