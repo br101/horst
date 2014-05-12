@@ -1,9 +1,7 @@
 #include <stddef.h>
 #include <errno.h>
-#ifndef _BSD_SOURCE
-#define _BSD_SOURCE
-#endif
-#include <endian.h>
+
+#include "../util.h"
 
 #define le16_to_cpu		le16toh
 #define le32_to_cpu		le32toh
