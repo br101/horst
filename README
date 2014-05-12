@@ -88,6 +88,13 @@ for debugging you can use
 
 	$ make DEBUG=1
 
+To build for Mac OSX use:
+
+	$ make PCAP=1
+
+Please note that some features, like getting or setting the channel are not
+implemented on OSX, and that OSX support in general is not tested a lot.
+
 
 = Contributors =
 
