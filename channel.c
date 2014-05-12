@@ -29,7 +29,7 @@
 #if defined(__APPLE__)
 
 int
-change_channel(int idx)
+change_channel(__attribute__((unused)) int idx)
 {
 	return 0;
 }
@@ -41,13 +41,13 @@ auto_change_channel(void)
 }
 
 int
-find_channel_index(int c)
+find_channel_index(__attribute__((unused)) int c)
 {
 	return -1;
 }
 
 void
-get_current_channel(int mon)
+get_current_channel(__attribute__((unused)) int mon)
 {
 }
 

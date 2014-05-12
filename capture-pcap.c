@@ -85,7 +85,7 @@ open_packet_socket(char* devname, __attribute__((unused)) int recv_buffer_size)
 int
 device_get_hwinfo(__attribute__((unused)) int fd,
 		  __attribute__((unused)) char* ifname,
-		  unsigned char* mac)
+		  __attribute__((unused)) unsigned char* mac)
 {
 	if (pcap_fp != NULL) {
 		switch (pcap_datalink(pcap_fp)) {
