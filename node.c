@@ -63,7 +63,8 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 			list_for_each_entry(ap, &nodes, list) {
 				if (memcmp(p->wlan_bssid, ap->last_pkt.wlan_src, MAC_LEN) == 0) {
 					DEBUG("AP node found %p\n", ap);
-					DEBUG("AP node ESSID %s\n", ap->essid->essid);
+					DEBUG("AP node ESSID %s\n",
+					      ap->essid != NULL ? ap->essid->essid : "unknown");
 					n->wlan_ap_node = ap;
 					break;
 				}
