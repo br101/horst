@@ -38,6 +38,7 @@ static int show_win_current;
 
 static struct timeval last_time;
 
+static int display_resize_needed = 0;
 
 /* main windows are special */
 void init_display_main(void);
@@ -46,6 +47,7 @@ void update_dump_win(struct packet_info* pkt);
 int main_input(int c);
 void print_dump_win(const char *str, int refresh);
 void resize_display_main(void);
+static void resize_display_all(void);
 
 /* smaller config windows */
 void update_filter_win(WINDOW *win);
@@ -339,6 +341,11 @@ update_display(struct packet_info* pkt)
 		return;
 	}
 
+	if (display_resize_needed == 1) {
+		resize_display_all();
+		display_resize_needed = 0;
+	}
+
 	update_menu();
 
 	/* update clock every second */
@@ -367,6 +374,16 @@ update_display(struct packet_info* pkt)
 static void
 resize_display_all(void)
 {
+	struct winsize winsz;
+
+	/* get new window size */
+	winsz.ws_col = winsz.ws_row = 0;
+	ioctl(0, TIOCGWINSZ, &winsz);	/* ioctl on STDIN */
+	if (winsz.ws_col && winsz.ws_row)
+		resizeterm(winsz.ws_row, winsz.ws_col);
+	COLS = winsz.ws_col;
+	LINES = winsz.ws_row;
+
 	resize_display_main();
 
 	if (show_win)
@@ -378,23 +395,12 @@ resize_display_all(void)
 		else if (conf_win_current == 'c')
 			mvwin(conf_win, LINES/2-5, COLS/2-20);
 	}
-	update_menu();
-	update_display(NULL);
 }
 
 
 static void
 window_change_handler(__attribute__((unused)) int sig) {
-	struct winsize winsz;
-
-	winsz.ws_col = winsz.ws_row = 0;
-	ioctl(0, TIOCGWINSZ, &winsz);	/* ioctl on STDIN */
-	if (winsz.ws_col && winsz.ws_row)
-		resizeterm(winsz.ws_row, winsz.ws_col);
-	COLS = winsz.ws_col;
-	LINES = winsz.ws_row;
-
-	resize_display_all();
+	display_resize_needed = 1;
 }
 
 
