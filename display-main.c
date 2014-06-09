@@ -385,6 +385,8 @@ update_list_win(void)
 		listsort(&nodes, sortfunc);
 
 	list_for_each_entry(n, &nodes, list) {
+		if (conf.filter_mode != 0 && (n->wlan_mode & conf.filter_mode) == 0)
+			continue;
 		line++;
 		if (line >= win_split - 1)
 			break; /* prevent overdraw of last line */

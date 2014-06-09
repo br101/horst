@@ -325,6 +325,7 @@ struct config {
 	char			filtermac_enabled[MAX_FILTERMAC];
 	unsigned char		filterbssid[MAC_LEN];
 	int			filter_pkt;
+	int			filter_mode;
 	unsigned int		filter_off:1,
 				do_change_channel:1,
 				allow_client:1,

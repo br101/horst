@@ -272,6 +272,8 @@ nodes_info_to_json(char *buf) {
 	list_for_each_entry(n, &nodes, list) {
 		/* only send nodes we have seen in the last interval */
 		if (n->last_seen <= (the_time.tv_sec - conf.upload_interval) ||
+		    /* which are not filtered out by mode */
+		    (conf.filter_mode != 0 && (n->wlan_mode & conf.filter_mode) == 0) ||
 		    /* and only if we have space */
 		    truncated) {
 			/* otherwise just reset arithmetric average */

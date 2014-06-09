@@ -28,6 +28,7 @@
 #include "network.h"
 
 #define CHECKED(_x) (conf.filter_pkt & (_x)) ? '*' : ' '
+#define CHECKED_MODE(_x) (conf.filter_mode & (_x)) ? '*' : ' '
 #define CHECK_ETHER(_mac) MAC_NOT_EMPTY(_mac) ? '*' : ' '
 #define CHECK_FILTER_EN(_i) conf.filtermac_enabled[_i] ? '*' : ' '
 #define MAC_COL 30
@@ -39,11 +40,9 @@ update_filter_win(WINDOW *win)
 	int l, i;
 
 	box(win, 0 , 0);
-	print_centered(win, 0, 57, " Edit Packet Filter ");
+	print_centered(win, 0, 57, " Edit Filters ");
 
-	mvwprintw(win, 2, 2, "Show these Packet Types");
-
-	l = 4;
+	l = 2;
 	wattron(win, get_packet_type_color(IEEE80211_FTYPE_MGMT));
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, 2, "m: [%c] MANAGEMENT FRAMES", CHECKED(PKT_TYPE_MGMT));
@@ -68,14 +67,19 @@ update_filter_win(WINDOW *win)
 	mvwprintw(win, l++, 2, "n: [%c] Null Data", CHECKED(PKT_TYPE_NULL));
 	mvwprintw(win, l++, 2, "R: [%c] ARP", CHECKED(PKT_TYPE_ARP));
 	mvwprintw(win, l++, 2, "P: [%c] ICMP/PING", CHECKED(PKT_TYPE_ICMP));
-	mvwprintw(win, l++, 2, "I: [%c] IP", CHECKED(PKT_TYPE_IP));
+	mvwprintw(win, l++, 2, "i: [%c] IP", CHECKED(PKT_TYPE_IP));
 	mvwprintw(win, l++, 2, "U: [%c] UDP", CHECKED(PKT_TYPE_UDP));
 	mvwprintw(win, l++, 2, "T: [%c] TCP", CHECKED(PKT_TYPE_TCP));
-	mvwprintw(win, l++, 2, "O: [%c] OLSR", CHECKED(PKT_TYPE_OLSR));
+	mvwprintw(win, l++, 2, "o: [%c] OLSR", CHECKED(PKT_TYPE_OLSR));
 	mvwprintw(win, l++, 2, "B: [%c] BATMAN", CHECKED(PKT_TYPE_BATMAN));
 	mvwprintw(win, l++, 2, "M: [%c] MeshCruzer", CHECKED(PKT_TYPE_MESHZ));
 
-	l = 4;
+	l++;
+	wattron(win, RED);
+	mvwprintw(win, l++, 2, "*: [%c] Bad FCS", CHECKED(PKT_TYPE_BADFCS));
+	wattroff(win, RED);
+
+	l = 2;
 	wattron(win, WHITE);
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, MAC_COL, "BSSID");
@@ -84,7 +88,6 @@ update_filter_win(WINDOW *win)
 		CHECK_ETHER(conf.filterbssid), ether_sprintf(conf.filterbssid));
 
 	l++;
-	mvwprintw(win, l++, MAC_COL, "Show only these");
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, MAC_COL, "Source MAC ADDRESSES");
 	wattroff(win, A_BOLD);
@@ -95,13 +98,18 @@ update_filter_win(WINDOW *win)
 	}
 
 	l++;
-	wattron(win, RED);
-	mvwprintw(win, l++, MAC_COL, "*: [%c] Bad FCS", CHECKED(PKT_TYPE_BADFCS));
-	wattroff(win, RED);
+	wattron(win, A_BOLD);
+	mvwprintw(win, l++, MAC_COL, "Mode");
+	wattroff(win, A_BOLD);
+	mvwprintw(win, l++, MAC_COL, "A: [%c] Access Point", CHECKED_MODE(WLAN_MODE_AP));
+	mvwprintw(win, l++, MAC_COL, "S: [%c] Station", CHECKED_MODE(WLAN_MODE_STA));
+	mvwprintw(win, l++, MAC_COL, "I: [%c] IBSS (Ad-hoc)", CHECKED_MODE(WLAN_MODE_IBSS));
+	mvwprintw(win, l++, MAC_COL, "O: [%c] PROBE Request", CHECKED_MODE(WLAN_MODE_PROBE));
+	mvwprintw(win, l++, MAC_COL, "W: [%c] WDS/4ADDR", CHECKED_MODE(WLAN_MODE_4ADDR));
 
 	l++;
 	wattron(win, A_BOLD);
-	mvwprintw(win, l++, MAC_COL, "o: [%c] All Filters Off", conf.filter_off ? '*' : ' ' );
+	mvwprintw(win, l++, MAC_COL, "0: [%c] All Filters Off", conf.filter_off ? '*' : ' ' );
 	wattroff(win, A_BOLD);
 
 	print_centered(win, FILTER_MAX, 57, "[ Press key or ENTER ]");
@@ -147,13 +155,19 @@ filter_input(WINDOW *win, int c)
 	case 'n': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_NULL); break;
 	case 'R': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ARP); break;
 	case 'P': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ICMP); break;
-	case 'I': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_IP); break;
+	case 'i': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_IP); break;
 	case 'U': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_UDP); break;
 	case 'T': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_TCP); break;
-	case 'O': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_OLSR|PKT_TYPE_OLSR_LQ|PKT_TYPE_OLSR_GW); break;
+	case 'o': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_OLSR|PKT_TYPE_OLSR_LQ|PKT_TYPE_OLSR_GW); break;
 	case 'B': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_BATMAN); break;
 	case 'M': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_MESHZ); break;
 	case '*': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_BADFCS); break;
+
+	case 'A': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_AP); break;
+	case 'S': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_STA); break;
+	case 'I': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_IBSS); break;
+	case 'O': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_PROBE); break;
+	case 'W': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_4ADDR); break;
 
 	case 's':
 		echo();
@@ -188,7 +202,7 @@ filter_input(WINDOW *win, int c)
 		}
 		break;
 
-	case 'o':
+	case '0':
 		conf.filter_off = conf.filter_off ? 0 : 1;
 		break;
 

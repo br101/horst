@@ -532,7 +532,7 @@ get_options(int argc, char** argv)
 	int c;
 	static int n;
 
-	while((c = getopt(argc, argv, "hqsCi:t:c:p:e:d:o:b:X::x:u:U:a:")) > 0) {
+	while((c = getopt(argc, argv, "hqsCi:t:c:p:e:d:o:b:X::x:m:u:U:a:")) > 0) {
 		switch (c) {
 		case 'p':
 			conf.port = optarg;
@@ -580,6 +580,18 @@ get_options(int argc, char** argv)
 		case 'x':
 			control_send_command(optarg);
 			exit(0);
+		case 'm':
+			if (strcmp(optarg, "AP") == 0)
+				conf.filter_mode |= WLAN_MODE_AP;
+			else if (strcmp(optarg, "STA") == 0)
+				conf.filter_mode |= WLAN_MODE_STA;
+			else if (strcmp(optarg, "ADH") == 0 || strcmp(optarg, "IBSS") == 0)
+				conf.filter_mode |= WLAN_MODE_IBSS;
+			else if (strcmp(optarg, "PRB") == 0)
+				conf.filter_mode |= WLAN_MODE_PROBE;
+			else if (strcmp(optarg, "WDS") == 0)
+				conf.filter_mode |= WLAN_MODE_4ADDR;
+			break;
 #if UPLOAD
 		case 'u':
 			conf.upload_interval = atoi(optarg);
@@ -605,6 +617,7 @@ get_options(int argc, char** argv)
 				"  -C\t\tallow client connection (server)\n"
 				"  -p <port>\tport number (4444)\n"
 				"  -e <mac>\tfilter all macs except these (multiple)\n"
+				"  -m <AP|STA|ADH|PRB|WDS>\tshow only nodes of this mode (multiple)\n"
 				"  -d <ms>\tdisplay update interval (100)\n"
 				"  -o <filename>\twrite packet info into file\n"
 				"  -b <bytes>\treceive buffer size (not set)\n"
