@@ -657,30 +657,45 @@ get_options(int argc, char** argv)
 #endif
 		case 'h':
 		default:
-			printf("\nUsage: %s [-h] [-q] [-s] [-i interface] [-t sec] [-c IP] [-C] [-p port]\n"
-				"\t\t[-e mac] [-d ms] [-o file] [-b bytes] [-X[name]] [-x command]\n\n"
-				"Options:\tDescription (default value)\n"
-				"  -h\t\tthis help\n"
-				"  -q\t\tquiet, no output\n"
-				"  -s\t\tspectrum analyzer\n"
-				"  -i <intf>\tinterface (wlan0)\n"
-				"  -t <sec>\tnode timeout (60)\n"
-				"  -c <IP>\tconnect to server\n"
-				"  -C\t\tallow client connection (server)\n"
-				"  -p <port>\tport number (4444)\n"
-				"  -e <mac>\tfilter all macs except these (multiple)\n"
-				"  -f <PKT_NAME>\tfilter packet types (multiple)\n"
-				"  -m <AP|STA|ADH|PRB|WDS>\tshow only nodes of this mode (multiple)\n"
-				"  -d <ms>\tdisplay update interval (100)\n"
-				"  -o <filename>\twrite packet info into file\n"
-				"  -b <bytes>\treceive buffer size (not set)\n"
-				"  -X[filename]\tallow control socket (/tmp/horst)\n"
-				"  -x <command>\tsend control command\n"
+			printf("\nUsage: %s [-h] [-q] [-i interface] [-t sec] [-d ms] [-b bytes]\n"
+				"\t\t[-s] [-C] [-c IP] [-p port] [-o file] [-X[name]] [-x command]\n"
 #if UPLOAD
-				"  -u <sec>\tupload interval (2)\n"
-				"  -U <URL>\tupload server URL\n"
-				"  -a <string>\tupload API key\n"
+				"\t\t[-U URL] [-u sec] [-a string]\n"
 #endif
+				"\t\t[-e MAC] [-f PKT_NAME] [-m MODE]\n\n"
+
+				"General Options: Description (default value)\n"
+				"  -h\t\tHelp\n"
+				"  -q\t\tQuiet, no output\n"
+				"  -i <intf>\tInterface name (wlan0)\n"
+				"  -t <sec>\tNode timeout in seconds (60)\n"
+				"  -d <ms>\tDisplay update interval in ms (100)\n"
+				"  -b <bytes>\tReceive buffer size in bytes (not set)\n"
+
+				"\nFeature Options:\n"
+				"  -s\t\t(Poor mans) Spectrum analyzer mode\n\n"
+
+				"  -C\t\tAllow client connection, server mode (off)\n"
+				"  -c <IP>\tConnect to server with <IP>, client mode (off)\n"
+				"  -p <port>\tPort number of server (4444)\n\n"
+
+				"  -o <filename>\tWrite packet info into 'filename'\n\n"
+
+				"  -X[filename]\tAllow control socket on 'filename' (/tmp/horst)\n"
+				"  -x <command>\tSend control command\n"
+#if UPLOAD
+				"\n  -U <URL>\tUpload server URL (http:// or https://)\n"
+				"  -u <sec>\tUpload interval in seconds (2)\n"
+				"  -a <string>\tUpload API key\n"
+#endif
+				"\nFilter Options:\n"
+				" Filters are generally 'positive' or 'inclusive' which means you define\n"
+				" what you want to see, and everything else is getting filtered out.\n"
+				" If a filter is not set it is inactive and nothing is filtered.\n"
+				" All filters can be specified multiple times.\n"
+				"  -e <MAC>\tSource MAC addresses (xx:xx:xx:xx:xx:xx, up to 9)\n"
+				"  -f <PKT_NAME>\tFilter packet types\n"
+				"  -m <MODE>\tOperating mode of nodes: AP|STA|ADH|PRB|WDS\n"
 				"\n",
 				argv[0]);
 			exit(0);

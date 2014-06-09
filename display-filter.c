@@ -45,7 +45,7 @@ update_filter_win(WINDOW *win)
 	l = 2;
 	wattron(win, get_packet_type_color(IEEE80211_FTYPE_MGMT));
 	wattron(win, A_BOLD);
-	mvwprintw(win, l++, 2, "m: [%c] MANAGEMENT FRAMES", CHECKED(PKT_TYPE_MGMT));
+	mvwprintw(win, l++, 2, "m: [%c] MANAGEMENT Frames", CHECKED(PKT_TYPE_MGMT));
 	wattroff(win, A_BOLD);
 	mvwprintw(win, l++, 2, "b: [%c] Beacons", CHECKED(PKT_TYPE_BEACON));
 	mvwprintw(win, l++, 2, "p: [%c] Probe Req/Resp", CHECKED(PKT_TYPE_PROBE));
@@ -54,14 +54,14 @@ update_filter_win(WINDOW *win)
 	l++;
 	wattron(win, get_packet_type_color(IEEE80211_FTYPE_CTL));
 	wattron(win, A_BOLD);
-	mvwprintw(win, l++, 2, "c: [%c] CONTROL FRAMES", CHECKED(PKT_TYPE_CTRL));
+	mvwprintw(win, l++, 2, "c: [%c] CONTROL Frames", CHECKED(PKT_TYPE_CTRL));
 	wattroff(win, A_BOLD);
 	mvwprintw(win, l++, 2, "r: [%c] CTS/RTS", CHECKED(PKT_TYPE_CTS | PKT_TYPE_RTS));
 	mvwprintw(win, l++, 2, "k: [%c] ACK", CHECKED(PKT_TYPE_ACK));
 	l++;
 	wattron(win, get_packet_type_color(IEEE80211_FTYPE_DATA));
 	wattron(win, A_BOLD);
-	mvwprintw(win, l++, 2, "d: [%c] DATA FRAMES", CHECKED(PKT_TYPE_DATA));
+	mvwprintw(win, l++, 2, "d: [%c] DATA Frames", CHECKED(PKT_TYPE_DATA));
 	wattroff(win, A_BOLD);
 	mvwprintw(win, l++, 2, "q: [%c] QoS Data", CHECKED(PKT_TYPE_QDATA));
 	mvwprintw(win, l++, 2, "n: [%c] Null Data", CHECKED(PKT_TYPE_NULL));
@@ -89,7 +89,7 @@ update_filter_win(WINDOW *win)
 
 	l++;
 	wattron(win, A_BOLD);
-	mvwprintw(win, l++, MAC_COL, "Source MAC ADDRESSES");
+	mvwprintw(win, l++, MAC_COL, "Source MAC Addresses");
 	wattroff(win, A_BOLD);
 
 	for (i = 0; i < MAX_FILTERMAC; i++) {
