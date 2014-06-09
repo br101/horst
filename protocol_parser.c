@@ -728,7 +728,7 @@ static int
 parse_olsr_packet(unsigned char** buf, int len, struct packet_info* p)
 {
 	struct olsr* oh;
-	int number, i, msgtype;
+	int number, msgtype;
 
 	if (len > 0 && (size_t)len < sizeof(struct olsr))
 		return -1;
@@ -743,8 +743,8 @@ parse_olsr_packet(unsigned char** buf, int len, struct packet_info* p)
 	p->pkt_types |= PKT_TYPE_OLSR;
 	p->olsr_type = msgtype;
 
-	if (msgtype == LQ_HELLO_MESSAGE || msgtype == LQ_TC_MESSAGE )
-		p->pkt_types |= PKT_TYPE_OLSR_LQ;
+	//if (msgtype == LQ_HELLO_MESSAGE || msgtype == LQ_TC_MESSAGE )
+	//	p->pkt_types |= PKT_TYPE_OLSR_LQ;
 
 	if (msgtype == HELLO_MESSAGE) {
 		number = (ntohs(oh->olsr_msg[0].olsr_msgsize) - 12) / sizeof(struct hellomsg);
@@ -772,7 +772,7 @@ parse_olsr_packet(unsigned char** buf, int len, struct packet_info* p)
 		DEBUG("LQ_TC %d (%d)\n", number, (ntohs(oh->olsr_msg[0].olsr_msgsize)-16));
 		p->olsr_tc = number;
 	}
-#endif
+
 	if (msgtype == HNA_MESSAGE) {
 		/* same here, but we assume that nodes which relay a HNA with a default gateway
 		know how to contact the gw, so have a indirect connection to a GW themselves */
@@ -788,6 +788,7 @@ parse_olsr_packet(unsigned char** buf, int len, struct packet_info* p)
 				p->pkt_types |= PKT_TYPE_OLSR_GW;
 		}
 	}
+#endif
 	/* done for good */
 	return 0;
 }

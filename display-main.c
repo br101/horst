@@ -326,10 +326,7 @@ print_list_line(int line, struct node_info* n)
 		wmove(list_win, line, COL_INFO);
 
 	if (n->pkt_types & PKT_TYPE_OLSR)
-		wprintw(list_win, "OLSR%s N:%d %s ",
-			n->pkt_types & PKT_TYPE_OLSR_LQ ? "_LQ" : "",
-			n->olsr_neigh,
-			n->pkt_types & PKT_TYPE_OLSR_GW ? "GW" : "");
+		wprintw(list_win, "OLSR N:%d ", n->olsr_neigh);
 
 	if (n->pkt_types & PKT_TYPE_BATMAN)
 		wprintw(list_win, "BATMAND ");

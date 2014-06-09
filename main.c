@@ -57,7 +57,6 @@ struct config conf = {
 	.ifname			= INTERFACE_NAME,
 	.display_interval	= DISPLAY_UPDATE_INTERVAL,
 	.upload_interval	= SERVER_UPLOAD_INTERVAL,
-	.filter_pkt		= 0xffffff,
 	.recv_buffer_size	= RECV_BUFFER_SIZE,
 	.port			= DEFAULT_PORT,
 	.control_pipe		= DEFAULT_CONTROL_PIPE
@@ -252,7 +251,7 @@ filter_packet(struct packet_info* p)
 {
 	int i;
 
-	if (conf.filter_off)
+	if (conf.filter_off || conf.filter_pkt == 0)
 		return 0;
 
 	if (p->pkt_types & ~conf.filter_pkt) {
@@ -532,7 +531,7 @@ get_options(int argc, char** argv)
 	int c;
 	static int n;
 
-	while((c = getopt(argc, argv, "hqsCi:t:c:p:e:d:o:b:X::x:m:u:U:a:")) > 0) {
+	while((c = getopt(argc, argv, "hqsCi:t:c:p:e:f:d:o:b:X::x:m:u:U:a:")) > 0) {
 		switch (c) {
 		case 'p':
 			conf.port = optarg;
@@ -592,6 +591,59 @@ get_options(int argc, char** argv)
 			else if (strcmp(optarg, "WDS") == 0)
 				conf.filter_mode |= WLAN_MODE_4ADDR;
 			break;
+		case 'f':
+			if (strcmp(optarg, "CTRL") == 0 || strcmp(optarg, "CONTROL") == 0)
+				conf.filter_pkt |= PKT_TYPE_CTRL | PKT_TYPE_ALL_CTRL;
+			else if (strcmp(optarg, "MGMT") == 0 || strcmp(optarg, "MANAGEMENT") == 0)
+				conf.filter_pkt |= PKT_TYPE_MGMT | PKT_TYPE_ALL_MGMT;
+			else if (strcmp(optarg, "DATA") == 0)
+				conf.filter_pkt |= PKT_TYPE_DATA | PKT_TYPE_ALL_DATA;
+			else if (strcmp(optarg, "BADFCS") == 0)
+				conf.filter_pkt |= PKT_TYPE_BADFCS;
+			else if (strcmp(optarg, "BEACON") == 0)
+				conf.filter_pkt |= PKT_TYPE_BEACON;
+			else if (strcmp(optarg, "PROBE") == 0)
+				conf.filter_pkt |= PKT_TYPE_PROBE;
+			else if (strcmp(optarg, "ASSOC") == 0)
+				conf.filter_pkt |= PKT_TYPE_ASSOC;
+			else if (strcmp(optarg, "AUTH") == 0)
+				conf.filter_pkt |= PKT_TYPE_AUTH;
+			else if (strcmp(optarg, "RTS") == 0)
+				conf.filter_pkt |= PKT_TYPE_RTS;
+			else if (strcmp(optarg, "CTS") == 0)
+				conf.filter_pkt |= PKT_TYPE_CTS;
+			else if (strcmp(optarg, "ACK") == 0)
+				conf.filter_pkt |= PKT_TYPE_ACK;
+			else if (strcmp(optarg, "NULL") == 0)
+				conf.filter_pkt |= PKT_TYPE_NULL;
+			else if (strcmp(optarg, "QDATA") == 0)
+				conf.filter_pkt |= PKT_TYPE_QDATA;
+			else if (strcmp(optarg, "ARP") == 0)
+				conf.filter_pkt |= PKT_TYPE_ARP;
+			else if (strcmp(optarg, "IP") == 0)
+				conf.filter_pkt |= PKT_TYPE_IP;
+			else if (strcmp(optarg, "ICMP") == 0)
+				conf.filter_pkt |= PKT_TYPE_ICMP;
+			else if (strcmp(optarg, "UDP") == 0)
+				conf.filter_pkt |= PKT_TYPE_UDP;
+			else if (strcmp(optarg, "TCP") == 0)
+				conf.filter_pkt |= PKT_TYPE_TCP;
+			else if (strcmp(optarg, "OLSR") == 0)
+				conf.filter_pkt |= PKT_TYPE_OLSR;
+			else if (strcmp(optarg, "BATMAND") == 0)
+				conf.filter_pkt |= PKT_TYPE_BATMAN;
+			else if (strcmp(optarg, "MESHZ") == 0)
+				conf.filter_pkt |= PKT_TYPE_MESHZ;
+			else if (strcmp(optarg, "BATADV") == 0)
+				conf.filter_pkt |= PKT_TYPE_BATADV;
+			/* if one of the individual subtype frames is selected we enable the general frame type */
+			if (conf.filter_pkt & PKT_TYPE_ALL_MGMT)
+				conf.filter_pkt |= PKT_TYPE_MGMT;
+			if (conf.filter_pkt & PKT_TYPE_ALL_CTRL)
+				conf.filter_pkt |= PKT_TYPE_CTRL;
+			if (conf.filter_pkt & PKT_TYPE_ALL_DATA)
+				conf.filter_pkt |= PKT_TYPE_DATA;
+			break;
 #if UPLOAD
 		case 'u':
 			conf.upload_interval = atoi(optarg);
@@ -617,6 +669,7 @@ get_options(int argc, char** argv)
 				"  -C\t\tallow client connection (server)\n"
 				"  -p <port>\tport number (4444)\n"
 				"  -e <mac>\tfilter all macs except these (multiple)\n"
+				"  -f <PKT_NAME>\tfilter packet types (multiple)\n"
 				"  -m <AP|STA|ADH|PRB|WDS>\tshow only nodes of this mode (multiple)\n"
 				"  -d <ms>\tdisplay update interval (100)\n"
 				"  -o <filename>\twrite packet info into file\n"

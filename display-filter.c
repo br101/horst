@@ -158,7 +158,7 @@ filter_input(WINDOW *win, int c)
 	case 'i': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_IP); break;
 	case 'U': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_UDP); break;
 	case 'T': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_TCP); break;
-	case 'o': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_OLSR|PKT_TYPE_OLSR_LQ|PKT_TYPE_OLSR_GW); break;
+	case 'o': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_OLSR); break;
 	case 'B': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_BATMAN); break;
 	case 'M': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_MESHZ); break;
 	case '*': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_BADFCS); break;
