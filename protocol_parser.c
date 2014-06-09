@@ -443,7 +443,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 		p->pkt_types |= PKT_TYPE_CTRL;
 		switch (p->wlan_type & IEEE80211_FCTL_STYPE) {
 		case IEEE80211_STYPE_RTS:
-			p->pkt_types |= PKT_TYPE_RTS;
+			p->pkt_types |= PKT_TYPE_RTSCTS;
 			p->wlan_nav = le16toh(wh->duration_id);
 			DEBUG("RTS NAV %d\n", p->wlan_nav);
 			ra = wh->addr1;
@@ -451,7 +451,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 			break;
 
 		case IEEE80211_STYPE_CTS:
-			p->pkt_types |= PKT_TYPE_CTS;
+			p->pkt_types |= PKT_TYPE_RTSCTS;
 			p->wlan_nav = le16toh(wh->duration_id);
 			DEBUG("CTS NAV %d\n", p->wlan_nav);
 			ra = wh->addr1;
@@ -625,7 +625,7 @@ parse_batman_adv_packet(unsigned char** buf, int len, struct packet_info* p) {
 	//batadv_ogm_packet
 	bp = (struct batman_ogm_packet*)*buf;
 
-	p->pkt_types |= PKT_TYPE_BATADV;
+	p->pkt_types |= PKT_TYPE_BATMAN;
 	p->bat_version = bp->version;
 	p->bat_packet_type = bp->packet_type;
 

@@ -329,11 +329,7 @@ print_list_line(int line, struct node_info* n)
 		wprintw(list_win, "OLSR N:%d ", n->olsr_neigh);
 
 	if (n->pkt_types & PKT_TYPE_BATMAN)
-		wprintw(list_win, "BATMAND ");
-
-	if (n->pkt_types & PKT_TYPE_BATADV) {
 		wprintw(list_win, "BATMAN %s", n->bat_gw ? "GW " : "");
-	}
 
 	if (n->pkt_types & (PKT_TYPE_MESHZ))
 		wprintw(list_win, "MC ");
@@ -435,7 +431,7 @@ update_dump_win(struct packet_info* p)
 		return;
 	}
 
-	if ((p->pkt_types & PKT_TYPE_BATADV) && p->bat_packet_type == BAT_UNICAST) {
+	if ((p->pkt_types & PKT_TYPE_BATMAN) && p->bat_packet_type == BAT_UNICAST) {
 		/* unicast traffic can carry IP/ICMP which we show below */
 		wprintw(dump_win, "BATMAN ");
 	}
@@ -452,11 +448,7 @@ update_dump_win(struct packet_info* p)
 			default: wprintw(dump_win, "(%d)", p->olsr_type);
 		}
 	}
-	else if (p->pkt_types & PKT_TYPE_BATMAN) {
-		wprintw(dump_win, "%-7s%s", "BATMAND", ip_sprintf(p->ip_src));
-		wprintw(dump_win, " -> %s", ip_sprintf(p->ip_dst));
-	}
-	else if ((p->pkt_types & PKT_TYPE_BATADV) && p->bat_packet_type != BAT_UNICAST) {
+	else if ((p->pkt_types & PKT_TYPE_BATMAN) && p->bat_packet_type != BAT_UNICAST) {
 		wprintw(dump_win, "BATMAN ");
 		switch (p->bat_packet_type) {
 			case BAT_OGM: wprintw(dump_win, "OGM"); break;

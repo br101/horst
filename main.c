@@ -609,9 +609,7 @@ get_options(int argc, char** argv)
 			else if (strcmp(optarg, "AUTH") == 0)
 				conf.filter_pkt |= PKT_TYPE_AUTH;
 			else if (strcmp(optarg, "RTS") == 0)
-				conf.filter_pkt |= PKT_TYPE_RTS;
-			else if (strcmp(optarg, "CTS") == 0)
-				conf.filter_pkt |= PKT_TYPE_CTS;
+				conf.filter_pkt |= PKT_TYPE_RTSCTS;
 			else if (strcmp(optarg, "ACK") == 0)
 				conf.filter_pkt |= PKT_TYPE_ACK;
 			else if (strcmp(optarg, "NULL") == 0)
@@ -630,12 +628,10 @@ get_options(int argc, char** argv)
 				conf.filter_pkt |= PKT_TYPE_TCP;
 			else if (strcmp(optarg, "OLSR") == 0)
 				conf.filter_pkt |= PKT_TYPE_OLSR;
-			else if (strcmp(optarg, "BATMAND") == 0)
+			else if (strcmp(optarg, "BATMAN") == 0)
 				conf.filter_pkt |= PKT_TYPE_BATMAN;
 			else if (strcmp(optarg, "MESHZ") == 0)
 				conf.filter_pkt |= PKT_TYPE_MESHZ;
-			else if (strcmp(optarg, "BATADV") == 0)
-				conf.filter_pkt |= PKT_TYPE_BATADV;
 			/* if one of the individual subtype frames is selected we enable the general frame type */
 			if (conf.filter_pkt & PKT_TYPE_ALL_MGMT)
 				conf.filter_pkt |= PKT_TYPE_MGMT;

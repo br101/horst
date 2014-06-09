@@ -56,7 +56,7 @@ update_filter_win(WINDOW *win)
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, 2, "c: [%c] CONTROL Frames", CHECKED(PKT_TYPE_CTRL));
 	wattroff(win, A_BOLD);
-	mvwprintw(win, l++, 2, "r: [%c] CTS/RTS", CHECKED(PKT_TYPE_CTS | PKT_TYPE_RTS));
+	mvwprintw(win, l++, 2, "r: [%c] CTS/RTS", CHECKED(PKT_TYPE_RTSCTS));
 	mvwprintw(win, l++, 2, "k: [%c] ACK", CHECKED(PKT_TYPE_ACK));
 	l++;
 	wattron(win, get_packet_type_color(IEEE80211_FTYPE_DATA));
@@ -142,7 +142,7 @@ filter_input(WINDOW *win, int c)
 		else
 			conf.filter_pkt &= ~PKT_TYPE_ALL_CTRL;
 		break;
-	case 'r': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_CTS | PKT_TYPE_RTS); break;
+	case 'r': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_RTSCTS); break;
 	case 'k': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ACK); break;
 	case 'd':
 		TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_DATA);
