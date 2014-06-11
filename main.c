@@ -241,7 +241,7 @@ write_to_file(struct packet_info* p)
 		p->wlan_essid, p->wlan_mode, p->wlan_channel, p->wlan_wep);
 	fprintf(DF, "%s, ", ip_sprintf(p->ip_src));
 	fprintf(DF, "%s, ", ip_sprintf(p->ip_dst));
-	fprintf(DF, "%d, %d, %d\n", p->olsr_type, p->olsr_neigh, p->olsr_tc);
+	fprintf(DF, "%d, %d\n", p->olsr_type, p->olsr_neigh);
 	fflush(DF);
 }
 
