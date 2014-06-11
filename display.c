@@ -202,7 +202,7 @@ update_mini_status(void)
 {
 	wattron(stdscr, BLACKONWHITE);
 	mvwprintw(stdscr, LINES-1, COLS-24, conf.paused ? "|=" : "|>");
-	if (!conf.filter_off && (conf.do_macfilter || conf.filter_pkt != 0xffffff))
+	if (!conf.filter_off && (conf.do_macfilter || conf.filter_pkt != 0 || conf.filter_mode != 0))
 		mvwprintw(stdscr, LINES-1, COLS-22, "|F");
 	else
 		mvwprintw(stdscr, LINES-1, COLS-22, "| ");
