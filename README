@@ -1,7 +1,7 @@
 
 HORST - Horsts OLSR Radio Scanning Tool (or)
 HORST - Highly Optimized Radio Scanning Tool
---------------------------------------------
+-------------------------------------------------------------------------------
 Copyright (C) 2005-2014 Bruno Randolf (br1@einfach.org)
 
 Licensed under the GNU Public License (GPL) V2
@@ -9,91 +9,73 @@ Licensed under the GNU Public License (GPL) V2
 
 = Overview =
 
-"horst" is a scanning and analysis tool for IEEE802.11 wireless ad-hoc (IBSS)
-networks and the OLSR mesh routing protocol. it can be used discover the best
-OLSR nodes in the neighborhood, to optimize antenna positions and to discover
-problems in the mesh network.
+“horst” is a small, lightweight IEEE802.11 wireless LAN analyzer with a text 
+interface. Its basic function is similar to tcpdump, Wireshark or Kismet, but 
+it’s much smaller and shows different, aggregated information which is not 
+easily available from other tools. It is mainly targeted at debugging wireless 
+LANs with a focus on ad-hoc (IBSS) mode in larger mesh networks. It can be 
+useful to get a quick overview of what’s going on on all wireless LAN channels 
+and to identify problems.
 
-See the man page for more detailed and up-to-date info:
+See the man page for more detailed and up-to-date information:
 	$ man -l horst.1
 	(or)
 	$ nroff -mandoc horst.1
 
-
-= Description =
-
-with the usual wireless tools like iwconfig and iwspy (and even kismet) it is
-hard to measure the received signal strength (SNR or RSSI) for each of the
-*different* nodes which form an ad-hoc network, since they all treat the whole
-IBSS as one. this information however is very important for setting up,
-debugging and optimizing wireless mesh networks.
-
-"horst" aims to fill this gap and lists each single node of an ad-hoc network
-separately, showing the signal strength (SNR) of the last received packet. this
-way you can see which nodes are part of a specific ad-hoc cell (BSSID), discover
-problems with ad-hoc cell merging ("cell splitting" - a problem of many wlan
-drivers), which of the nodes send OLSR packets, whether they use the OLSR link
-quality extension, how many neighbors they see, etc.
-
-to do this, it uses the monitor mode including prism2 or radiotap headers (for
-the signal strength information) of the wlan cards and listens to all packets
-which come in the wireless interface. these packets are scanned for OLSR
-traffic, summarized by the MAC address of the sending node, and displayed in a
-simple text (ncurses) interface.
-
-"horst" should work with any wlan card which can do monitor mode, with either
-"prism2" or "radiotap" headers.
-
-
-= Interpreting the Output =
-
-we try to fit a lot of mostly binary or numeric information to a tiny screen, so
-at first it will look confusing ;)
-
-the upper box shows a summary of the information we gathered for each MAC
-address (node) we saw, each one in a row:
-
-IP	IP address (if available)
-SNR	Signal/Noise ratio of the LAST packet
-SOURCE	MAC address of the source
-BSSID	The BSSID this MAC is on
-LQ	Marked when OLSR Link Quality (LQ) Extension is used
-GW	Marked when this OLSR Node probably knows a default gateway
-NEIGH	Number of Neighbours
-OLSR	Number of OLSR Pakets received
-COUNT	Number of all packets received
-TSF	The high part of the TSF
-
-the lower box dumps all received packets and shows some information for it:
-
-Sig	Signal in dBm
-Noi	Noise in dBm
-SOURCE	MAC Address of the Sender
-BSSID	The BSSID the Sender belongs to
-TYPE	Packet Type
-INFO	Additional packet information, depending on type
-
-the lower right box shows the status and displays the SNR of the last packet
-graphically with a bar.
+Also see: http://br1.einfach.org/tech/horst/
 
 
 = Building =
 
-"horst" is just a simple tool, so "libncurses" is the only requirement (be sure
-to install it's header files too). therefore building is as simple as typing:
+Official git repository:	git://br1.einfach.org/horst
+GitHub clone:			https://github.com/br101/horst
+
+"horst" is just a simple tool, and "libncurses" is the only requirement (be sure
+to install it's header files too). Therefore building is as simple as typing:
 
 	$ make
 
-for debugging you can use
+To see very detailled debugging output you can use
 
 	$ make DEBUG=1
 
-To build for Mac OSX use:
+To include the HTTP JSON upload feature which requires two additional libraries 
+(libcurl and pthreads) and is disabled by default:
+
+	$ make UPLOAD=1
+
+To build for Mac OSX or other Unix using libpcap use:
 
 	$ make PCAP=1
 
 Please note that some features, like getting or setting the channel are not
 implemented on OSX, and that OSX support in general is not tested a lot.
+
+
+= Background =
+
+"horst" was created to fill a need in the Wireless Mesh networking / Freifunk
+community of Berlin but has since grown to be a useful tool for all kinds of 
+Wireless networks.
+
+With the usual wireless tools like iw, iwconfig and iwspy and even kismet or 
+WireShark it is hard to measure the received signal strength (SNR or RSSI) of
+all available access points, stations and ad-hoc networks in a given location. 
+It's especially difficult to differentiate the different nodes which form an 
+ad-hoc network. This information however is very important for setting up, 
+debugging and optimizing wireless mesh networks and antenna positions.
+
+"horst" aims to fill this gap and lists each single node of an ad-hoc network
+separately, showing the signal strength (SNR) of the last received packet. This
+way you can see which nodes are part of a specific ad-hoc cell (BSSID), 
+discover problems with ad-hoc cell merging ("cell splitting", a problem of 
+many WLAN drivers) and get a general overview of what's going on in the "air".
+
+To do this, "horst" uses the monitor mode including radiotap headers (or for 
+older drivers prism2 headers) for the signal strength information of the wlan 
+cards and listens to all packets which come in the wireless interface. The 
+packets are summarized by the MAC address of the sending node, analyzed and
+aggregated and displayed in a simple text (ncurses) interface.
 
 
 = Contributors =

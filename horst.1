@@ -42,23 +42,30 @@ on ad\-hoc (IBSS) mode in larger mesh networks. It can be useful to get
 a quick overview of what's going on on all wireless LAN channels and
 to identify problems.
 .IP \[bu] 2
-Shows signal/noise values per station
+Shows signal/noise values per station.
 .IP \[bu] 2
-Calculates channel utilization ("usage") by adding up the amount of time the packets actually occupy the medium
+Calculates channel utilization ("usage") by adding up the amount of time the packets actually occupy the medium.
 .IP \[bu] 2
-"Spectrum Analyzer" shows signal levels and usage per channel Graphical packet history, with signal/noise, packet type and physical rate
+"Spectrum Analyzer" shows signal levels and usage per channel.
 .IP \[bu] 2
-Shows all stations per ESSID and the live TSF per node as it is counting
+Graphical packet history, with signal/noise, packet type and physical rat.e
 .IP \[bu] 2
-Detects IBSS "splits" (same ESSID but different BSSID \- this  is a common driver problem)
+Shows all stations per ESSID and the live TSF per node as it is counting.
 .IP \[bu] 2
-Statistics of packets/bytes per physical rate and per packet type
+Detects IBSS "splits" (same ESSID but different BSSID \- this  is a common driver problem).
 .IP \[bu] 2
-Has some support for mesh protocols (OLSR and batman)
+Statistics of packets/bytes per physical rate and per packet type.
 .IP \[bu] 2
-Can filter specific packet types source addresses or BSSIDs
+Has some support for mesh protocols (OLSR and batman).
 .IP \[bu] 2
-Client/server support for monitoring on remote nodes
+Can filter specific packet types, source MAC addresses or BSSIDs.
+.IP \[bu] 2
+Client/server support for monitoring on remote nodes.
+.IP \[bu] 2
+Can be controlled via a named pipe.
+.IP \[bu] 2
+Upload via HTTP or HTTPS of selected node information in JSON format.
+
 
 .SH OPTIONS
 .TP
@@ -66,7 +73,7 @@ Client/server support for monitoring on remote nodes
 Show summary of options.
 .TP
 .BI \-q
-Quiet mode. Don't show user interface. This is only useful in conjunction with running in server mode (\-C) or writing to a file (\-o).
+Quiet mode. Don't show user interface. This is only useful in conjunction with running in server mode (\-C), upload mode (\-U) or writing to a file (\-o).
 .TP
 .BI \-i\  intf
 Operate on given interface instead of the default "wlan0". Note that the interface is assumed to be in monitor mode already. See MONITOR MODE below on more information about monitor mode.
@@ -81,7 +88,7 @@ Display update interval. The default value of 100ms can be increased to reduce C
 Receive buffer size. The receive buffer size can be explicitly set to tune memory consumption and reduce lost packets.
 .TP
 .BI \-s
-Show "spectrum analyzer". The same can be achieved by running \fBhorst\fP as normal and pressing the button 's' (Spec); then 'c' (Chan) and 'a' (Automatically change channel).
+Show a poor mans "spectrum analyzer". The same can be achieved by running \fBhorst\fP as normal and pressing the button 's' (Spec); then 'c' (Chan) and 'a' (Automatically change channel).
 .TP
 .BI \-C
 Allow client connections. Server mode. Only one client connection is supported at the moment (default: off).
@@ -93,7 +100,7 @@ Connect to a \fBhorst\fP instance running in server-mode at the specified IP add
 Use the specified port (default: 4444) for client/server connections.
 .TP
 .BI \-o\  filename
-Write a summary packet info into file.
+Write a summary packet info into file. See OUTPUT FILE FORMAT below.
 .TP
 .BI \-X
 Accept control commands on a named pipe (default /tmp/horst).
@@ -115,7 +122,7 @@ Send control command to another horst process who was started with -X and then e
                        is closed and no file is written.
 .TP
 .BI \-U\  URL
-Upload server URL (http:// or https://) where some selected node summary information is sent to in JSON format. Only available when compiled with UPLOAD=1 and libcurl is available.
+Upload server URL (http:// or https://) where selected node summary information is sent to in JSON format. Only available when compiled with UPLOAD=1 and libcurl is installed.
 .TP
 .BI \-u\  sec
 Upload interval in seconds (2). Only used in conjuction with the -U option.
@@ -126,11 +133,11 @@ Upload API key for Upload JSON String. Only used in conjuction with the -U optio
 .BI \-e\  MAC
 Filter all MAC addresses except these, to show only packets originating from the specified MAC addresses. This option can be specified multiple times.
 .TP
-.BI \-f\  packet_type_name
-Filter all packets except these. This option can be specified multiple times.
+.BI \-f\  pkt_type
+Filter all packets except these. This option can be specified multiple times. For valid packet names see pkt_types in the OUTPUT FILE FORMAT section below.
 .TP
 .BI \-m\  (AP|STA|ADH|PRB|WDS)
-Only show/include nodes of this mode. Note that the mode is infered by the type of packets we received and it may take some time until a node is properly classified. This option can be specified multiple times.
+Only show/include nodes of this mode. Note that the mode is infered by the information of packets we received and it may take some time until a node is properly classified. This option can be specified multiple times.
 
 
 .SH MONITOR MODE
@@ -144,6 +151,12 @@ you start \fBhorst\fP. Usually this has to be done as root.
 Using iw:
 .nf
 iw wlan0 interface add mon0 type monitor
+
+or
+
+sudo iw wlan1 set type monitor
+sudo iw wlan1 set channel 6 
+
 .fi
 
 .TP
@@ -234,29 +247,27 @@ BSSID
 .TP
 pkt_types
 Packet types, similar to packet_type (above) but as a bit field (types can overlap, e.g. DATA + IP) and can include more info, like IP, ARP, BATMAN, OLSR...
-        CTRL      0x000001
-        MGMT      0x000002
-        DATA      0x000004
-        BADFCS    0x000008
-        BEACON    0x000010
-        PROBE     0x000020
-        ASSOC     0x000040
-        AUTH      0x000080
-        RTS       0x000100
-        CTS       0x000200
-        ACK       0x000400
-        NULL      0x000800
-        ARP       0x001000
-        IP        0x002000
-        ICMP      0x004000
-        UDP       0x008000
-        TCP       0x010000
-        OLSR      0x020000
-        OLSR_LQ   0x040000
-        OLSR_GW   0x080000
-        BATMAN    0x100000
-        MESHZ     0x200000
-        QDATA     0x400000
+
+        CTRL        0x000001    WLAN Control frame
+        MGMT        0x000002    WLAN Management frame
+        DATA        0x000004    WLAN Data frame
+        BADFCS      0x000008    WLAN frame checksum (FCS) bad
+        BEACON      0x000010    WLAN beacon frame
+        PROBE       0x000020    WLAN probe request or response
+        ASSOC       0x000040    WLAN associaction request/response frame
+        AUTH        0x000080    WLAN authentication frame
+        RTSCTS      0x000100    WLAN RTS or CTS
+        ACK         0x000200    WLAN ACK or BlockACK
+        NULL        0x000400    WLAN NULL Data frame
+        QDATA       0x000800    WLAN QoS Data frame (WME/WMM)
+        ARP         0x001000    ARP packet
+        IP          0x002000    IP packet
+        ICMP        0x004000    IP ICMP packet
+        UDP         0x008000    IP UDP
+        TCP         0x010000    IP TCP
+        OLSR        0x020000    OLSR protocol
+        BATMAN      0x040000    BATMAND Layer3 or BATMAN-ADV Layer 2 frame
+        MESHZ       0x080000    MeshCruzer protocol
 
 .TP
 phy_signal
@@ -288,10 +299,13 @@ ESSID, network name
 
 .TP
 wlan_mode
-        AP        0x01
-        IBSS      0x02
-        STA       0x04
-        PROBE     0x08
+Bit field of operating mode type which is infered from received packets. Modes may overlap, i.e. it is common to see STA and PROBE at the same time.
+
+        AP        0x01      Access Point (AP)
+        IBSS      0x02      Ad-hoc node
+        STA       0x04      Station (AP client)
+        PROBE     0x08      Sent PROBE requests
+        4ADDR     0x10      WDS or 4 Address frames
 
 .TP
 wlan_channel
