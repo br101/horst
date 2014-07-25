@@ -30,12 +30,6 @@ horst \- Highly Optimized Radio Scanning Tool
 .IR name \|]
 .RB [\| \-x
 .IR command \|]
-.RB [\| \-U
-.IR URL \|]
-.RB [\| \-u
-.IR sec \|]
-.RB [\| \-a
-.IR string \|]
 .RB [\| \-e
 .IR mac \|] 
 .RB [\| \-f
@@ -85,7 +79,7 @@ Upload via HTTP or HTTPS of selected node information in JSON format.
 Show summary of options.
 .TP
 .BI \-q
-Quiet mode. Don't show user interface. This is only useful in conjunction when running in server mode (\-C), upload mode (\-U) or writing to a file (\-o).
+Quiet mode. Don't show user interface. This is only useful in conjunction when running in server mode (\-C) or writing to a file (\-o).
 .TP
 .BI \-i\  intf
 Operate on given network interface instead of the default "wlan0". Note that the interface is assumed to be in monitor mode already. See MONITOR MODE below for more information about preparing the network interface.
@@ -132,15 +126,6 @@ Send control command to another \fBhorst\fP process who was started with -X and 
                        If the file is already open, it is cleared and re-openend.
                        If filename is not specified ("outfile=") any existing file
                        is closed and no file is written.
-.TP
-.BI \-U\  URL
-Upload server URL (http:// or https://) where selected node summary information is sent to in JSON format. Only available when compiled with UPLOAD=1 and libcurl is installed.
-.TP
-.BI \-u\  sec
-Upload interval in seconds (2). Only used in conjuction with the -U option.
-.TP
-.BI \-a\  string
-Upload API key for Upload JSON String. Only used in conjuction with the -U option.
 .TP
 .BI \-e\  MAC
 Filter all MAC addresses except these, to show only packets originating from the specified MAC addresses. This option can be specified multiple times.

@@ -39,11 +39,6 @@ To see very detailled debugging output you can use
 
 	$ make DEBUG=1
 
-To include the HTTP JSON upload feature which requires two additional libraries 
-(libcurl and pthreads) and is disabled by default:
-
-	$ make UPLOAD=1
-
 To build for Mac OSX or other Unix using libpcap use:
 
 	$ make PCAP=1

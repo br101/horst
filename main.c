@@ -41,7 +41,6 @@
 #include "channel.h"
 #include "node.h"
 #include "essid.h"
-#include "upload.h"
 
 
 struct list_head nodes;
@@ -56,7 +55,6 @@ struct config conf = {
 	.channel_time		= CHANNEL_TIME,
 	.ifname			= INTERFACE_NAME,
 	.display_interval	= DISPLAY_UPDATE_INTERVAL,
-	.upload_interval	= SERVER_UPLOAD_INTERVAL,
 	.recv_buffer_size	= RECV_BUFFER_SIZE,
 	.port			= DEFAULT_PORT,
 	.control_pipe		= DEFAULT_CONTROL_PIPE
@@ -491,10 +489,6 @@ finish_all(void)
 	if (conf.allow_control)
 		control_finish();
 
-#if UPLOAD
-	upload_finish();
-#endif
-
 #if !DO_DEBUG
 	net_finish();
 
@@ -640,24 +634,10 @@ get_options(int argc, char** argv)
 			if (conf.filter_pkt & PKT_TYPE_ALL_DATA)
 				conf.filter_pkt |= PKT_TYPE_DATA;
 			break;
-#if UPLOAD
-		case 'u':
-			conf.upload_interval = atoi(optarg);
-			break;
-		case 'U':
-			conf.upload_server = optarg;
-			break;
-		case 'a':
-			conf.upload_apikey = optarg;
-			break;
-#endif
 		case 'h':
 		default:
 			printf("\nUsage: %s [-h] [-q] [-i interface] [-t sec] [-d ms] [-b bytes]\n"
 				"\t\t[-s] [-C] [-c IP] [-p port] [-o file] [-X[name]] [-x command]\n"
-#if UPLOAD
-				"\t\t[-U URL] [-u sec] [-a string]\n"
-#endif
 				"\t\t[-e MAC] [-f PKT_NAME] [-m MODE]\n\n"
 
 				"General Options: Description (default value)\n"
@@ -679,11 +659,7 @@ get_options(int argc, char** argv)
 
 				"  -X[filename]\tAllow control socket on 'filename' (/tmp/horst)\n"
 				"  -x <command>\tSend control command\n"
-#if UPLOAD
-				"\n  -U <URL>\tUpload server URL (http:// or https://)\n"
-				"  -u <sec>\tUpload interval in seconds (2)\n"
-				"  -a <string>\tUpload API key\n"
-#endif
+
 				"\nFilter Options:\n"
 				" Filters are generally 'positive' or 'inclusive' which means you define\n"
 				" what you want to see, and everything else is getting filtered out.\n"
@@ -755,18 +731,12 @@ main(int argc, char** argv)
 	if (!conf.serveraddr && conf.port && conf.allow_client)
 		net_init_server_socket(conf.port);
 
-#if UPLOAD
-	upload_init();
-#endif
-
 	for ( /* ever */ ;;)
 	{
 		receive_any();
 		gettimeofday(&the_time, NULL);
 		timeout_nodes();
-#if UPLOAD
-		upload_check();
-#endif
+
 		if (!conf.serveraddr) { /* server */
 			if (auto_change_channel()) {
 				net_send_channel_config();

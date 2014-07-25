@@ -19,7 +19,6 @@
 # build options
 DEBUG=0
 PCAP=0
-UPLOAD=0
 
 NAME=horst
 OBJS=main.o capture$(if $(filter 1,$(PCAP)),-pcap).o protocol_parser.o \
@@ -28,7 +27,7 @@ OBJS=main.o capture$(if $(filter 1,$(PCAP)),-pcap).o protocol_parser.o \
 	display.o display-main.o display-filter.o display-help.o \
 	display-statistics.o display-essid.o display-history.o \
 	display-spectrum.o display-channel.o control.o \
-	radiotap/radiotap.o $(if $(filter 1,$(UPLOAD)),upload.o)
+	radiotap/radiotap.o
 LIBS=-lncurses -lm
 CFLAGS+=-Wall -Wextra -g
 
@@ -39,11 +38,6 @@ endif
 ifeq ($(PCAP),1)
 CFLAGS+=-DPCAP
 LIBS+=-lpcap
-endif
-
-ifeq ($(UPLOAD),1)
-CFLAGS+=-DUPLOAD
-LIBS+=-lcurl -lpthread
 endif
 
 .PHONY: force
@@ -78,7 +72,7 @@ ieee80211_util.o: ieee80211_util.c ieee80211.h ieee80211_util.h main.h \
 listsort.o: listsort.c list.h listsort.h
 main.o: main.c main.h list.h average.h util.h capture.h protocol_parser.h \
  network.h display.h ieee80211.h ieee80211_util.h wext.h control.h \
- channel.h node.h essid.h upload.h
+ channel.h node.h essid.h
 network.o: network.c main.h list.h average.h util.h network.h
 node.o: node.c main.h list.h average.h util.h ieee80211.h essid.h
 protocol_parser.o: protocol_parser.c prism_header.h ieee80211.h \
@@ -86,7 +80,6 @@ protocol_parser.o: protocol_parser.c prism_header.h ieee80211.h \
  list.h average.h util.h
 radiotap/radiotap.o: radiotap/radiotap.c radiotap/radiotap_iter.h radiotap/radiotap.h \
 	radiotap/platform.h util.h
-upload.o: upload.c main.h list.h average.h util.h
 util.o: util.c util.h ieee80211.h
 wext.o: wext.c wext.h main.h list.h average.h util.h
 

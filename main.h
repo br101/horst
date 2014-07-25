@@ -93,7 +93,6 @@
 #define CHANNEL_TIME		250000	/* 250 msec */
 /* update display every 100ms - "10 frames per sec should be enough for everyone" ;) */
 #define DISPLAY_UPDATE_INTERVAL 100000	/* usec */
-#define SERVER_UPLOAD_INTERVAL	2	/* sec */
 #define RECV_BUFFER_SIZE	0	/* not used by default */
 #define DEFAULT_PORT		"4444"	/* string because of getaddrinfo() */
 #define DEFAULT_CONTROL_PIPE	"/tmp/horst"
@@ -307,9 +306,6 @@ struct config {
 	int			channel_max;
 	int			channel_idx;	/* index into channels array */
 	int			display_interval;
-	int			upload_interval;
-	char*			upload_server;
-	char*			upload_apikey;
 	char*			dumpfile;
 	int			recv_buffer_size;
 	char*			serveraddr;
