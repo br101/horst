@@ -104,7 +104,7 @@ update_spectrum_win(WINDOW *win)
 
 		if (show_nodes) {
 			wattron(win, BLUE);
-			list_for_each_entry(cn, &spectrum[i].nodes, chan_list) {
+			list_for_each(&spectrum[i].nodes, cn, chan_list) {
 				if (cn->packets >= 8)
 					sig = normalize_db(ewma_read(&cn->sig_avg),
 						SPEC_HEIGHT);

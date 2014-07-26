@@ -38,7 +38,7 @@ static WINDOW *stat_win = NULL;
 
 static int do_sort = 'n';
 /* pointer to the sort function */
-static int(*sortfunc)(const struct list_head*, const struct list_head*) = NULL;
+static int(*sortfunc)(const struct list_node*, const struct list_node*) = NULL;
 
 /* sizes of split window (list_win & status_win) */
 static int win_split;
@@ -66,7 +66,7 @@ print_dump_win(const char *str, int refresh)
 /******************* SORTING *******************/
 
 static int
-compare_nodes_snr(const struct list_head *p1, const struct list_head *p2)
+compare_nodes_snr(const struct list_node *p1, const struct list_node *p2)
 {
 	struct node_info* n1 = list_entry(p1, struct node_info, list);
 	struct node_info* n2 = list_entry(p2, struct node_info, list);
@@ -81,7 +81,7 @@ compare_nodes_snr(const struct list_head *p1, const struct list_head *p2)
 
 
 static int
-compare_nodes_time(const struct list_head *p1, const struct list_head *p2)
+compare_nodes_time(const struct list_node *p1, const struct list_node *p2)
 {
 	struct node_info* n1 = list_entry(p1, struct node_info, list);
 	struct node_info* n2 = list_entry(p2, struct node_info, list);
@@ -96,7 +96,7 @@ compare_nodes_time(const struct list_head *p1, const struct list_head *p2)
 
 
 static int
-compare_nodes_channel(const struct list_head *p1, const struct list_head *p2)
+compare_nodes_channel(const struct list_node *p1, const struct list_node *p2)
 {
 	struct node_info* n1 = list_entry(p1, struct node_info, list);
 	struct node_info* n2 = list_entry(p2, struct node_info, list);
@@ -111,7 +111,7 @@ compare_nodes_channel(const struct list_head *p1, const struct list_head *p2)
 
 
 static int
-compare_nodes_bssid(const struct list_head *p1, const struct list_head *p2)
+compare_nodes_bssid(const struct list_node *p1, const struct list_node *p2)
 {
 	struct node_info* n1 = list_entry(p1, struct node_info, list);
 	struct node_info* n2 = list_entry(p2, struct node_info, list);
@@ -375,9 +375,9 @@ update_list_win(void)
 	mvwprintw(list_win, win_split - 1, COLS-10, "LiveStatus");
 
 	if (sortfunc)
-		listsort(&nodes, sortfunc);
+		listsort(&nodes.n, sortfunc);
 
-	list_for_each_entry(n, &nodes, list) {
+	list_for_each(&nodes, n, list) {
 		if (conf.filter_mode != 0 && (n->wlan_mode & conf.filter_mode) == 0)
 			continue;
 		line++;

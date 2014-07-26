@@ -23,7 +23,7 @@
 struct list_head;
 
 void
-listsort(struct list_head *list,
-	int(*cmp)(const struct list_head*, const struct list_head*));
+listsort(struct list_node *list,
+	int(*cmp)(const struct list_node*, const struct list_node*));
 
 #endif

@@ -43,7 +43,7 @@
  * SOFTWARE.
  */
 
-#include "list.h"
+#include "ccan/list/list.h"
 #include "listsort.h"
 
 /*
@@ -63,10 +63,10 @@
  * If the first element moves, head is adjusted accordingly.
  */
 void
-listsort(struct list_head *head,
-	int(*cmp)(const struct list_head*, const struct list_head*))
+listsort(struct list_node *head,
+	int(*cmp)(const struct list_node*, const struct list_node*))
 {
-	struct list_head *list, *p, *q, *e, *tail, *oldhead;
+	struct list_node *list, *p, *q, *e, *tail, *oldhead;
 	int insize, nmerges, psize, qsize, i;
 
 	if (!head || head->next == head)
@@ -244,7 +244,7 @@ int main(void)
 	struct element e[5];
 	struct element* ep;
 
-	INIT_LIST_HEAD(&lh);
+	list_head_init(&lh);
 
 	e[0].i = 5;
 	e[1].i = 2;
@@ -252,20 +252,20 @@ int main(void)
 	e[3].i = 3;
 	e[4].i = 4;
 
-	list_add_tail(&e[0].list, &lh);
-	list_add_tail(&e[1].list, &lh);
-	list_add_tail(&e[2].list, &lh);
-	list_add_tail(&e[3].list, &lh);
-	list_add_tail(&e[4].list, &lh);
+	list_add_tail(&lh, &e[0].list);
+	list_add_tail(&lh, &e[1].list);
+	list_add_tail(&lh, &e[2].list);
+	list_add_tail(&lh, &e[3].list);
+	list_add_tail(&lh, &e[4].list);
 
-	list_for_each_entry(ep, &lh, list) {
+	list_for_each(&lh, ep, list) {
 		printf("%d ", ep->i);
 	}
 	printf("\n");
 
 	listsort(&lh, &elem_cmp);
 
-	list_for_each_entry(ep, &lh, list) {
+	list_for_each(&lh, ep, list) {
 		printf("%d ", ep->i);
 		//printf("  [%p next %p prev %p]\n", &ep->list, ep->list.next, ep->list.prev);
 		if (ep->list.next->prev != &ep->list)

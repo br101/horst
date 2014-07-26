@@ -142,7 +142,7 @@ init_channels(void)
 	int i;
 
 	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++) {
-		INIT_LIST_HEAD(&spectrum[i].nodes);
+		list_head_init(&spectrum[i].nodes);
 		ewma_init(&spectrum[i].signal_avg, 1024, 8);
 		ewma_init(&spectrum[i].durations_avg, 1024, 8);
 	}

@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-#include "list.h"
+#include "ccan/list/list.h"
 #include "average.h"
 
 #define VERSION "4.0-pre"
@@ -165,8 +165,8 @@ struct essid_info;
 
 struct node_info {
 	/* housekeeping */
-	struct list_head	list;
-	struct list_head	essid_nodes;
+	struct list_node	list;
+	struct list_node	essid_nodes;
 	struct list_head	on_channels;	/* channels this node was seen on */
 	unsigned int		num_on_channels;
 	time_t			last_seen;	/* timestamp */
@@ -215,7 +215,7 @@ struct node_info {
 extern struct list_head nodes;
 
 struct essid_info {
-	struct list_head	list;
+	struct list_node	list;
 	char			essid[MAX_ESSID_LEN];
 	struct list_head	nodes;
 	unsigned int		num_nodes;
@@ -290,8 +290,8 @@ extern struct channel_info spectrum[MAX_CHANNELS];
 struct chan_node {
 	struct node_info*	node;
 	struct channel_info*	chan;
-	struct list_head	chan_list;	/* list for nodes per channel */
-	struct list_head	node_list;	/* list for channels per node */
+	struct list_node	chan_list;	/* list for nodes per channel */
+	struct list_node	node_list;	/* list for channels per node */
 	int			sig;
 	struct ewma		sig_avg;
 	unsigned long		packets;

@@ -60,7 +60,7 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 
 		if ((n->wlan_mode & WLAN_MODE_STA) && n->wlan_ap_node == NULL) {
 			/* find AP node for this BSSID */
-			list_for_each_entry(ap, &nodes, list) {
+			list_for_each(&nodes, ap, list) {
 				if (memcmp(p->wlan_bssid, ap->last_pkt.wlan_src, MAC_LEN) == 0) {
 					DEBUG("AP node found %p\n", ap);
 					DEBUG("AP node ESSID %s\n",
@@ -134,7 +134,7 @@ node_update(struct packet_info* p)
 		return NULL;
 
 	/* find node by wlan source address */
-	list_for_each_entry(n, &nodes, list) {
+	list_for_each(&nodes, n, list) {
 		if (memcmp(p->wlan_src, n->last_pkt.wlan_src, MAC_LEN) == 0) {
 			DEBUG("node found %p\n", n);
 			break;
@@ -142,15 +142,15 @@ node_update(struct packet_info* p)
 	}
 
 	/* not found */
-	if (&n->list == &nodes) {
+	if (&n->list == &nodes.n) {
 		DEBUG("node adding\n");
 		n = malloc(sizeof(struct node_info));
 		memset(n, 0, sizeof(struct node_info));
 		n->essid = NULL;
 		ewma_init(&n->phy_snr_avg, 1024, 8);
 		ewma_init(&n->phy_sig_avg, 1024, 8);
-		INIT_LIST_HEAD(&n->on_channels);
-		list_add_tail(&n->list, &nodes);
+		list_head_init(&n->on_channels);
+		list_add_tail(&nodes, &n->list);
 	}
 
 	copy_nodeinfo(n, p);
@@ -167,19 +167,19 @@ timeout_nodes(void)
 	if ((the_time.tv_sec - last_nodetimeout.tv_sec) < conf.node_timeout )
 		return;
 
-	list_for_each_entry_safe(n, m, &nodes, list) {
+	list_for_each_safe(&nodes, n, m, list) {
 		if (n->last_seen < (the_time.tv_sec - conf.node_timeout)) {
 			list_del(&n->list);
 			if (n->essid != NULL)
 				remove_node_from_essid(n);
-			list_for_each_entry_safe(cn, cn2, &n->on_channels, node_list) {
+			list_for_each_safe(&n->on_channels, cn, cn2, node_list) {
 				list_del(&cn->node_list);
 				list_del(&cn->chan_list);
 				cn->chan->num_nodes--;
 				free(cn);
 			}
 			/* remove AP pointers to this node */
-			list_for_each_entry_safe(n2, m2, &nodes, list) {
+			list_for_each_safe(&nodes, n2, m2, list) {
 				if (n2->wlan_ap_node == n) {
 					DEBUG("remove AP ref\n");
 					n->wlan_ap_node = NULL;

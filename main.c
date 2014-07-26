@@ -185,7 +185,7 @@ update_spectrum(struct packet_info* p, struct node_info* n)
 	}
 
 	/* add node to channel if not already there */
-	list_for_each_entry(cn, &chan->nodes, chan_list) {
+	list_for_each(&chan->nodes, cn, chan_list) {
 		if (cn->node == n) {
 			DEBUG("SPEC node found %p\n", cn->node);
 			break;
@@ -197,8 +197,8 @@ update_spectrum(struct packet_info* p, struct node_info* n)
 		cn->node = n;
 		cn->chan = chan;
 		ewma_init(&cn->sig_avg, 1024, 8);
-		list_add_tail(&cn->chan_list, &chan->nodes);
-		list_add_tail(&cn->node_list, &n->on_channels);
+		list_add_tail(&chan->nodes, &cn->chan_list);
+		list_add_tail(&n->on_channels, &cn->node_list);
 		chan->num_nodes++;
 		n->num_on_channels++;
 	}
@@ -448,14 +448,14 @@ free_lists(void)
 	struct chan_node *cn, *cn2;
 
 	/* free node list */
-	list_for_each_entry_safe(ni, mi, &nodes, list) {
+	list_for_each_safe(&nodes, ni, mi, list) {
 		DEBUG("free node %s\n", ether_sprintf(ni->last_pkt.wlan_src));
 		list_del(&ni->list);
 		free(ni);
 	}
 
 	/* free essids */
-	list_for_each_entry_safe(e, f, &essids.list, list) {
+	list_for_each_safe(&essids.list, e, f, list) {
 		DEBUG("free essid '%s'\n", e->essid);
 		list_del(&e->list);
 		free(e);
@@ -463,7 +463,7 @@ free_lists(void)
 
 	/* free channel nodes */
 	for (i = 0; i < conf.num_channels; i++) {
-		list_for_each_entry_safe(cn, cn2, &spectrum[i].nodes, chan_list) {
+		list_for_each_safe(&spectrum[i].nodes, cn, cn2, chan_list) {
 			DEBUG("free chan_node %p\n", cn);
 			list_del(&cn->chan_list);
 			cn->chan->num_nodes--;
@@ -680,8 +680,8 @@ get_options(int argc, char** argv)
 int
 main(int argc, char** argv)
 {
-	INIT_LIST_HEAD(&essids.list);
-	INIT_LIST_HEAD(&nodes);
+	list_head_init(&essids.list);
+	list_head_init(&nodes);
 
 	get_options(argc, argv);
 

@@ -42,7 +42,7 @@ update_essid_split_status(struct essid_info* e)
 	}
 
 	/* check for split */
-	list_for_each_entry(n, &e->nodes, essid_nodes) {
+	list_for_each(&e->nodes, n, essid_nodes) {
 		DEBUG("SPLIT      node %p src %s",
 			n, ether_sprintf(n->last_pkt.wlan_src));
 		DEBUG(" bssid %s\n", ether_sprintf(n->wlan_bssid));
@@ -108,7 +108,7 @@ update_essids(struct packet_info* p, struct node_info* n)
 	DEBUG("bssid %s\n", ether_sprintf(p->wlan_bssid));
 
 	/* find essid if already recorded */
-	list_for_each_entry(e, &essids.list, list) {
+	list_for_each(&essids.list, e, list) {
 		if (strncmp(e->essid, p->wlan_essid, MAX_ESSID_LEN) == 0) {
 			DEBUG("SPLIT   essid found\n");
 			break;
@@ -116,15 +116,15 @@ update_essids(struct packet_info* p, struct node_info* n)
 	}
 
 	/* if not add new essid */
-	if (&e->list == &essids.list) {
+	if (&e->list == &essids.list.n) {
 		DEBUG("SPLIT   essid not found, adding new\n");
 		e = malloc(sizeof(struct essid_info));
 		strncpy(e->essid, p->wlan_essid, MAX_ESSID_LEN);
 		e->essid[MAX_ESSID_LEN-1] = '\0';
 		e->num_nodes = 0;
 		e->split = 0;
-		INIT_LIST_HEAD(&e->nodes);
-		list_add_tail(&e->list, &essids.list);
+		list_head_init(&e->nodes);
+		list_add_tail(&essids.list, &e->list);
 	}
 
 	/* if node had another essid before, remove it there */
@@ -135,7 +135,7 @@ update_essids(struct packet_info* p, struct node_info* n)
 	if (n->essid == NULL) {
 		DEBUG("SPLIT   node not found, adding new %s\n",
 			ether_sprintf(p->wlan_src));
-		list_add_tail(&n->essid_nodes, &e->nodes);
+		list_add_tail(&e->nodes, &n->essid_nodes);
 		e->num_nodes++;
 		n->essid = e;
 	}
