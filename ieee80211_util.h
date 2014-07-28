@@ -20,9 +20,6 @@
 
 struct packet_info;
 
-int
-ieee80211_get_hdrlen(u_int16_t fc);
-
 void
 ieee802_11_parse_elems(unsigned char *start, size_t len, struct packet_info *pkt);
 

@@ -376,95 +376,91 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 	DEBUG("wlan_type %x - type %x - stype %x\n", fc, fc & WLAN_FRAME_FC_TYPE_MASK, fc & WLAN_FRAME_FC_STYPE_MASK);
 	DEBUG("%s\n", get_packet_type_name(fc));
 
-	switch (p->wlan_type & WLAN_FRAME_FC_TYPE_MASK) {
-		case WLAN_FRAME_TYPE_DATA:
-			p->pkt_types |= PKT_TYPE_DATA;
+	if (WLAN_FRAME_IS_DATA(fc)) {
+		p->pkt_types |= PKT_TYPE_DATA;
 
-			hdrlen = 24;
-			if (WLAN_FRAME_IS_QOS(fc)) {
-				hdrlen += 2;
-				if (fc & WLAN_FRAME_FC_ORDER)
-					hdrlen += 4;
-			}
-
-			/* AP, STA or IBSS */
-			if ((fc & WLAN_FRAME_FC_FROM_DS) == 0 &&
-			    (fc & WLAN_FRAME_FC_TO_DS) == 0) {
-				p->wlan_mode = WLAN_MODE_IBSS;
-				bssid = wh->addr3;
-			} else if ((fc & WLAN_FRAME_FC_FROM_DS) &&
-				   (fc & WLAN_FRAME_FC_TO_DS)) {
-				p->wlan_mode = WLAN_MODE_4ADDR;
-				//TODO bssid = either addr3 or add4;
-				hdrlen += 6;
-			} else if (fc & WLAN_FRAME_FC_FROM_DS) {
-				p->wlan_mode = WLAN_MODE_AP;
-				bssid = wh->addr2;
-			} else if (fc & WLAN_FRAME_FC_TO_DS) {
-				p->wlan_mode = WLAN_MODE_STA;
-				bssid = wh->addr1;
-			}
-
-			if (len < hdrlen)
-				return -1;
-
-			p->wlan_nav = le16toh(wh->duration);
-			DEBUG("DATA NAV %d\n", p->wlan_nav);
-			p->wlan_seqno = le16toh(wh->seq);
-			DEBUG("DATA SEQ %d\n", p->wlan_seqno);
-
-			DEBUG("A1 %s\n", ether_sprintf(wh->addr1));
-			DEBUG("A2 %s\n", ether_sprintf(wh->addr2));
-			DEBUG("A3 %s\n", ether_sprintf(wh->addr3));
-			DEBUG("A4 %s\n", ether_sprintf(wh->addr4));
-			DEBUG("ToDS %d FromDS %d\n", (fc & WLAN_FRAME_FC_FROM_DS) != 0, (fc & WLAN_FRAME_FC_TO_DS) != 0);
-
-			ra = wh->addr1;
-			ta = wh->addr2;
-
-			/* WEP */
-			if (fc & WLAN_FRAME_FC_PROTECTED)
-				p->wlan_wep = 1;
-
-			if (fc & WLAN_FRAME_FC_RETRY)
-				p->wlan_retry = 1;
-
-			break;
-
-		case WLAN_FRAME_TYPE_CTRL:
-			p->pkt_types |= PKT_TYPE_CTRL;
-
-			if (p->wlan_type == WLAN_FRAME_CTS ||
-			    p->wlan_type == WLAN_FRAME_ACK)
-				hdrlen = 10;
-			else
-				hdrlen = 16;
-
-			if (len < hdrlen)
-				return -1;
-
-			break;
-
-		case WLAN_FRAME_TYPE_MGMT:
-			p->pkt_types |= PKT_TYPE_MGMT;
-
-			hdrlen = 24;
+		hdrlen = 24;
+		if (WLAN_FRAME_IS_QOS(fc)) {
+			hdrlen += 2;
 			if (fc & WLAN_FRAME_FC_ORDER)
 				hdrlen += 4;
+		}
 
-			if (len < hdrlen)
-				return -1;
-
-			ra = wh->addr1;
-			ta = wh->addr2;
+		/* AP, STA or IBSS */
+		if ((fc & WLAN_FRAME_FC_FROM_DS) == 0 &&
+		    (fc & WLAN_FRAME_FC_TO_DS) == 0) {
+			p->wlan_mode = WLAN_MODE_IBSS;
 			bssid = wh->addr3;
-			p->wlan_seqno = le16toh(wh->seq);
-			DEBUG("MGMT SEQ %d\n", p->wlan_seqno);
+		} else if ((fc & WLAN_FRAME_FC_FROM_DS) &&
+			   (fc & WLAN_FRAME_FC_TO_DS)) {
+			p->wlan_mode = WLAN_MODE_4ADDR;
+			//TODO bssid = either addr3 or add4;
+			hdrlen += 6;
+		} else if (fc & WLAN_FRAME_FC_FROM_DS) {
+			p->wlan_mode = WLAN_MODE_AP;
+			bssid = wh->addr2;
+		} else if (fc & WLAN_FRAME_FC_TO_DS) {
+			p->wlan_mode = WLAN_MODE_STA;
+			bssid = wh->addr1;
+		}
 
-			if (fc & WLAN_FRAME_FC_RETRY)
-				p->wlan_retry = 1;
+		if (len < hdrlen)
+			return -1;
 
-			break;
+		p->wlan_nav = le16toh(wh->duration);
+		DEBUG("DATA NAV %d\n", p->wlan_nav);
+		p->wlan_seqno = le16toh(wh->seq);
+		DEBUG("DATA SEQ %d\n", p->wlan_seqno);
+
+		DEBUG("A1 %s\n", ether_sprintf(wh->addr1));
+		DEBUG("A2 %s\n", ether_sprintf(wh->addr2));
+		DEBUG("A3 %s\n", ether_sprintf(wh->addr3));
+		DEBUG("A4 %s\n", ether_sprintf(wh->addr4));
+		DEBUG("ToDS %d FromDS %d\n", (fc & WLAN_FRAME_FC_FROM_DS) != 0, (fc & WLAN_FRAME_FC_TO_DS) != 0);
+
+		ra = wh->addr1;
+		ta = wh->addr2;
+
+		/* WEP */
+		if (fc & WLAN_FRAME_FC_PROTECTED)
+			p->wlan_wep = 1;
+
+		if (fc & WLAN_FRAME_FC_RETRY)
+			p->wlan_retry = 1;
+
+	} else if (WLAN_FRAME_IS_CTRL(fc)) {
+		p->pkt_types |= PKT_TYPE_CTRL;
+
+		if (p->wlan_type == WLAN_FRAME_CTS ||
+		    p->wlan_type == WLAN_FRAME_ACK)
+			hdrlen = 10;
+		else
+			hdrlen = 16;
+
+		if (len < hdrlen)
+			return -1;
+
+	} else if (WLAN_FRAME_IS_MGMT(fc)) {
+		p->pkt_types |= PKT_TYPE_MGMT;
+
+		hdrlen = 24;
+		if (fc & WLAN_FRAME_FC_ORDER)
+			hdrlen += 4;
+
+		if (len < hdrlen)
+			return -1;
+
+		ra = wh->addr1;
+		ta = wh->addr2;
+		bssid = wh->addr3;
+		p->wlan_seqno = le16toh(wh->seq);
+		DEBUG("MGMT SEQ %d\n", p->wlan_seqno);
+
+		if (fc & WLAN_FRAME_FC_RETRY)
+			p->wlan_retry = 1;
+	} else {
+		DEBUG("!!!UNKNOWN FRAME!!!");
+		return -1;
 	}
 
 	p->wlan_len = len;
