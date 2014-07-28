@@ -125,6 +125,15 @@ get_packet_type_char(unsigned int type);
 const char*
 get_packet_type_name(unsigned int type);
 
+int
+rate_to_index(int rate);
+
+int
+rate_index_to_rate(int idx);
+
+int
+mcs_index_to_rate(int mcs, int ht20, int lgi);
+
 const char*
 kilo_mega_ize(unsigned int val);
 

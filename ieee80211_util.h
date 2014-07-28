@@ -38,13 +38,5 @@ ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
 int
 ieee80211_frequency_to_channel(int freq);
 
-int
-rate_to_index(int rate);
-
-int
-rate_index_to_rate(int idx);
-
-int
-mcs_index_to_rate(int mcs, int ht20, int lgi);
 
 #endif
