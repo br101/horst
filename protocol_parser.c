@@ -366,28 +366,48 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 	u_int8_t* bssid = NULL;
 	u_int16_t fc, cap_i;
 
-	if (len < 2) /* not even enough space for fc */
+	if (len < 10) /* minimum frame size (CTS/ACK) */
 		return -1;
 
 	wh = (struct wlan_frame*)*buf;
+
 	fc = le16toh(wh->fc);
-	hdrlen = ieee80211_get_hdrlen(fc);
-
-	DEBUG("len %d hdrlen %d\n", len, hdrlen);
-
-	if (len < hdrlen)
-		return -1;
-
-	p->wlan_len = len;
 	p->wlan_type = (fc & WLAN_FRAME_FC_MASK);
-
 	DEBUG("wlan_type %x - type %x - stype %x\n", fc, fc & WLAN_FRAME_FC_TYPE_MASK, fc & WLAN_FRAME_FC_STYPE_MASK);
-
 	DEBUG("%s\n", get_packet_type_name(fc));
 
 	switch (p->wlan_type & WLAN_FRAME_FC_TYPE_MASK) {
 		case WLAN_FRAME_TYPE_DATA:
 			p->pkt_types |= PKT_TYPE_DATA;
+
+			hdrlen = 24;
+			if (WLAN_FRAME_IS_QOS(fc)) {
+				hdrlen += 2;
+				if (fc & WLAN_FRAME_FC_ORDER)
+					hdrlen += 4;
+			}
+
+			/* AP, STA or IBSS */
+			if ((fc & WLAN_FRAME_FC_FROM_DS) == 0 &&
+			    (fc & WLAN_FRAME_FC_TO_DS) == 0) {
+				p->wlan_mode = WLAN_MODE_IBSS;
+				bssid = wh->addr3;
+			} else if ((fc & WLAN_FRAME_FC_FROM_DS) &&
+				   (fc & WLAN_FRAME_FC_TO_DS)) {
+				p->wlan_mode = WLAN_MODE_4ADDR;
+				//TODO bssid = either addr3 or add4;
+				hdrlen += 6;
+			} else if (fc & WLAN_FRAME_FC_FROM_DS) {
+				p->wlan_mode = WLAN_MODE_AP;
+				bssid = wh->addr2;
+			} else if (fc & WLAN_FRAME_FC_TO_DS) {
+				p->wlan_mode = WLAN_MODE_STA;
+				bssid = wh->addr1;
+			}
+
+			if (len < hdrlen)
+				return -1;
+
 			p->wlan_nav = le16toh(wh->duration);
 			DEBUG("DATA NAV %d\n", p->wlan_nav);
 			p->wlan_seqno = le16toh(wh->seq);
@@ -402,23 +422,6 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 			ra = wh->addr1;
 			ta = wh->addr2;
 
-			/* AP, STA or IBSS */
-			if ((fc & WLAN_FRAME_FC_FROM_DS) == 0 &&
-			    (fc & WLAN_FRAME_FC_TO_DS) == 0) {
-				p->wlan_mode = WLAN_MODE_IBSS;
-				bssid = wh->addr3;
-			} else if ((fc & WLAN_FRAME_FC_FROM_DS) &&
-				   (fc & WLAN_FRAME_FC_TO_DS)) {
-				p->wlan_mode = WLAN_MODE_4ADDR;
-				//TODO bssid = either addr3 or add4;
-			} else if (fc & WLAN_FRAME_FC_FROM_DS) {
-				p->wlan_mode = WLAN_MODE_AP;
-				bssid = wh->addr2;
-			} else if (fc & WLAN_FRAME_FC_TO_DS) {
-				p->wlan_mode = WLAN_MODE_STA;
-				bssid = wh->addr1;
-			}
-
 			/* WEP */
 			if (fc & WLAN_FRAME_FC_PROTECTED)
 				p->wlan_wep = 1;
@@ -430,10 +433,28 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 
 		case WLAN_FRAME_TYPE_CTRL:
 			p->pkt_types |= PKT_TYPE_CTRL;
+
+			if (p->wlan_type == WLAN_FRAME_CTS ||
+			    p->wlan_type == WLAN_FRAME_ACK)
+				hdrlen = 10;
+			else
+				hdrlen = 16;
+
+			if (len < hdrlen)
+				return -1;
+
 			break;
 
 		case WLAN_FRAME_TYPE_MGMT:
 			p->pkt_types |= PKT_TYPE_MGMT;
+
+			hdrlen = 24;
+			if (fc & WLAN_FRAME_FC_ORDER)
+				hdrlen += 4;
+
+			if (len < hdrlen)
+				return -1;
+
 			ra = wh->addr1;
 			ta = wh->addr2;
 			bssid = wh->addr3;
@@ -445,6 +466,8 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 
 			break;
 	}
+
+	p->wlan_len = len;
 
 	switch (p->wlan_type) {
 		case WLAN_FRAME_NULL:
@@ -507,13 +530,13 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 				p->pkt_types |= PKT_TYPE_BEACON;
 			else
 				p->pkt_types |= PKT_TYPE_PROBE;
-			struct wlan_frame_beacon* bc = (struct wlan_frame_beacon*)(*buf + WLAN_FRAME_LEN_MGMT);
+			struct wlan_frame_beacon* bc = (struct wlan_frame_beacon*)(*buf + hdrlen);
 			p->wlan_tsf = le64toh(bc->tsf);
 			p->wlan_bintval = le16toh(bc->bintval);
 			DEBUG("TSF %u\n BINTVAL %u", p->wlan_tsf, p->wlan_bintval);
 
 			ieee802_11_parse_elems(bc->ie,
-				len - WLAN_FRAME_LEN_MGMT - 4 /* FCS */, p);
+				len - hdrlen - 4 /* FCS */, p);
 			DEBUG("ESSID %s \n", p->wlan_essid );
 			DEBUG("CHAN %d \n", p->wlan_channel );
 			cap_i = le16toh(bc->capab);
@@ -527,8 +550,8 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 
 		case WLAN_FRAME_PROBE_REQ:
 			p->pkt_types |= PKT_TYPE_PROBE;
-			ieee802_11_parse_elems((*buf + WLAN_FRAME_LEN_MGMT),
-				len - WLAN_FRAME_LEN_MGMT - 4 /* FCS */, p);
+			ieee802_11_parse_elems((*buf + hdrlen),
+				len - hdrlen - 4 /* FCS */, p);
 			p->wlan_mode = WLAN_MODE_PROBE;
 			break;
 

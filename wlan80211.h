@@ -3,8 +3,6 @@
 
 #include <sys/types.h>
 
-#define WLAN_FRAME_LEN_MGMT		24
-
 struct wlan_frame {
 	u_int16_t	fc;
 	u_int16_t	duration;
@@ -20,6 +18,7 @@ struct wlan_frame {
 #define WLAN_FRAME_FC_VERSION_MASK	0x0003
 #define WLAN_FRAME_FC_TYPE_MASK		0x000C
 #define WLAN_FRAME_FC_STYPE_MASK	0x00F0
+#define WLAN_FRAME_FC_STYPE_QOS		0x0080
 #define WLAN_FRAME_FC_TO_DS		0x0100
 #define WLAN_FRAME_FC_FROM_DS		0x0200
 #define WLAN_FRAME_FC_MORE_FRAG		0x0400
@@ -45,6 +44,7 @@ struct wlan_frame {
 #define WLAN_FRAME_IS_MGMT(_fc)		(((_fc) & WLAN_FRAME_FC_TYPE_MASK) == WLAN_FRAME_TYPE_MGMT)
 #define WLAN_FRAME_IS_CTRL(_fc)		(((_fc) & WLAN_FRAME_FC_TYPE_MASK) == WLAN_FRAME_TYPE_CTRL)
 #define WLAN_FRAME_IS_DATA(_fc)		(((_fc) & WLAN_FRAME_FC_TYPE_MASK) == WLAN_FRAME_TYPE_DATA)
+#define WLAN_FRAME_IS_QOS(_fc)		(((_fc) & WLAN_FRAME_FC_STYPE_MASK) == WLAN_FRAME_FC_STYPE_QOS)
 
 /*** management ***/
 #define WLAN_FRAME_ASSOC_REQ		_WLAN_FRAME_FC(_FC_TYPE_MGMT, 0x0)
