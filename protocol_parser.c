@@ -28,6 +28,7 @@
 #include "prism_header.h"
 #include "ieee80211_util.h"
 #include "wlan80211.h"
+#include "wlan_util.h"
 #include "olsr_header.h"
 #include "batman_header.h"
 #include "batman_adv_header-14.h"

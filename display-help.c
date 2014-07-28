@@ -23,7 +23,7 @@
 
 #include "display.h"
 #include "main.h"
-#include "util.h"
+#include "wlan_util.h"
 
 
 void

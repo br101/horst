@@ -34,6 +34,7 @@
 #include "protocol_parser.h"
 #include "network.h"
 #include "display.h"
+#include "wlan_util.h"
 #include "ieee80211_util.h"
 #include "wext.h"
 #include "control.h"

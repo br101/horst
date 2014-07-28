@@ -17,7 +17,6 @@
 #ifndef _IEEE80211_UTIL_H_
 #define _IEEE80211_UTIL_H_
 
-
 int
 ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
 			 int ackcts, int shortslot, char qos_class, int retries);

@@ -119,26 +119,6 @@ static inline int normalize_db(int val, int max)
 		return normalize(val - 30, 70, max);
 }
 
-char
-get_packet_type_char(unsigned int type);
-
-const char*
-get_packet_type_name(unsigned int type);
-
-int
-rate_to_index(int rate);
-
-int
-rate_index_to_rate(int idx);
-
-int
-mcs_index_to_rate(int mcs, int ht20, int lgi);
-
-struct packet_info;
-
-void
-wlan_parse_information_elements(unsigned char *buf, int len, struct packet_info *p);
-
 const char*
 kilo_mega_ize(unsigned int val);
 

@@ -26,6 +26,7 @@
 #include "main.h"
 #include "util.h"
 #include "wlan80211.h"
+#include "wlan_util.h"
 #include "olsr_header.h"
 #include "batman_adv_header-14.h"
 #include "listsort.h"

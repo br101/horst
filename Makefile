@@ -23,7 +23,7 @@ PCAP=0
 NAME=horst
 OBJS=main.o capture$(if $(filter 1,$(PCAP)),-pcap).o protocol_parser.o \
 	network.o wext.o node.o essid.o channel.o \
-	util.o ieee80211_util.o listsort.o average.o \
+	util.o wlan_util.o ieee80211_util.o listsort.o average.o \
 	display.o display-main.o display-filter.o display-help.o \
 	display-statistics.o display-essid.o display-history.o \
 	display-spectrum.o display-channel.o control.o \
