@@ -211,7 +211,7 @@ wlan_parse_information_elements(unsigned char *buf, int len, struct packet_info 
 
 	while (len > 2) {
 		struct information_element* ie = (struct information_element*)buf;
-		DEBUG("------ IE %d len %d t len %d\n", ie->id, ie->len, len);
+		//DEBUG("------ IE %d len %d t len %d\n", ie->id, ie->len, len);
 
 		switch (ie->id) {
 		case WLAN_IE_ID_SSID:

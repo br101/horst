@@ -530,7 +530,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 			struct wlan_frame_beacon* bc = (struct wlan_frame_beacon*)(*buf + hdrlen);
 			p->wlan_tsf = le64toh(bc->tsf);
 			p->wlan_bintval = le16toh(bc->bintval);
-			DEBUG("TSF %u\n BINTVAL %u", p->wlan_tsf, p->wlan_bintval);
+			//DEBUG("TSF %u\n BINTVAL %u", p->wlan_tsf, p->wlan_bintval);
 
 			wlan_parse_information_elements(bc->ie,
 				len - hdrlen - sizeof(struct wlan_frame_beacon) - 4 /* FCS */, p);
