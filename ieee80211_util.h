@@ -18,11 +18,6 @@
 #define _IEEE80211_UTIL_H_
 
 
-struct packet_info;
-
-void
-ieee802_11_parse_elems(unsigned char *start, size_t len, struct packet_info *pkt);
-
 int
 ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
 			 int ackcts, int shortslot, char qos_class, int retries);

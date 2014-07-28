@@ -124,4 +124,19 @@ struct wlan_frame_beacon {
 #define WLAN_CAPAB_DEL_BLKACK	0x4000
 #define WLAN_CAPAB_IMM_BLKACK	0x8000
 
+/*** information elements ***/
+struct information_element {
+	u_int8_t	id;
+	u_int8_t	len;
+	unsigned char	var[0];
+};
+
+/* only the information element IDs we are interested in */
+#define WLAN_IE_ID_SSID		0
+#define WLAN_IE_ID_DSSS_PARAM	3
+#define WLAN_IE_ID_RSN		48
+#define WLAN_IE_ID_VENDOR	221
+
+#define WLAN_MAX_SSID_LEN	34
+
 #endif

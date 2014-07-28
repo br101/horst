@@ -134,6 +134,11 @@ rate_index_to_rate(int idx);
 int
 mcs_index_to_rate(int mcs, int ht20, int lgi);
 
+struct packet_info;
+
+void
+wlan_parse_information_elements(unsigned char *buf, int len, struct packet_info *p);
+
 const char*
 kilo_mega_ize(unsigned int val);
 

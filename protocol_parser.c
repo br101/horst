@@ -531,8 +531,8 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 			p->wlan_bintval = le16toh(bc->bintval);
 			DEBUG("TSF %u\n BINTVAL %u", p->wlan_tsf, p->wlan_bintval);
 
-			ieee802_11_parse_elems(bc->ie,
-				len - hdrlen - 4 /* FCS */, p);
+			wlan_parse_information_elements(bc->ie,
+				len - hdrlen - sizeof(struct wlan_frame_beacon) - 4 /* FCS */, p);
 			DEBUG("ESSID %s \n", p->wlan_essid );
 			DEBUG("CHAN %d \n", p->wlan_channel );
 			cap_i = le16toh(bc->capab);
@@ -546,7 +546,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 
 		case WLAN_FRAME_PROBE_REQ:
 			p->pkt_types |= PKT_TYPE_PROBE;
-			ieee802_11_parse_elems((*buf + hdrlen),
+			wlan_parse_information_elements((*buf + hdrlen),
 				len - hdrlen - 4 /* FCS */, p);
 			p->wlan_mode = WLAN_MODE_PROBE;
 			break;
