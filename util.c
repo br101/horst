@@ -21,7 +21,7 @@
 #include <string.h>
 
 #include "util.h"
-#include "ieee80211.h"
+#include "wlan80211.h"
 
 
 struct pkt_names {
@@ -31,57 +31,57 @@ struct pkt_names {
 
 /* a list of packet type names for easier indexing with padding */
 static struct pkt_names mgmt_names[] = {
-	{ 'a', "ASOCRQ" },		/* IEEE80211_STYPE_ASSOC_REQ	0x0000 */
-	{ 'A', "ASOCRP" },		/* IEEE80211_STYPE_ASSOC_RESP	0x0010 */
-	{ 'a', "REASRQ" },		/* IEEE80211_STYPE_REASSOC_REQ	0x0020 */
-	{ 'A', "REASRP" },		/* IEEE80211_STYPE_REASSOC_RESP	0x0030 */
-	{ 'p', "PROBRQ" },		/* IEEE80211_STYPE_PROBE_REQ	0x0040 */
-	{ 'P', "PROBRP" },		/* IEEE80211_STYPE_PROBE_RESP	0x0050 */
-	{ 'T', "TIMING" },		/* Timing Advertisement		0x0060 */
+	{ 'a', "ASOCRQ" },		/* WLAN_FRAME_ASSOC_REQ, "Association request" */
+	{ 'A', "ASOCRP" },		/* WLAN_FRAME_ASSOC_RESP, "Association response" */
+	{ 'a', "REASRQ" },		/* WLAN_FRAME_REASSOC_REQ, "Reassociation request" */
+	{ 'A', "REASRP" },		/* WLAN_FRAME_REASSOC_RESP, "Reassociation response" */
+	{ 'p', "PROBRQ" },		/* WLAN_FRAME_PROBE_REQ, "Probe request" */
+	{ 'P', "PROBRP" },		/* WLAN_FRAME_PROBE_RESP, "Probe response" */
+	{ 'T', "TIMING" },		/* WLAN_FRAME_TIME, "Timing Advertisement" */
 	{ '-', "-RESV-" },		/* RESERVED */
-	{ 'B', "BEACON" },		/* IEEE80211_STYPE_BEACON	0x0080 */
-	{ 't', "ATIM" },		/* IEEE80211_STYPE_ATIM		0x0090 */
-	{ 'D', "DISASC" },		/* IEEE80211_STYPE_DISASSOC	0x00A0 */
-	{ 'u', "AUTH" },		/* IEEE80211_STYPE_AUTH		0x00B0 */
-	{ 'U', "DEAUTH" },		/* IEEE80211_STYPE_DEAUTH	0x00C0 */
-	{ 'C', "ACTION" },		/* IEEE80211_STYPE_ACTION	0x00D0 */
-	{ 'c', "ACTNOA" },		/* Action No Ack		0x00E0 */
+	{ 'B', "BEACON" },		/* WLAN_FRAME_BEACON, "Beacon" */
+	{ 't', "ATIM" },		/* WLAN_FRAME_ATIM, "ATIM" */
+	{ 'D', "DISASC" },		/* WLAN_FRAME_DISASSOC, "Disassociation" */
+	{ 'u', "AUTH" },		/* WLAN_FRAME_AUTH, "Authentication" */
+	{ 'U', "DEAUTH" },		/* WLAN_FRAME_DEAUTH, "Deauthentication" */
+	{ 'C', "ACTION" },		/* WLAN_FRAME_ACTION, "Action" */
+	{ 'c', "ACTNOA" },		/* WLAN_FRAME_ACTION_NOACK, "Action No Ack" */
 };
 
 static struct pkt_names ctrl_names[] = {
-	{ 'w', "CTWRAP" },		/* Control Wrapper		0x0070 */
-	{ 'b', "BACKRQ" },		/* IEEE80211_STYPE_BACK_REQ	0x0080 */
-	{ 'B', "BACK" },		/* IEEE80211_STYPE_BACK		0x0090 */
-	{ 's', "PSPOLL" },		/* IEEE80211_STYPE_PSPOLL	0x00A0 */
-	{ 'R', "RTS" },			/* IEEE80211_STYPE_RTS		0x00B0 */
-	{ 'C', "CTS" },			/* IEEE80211_STYPE_CTS		0x00C0 */
-	{ 'K', "ACK" },			/* IEEE80211_STYPE_ACK		0x00D0 */
-	{ 'f', "CFEND" },		/* IEEE80211_STYPE_CFEND	0x00E0 */
-	{ 'f', "CFENDK" },		/* IEEE80211_STYPE_CFENDACK	0x00F0 */
+	{ 'w', "CTWRAP" },		/* WLAN_FRAME_CTRL_WRAP, "Control Wrapper" */
+	{ 'b', "BACKRQ" },		/* WLAN_FRAME_BLKACK_REQ, "Block Ack Request" */
+	{ 'B', "BACK" },		/* WLAN_FRAME_BLKACK, "Block Ack" */
+	{ 's', "PSPOLL" },		/* WLAN_FRAME_PSPOLL, "PS-Poll" */
+	{ 'R', "RTS" },			/* WLAN_FRAME_RTS, "RTS" */
+	{ 'C', "CTS" },			/* WLAN_FRAME_CTS, "CTS" */
+	{ 'K', "ACK" },			/* WLAN_FRAME_ACK, "ACK" */
+	{ 'f', "CFEND" },		/* WLAN_FRAME_CF_END, "CF-End" */
+	{ 'f', "CFENDK" },		/* WLAN_FRAME_CF_END_ACK, "CF-End + CF-Ack" */
 };
 
 static struct pkt_names data_names[] = {
-	{ 'D', "DATA" },		/* IEEE80211_STYPE_DATA			0x0000 */
-	{ 'F', "DCFACK" },		/* IEEE80211_STYPE_DATA_CFACK		0x0010 */
-	{ 'F', "DCFPLL" },		/* IEEE80211_STYPE_DATA_CFPOLL		0x0020 */
-	{ 'F', "DCFKPL" },		/* IEEE80211_STYPE_DATA_CFACKPOLL	0x0030 */
-	{ 'n', "NULL" },		/* IEEE80211_STYPE_NULLFUNC		0x0040 */
-	{ 'f', "CFACK" },		/* IEEE80211_STYPE_CFACK		0x0050 */
-	{ 'f', "CFPOLL" },		/* IEEE80211_STYPE_CFPOLL		0x0060 */
-	{ 'f', "CFCKPL" },		/* IEEE80211_STYPE_CFACKPOLL		0x0070 */
-	{ 'Q', "QDATA" },		/* IEEE80211_STYPE_QOS_DATA		0x0080 */
-	{ 'F', "QDCFCK" },		/* IEEE80211_STYPE_QOS_DATA_CFACK	0x0090 */
-	{ 'F', "QDCFPL" },		/* IEEE80211_STYPE_QOS_DATA_CFPOLL	0x00A0 */
-	{ 'F', "QDCFKP" },		/* IEEE80211_STYPE_QOS_DATA_CFACKPOLL	0x00B0 */
-	{ 'N', "QDNULL" },		/* IEEE80211_STYPE_QOS_NULLFUNC		0x00C0 */
-	{ '-', "-RESV-" },		/* RESERVED				0x00D0 */
-	{ 'f', "QCFPLL" },		/* IEEE80211_STYPE_QOS_CFPOLL		0x00E0 */
-	{ 'f', "QCFKPL" },		/* IEEE80211_STYPE_QOS_CFACKPOLL	0x00F0 */
+	{ 'D', "DATA" },		/* WLAN_FRAME_DATA, "Data" */
+	{ 'F', "DCFACK" },		/* WLAN_FRAME_DATA_CF_ACK, "Data + CF-Ack" */
+	{ 'F', "DCFPLL" },		/* WLAN_FRAME_DATA_CF_POLL, "Data + CF-Poll" */
+	{ 'F', "DCFKPL" },		/* WLAN_FRAME_DATA_CF_ACKPOLL, "Data + CF-Ack + CF-Poll" */
+	{ 'n', "NULL" },		/* WLAN_FRAME_NULL, "Null (no data)" */
+	{ 'f', "CFACK" },		/* WLAN_FRAME_CF_ACK, "CF-Ack (no data)" */
+	{ 'f', "CFPOLL" },		/* WLAN_FRAME_CF_POLL, "CF-Poll (no data)" */
+	{ 'f', "CFCKPL" },		/* WLAN_FRAME_CF_ACKPOLL, "CF-Ack + CF-Poll (no data)" */
+	{ 'Q', "QDATA" },		/* WLAN_FRAME_QDATA, "QoS Data" */
+	{ 'F', "QDCFCK" },		/* WLAN_FRAME_QDATA_CF_ACK, "QoS Data + CF-Ack" */
+	{ 'F', "QDCFPL" },		/* WLAN_FRAME_QDATA_CF_POLL, "QoS Data + CF-Poll" */
+	{ 'F', "QDCFKP" },		/* WLAN_FRAME_QDATA_CF_ACKPOLL, "QoS Data + CF-Ack + CF-Poll" */
+	{ 'N', "QDNULL" },		/* WLAN_FRAME_QOS_NULL, "QoS Null (no data) */
+	{ '-', "-RESV-" },		/* RESERVED 0x00D0 */
+	{ 'f', "QCFPLL" },		/* WLAN_FRAME_QOS_CF_POLL, "QoS CF-Poll (no data)" */
+	{ 'f', "QCFKPL" },		/* WLAN_FRAME_QOS_CF_ACKPOLL, "QoS CF-Ack + CF-Poll (no data)" */
 };
 
-#define DATA_NAME_INDEX(_i) (((_i) & IEEE80211_FCTL_STYPE)>>4)
-#define MGMT_NAME_INDEX(_i) (((_i) & IEEE80211_FCTL_STYPE)>>4)
-#define CTRL_NAME_INDEX(_i) ((((_i) & IEEE80211_FCTL_STYPE)>>4)-7)
+#define DATA_NAME_INDEX(_i) (((_i) & WLAN_FRAME_FC_STYPE_MASK)>>4)
+#define MGMT_NAME_INDEX(_i) (((_i) & WLAN_FRAME_FC_STYPE_MASK)>>4)
+#define CTRL_NAME_INDEX(_i) ((((_i) & WLAN_FRAME_FC_STYPE_MASK)>>4)-7)
 
 
 int
@@ -184,20 +184,20 @@ get_packet_type_char(unsigned int type)
 {
 	if (type == 1) /* special case for bad FCS */
 		return '*';
-	switch (type & IEEE80211_FCTL_FTYPE) {
-	case IEEE80211_FTYPE_MGMT:
+	switch (type & WLAN_FRAME_FC_TYPE_MASK) {
+	case WLAN_FRAME_TYPE_MGMT:
 		if (MGMT_NAME_INDEX(type) < sizeof(mgmt_names)/sizeof(struct pkt_names)) {
 			if (mgmt_names[MGMT_NAME_INDEX(type)].c)
 				return mgmt_names[MGMT_NAME_INDEX(type)].c;
 		}
 		break;
-	case IEEE80211_FTYPE_CTL:
+	case WLAN_FRAME_TYPE_CTRL:
 		if (CTRL_NAME_INDEX(type) < sizeof(ctrl_names)/sizeof(struct pkt_names)) {
 			if (ctrl_names[CTRL_NAME_INDEX(type)].c)
 				return ctrl_names[CTRL_NAME_INDEX(type)].c;
 		}
 		break;
-	case IEEE80211_FTYPE_DATA:
+	case WLAN_FRAME_TYPE_DATA:
 		if (DATA_NAME_INDEX(type) < sizeof(data_names)/sizeof(struct pkt_names)) {
 			if (data_names[DATA_NAME_INDEX(type)].c)
 				return data_names[DATA_NAME_INDEX(type)].c;
@@ -213,20 +213,20 @@ get_packet_type_name(unsigned int type)
 {
 	if (type == 1) /* special case for bad FCS */
 		return "BADFCS";
-	switch (type & IEEE80211_FCTL_FTYPE) {
-	case IEEE80211_FTYPE_MGMT:
+	switch (type & WLAN_FRAME_FC_TYPE_MASK) {
+	case WLAN_FRAME_TYPE_MGMT:
 		if (MGMT_NAME_INDEX(type) < sizeof(mgmt_names)/sizeof(struct pkt_names)) {
 			if (mgmt_names[MGMT_NAME_INDEX(type)].c)
 				return mgmt_names[MGMT_NAME_INDEX(type)].name;
 		}
 		break;
-	case IEEE80211_FTYPE_CTL:
+	case WLAN_FRAME_TYPE_CTRL:
 		if (CTRL_NAME_INDEX(type) < sizeof(ctrl_names)/sizeof(struct pkt_names)) {
 			if (ctrl_names[CTRL_NAME_INDEX(type)].c)
 				return ctrl_names[CTRL_NAME_INDEX(type)].name;
 		}
 		break;
-	case IEEE80211_FTYPE_DATA:
+	case WLAN_FRAME_TYPE_DATA:
 		if (DATA_NAME_INDEX(type) < sizeof(data_names)/sizeof(struct pkt_names)) {
 			if (data_names[DATA_NAME_INDEX(type)].c)
 				return data_names[DATA_NAME_INDEX(type)].name;

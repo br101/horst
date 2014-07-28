@@ -24,44 +24,8 @@
 #include "util.h"
 
 
-u8*
-ieee80211_get_bssid(struct ieee80211_hdr *hdr, size_t len)
-{
-	__le16 fc;
-
-	if (len < 24)
-		return NULL;
-
-	fc = le16_to_cpu(hdr->frame_control);
-
-	switch (fc & IEEE80211_FCTL_FTYPE) {
-	case IEEE80211_FTYPE_DATA:
-		switch (fc & (IEEE80211_FCTL_TODS | IEEE80211_FCTL_FROMDS)) {
-		case IEEE80211_FCTL_TODS:
-			return hdr->addr1;
-		case (IEEE80211_FCTL_TODS | IEEE80211_FCTL_FROMDS):
-			return NULL;
-		case IEEE80211_FCTL_FROMDS:
-			return hdr->addr2;
-		case 0:
-			return hdr->addr3;
-		}
-		break;
-	case IEEE80211_FTYPE_MGMT:
-		return hdr->addr3;
-	case IEEE80211_FTYPE_CTL:
-		if ((fc & IEEE80211_FCTL_STYPE) == IEEE80211_STYPE_PSPOLL)
-			return hdr->addr1;
-		else
-			return NULL;
-	}
-
-	return NULL;
-}
-
-
 int
-ieee80211_get_hdrlen(u16 fc)
+ieee80211_get_hdrlen(u_int16_t fc)
 {
 	int hdrlen = 24;
 

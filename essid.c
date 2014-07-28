@@ -22,7 +22,7 @@
 
 #include "main.h"
 #include "util.h"
-#include "ieee80211.h"
+#include "wlan80211.h"
 #include "essid.h"
 
 
@@ -99,8 +99,8 @@ update_essids(struct packet_info* p, struct node_info* n)
 		return; /* ignore */
 
 	/* only check beacons and probe response frames */
-	if (!IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON) &&
-	    !IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_PROBE_RESP))
+	if ((p->wlan_type != WLAN_FRAME_BEACON) &&
+	    (p->wlan_type != WLAN_FRAME_PROBE_RESP))
 		return;
 
 	DEBUG("SPLIT check ibss '%s' node %s ", p->wlan_essid,

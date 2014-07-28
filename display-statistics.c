@@ -24,7 +24,6 @@
 #include "display.h"
 #include "main.h"
 #include "util.h"
-#include "ieee80211_util.h"
 
 #define STAT_PACK_POS 9
 #define STAT_BYTE_POS (STAT_PACK_POS + 9)

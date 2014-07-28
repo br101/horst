@@ -28,7 +28,7 @@
 
 #include "display.h"
 #include "main.h"
-#include "ieee80211.h"
+#include "wlan80211.h"
 
 
 static WINDOW *conf_win = NULL;
@@ -120,10 +120,10 @@ get_packet_type_color(int type)
 {
 	if (type == 1) /* special case for bad FCS */
 		return RED;
-	switch (type & IEEE80211_FCTL_FTYPE) {
-		case IEEE80211_FTYPE_DATA: return BLUE;
-		case IEEE80211_FTYPE_CTL: return WHITE;
-		case IEEE80211_FTYPE_MGMT: return CYAN;
+	switch (type & WLAN_FRAME_FC_TYPE_MASK) {
+		case WLAN_FRAME_TYPE_DATA: return BLUE;
+		case WLAN_FRAME_TYPE_CTRL: return WHITE;
+		case WLAN_FRAME_TYPE_MGMT: return CYAN;
 	}
 	return YELLOW;
 }

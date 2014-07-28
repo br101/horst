@@ -24,7 +24,7 @@
 #include "display.h"
 #include "main.h"
 #include "util.h"
-#include "ieee80211.h"
+#include "wlan80211.h"
 #include "network.h"
 
 #define CHECKED(_x) (conf.filter_pkt & (_x)) ? '*' : ' '
@@ -43,7 +43,7 @@ update_filter_win(WINDOW *win)
 	print_centered(win, 0, 57, " Edit Filters ");
 
 	l = 2;
-	wattron(win, get_packet_type_color(IEEE80211_FTYPE_MGMT));
+	wattron(win, get_packet_type_color(WLAN_FRAME_TYPE_MGMT));
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, 2, "m: [%c] MANAGEMENT Frames", CHECKED(PKT_TYPE_MGMT));
 	wattroff(win, A_BOLD);
@@ -52,14 +52,14 @@ update_filter_win(WINDOW *win)
 	mvwprintw(win, l++, 2, "a: [%c] Association", CHECKED(PKT_TYPE_ASSOC));
 	mvwprintw(win, l++, 2, "u: [%c] Authentication", CHECKED(PKT_TYPE_AUTH));
 	l++;
-	wattron(win, get_packet_type_color(IEEE80211_FTYPE_CTL));
+	wattron(win, get_packet_type_color(WLAN_FRAME_TYPE_CTRL));
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, 2, "c: [%c] CONTROL Frames", CHECKED(PKT_TYPE_CTRL));
 	wattroff(win, A_BOLD);
 	mvwprintw(win, l++, 2, "r: [%c] CTS/RTS", CHECKED(PKT_TYPE_RTSCTS));
 	mvwprintw(win, l++, 2, "k: [%c] ACK", CHECKED(PKT_TYPE_ACK));
 	l++;
-	wattron(win, get_packet_type_color(IEEE80211_FTYPE_DATA));
+	wattron(win, get_packet_type_color(WLAN_FRAME_TYPE_DATA));
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, 2, "d: [%c] DATA Frames", CHECKED(PKT_TYPE_DATA));
 	wattroff(win, A_BOLD);

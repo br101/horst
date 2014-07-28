@@ -17,16 +17,11 @@
 #ifndef _IEEE80211_UTIL_H_
 #define _IEEE80211_UTIL_H_
 
-#include "ieee80211.h"
-
 
 struct packet_info;
 
 int
-ieee80211_get_hdrlen(u16 fc);
-
-u8*
-ieee80211_get_bssid(struct ieee80211_hdr *hdr, size_t len);
+ieee80211_get_hdrlen(u_int16_t fc);
 
 void
 ieee802_11_parse_elems(unsigned char *start, size_t len, struct packet_info *pkt);
@@ -37,6 +32,5 @@ ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
 
 int
 ieee80211_frequency_to_channel(int freq);
-
 
 #endif

@@ -25,7 +25,7 @@
 #include "display.h"
 #include "main.h"
 #include "util.h"
-#include "ieee80211.h"
+#include "wlan80211.h"
 #include "olsr_header.h"
 #include "batman_adv_header-14.h"
 #include "listsort.h"
@@ -489,31 +489,31 @@ update_dump_win(struct packet_info* p)
 	else {
 		wprintw(dump_win, "%-7s", get_packet_type_name(p->wlan_type));
 
-		switch (p->wlan_type & IEEE80211_FCTL_FTYPE) {
-		case IEEE80211_FTYPE_DATA:
+		switch (p->wlan_type) {
+		case WLAN_FRAME_DATA:
+		case WLAN_FRAME_DATA_CF_ACK:
+		case WLAN_FRAME_DATA_CF_POLL:
+		case WLAN_FRAME_DATA_CF_ACKPOLL:
+		case WLAN_FRAME_QDATA:
+		case WLAN_FRAME_QDATA_CF_ACK:
+		case WLAN_FRAME_QDATA_CF_POLL:
+		case WLAN_FRAME_QDATA_CF_ACKPOLL:
 			if ( p->wlan_wep == 1)
 				wprintw(dump_win, "ENCRYPTED");
 			break;
-		case IEEE80211_FTYPE_CTL:
-			switch (p->wlan_type & IEEE80211_FCTL_STYPE) {
-			case IEEE80211_STYPE_CTS:
-			case IEEE80211_STYPE_RTS:
-			case IEEE80211_STYPE_ACK:
-				wprintw(dump_win, "%s", ether_sprintf(p->wlan_dst));
-				break;
-			}
+		case WLAN_FRAME_CTS:
+		case WLAN_FRAME_RTS:
+		case WLAN_FRAME_ACK:
+			wprintw(dump_win, "%s", ether_sprintf(p->wlan_dst));
 			break;
-		case IEEE80211_FTYPE_MGMT:
-			switch (p->wlan_type & IEEE80211_FCTL_STYPE) {
-			case IEEE80211_STYPE_BEACON:
-			case IEEE80211_STYPE_PROBE_RESP:
-				wprintw(dump_win, "'%s' %llx", p->wlan_essid,
-					p->wlan_tsf);
-				break;
-			case IEEE80211_STYPE_PROBE_REQ:
-				wprintw(dump_win, "'%s'", p->wlan_essid);
-				break;
-			}
+		case WLAN_FRAME_BEACON:
+		case WLAN_FRAME_PROBE_RESP:
+			wprintw(dump_win, "'%s' %llx", p->wlan_essid,
+				p->wlan_tsf);
+			break;
+		case WLAN_FRAME_PROBE_REQ:
+			wprintw(dump_win, "'%s'", p->wlan_essid);
+			break;
 		}
 	}
 

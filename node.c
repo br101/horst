@@ -23,7 +23,7 @@
 
 #include "main.h"
 #include "util.h"
-#include "ieee80211.h"
+#include "wlan80211.h"
 #include "essid.h"
 
 
@@ -73,8 +73,8 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 			n->wlan_wpa = ap->wlan_wpa;
 		}
 	}
-	if (IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON) ||
-	    IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_PROBE_RESP)) {
+	if ((p->wlan_type == WLAN_FRAME_BEACON) ||
+	    (p->wlan_type == WLAN_FRAME_PROBE_RESP)) {
 		n->wlan_tsf = p->wlan_tsf;
 		n->wlan_bintval = p->wlan_bintval;
 		n->wlan_wpa = p->wlan_wpa;
@@ -96,17 +96,17 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 	else if (p->pkt_chan_idx >= 0)
 		n->wlan_channel = channels[p->pkt_chan_idx].chan;
 
-	if (IEEE80211_IS_DATA_STYPE(p->wlan_type, IEEE80211_STYPE_DATA) ||
-	    IEEE80211_IS_DATA_STYPE(p->wlan_type, IEEE80211_STYPE_QOS_DATA) ||
-	    IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_AUTH) ||
-	    IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_BEACON) ||
-	    IEEE80211_IS_MGMT_STYPE(p->wlan_type, IEEE80211_STYPE_PROBE_RESP) ||
-	    IEEE80211_IS_DATA_STYPE(p->wlan_type, IEEE80211_STYPE_DATA_CFACK) ||
-	    IEEE80211_IS_DATA_STYPE(p->wlan_type, IEEE80211_STYPE_DATA_CFPOLL) ||
-	    IEEE80211_IS_DATA_STYPE(p->wlan_type, IEEE80211_STYPE_DATA_CFACKPOLL) ||
-	    IEEE80211_IS_DATA_STYPE(p->wlan_type, IEEE80211_STYPE_QOS_DATA_CFACK) ||
-	    IEEE80211_IS_DATA_STYPE(p->wlan_type, IEEE80211_STYPE_QOS_DATA_CFPOLL) ||
-	    IEEE80211_IS_DATA_STYPE(p->wlan_type, IEEE80211_STYPE_QOS_DATA_CFACKPOLL))
+	if ((p->wlan_type == WLAN_FRAME_DATA) ||
+	    (p->wlan_type == WLAN_FRAME_QDATA) ||
+	    (p->wlan_type == WLAN_FRAME_AUTH) ||
+	    (p->wlan_type == WLAN_FRAME_BEACON) ||
+	    (p->wlan_type == WLAN_FRAME_PROBE_RESP) ||
+	    (p->wlan_type == WLAN_FRAME_DATA_CF_ACK) ||
+	    (p->wlan_type == WLAN_FRAME_DATA_CF_POLL) ||
+	    (p->wlan_type == WLAN_FRAME_DATA_CF_ACKPOLL) ||
+	    (p->wlan_type == WLAN_FRAME_QDATA_CF_ACK) ||
+	    (p->wlan_type == WLAN_FRAME_QDATA_CF_POLL) ||
+	    (p->wlan_type == WLAN_FRAME_QDATA_CF_ACKPOLL))
 		n->wlan_wep = p->wlan_wep;
 
 	if (p->wlan_seqno != 0) {
