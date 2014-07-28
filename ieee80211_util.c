@@ -18,8 +18,8 @@
 #include <string.h>
 #include <math.h>
 
-#include "ieee80211.h"
 #include "ieee80211_util.h"
+#include "wlan80211.h"
 #include "main.h"
 #include "util.h"
 
@@ -128,22 +128,22 @@ ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
 		dur += DIV_ROUND_UP(8 * (len + 4) * 10, rate);
 	}
 
-	if (IEEE80211_IS_CTRL_STYPE(type, IEEE80211_STYPE_CTS) ||
-	    IEEE80211_IS_CTRL_STYPE(type, IEEE80211_STYPE_ACK)) {
+	if (type == WLAN_FRAME_CTS ||
+	    type == WLAN_FRAME_ACK) {
 		//TODO: also fragments
 		DEBUG("DUR SIFS\n");
 		dur += sifs;
 	}
-	else if (IEEE80211_IS_MGMT_STYPE(type, IEEE80211_STYPE_BEACON)) {
+	else if (type == WLAN_FRAME_BEACON) {
 		/* TODO: which AIFS and CW should be used for beacons? */
 		dur += sifs + (2 * slottime); /* AIFS */
 		dur += (slottime * 1) / 2; /* contention */
 	}
-	else if (IEEE80211_IS_DATA(type) && last_was_cts) {
+	else if (WLAN_FRAME_IS_DATA(type) && last_was_cts) {
 		DEBUG("DUR LAST CTS\n");
 		dur += sifs;
 	}
-	else if (IEEE80211_IS_DATA_STYPE(type, IEEE80211_STYPE_QOS_DATA)) {
+	else if (type == WLAN_FRAME_QDATA) {
 		unsigned char ac = ieee802_1d_to_ac[(unsigned char)qos_class];
 		dur += sifs + (ac_to_aifs[ac] * slottime); /* AIFS */
 		dur += get_cw_time(ac_to_cwmin[ac], ac_to_cwmax[ac], retries, slottime);
@@ -155,7 +155,7 @@ ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
 		dur += get_cw_time(4, 10, retries, slottime);
 	}
 
-	if (IEEE80211_IS_CTRL_STYPE(type, IEEE80211_STYPE_CTS)) {
+	if (type == WLAN_FRAME_CTS) {
 		DEBUG("SET CTS\n");
 		last_was_cts = 1;
 	}
