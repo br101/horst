@@ -61,33 +61,36 @@ display-essid.o: display-essid.c display.h main.h ccan/list/list.h \
 display-filter.o: display-filter.c display.h main.h ccan/list/list.h \
  average.h util.h wlan80211.h network.h
 display-help.o: display-help.c display.h main.h ccan/list/list.h \
- average.h util.h
+ average.h wlan_util.h
 display-history.o: display-history.c display.h main.h ccan/list/list.h \
- average.h util.h
+ average.h util.h wlan_util.h
 display-main.o: display-main.c display.h main.h ccan/list/list.h \
- average.h util.h wlan80211.h olsr_header.h batman_adv_header-14.h \
- listsort.h
+ average.h util.h wlan80211.h wlan_util.h olsr_header.h \
+ batman_adv_header-14.h listsort.h
 display-spectrum.o: display-spectrum.c display.h main.h ccan/list/list.h \
  average.h util.h
 display-statistics.o: display-statistics.c display.h main.h \
- ccan/list/list.h average.h util.h
+ ccan/list/list.h average.h util.h wlan_util.h
 essid.o: essid.c main.h ccan/list/list.h average.h util.h wlan80211.h \
  essid.h
-ieee80211_util.o: ieee80211_util.c ieee80211_util.h main.h \
+ieee80211_util.o: ieee80211_util.c ieee80211_util.h wlan80211.h main.h \
  ccan/list/list.h average.h util.h
 listsort.o: listsort.c ccan/list/list.h listsort.h
 main.o: main.c main.h ccan/list/list.h average.h util.h capture.h \
- protocol_parser.h network.h display.h ieee80211_util.h \
+ protocol_parser.h network.h display.h wlan_util.h ieee80211_util.h \
  wext.h control.h channel.h node.h essid.h
 network.o: network.c main.h ccan/list/list.h average.h util.h network.h
-node.o: node.c main.h ccan/list/list.h average.h util.h wlan80211.h essid.h
+node.o: node.c main.h ccan/list/list.h average.h util.h wlan80211.h \
+ essid.h
 protocol_parser.o: protocol_parser.c prism_header.h ieee80211_util.h \
- wlan80211.h olsr_header.h batman_header.h \
+ wlan80211.h wlan_util.h olsr_header.h batman_header.h \
  batman_adv_header-14.h protocol_parser.h main.h ccan/list/list.h \
  average.h util.h radiotap/radiotap.h radiotap/radiotap_iter.h \
  radiotap/radiotap.h
-util.o: util.c util.h wlan80211.h
+util.o: util.c util.h
 wext.o: wext.c wext.h main.h ccan/list/list.h average.h util.h
+wlan_util.o: wlan_util.c main.h ccan/list/list.h average.h util.h \
+ wlan80211.h
 
 $(NAME): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
