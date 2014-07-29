@@ -29,6 +29,7 @@
 #include "display.h"
 #include "main.h"
 #include "wlan80211.h"
+#include "channel.h"
 
 
 static WINDOW *conf_win = NULL;

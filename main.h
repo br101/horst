@@ -333,21 +333,8 @@ extern struct config conf;
 
 extern struct timeval the_time;
 
-
-#define CONF_CURRENT_CHANNEL (conf.channel_idx >= 0 && conf.channel_idx < MAX_CHANNELS ? \
-	channels[conf.channel_idx].chan : 0)
-
 void
 free_lists(void);
-
-int
-change_channel(int idx);
-
-int
-find_channel_index(int c);
-
-void
-init_channels(void);
 
 void
 update_spectrum_durations(void);

@@ -20,12 +20,27 @@
 #ifndef _CHANNEL_H_
 #define _CHANNEL_H_
 
-void get_current_channel(int mon);
-int auto_change_channel(void);
+int
+change_channel(int idx);
+
+int
+auto_change_channel(void);
+
+int
+find_channel_index(int c);
 
 int
 find_channel_index_freq(int f);
 
+void
+get_current_channel(int mon);
+
+void
+init_channels(void);
+
 #define CHANNEL_IDX_TO_CHAN(_i) (_i > 0 && _i < conf.num_channels && _i < MAX_CHANNELS ? channels[_i].chan : -1 )
+
+#define CONF_CURRENT_CHANNEL (conf.channel_idx >= 0 && conf.channel_idx < MAX_CHANNELS ? \
+	channels[conf.channel_idx].chan : 0)
 
 #endif

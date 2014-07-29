@@ -29,6 +29,7 @@
 
 #include "main.h"
 #include "util.h"
+#include "channel.h"
 #include "network.h"
 
 

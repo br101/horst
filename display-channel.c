@@ -23,6 +23,7 @@
 
 #include "display.h"
 #include "main.h"
+#include "channel.h"
 #include "network.h"
 
 

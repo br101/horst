@@ -25,6 +25,7 @@
 #include <err.h>
 
 #include "main.h"
+#include "channel.h"
 #include "control.h"
 
 #define MAX_CMD 255
