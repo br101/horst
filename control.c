@@ -121,7 +121,7 @@ parse_command(char* in) {
 		conf.channel_max = n;
 	}
 	else if (strcmp(cmd, "outfile") == 0) {
-		horst_dumpfile_open(val);
+		dumpfile_open(val);
 	}
 }
 

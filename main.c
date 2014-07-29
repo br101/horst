@@ -732,7 +732,7 @@ main(int argc, char** argv)
 		init_display();
 
 	if (conf.dumpfile != NULL)
-		horst_dumpfile_open(conf.dumpfile);
+		dumpfile_open(conf.dumpfile);
 
 	if (!conf.serveraddr && conf.port && conf.allow_client)
 		net_init_server_socket(conf.port);
@@ -766,7 +766,7 @@ horst_pause(int pause)
 
 
 void
-horst_dumpfile_open(char* name)
+dumpfile_open(char* name)
 {
 	if (DF != NULL) {
 		fclose(DF);
