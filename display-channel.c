@@ -39,7 +39,7 @@ update_channel_win(WINDOW *win)
 		  conf.channel_time/1000);
 	mvwprintw(win, 4, 2, "u: Upper channel limit: %d  ", conf.channel_max);
 
-	mvwprintw(win, 6, 2, "m: Manually change channel: %d ", CONF_CURRENT_CHANNEL);
+	mvwprintw(win, 6, 2, "m: Manually change channel: %d ", channel_get_current_chan());
 
 	print_centered(win, 9, 39, "[ Press key or ENTER ]");
 

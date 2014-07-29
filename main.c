@@ -36,7 +36,6 @@
 #include "display.h"
 #include "wlan_util.h"
 #include "ieee80211_util.h"
-#include "wext.h"
 #include "control.h"
 #include "channel.h"
 #include "node.h"
@@ -47,7 +46,6 @@ struct list_head nodes;
 struct essid_meta_info essids;
 struct history hist;
 struct statistics stats;
-struct chan_freq channels[MAX_CHANNELS];
 struct channel_info spectrum[MAX_CHANNELS];
 
 struct config conf = {
@@ -310,7 +308,7 @@ handle_packet(struct packet_info* p)
 	}
 	/* not found from pkt, best guess from config but it might be
 	 * unknown (-1) too */
-	if (i < 0 || i >= conf.num_channels || i >= MAX_CHANNELS)
+	if (i < 0)
 		p->pkt_chan_idx = conf.channel_idx;
 	else
 		p->pkt_chan_idx = i;
@@ -726,10 +724,8 @@ main(int argc, char** argv)
 			exit(1);
 		}
 
-		/* get available channels */
-		conf.num_channels = wext_get_channels(mon, conf.ifname, channels);
+		channel_init();
 		init_spectrum();
-		get_current_channel(mon);
 	}
 
 	if (!conf.quiet && !DO_DEBUG)

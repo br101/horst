@@ -22,6 +22,7 @@
 #include <unistd.h>
 
 #include "wext.h"
+#include "main.h"
 #include "util.h"
 
 

@@ -56,6 +56,7 @@ get_current_channel(__attribute__((unused)) int mon)
 
 static struct timeval last_channelchange;
 extern int mon; /* monitoring socket */
+static struct chan_freq channels[MAX_CHANNELS];
 
 
 int
@@ -140,6 +141,46 @@ get_current_channel(int mon)
 	if (ch >= 0)
 		conf.channel_idx = ch;
 	DEBUG("***%d\n", conf.channel_idx);
+}
+
+
+int
+channel_get_chan_from_idx(int i) {
+	if (i >= 0 && i < conf.num_channels && i < MAX_CHANNELS)
+		return channels[i].chan;
+	else
+		return -1;
+}
+
+
+int
+channel_get_current_chan() {
+	return channel_get_chan_from_idx(conf.channel_idx);
+}
+
+
+void
+channel_init(void) {
+	/* get available channels */
+	conf.num_channels = wext_get_channels(mon, conf.ifname, channels);
+	get_current_channel(mon);
+}
+
+
+struct chan_freq*
+channel_get_struct(int i) {
+	if (i < conf.num_channels && i < MAX_CHANNELS)
+		return &channels[i];
+	return NULL;
+}
+
+
+void
+channel_set(int i, int chan, int freq) {
+	if (i < conf.num_channels && i < MAX_CHANNELS) {
+		channels[i].chan = chan;
+		channels[i].freq = freq;
+	}
 }
 
 #endif

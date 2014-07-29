@@ -20,7 +20,7 @@
 #ifndef _WEXT_H_
 #define _WEXT_H_
 
-#include "main.h"
+#include "channel.h"
 
 int
 wext_set_freq(int fd, const char* devname, int chan);

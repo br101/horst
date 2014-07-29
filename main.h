@@ -25,6 +25,7 @@
 
 #include "ccan/list/list.h"
 #include "average.h"
+#include "channel.h"
 
 #define VERSION "4.0-pre"
 
@@ -38,7 +39,6 @@
 #define MAX_ESSIDS		255
 #define MAX_BSSIDS		255
 #define MAX_HISTORY		255
-#define MAX_CHANNELS		64
 #define MAX_ESSID_LEN		32
 #define MAX_RATES		44	/* 12 legacy rates and 32 MCS */
 #define MAX_FSTYPE		0xff
@@ -260,14 +260,6 @@ struct statistics {
 };
 
 extern struct statistics stats;
-
-/* channel to frequency mapping */
-struct chan_freq {
-	int			chan;
-	int			freq;
-};
-
-extern struct chan_freq channels[MAX_CHANNELS];
 
 struct channel_info {
 	int			signal;

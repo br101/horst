@@ -418,7 +418,7 @@ update_dump_win(struct packet_info* p)
 	if (p->phy_flags & PHY_FLAG_BADFCS)
 		wattron(dump_win, RED);
 
-	wprintw(dump_win, "\n%02d ", CHANNEL_IDX_TO_CHAN(p->pkt_chan_idx));
+	wprintw(dump_win, "\n%02d ", channel_get_chan_from_idx(p->pkt_chan_idx));
 	wprintw(dump_win, "-%02d", -p->phy_signal);
 	if (conf.have_noise)
 		wprintw(dump_win, "/%02d ", -p->phy_noise);

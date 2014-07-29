@@ -20,6 +20,14 @@
 #ifndef _CHANNEL_H_
 #define _CHANNEL_H_
 
+#define MAX_CHANNELS		64
+
+/* channel to frequency mapping */
+struct chan_freq {
+	int			chan;
+	int			freq;
+};
+
 int
 change_channel(int idx);
 
@@ -35,12 +43,19 @@ find_channel_index_freq(int f);
 void
 get_current_channel(int mon);
 
+int
+channel_get_chan_from_idx(int idx);
+
+int
+channel_get_current_chan();
+
 void
-init_channels(void);
+channel_init(void);
 
-#define CHANNEL_IDX_TO_CHAN(_i) (_i > 0 && _i < conf.num_channels && _i < MAX_CHANNELS ? channels[_i].chan : -1 )
+struct chan_freq*
+channel_get_struct(int idx);
 
-#define CONF_CURRENT_CHANNEL (conf.channel_idx >= 0 && conf.channel_idx < MAX_CHANNELS ? \
-	channels[conf.channel_idx].chan : 0)
+void
+channel_set(int idx, int chan, int freq);
 
 #endif

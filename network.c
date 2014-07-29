@@ -373,8 +373,11 @@ net_send_chan_list(int fd)
 	nc->proto.type	= PROTO_CHAN_LIST;
 
 	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++) {
-		nc->channel[i].chan = channels[i].chan;
-		nc->channel[i].freq = channels[i].freq;
+		struct chan_freq* cf = channel_get_struct(i);
+		if (cf != NULL) {
+			nc->channel[i].chan = cf->chan;
+			nc->channel[i].freq = cf->freq;
+		}
 	}
 	nc->num_channels = i;
 
@@ -399,8 +402,7 @@ net_receive_chan_list(unsigned char *buffer, size_t len)
 		return 0;
 
 	for (i = 0; i < nc->num_channels && i < MAX_CHANNELS; i++) {
-		channels[i].chan = nc->channel[i].chan;
-		channels[i].freq = nc->channel[i].freq;
+		channel_set(i, nc->channel[i].chan, nc->channel[i].freq);
 	}
 	conf.num_channels = i;
 	init_spectrum();
