@@ -305,11 +305,8 @@ handle_packet(struct packet_info* p)
 		return;
 
 	/* get channel index for packet */
-	if (p->phy_chan) {
-		/* find channel index from packet channel */
-		for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++)
-			if (channels[i].chan == p->phy_chan)
-				break;
+	if (p->phy_freq) {
+		i = find_channel_index_freq(p->phy_freq);
 	}
 	/* not found from pkt, best guess from config but it might be
 	 * unknown (-1) too */

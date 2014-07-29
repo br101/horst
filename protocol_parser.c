@@ -216,9 +216,7 @@ get_radiotap_info(struct ieee80211_radiotap_iterator *iter, struct packet_info* 
 	case IEEE80211_RADIOTAP_CHANNEL:
 		/* channel & channel type */
 		p->phy_freq = le16toh(*(uint16_t*)iter->this_arg);
-		p->phy_chan =
-			ieee80211_frequency_to_channel(p->phy_freq);
-		DEBUG("[freq %d chan %d", p->phy_freq, p->phy_chan);
+		DEBUG("[freq %d", p->phy_freq);
 		iter->this_arg = iter->this_arg + 2;
 		x = le16toh(*(uint16_t*)iter->this_arg);
 		if (x & IEEE80211_CHAN_A) {

@@ -118,7 +118,6 @@ struct packet_info {
 	unsigned char		phy_rate_idx;	/* MCS index */
 	unsigned char		phy_rate_flags;	/* MCS flags */
 	unsigned int		phy_freq;	/* frequency from driver */
-	unsigned char		phy_chan;	/* channel from driver */
 	unsigned int		phy_flags;	/* A, B, G, shortpre */
 
 	/* wlan mac */

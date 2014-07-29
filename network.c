@@ -181,7 +181,6 @@ net_send_packet(struct packet_info *p)
 	np.phy_rate_idx	= p->phy_rate_idx;
 	np.phy_rate_flags = p->phy_rate_flags;
 	np.phy_freq	= htole32(p->phy_freq);
-	np.phy_chan	= p->phy_chan;
 	np.phy_flags	= htole32(p->phy_flags);
 	np.wlan_len	= htole32(p->wlan_len);
 	np.wlan_type	= htole32(p->wlan_type);
@@ -240,7 +239,6 @@ net_receive_packet(unsigned char *buffer, size_t len)
 	p.phy_rate_idx	= np->phy_rate_idx;
 	p.phy_rate_flags= np->phy_rate_flags;
 	p.phy_freq	= le32toh(np->phy_freq);
-	p.phy_chan	= np->phy_chan;
 	p.phy_flags	= le32toh(np->phy_flags);
 	p.wlan_len	= le32toh(np->wlan_len);
 	p.wlan_type	= le32toh(np->wlan_type);
