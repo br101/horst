@@ -341,7 +341,7 @@ void __attribute__ ((format (printf, 1, 2)))
 printlog(const char *fmt, ...);
 
 void
-horst_pause(int pause);
+main_pause(int pause);
 
 void
 dumpfile_open(char* name);

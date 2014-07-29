@@ -437,7 +437,7 @@ handle_user_input(void)
 
 	switch(key) {
 	case ' ': case 'p': case 'P':
-		horst_pause(conf.paused = conf.paused ? 0 : 1);
+		main_pause(conf.paused = conf.paused ? 0 : 1);
 		break;
 
 	case 'q': case 'Q':

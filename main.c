@@ -758,7 +758,7 @@ main(int argc, char** argv)
 
 
 void
-horst_pause(int pause)
+main_pause(int pause)
 {
 	conf.paused = pause;
 	printlog(conf.paused ? "- PAUSED -" : "- RESUME -");

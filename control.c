@@ -88,10 +88,10 @@ parse_command(char* in) {
 	/* commands without value */
 
 	if (strcmp(cmd, "pause") == 0) {
-		horst_pause(1);
+		main_pause(1);
 	}
 	else if (strcmp(cmd, "resume") == 0) {
-		horst_pause(0);
+		main_pause(0);
 	}
 
 	/* all other commands require a value */
