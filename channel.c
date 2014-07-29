@@ -141,21 +141,20 @@ channel_get_current_chan() {
 }
 
 
-static void
-get_current_wext_channel(int mon)
+static int
+get_current_wext_channel_idx(int mon)
 {
 	int freq, ch;
 
 	/* get current channel &  map to our channel array */
 	freq = wext_get_freq(mon, conf.ifname);
 	if (freq == 0)
-		return;
+		return -1;
 
 	ch = channel_find_index_from_freq(freq);
 
-	if (ch >= 0)
-		conf.channel_idx = ch;
-	DEBUG("***%d\n", conf.channel_idx);
+	DEBUG("***%d\n", ch);
+	return ch;
 }
 
 
@@ -163,7 +162,7 @@ void
 channel_init(void) {
 	/* get available channels */
 	conf.num_channels = wext_get_channels(mon, conf.ifname, channels);
-	get_current_wext_channel(mon);
+	conf.channel_idx = get_current_wext_channel_idx(mon);
 }
 
 
