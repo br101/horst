@@ -403,7 +403,7 @@ net_receive_chan_list(unsigned char *buffer, size_t len)
 		channels[i].freq = nc->channel[i].freq;
 	}
 	conf.num_channels = i;
-	init_channels();
+	init_spectrum();
 	return sizeof(struct net_chan_list) + 2*(nc->num_channels - 1);
 }
 

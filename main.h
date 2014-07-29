@@ -337,6 +337,9 @@ void
 free_lists(void);
 
 void
+init_spectrum(void);
+
+void
 update_spectrum_durations(void);
 
 void

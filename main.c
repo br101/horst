@@ -674,6 +674,19 @@ get_options(int argc, char** argv)
 }
 
 
+void
+init_spectrum(void)
+{
+	int i;
+
+	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++) {
+		list_head_init(&spectrum[i].nodes);
+		ewma_init(&spectrum[i].signal_avg, 1024, 8);
+		ewma_init(&spectrum[i].durations_avg, 1024, 8);
+	}
+}
+
+
 int
 main(int argc, char** argv)
 {
@@ -715,7 +728,7 @@ main(int argc, char** argv)
 
 		/* get available channels */
 		conf.num_channels = wext_get_channels(mon, conf.ifname, channels);
-		init_channels();
+		init_spectrum();
 		get_current_channel(mon);
 	}
 

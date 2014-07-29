@@ -451,7 +451,7 @@ handle_user_input(void)
 		memset(&hist, 0, sizeof(hist));
 		memset(&stats, 0, sizeof(stats));
 		memset(&spectrum, 0, sizeof(spectrum));
-		init_channels();
+		init_spectrum();
 		gettimeofday(&stats.stats_time, NULL);
 		break;
 
