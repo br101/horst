@@ -21,7 +21,6 @@
 
 #include "main.h"
 #include "util.h"
-#include "ieee80211_util.h"
 #include "wext.h"
 #include "channel.h"
 
