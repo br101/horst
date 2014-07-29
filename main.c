@@ -304,7 +304,7 @@ handle_packet(struct packet_info* p)
 
 	/* get channel index for packet */
 	if (p->phy_freq) {
-		i = find_channel_index_freq(p->phy_freq);
+		i = channel_find_index_from_freq(p->phy_freq);
 	}
 	/* not found from pkt, best guess from config but it might be
 	 * unknown (-1) too */
@@ -744,7 +744,7 @@ main(int argc, char** argv)
 		timeout_nodes();
 
 		if (!conf.serveraddr) { /* server */
-			if (auto_change_channel()) {
+			if (channel_auto_change()) {
 				net_send_channel_config();
 				update_spectrum_durations();
 				if (!conf.quiet && !DO_DEBUG)

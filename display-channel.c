@@ -86,10 +86,10 @@ channel_input(WINDOW *win, int c)
 		curs_set(0);
 		noecho();
 		sscanf(buf, "%d", &x);
-		x = find_channel_index(x);
+		x = channel_find_index_from_chan(x);
 		if (x >= 0) {
 			if (!conf.serveraddr)
-				change_channel(x);
+				channel_change(x);
 			else
 				conf.channel_idx = x;
 		}

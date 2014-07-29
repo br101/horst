@@ -103,7 +103,7 @@ parse_command(char* in) {
 		n = atoi(val);
 		printlog("- CHANNEL = %d", n);
 		conf.do_change_channel = 0;
-		change_channel(find_channel_index(n));
+		channel_change(channel_find_index_from_chan(n));
 	}
 	else if (strcmp(cmd, "channel_auto") == 0) {
 		n = (strcmp(val, "1") == 0);

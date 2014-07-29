@@ -28,19 +28,19 @@
 #if defined(__APPLE__)
 
 int
-change_channel(__attribute__((unused)) int idx)
+channel_change(__attribute__((unused)) int idx)
 {
 	return 0;
 }
 
 int
-auto_change_channel(void)
+channel_auto_change(void)
 {
 	return 0;
 }
 
 int
-find_channel_index(__attribute__((unused)) int c)
+channel_find_index_from_chan(__attribute__((unused)) int c)
 {
 	return -1;
 }
@@ -60,7 +60,7 @@ static struct chan_freq channels[MAX_CHANNELS];
 
 
 int
-change_channel(int idx)
+channel_change(int idx)
 {
 	if (wext_set_freq(mon, conf.ifname, channels[idx].freq) == 0) {
 		printlog("ERROR: could not set channel %d", channels[idx].chan);
@@ -72,7 +72,7 @@ change_channel(int idx)
 
 
 int
-auto_change_channel(void)
+channel_auto_change(void)
 {
 	int new_chan;
 	int ret = 1;
@@ -91,7 +91,7 @@ auto_change_channel(void)
 			    (conf.channel_max && new_chan >= conf.channel_max))
 				new_chan = 0;
 
-			ret = change_channel(new_chan);
+			ret = channel_change(new_chan);
 
 		/* try setting different channels in case we get errors only
 		 * on some channels (e.g. ipw2200 reports channel 14 but cannot
@@ -105,7 +105,7 @@ auto_change_channel(void)
 
 
 int
-find_channel_index(int c)
+channel_find_index_from_chan(int c)
 {
 	int i = -1;
 	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++)
@@ -116,31 +116,13 @@ find_channel_index(int c)
 
 
 int
-find_channel_index_freq(int f)
+channel_find_index_from_freq(int f)
 {
 	int i = -1;
 	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++)
 		if (channels[i].freq == f)
 			return i;
 	return -1;
-}
-
-
-void
-get_current_channel(int mon)
-{
-	int freq, ch;
-
-	/* get current channel &  map to our channel array */
-	freq = wext_get_freq(mon, conf.ifname);
-	if (freq == 0)
-		return;
-
-	ch = find_channel_index_freq(freq);
-
-	if (ch >= 0)
-		conf.channel_idx = ch;
-	DEBUG("***%d\n", conf.channel_idx);
 }
 
 
@@ -159,11 +141,29 @@ channel_get_current_chan() {
 }
 
 
+static void
+get_current_wext_channel(int mon)
+{
+	int freq, ch;
+
+	/* get current channel &  map to our channel array */
+	freq = wext_get_freq(mon, conf.ifname);
+	if (freq == 0)
+		return;
+
+	ch = channel_find_index_from_freq(freq);
+
+	if (ch >= 0)
+		conf.channel_idx = ch;
+	DEBUG("***%d\n", conf.channel_idx);
+}
+
+
 void
 channel_init(void) {
 	/* get available channels */
 	conf.num_channels = wext_get_channels(mon, conf.ifname, channels);
-	get_current_channel(mon);
+	get_current_wext_channel(mon);
 }
 
 

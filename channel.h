@@ -29,16 +29,16 @@ struct chan_freq {
 };
 
 int
-change_channel(int idx);
+channel_change(int idx);
 
 int
-auto_change_channel(void);
+channel_auto_change(void);
 
 int
-find_channel_index(int c);
+channel_find_index_from_chan(int c);
 
 int
-find_channel_index_freq(int f);
+channel_find_index_from_freq(int f);
 
 void
 get_current_channel(int mon);
