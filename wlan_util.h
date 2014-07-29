@@ -20,6 +20,16 @@
 #ifndef _WLAN_UTIL_H_
 #define _WLAN_UTIL_H_
 
+struct pkt_name {
+	char c;
+	const char* name;
+	u_int16_t fc;
+	const char* desc;
+};
+
+struct pkt_name
+get_packet_struct(unsigned int type);
+
 char
 get_packet_type_char(unsigned int type);
 

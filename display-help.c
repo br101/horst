@@ -30,7 +30,7 @@ void
 update_help_win(WINDOW *win)
 {
 	int i, l;
-	char c;
+	struct pkt_name c;
 
 	werase(win);
 	wattron(win, WHITE);
@@ -42,27 +42,29 @@ update_help_win(WINDOW *win)
 	mvwprintw(win, 5, 2, "(C) 2005-2014 Bruno Randolf, Licensed under the GPLv2");
 
 	mvwprintw(win, 7, 2, "Known IEEE802.11 Packet Types:");
+
 	l = 9;
 	/* this is weird but it works */
 	mvwprintw(win, l++, 2, "MANAGEMENT FRAMES");
 	for (i = 0x00; i <= 0xE0; i = i + 0x10) {
-		c = get_packet_type_char(i);
-		if (c != '?')
-			mvwprintw(win, l++, 4, "%c %s", c, get_packet_type_name(i));
+		c = get_packet_struct(i);
+		if (c.c != '?')
+			mvwprintw(win, l++, 4, "%c  %-6s  %s", c.c, c.name, c.desc);
 	}
+
 	l = 9;
-	mvwprintw(win, l++, 25, "CONTROL FRAMES");
-	for (i = 0x74; i <= 0xF4; i = i + 0x10) {
-		c = get_packet_type_char(i);
-		if (c != '?')
-			mvwprintw(win, l++, 27, "%c %s", c, get_packet_type_name(i));
-	}
-	l = 9;
-	mvwprintw(win, l++, 50, "DATA FRAMES");
+	mvwprintw(win, l++, 45, "DATA FRAMES");
 	for (i = 0x08; i <= 0xF8; i = i + 0x10) {
-		c = get_packet_type_char(i);
-		if (c != '?')
-			mvwprintw(win, l++, 52, "%c %s", c, get_packet_type_name(i));
+		c = get_packet_struct(i);
+		if (c.c != '?')
+			mvwprintw(win, l++, 47, "%c  %-6s  %s", c.c, c.name, c.desc);
+	}
+
+	mvwprintw(win, l++, 2, "CONTROL FRAMES");
+	for (i = 0x74; i <= 0xF4; i = i + 0x10) {
+		c = get_packet_struct(i);
+		if (c.c != '?')
+			mvwprintw(win, l++, 4, "%c  %-6s  %s", c.c, c.name, c.desc);
 	}
 
 	mvwprintw(win, ++l, 2, "For more info read the README or check http://br1.einfach.org/horst/");

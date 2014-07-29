@@ -1,17 +1,11 @@
 #include "main.h"
 #include "util.h"
 #include "wlan80211.h"
+#include "wlan_util.h"
 
+/* lists of packet names */
 
-struct pkt_names {
-	char c;
-	const char* name;
-	u_int16_t fc;
-	const char* desc;
-};
-
-/* a list of packet type names for easier indexing with padding */
-static struct pkt_names mgmt_names[] = {
+static struct pkt_name mgmt_names[] = {
 	{ 'a', "ASOCRQ", WLAN_FRAME_ASSOC_REQ, "Association request" },
 	{ 'A', "ASOCRP", WLAN_FRAME_ASSOC_RESP, "Association response" },
 	{ 'a', "REASRQ", WLAN_FRAME_REASSOC_REQ, "Reassociation request" },
@@ -29,7 +23,7 @@ static struct pkt_names mgmt_names[] = {
 	{ 'c', "ACTNOA", WLAN_FRAME_ACTION_NOACK, "Action No Ack" },
 };
 
-static struct pkt_names ctrl_names[] = {
+static struct pkt_name ctrl_names[] = {
 	{ 'w', "CTWRAP", WLAN_FRAME_CTRL_WRAP, "Control Wrapper" },
 	{ 'b', "BACKRQ", WLAN_FRAME_BLKACK_REQ, "Block Ack Request" },
 	{ 'B', "BACK",   WLAN_FRAME_BLKACK, "Block Ack" },
@@ -41,7 +35,7 @@ static struct pkt_names ctrl_names[] = {
 	{ 'f', "CFENDK", WLAN_FRAME_CF_END_ACK, "CF-End + CF-Ack" },
 };
 
-static struct pkt_names data_names[] = {
+static struct pkt_name data_names[] = {
 	{ 'D', "DATA",   WLAN_FRAME_DATA, "Data" },
 	{ 'F', "DCFACK", WLAN_FRAME_DATA_CF_ACK, "Data + CF-Ack" },
 	{ 'F', "DCFPLL", WLAN_FRAME_DATA_CF_POLL, "Data + CF-Poll" },
@@ -60,65 +54,55 @@ static struct pkt_names data_names[] = {
 	{ 'f', "QCFKPL", WLAN_FRAME_QOS_CF_ACKPOLL, "QoS CF-Ack + CF-Poll (no data)" },
 };
 
+static struct pkt_name unknow = { '?', "UNKNOW", 0 , "Unknown" };
+static struct pkt_name badfcs = { '*', "BADFCS", 0 , "Bad FCS" };
+
 #define DATA_NAME_INDEX(_i) (((_i) & WLAN_FRAME_FC_STYPE_MASK)>>4)
 #define MGMT_NAME_INDEX(_i) (((_i) & WLAN_FRAME_FC_STYPE_MASK)>>4)
 #define CTRL_NAME_INDEX(_i) ((((_i) & WLAN_FRAME_FC_STYPE_MASK)>>4)-7)
 
+
+struct pkt_name
+get_packet_struct(unsigned int type) {
+	int index;
+
+	if (type == 1) /* special case for bad FCS */
+		return badfcs;
+
+	if (WLAN_FRAME_IS_MGMT(type)) {
+		index = MGMT_NAME_INDEX(type);
+		if (index < sizeof(mgmt_names)/sizeof(struct pkt_name)) {
+			if (mgmt_names[index].c)
+				return mgmt_names[index];
+		}
+	} else if (WLAN_FRAME_IS_CTRL(type)) {
+		index = CTRL_NAME_INDEX(type);
+		if (index < sizeof(ctrl_names)/sizeof(struct pkt_name)) {
+			if (ctrl_names[index].c)
+				return ctrl_names[index];
+		}
+	} else if (WLAN_FRAME_IS_DATA(type)) {
+		index = DATA_NAME_INDEX(type);
+		if (index < sizeof(data_names)/sizeof(struct pkt_name)) {
+			if (data_names[index].c)
+				return data_names[index];
+		}
+	}
+	return unknow;
+}
+
+
 char
 get_packet_type_char(unsigned int type)
 {
-	if (type == 1) /* special case for bad FCS */
-		return '*';
-	switch (type & WLAN_FRAME_FC_TYPE_MASK) {
-	case WLAN_FRAME_TYPE_MGMT:
-		if (MGMT_NAME_INDEX(type) < sizeof(mgmt_names)/sizeof(struct pkt_names)) {
-			if (mgmt_names[MGMT_NAME_INDEX(type)].c)
-				return mgmt_names[MGMT_NAME_INDEX(type)].c;
-		}
-		break;
-	case WLAN_FRAME_TYPE_CTRL:
-		if (CTRL_NAME_INDEX(type) < sizeof(ctrl_names)/sizeof(struct pkt_names)) {
-			if (ctrl_names[CTRL_NAME_INDEX(type)].c)
-				return ctrl_names[CTRL_NAME_INDEX(type)].c;
-		}
-		break;
-	case WLAN_FRAME_TYPE_DATA:
-		if (DATA_NAME_INDEX(type) < sizeof(data_names)/sizeof(struct pkt_names)) {
-			if (data_names[DATA_NAME_INDEX(type)].c)
-				return data_names[DATA_NAME_INDEX(type)].c;
-		}
-		break;
-	}
-	return '?';
+	return get_packet_struct(type).c;
 }
 
 
 const char*
 get_packet_type_name(unsigned int type)
 {
-	if (type == 1) /* special case for bad FCS */
-		return "BADFCS";
-	switch (type & WLAN_FRAME_FC_TYPE_MASK) {
-	case WLAN_FRAME_TYPE_MGMT:
-		if (MGMT_NAME_INDEX(type) < sizeof(mgmt_names)/sizeof(struct pkt_names)) {
-			if (mgmt_names[MGMT_NAME_INDEX(type)].c)
-				return mgmt_names[MGMT_NAME_INDEX(type)].name;
-		}
-		break;
-	case WLAN_FRAME_TYPE_CTRL:
-		if (CTRL_NAME_INDEX(type) < sizeof(ctrl_names)/sizeof(struct pkt_names)) {
-			if (ctrl_names[CTRL_NAME_INDEX(type)].c)
-				return ctrl_names[CTRL_NAME_INDEX(type)].name;
-		}
-		break;
-	case WLAN_FRAME_TYPE_DATA:
-		if (DATA_NAME_INDEX(type) < sizeof(data_names)/sizeof(struct pkt_names)) {
-			if (data_names[DATA_NAME_INDEX(type)].c)
-				return data_names[DATA_NAME_INDEX(type)].name;
-		}
-		break;
-	}
-	return "UNKNOW";
+	return get_packet_struct(type).name;
 }
 
 
