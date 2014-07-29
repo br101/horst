@@ -49,8 +49,8 @@ all: $(NAME)
 average.o: average.c average.h util.h
 capture.o: capture.c capture.h util.h
 capture-pcap.o: capture-pcap.c capture.h util.h
-channel.o: channel.c main.h ccan/list/list.h average.h util.h \
- ieee80211_util.h wext.h channel.h
+channel.o: channel.c main.h ccan/list/list.h average.h util.h wext.h \
+ channel.h
 control.o: control.c main.h ccan/list/list.h average.h control.h
 display.o: display.c display.h main.h ccan/list/list.h average.h \
  wlan80211.h
@@ -66,7 +66,7 @@ display-history.o: display-history.c display.h main.h ccan/list/list.h \
  average.h util.h wlan_util.h
 display-main.o: display-main.c display.h main.h ccan/list/list.h \
  average.h util.h wlan80211.h wlan_util.h olsr_header.h \
- batman_adv_header-14.h listsort.h
+ batman_adv_header-14.h listsort.h channel.h
 display-spectrum.o: display-spectrum.c display.h main.h ccan/list/list.h \
  average.h util.h
 display-statistics.o: display-statistics.c display.h main.h \
@@ -82,15 +82,14 @@ main.o: main.c main.h ccan/list/list.h average.h util.h capture.h \
 network.o: network.c main.h ccan/list/list.h average.h util.h network.h
 node.o: node.c main.h ccan/list/list.h average.h util.h wlan80211.h \
  essid.h
-protocol_parser.o: protocol_parser.c prism_header.h ieee80211_util.h \
- wlan80211.h wlan_util.h olsr_header.h batman_header.h \
- batman_adv_header-14.h protocol_parser.h main.h ccan/list/list.h \
- average.h util.h radiotap/radiotap.h radiotap/radiotap_iter.h \
- radiotap/radiotap.h
+protocol_parser.o: protocol_parser.c prism_header.h wlan80211.h \
+ wlan_util.h olsr_header.h batman_header.h batman_adv_header-14.h \
+ protocol_parser.h main.h ccan/list/list.h average.h util.h \
+ radiotap/radiotap.h radiotap/radiotap_iter.h radiotap/radiotap.h
 util.o: util.c util.h
 wext.o: wext.c wext.h main.h ccan/list/list.h average.h util.h
 wlan_util.o: wlan_util.c main.h ccan/list/list.h average.h util.h \
- wlan80211.h
+ wlan80211.h wlan_util.h
 
 $(NAME): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
