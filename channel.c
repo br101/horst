@@ -115,6 +115,17 @@ find_channel_index(int c)
 }
 
 
+int
+find_channel_index_freq(int f)
+{
+	int i = -1;
+	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++)
+		if (channels[i].freq == f)
+			return i;
+	return -1;
+}
+
+
 void
 get_current_channel(int mon)
 {
@@ -125,8 +136,7 @@ get_current_channel(int mon)
 	if (freq == 0)
 		return;
 
-	ch = ieee80211_frequency_to_channel(freq);
-	ch = find_channel_index(ch);
+	ch = find_channel_index_freq(freq);
 
 	if (ch >= 0)
 		conf.channel_idx = ch;
