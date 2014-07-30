@@ -29,8 +29,7 @@ OBJS=main.o capture$(if $(filter 1,$(PCAP)),-pcap).o protocol_parser.o \
 	display-spectrum.o display-channel.o control.o \
 	radiotap/radiotap.o
 LIBS=-lncurses -lm
-CFLAGS+=-Wall -g -I.
-# 
+CFLAGS+=-Wall -Wextra -g -I.
 
 ifeq ($(DEBUG),1)
 CFLAGS+=-DDO_DEBUG

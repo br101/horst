@@ -161,7 +161,7 @@ static inline void list_head_init(struct list_head *h)
 #define list_add(h, n) list_add_(h, n, LIST_LOC)
 static inline void list_add_(struct list_head *h,
 			     struct list_node *n,
-			     const char *abortstr)
+			     __attribute__((unused)) const char *abortstr)
 {
 	n->next = h->n.next;
 	n->prev = &h->n;
@@ -183,7 +183,7 @@ static inline void list_add_(struct list_head *h,
 #define list_add_tail(h, n) list_add_tail_(h, n, LIST_LOC)
 static inline void list_add_tail_(struct list_head *h,
 				  struct list_node *n,
-				  const char *abortstr)
+				  __attribute__((unused)) const char *abortstr)
 {
 	n->next = &h->n;
 	n->prev = h->n.prev;
@@ -202,7 +202,7 @@ static inline void list_add_tail_(struct list_head *h,
  *	assert(list_empty(&parent->children) == (parent->num_children == 0));
  */
 #define list_empty(h) list_empty_(h, LIST_LOC)
-static inline bool list_empty_(const struct list_head *h, const char* abortstr)
+static inline bool list_empty_(const struct list_head *h, __attribute__((unused)) const char* abortstr)
 {
 	(void)list_debug(h, abortstr);
 	return h->n.next == &h->n;
@@ -244,7 +244,7 @@ static inline bool list_empty_nodebug(const struct list_head *h)
  *	parent->num_children--;
  */
 #define list_del(n) list_del_(n, LIST_LOC)
-static inline void list_del_(struct list_node *n, const char* abortstr)
+static inline void list_del_(struct list_node *n, __attribute__((unused)) const char* abortstr)
 {
 	(void)list_debug_node(n, abortstr);
 	n->next->prev = n->prev;
@@ -489,7 +489,7 @@ static inline const void *list_tail_(const struct list_head *h, size_t off)
 				   __FILE__ ":" stringify(__LINE__))
 static inline void list_append_list_(struct list_head *to,
 				     struct list_head *from,
-				     const char *abortstr)
+				     __attribute__((unused)) const char *abortstr)
 {
 	struct list_node *from_tail = list_debug(from, abortstr)->n.prev;
 	struct list_node *to_tail = list_debug(to, abortstr)->n.prev;
@@ -521,7 +521,7 @@ static inline void list_append_list_(struct list_head *to,
 #define list_prepend_list(t, f) list_prepend_list_(t, f, LIST_LOC)
 static inline void list_prepend_list_(struct list_head *to,
 				      struct list_head *from,
-				      const char *abortstr)
+				      __attribute__((unused)) const char *abortstr)
 {
 	struct list_node *from_tail = list_debug(from, abortstr)->n.prev;
 	struct list_node *to_head = list_debug(to, abortstr)->n.next;
