@@ -28,13 +28,13 @@ struct pkt_name {
 };
 
 struct pkt_name
-get_packet_struct(unsigned int type);
+get_packet_struct(u_int16_t type);
 
 char
-get_packet_type_char(unsigned int type);
+get_packet_type_char(u_int16_t type);
 
 const char*
-get_packet_type_name(unsigned int type);
+get_packet_type_name(u_int16_t type);
 
 int
 rate_to_index(int rate);

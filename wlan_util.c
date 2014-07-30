@@ -63,8 +63,8 @@ static struct pkt_name badfcs = { '*', "BADFCS", 0 , "Bad FCS" };
 
 
 struct pkt_name
-get_packet_struct(unsigned int type) {
-	int index;
+get_packet_struct(u_int16_t type) {
+	u_int16_t index;
 
 	if (type == 1) /* special case for bad FCS */
 		return badfcs;
@@ -93,14 +93,14 @@ get_packet_struct(unsigned int type) {
 
 
 char
-get_packet_type_char(unsigned int type)
+get_packet_type_char(u_int16_t type)
 {
 	return get_packet_struct(type).c;
 }
 
 
 const char*
-get_packet_type_name(unsigned int type)
+get_packet_type_name(u_int16_t type)
 {
 	return get_packet_struct(type).name;
 }

@@ -122,7 +122,7 @@ struct packet_info {
 
 	/* wlan mac */
 	unsigned int		wlan_len;	/* packet length */
-	unsigned int		wlan_type;	/* frame control field */
+	u_int16_t		wlan_type;	/* frame control field */
 	unsigned char		wlan_src[MAC_LEN]; /* transmitter (TA) */
 	unsigned char		wlan_dst[MAC_LEN]; /* receiver (RA) */
 	unsigned char		wlan_bssid[MAC_LEN];
