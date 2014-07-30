@@ -116,7 +116,7 @@ struct net_packet_info {
 	unsigned char		wlan_src[MAC_LEN];
 	unsigned char		wlan_dst[MAC_LEN];
 	unsigned char		wlan_bssid[MAC_LEN];
-	char			wlan_essid[MAX_ESSID_LEN];
+	char			wlan_essid[WLAN_MAX_SSID_LEN];
 	u_int64_t		wlan_tsf;	/* timestamp from beacon */
 	unsigned int		wlan_bintval;	/* beacon interval */
 	unsigned int		wlan_mode;	/* AP, STA or IBSS */
@@ -188,7 +188,7 @@ net_send_packet(struct packet_info *p)
 	memcpy(np.wlan_src, p->wlan_src, MAC_LEN);
 	memcpy(np.wlan_dst, p->wlan_dst, MAC_LEN);
 	memcpy(np.wlan_bssid, p->wlan_bssid, MAC_LEN);
-	memcpy(np.wlan_essid, p->wlan_essid, MAX_ESSID_LEN);
+	memcpy(np.wlan_essid, p->wlan_essid, WLAN_MAX_SSID_LEN);
 	np.wlan_tsf	= htole64(p->wlan_tsf);
 	np.wlan_bintval	= htole32(p->wlan_bintval);
 	np.wlan_mode	= htole32(p->wlan_mode);
@@ -246,7 +246,7 @@ net_receive_packet(unsigned char *buffer, size_t len)
 	memcpy(p.wlan_src, np->wlan_src, MAC_LEN);
 	memcpy(p.wlan_dst, np->wlan_dst, MAC_LEN);
 	memcpy(p.wlan_bssid, np->wlan_bssid, MAC_LEN);
-	memcpy(p.wlan_essid, np->wlan_essid, MAX_ESSID_LEN);
+	memcpy(p.wlan_essid, np->wlan_essid, WLAN_MAX_SSID_LEN);
 	p.wlan_tsf	= le64toh(np->wlan_tsf);
 	p.wlan_bintval	= le32toh(np->wlan_bintval);
 	p.wlan_mode	= le32toh(np->wlan_mode);

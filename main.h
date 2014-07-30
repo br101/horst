@@ -26,6 +26,7 @@
 #include "ccan/list/list.h"
 #include "average.h"
 #include "channel.h"
+#include "wlan80211.h"
 
 #define VERSION "4.0-pre"
 
@@ -39,7 +40,6 @@
 #define MAX_ESSIDS		255
 #define MAX_BSSIDS		255
 #define MAX_HISTORY		255
-#define MAX_ESSID_LEN		32
 #define MAX_RATES		44	/* 12 legacy rates and 32 MCS */
 #define MAX_FSTYPE		0xff
 #define MAX_FILTERMAC		9
@@ -126,7 +126,7 @@ struct packet_info {
 	unsigned char		wlan_src[MAC_LEN]; /* transmitter (TA) */
 	unsigned char		wlan_dst[MAC_LEN]; /* receiver (RA) */
 	unsigned char		wlan_bssid[MAC_LEN];
-	char			wlan_essid[MAX_ESSID_LEN];
+	char			wlan_essid[WLAN_MAX_SSID_LEN];
 	u_int64_t		wlan_tsf;	/* timestamp from beacon */
 	unsigned int		wlan_bintval;	/* beacon interval */
 	unsigned int		wlan_mode;	/* AP, STA or IBSS */
@@ -215,7 +215,7 @@ extern struct list_head nodes;
 
 struct essid_info {
 	struct list_node	list;
-	char			essid[MAX_ESSID_LEN];
+	char			essid[WLAN_MAX_SSID_LEN];
 	struct list_head	nodes;
 	unsigned int		num_nodes;
 	int			split;

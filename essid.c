@@ -109,7 +109,7 @@ update_essids(struct packet_info* p, struct node_info* n)
 
 	/* find essid if already recorded */
 	list_for_each(&essids.list, e, list) {
-		if (strncmp(e->essid, p->wlan_essid, MAX_ESSID_LEN) == 0) {
+		if (strncmp(e->essid, p->wlan_essid, WLAN_MAX_SSID_LEN) == 0) {
 			DEBUG("SPLIT   essid found\n");
 			break;
 		}
@@ -119,8 +119,8 @@ update_essids(struct packet_info* p, struct node_info* n)
 	if (&e->list == &essids.list.n) {
 		DEBUG("SPLIT   essid not found, adding new\n");
 		e = malloc(sizeof(struct essid_info));
-		strncpy(e->essid, p->wlan_essid, MAX_ESSID_LEN);
-		e->essid[MAX_ESSID_LEN-1] = '\0';
+		strncpy(e->essid, p->wlan_essid, WLAN_MAX_SSID_LEN);
+		e->essid[WLAN_MAX_SSID_LEN-1] = '\0';
 		e->num_nodes = 0;
 		e->split = 0;
 		list_head_init(&e->nodes);
