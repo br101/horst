@@ -141,6 +141,10 @@ struct net_packet_info {
 	unsigned int		olsr_neigh;
 	unsigned int		olsr_tc;
 
+#define PKT_BAT_FLAG_GW		0x1
+	unsigned char		bat_flags;
+	unsigned char		bat_pkt_type;
+
 	unsigned char		phy_rate_idx;
 	unsigned char		phy_rate_flags;
 } __attribute__ ((packed));
@@ -214,6 +218,10 @@ net_send_packet(struct packet_info *p)
 	np.olsr_type	= htole32(p->olsr_type);
 	np.olsr_neigh	= htole32(p->olsr_neigh);
 	np.olsr_tc	= htole32(p->olsr_tc);
+	np.bat_flags = 0;
+	if (p->bat_gw)
+		np.bat_flags |= PKT_BAT_FLAG_GW;
+	np.bat_pkt_type = p->bat_packet_type;
 
 	net_write(cli_fd, (unsigned char *)&np, sizeof(np));
 	return 0;
@@ -275,6 +283,9 @@ net_receive_packet(unsigned char *buffer, size_t len)
 	p.olsr_type	= le32toh(np->olsr_type);
 	p.olsr_neigh	= le32toh(np->olsr_neigh);
 	p.olsr_tc	= le32toh(np->olsr_tc);
+	if (np->bat_flags & PKT_BAT_FLAG_GW)
+		p.bat_gw = 1;
+	p.bat_packet_type = np->bat_pkt_type;
 
 	handle_packet(&p);
 
