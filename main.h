@@ -73,12 +73,15 @@
 #define PKT_TYPE_ALL_CTRL	(PKT_TYPE_RTSCTS | PKT_TYPE_ACK)
 #define PKT_TYPE_ALL_DATA	(PKT_TYPE_NULL | PKT_TYPE_QDATA | PKT_TYPE_ARP | PKT_TYPE_ICMP | PKT_TYPE_IP | \
 				 PKT_TYPE_UDP | PKT_TYPE_TCP | PKT_TYPE_OLSR | PKT_TYPE_BATMAN | PKT_TYPE_MESHZ)
+#define PKT_TYPE_ALL		(PKT_TYPE_CTRL | PKT_TYPE_MGMT | PKT_TYPE_DATA | PKT_TYPE_ALL_MGMT | PKT_TYPE_ALL_CTRL | PKT_TYPE_ALL_DATA | PKT_TYPE_BADFCS)
 
 #define WLAN_MODE_AP		0x01
 #define WLAN_MODE_IBSS		0x02
 #define WLAN_MODE_STA		0x04
 #define WLAN_MODE_PROBE		0x08
 #define WLAN_MODE_4ADDR		0x10
+
+#define WLAN_MODE_ALL		(WLAN_MODE_AP | WLAN_MODE_IBSS | WLAN_MODE_STA | WLAN_MODE_PROBE | WLAN_MODE_4ADDR)
 
 #define PHY_FLAG_SHORTPRE	0x0001
 #define PHY_FLAG_BADFCS		0x0002
@@ -305,8 +308,8 @@ struct config {
 	unsigned char		filtermac[MAX_FILTERMAC][MAC_LEN];
 	char			filtermac_enabled[MAX_FILTERMAC];
 	unsigned char		filterbssid[MAC_LEN];
-	int			filter_pkt;
-	int			filter_mode;
+	unsigned int		filter_pkt;
+	unsigned int		filter_mode;
 	unsigned int		filter_off:1,
 				do_change_channel:1,
 				allow_client:1,

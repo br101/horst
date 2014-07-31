@@ -55,7 +55,9 @@ struct config conf = {
 	.display_interval	= DISPLAY_UPDATE_INTERVAL,
 	.recv_buffer_size	= RECV_BUFFER_SIZE,
 	.port			= DEFAULT_PORT,
-	.control_pipe		= DEFAULT_CONTROL_PIPE
+	.control_pipe		= DEFAULT_CONTROL_PIPE,
+	.filter_pkt		= PKT_TYPE_ALL,
+	.filter_mode		= WLAN_MODE_ALL,
 };
 
 struct timeval the_time;
@@ -251,7 +253,7 @@ filter_packet(struct packet_info* p)
 	if (conf.filter_off)
 		return 0;
 
-	if (conf.filter_pkt != 0 && (p->pkt_types & ~conf.filter_pkt)) {
+	if (conf.filter_pkt != PKT_TYPE_ALL && (p->pkt_types & ~conf.filter_pkt)) {
 		stats.filtered_packets++;
 		return 1;
 	}
@@ -260,7 +262,7 @@ filter_packet(struct packet_info* p)
 	if (p->phy_flags & PHY_FLAG_BADFCS)
 		return 0;
 
-	if (conf.filter_mode != 0 && ((p->wlan_mode & ~conf.filter_mode) || p->wlan_mode == 0)) {
+	if (conf.filter_mode != WLAN_MODE_ALL && ((p->wlan_mode & ~conf.filter_mode) || p->wlan_mode == 0)) {
 		/* this also filters out packets where we cannot associate a mode (ACK, RTS/CTS) */
 		stats.filtered_packets++;
 		return 1;
@@ -582,6 +584,8 @@ get_options(int argc, char** argv)
 			control_send_command(optarg);
 			exit(0);
 		case 'm':
+			if (conf.filter_mode == WLAN_MODE_ALL)
+				conf.filter_mode = 0;
 			if (strcmp(optarg, "AP") == 0)
 				conf.filter_mode |= WLAN_MODE_AP;
 			else if (strcmp(optarg, "STA") == 0)
@@ -594,6 +598,8 @@ get_options(int argc, char** argv)
 				conf.filter_mode |= WLAN_MODE_4ADDR;
 			break;
 		case 'f':
+			if (conf.filter_pkt == PKT_TYPE_ALL)
+				conf.filter_pkt = 0;
 			if (strcmp(optarg, "CTRL") == 0 || strcmp(optarg, "CONTROL") == 0)
 				conf.filter_pkt |= PKT_TYPE_CTRL | PKT_TYPE_ALL_CTRL;
 			else if (strcmp(optarg, "MGMT") == 0 || strcmp(optarg, "MANAGEMENT") == 0)
