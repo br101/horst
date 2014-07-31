@@ -302,6 +302,8 @@ handle_packet(struct packet_info* p)
 	if (conf.paused)
 		return;
 
+	DEBUG("recv %s", get_packet_type_name(p->wlan_type));
+
 	/* get channel index for packet */
 	if (p->phy_freq) {
 		i = channel_find_index_from_freq(p->phy_freq);
