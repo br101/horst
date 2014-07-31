@@ -36,14 +36,15 @@ update_help_win(WINDOW *win)
 	wattron(win, WHITE);
 	box(win, 0 , 0);
 	print_centered(win, 0, COLS, " Help ");
-	print_centered(win, 2, COLS, "HORST - Horsts OLSR Radio Scanning Tool");
-	print_centered(win, 3, COLS, "Version " VERSION " (build date " __DATE__ " " __TIME__ ")");
+	print_centered(win, 2, COLS, "HORST - Horsts OLSR Radio Scanning Tool (or)");
+	print_centered(win, 3, COLS, "HORST - Highly Optimized Radio Scanning Tool");
 
-	mvwprintw(win, 5, 2, "(C) 2005-2014 Bruno Randolf, Licensed under the GPLv2");
+	print_centered(win, 5, COLS, "Version " VERSION " (build date " __DATE__ " " __TIME__ ")");
+	print_centered(win, 6, COLS, "(C) 2005-2014 Bruno Randolf, Licensed under the GPLv2");
 
-	mvwprintw(win, 7, 2, "Known IEEE802.11 Packet Types:");
+	mvwprintw(win, 8, 2, "Known IEEE802.11 Packet Types:");
 
-	l = 9;
+	l = 10;
 	/* this is weird but it works */
 	mvwprintw(win, l++, 2, "MANAGEMENT FRAMES");
 	for (i = 0x00; i <= 0xE0; i = i + 0x10) {
@@ -52,7 +53,7 @@ update_help_win(WINDOW *win)
 			mvwprintw(win, l++, 4, "%c  %-6s  %s", c.c, c.name, c.desc);
 	}
 
-	l = 9;
+	l = 10;
 	mvwprintw(win, l++, 45, "DATA FRAMES");
 	for (i = 0x08; i <= 0xF8; i = i + 0x10) {
 		c = get_packet_struct(i);
@@ -67,7 +68,7 @@ update_help_win(WINDOW *win)
 			mvwprintw(win, l++, 4, "%c  %-6s  %s", c.c, c.name, c.desc);
 	}
 
-	mvwprintw(win, ++l, 2, "For more info read the README or check http://br1.einfach.org/horst/");
+	print_centered(win, ++l, COLS, "For more info read the man page or check http://br1.einfach.org/horst/");
 
 	wrefresh(win);
 }
