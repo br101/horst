@@ -63,7 +63,7 @@ update_filter_win(WINDOW *win)
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, 2, "d: [%c] DATA Frames", CHECKED(PKT_TYPE_DATA));
 	wattroff(win, A_BOLD);
-	mvwprintw(win, l++, 2, "q: [%c] QoS Data", CHECKED(PKT_TYPE_QDATA));
+	mvwprintw(win, l++, 2, "Q: [%c] QoS Data", CHECKED(PKT_TYPE_QDATA));
 	mvwprintw(win, l++, 2, "n: [%c] Null Data", CHECKED(PKT_TYPE_NULL));
 	mvwprintw(win, l++, 2, "R: [%c] ARP", CHECKED(PKT_TYPE_ARP));
 	mvwprintw(win, l++, 2, "P: [%c] ICMP/PING", CHECKED(PKT_TYPE_ICMP));
@@ -151,7 +151,7 @@ filter_input(WINDOW *win, int c)
 		else
 			conf.filter_pkt &= ~PKT_TYPE_ALL_DATA;
 		break;
-	case 'q': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_QDATA); break;
+	case 'Q': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_QDATA); break;
 	case 'n': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_NULL); break;
 	case 'R': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ARP); break;
 	case 'P': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ICMP); break;
