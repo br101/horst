@@ -333,6 +333,8 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 	if (len < 10) /* minimum frame size (CTS/ACK) */
 		return -1;
 
+	p->wlan_mode = WLAN_MODE_UNKNOWN;
+
 	wh = (struct wlan_frame*)*buf;
 
 	fc = le16toh(wh->fc);

@@ -596,6 +596,8 @@ get_options(int argc, char** argv)
 				conf.filter_mode |= WLAN_MODE_PROBE;
 			else if (strcmp(optarg, "WDS") == 0)
 				conf.filter_mode |= WLAN_MODE_4ADDR;
+			else if (strcmp(optarg, "UNKNOWN") == 0)
+				conf.filter_mode |= WLAN_MODE_UNKNOWN;
 			break;
 		case 'f':
 			if (conf.filter_pkt == PKT_TYPE_ALL)

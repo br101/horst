@@ -106,6 +106,7 @@ update_filter_win(WINDOW *win)
 	mvwprintw(win, l++, MAC_COL, "I: [%c] IBSS (Ad-hoc)", CHECKED_MODE(WLAN_MODE_IBSS));
 	mvwprintw(win, l++, MAC_COL, "O: [%c] Probe Request", CHECKED_MODE(WLAN_MODE_PROBE));
 	mvwprintw(win, l++, MAC_COL, "W: [%c] WDS/4ADDR", CHECKED_MODE(WLAN_MODE_4ADDR));
+	mvwprintw(win, l++, MAC_COL, "N: [%c] Unknown", CHECKED_MODE(WLAN_MODE_UNKNOWN));
 
 	l++;
 	wattron(win, A_BOLD);
@@ -168,6 +169,7 @@ filter_input(WINDOW *win, int c)
 	case 'I': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_IBSS); break;
 	case 'O': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_PROBE); break;
 	case 'W': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_4ADDR); break;
+	case 'N': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_UNKNOWN); break;
 
 	case 's':
 		echo();
