@@ -127,6 +127,8 @@ struct net_packet_info {
 
 #define PKT_WLAN_FLAG_WEP	0x1
 #define PKT_WLAN_FLAG_RETRY	0x2
+#define PKT_WLAN_FLAG_WPA	0x4
+#define PKT_WLAN_FLAG_RSN	0x8
 
 	/* bitfields are not portable - endianness is not guaranteed */
 	unsigned int		wlan_flags;
@@ -201,6 +203,10 @@ net_send_packet(struct packet_info *p)
 		np.wlan_flags |= PKT_WLAN_FLAG_WEP;
 	if (p->wlan_retry)
 		np.wlan_flags |= PKT_WLAN_FLAG_RETRY;
+	if (p->wlan_wpa)
+		np.wlan_flags |= PKT_WLAN_FLAG_WPA;
+	if (p->wlan_rsn)
+		np.wlan_flags |= PKT_WLAN_FLAG_RSN;
 	np.wlan_flags	= htole32(np.wlan_flags);
 	np.ip_src	= p->ip_src;
 	np.ip_dst	= p->ip_dst;
@@ -259,6 +265,10 @@ net_receive_packet(unsigned char *buffer, size_t len)
 		p.wlan_wep = 1;
 	if (np->wlan_flags & PKT_WLAN_FLAG_RETRY)
 		p.wlan_retry = 1;
+	if (np->wlan_flags & PKT_WLAN_FLAG_WPA)
+		p.wlan_wpa = 1;
+	if (np->wlan_flags & PKT_WLAN_FLAG_RSN)
+		p.wlan_rsn = 1;
 	p.ip_src	= np->ip_src;
 	p.ip_dst	= np->ip_dst;
 	p.tcpudp_port	= le32toh(np->tcpudp_port);
