@@ -104,7 +104,7 @@ update_filter_win(WINDOW *win)
 	mvwprintw(win, l++, MAC_COL, "A: [%c] Access Point", CHECKED_MODE(WLAN_MODE_AP));
 	mvwprintw(win, l++, MAC_COL, "S: [%c] Station", CHECKED_MODE(WLAN_MODE_STA));
 	mvwprintw(win, l++, MAC_COL, "I: [%c] IBSS (Ad-hoc)", CHECKED_MODE(WLAN_MODE_IBSS));
-	mvwprintw(win, l++, MAC_COL, "O: [%c] PROBE Request", CHECKED_MODE(WLAN_MODE_PROBE));
+	mvwprintw(win, l++, MAC_COL, "O: [%c] Probe Request", CHECKED_MODE(WLAN_MODE_PROBE));
 	mvwprintw(win, l++, MAC_COL, "W: [%c] WDS/4ADDR", CHECKED_MODE(WLAN_MODE_4ADDR));
 
 	l++;
