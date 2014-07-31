@@ -261,7 +261,7 @@ update_status_win(struct packet_info* p)
 static char spin[4] = {'/', '-', '\\', '|'};
 
 static void
-print_list_line(int line, struct node_info* n)
+print_node_list_line(int line, struct node_info* n)
 {
 	struct packet_info* p = &n->last_pkt;
 	char* ssid = NULL;
@@ -346,7 +346,7 @@ print_list_line(int line, struct node_info* n)
 
 
 static void
-update_list_win(void)
+update_node_list_win(void)
 {
 	struct node_info* n;
 	int line = 0, nadd = 0;
@@ -385,7 +385,7 @@ update_list_win(void)
 		line++;
 		if (line >= win_split - 1)
 			break; /* prevent overdraw of last line */
-		print_list_line(line, n);
+		print_node_list_line(line, n);
 	}
 
 	if (essids.split_active > 0) {
@@ -529,7 +529,7 @@ update_dump_win(struct packet_info* p)
 void
 update_main_win(struct packet_info *p)
 {
-	update_list_win();
+	update_node_list_win();
 	update_status_win(p);
 	update_dump_win(p);
 	wnoutrefresh(dump_win);
