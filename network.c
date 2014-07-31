@@ -39,7 +39,7 @@ int srv_fd = -1;
 int cli_fd = -1;
 static int netmon_fd;
 
-#define PROTO_VERSION	1
+#define PROTO_VERSION	2
 
 
 enum pkt_type {
@@ -79,19 +79,20 @@ struct net_conf_filter {
 } __attribute__ ((packed));
 
 
+struct net_chan_freq {
+	unsigned char chan;
+	unsigned int freq;
+} __attribute__ ((packed));
+
 struct net_chan_list {
 	struct net_header	proto;
 
 	unsigned char num_channels;
-	struct {
-		unsigned char chan;
-		unsigned char freq;
-	} channel[1];
-
+	struct net_chan_freq channel[1];
 } __attribute__ ((packed));
 
 
-#define PKT_INFO_VERSION	2
+#define PKT_INFO_VERSION	1
 
 struct net_packet_info {
 	struct net_header	proto;
@@ -106,8 +107,7 @@ struct net_packet_info {
 	int			phy_noise;	/* noise level (usually dBm) */
 	unsigned int		phy_snr;	/* signal to noise ratio */
 	unsigned int		phy_rate;	/* physical rate * 10 (= in 100kbps) */
-	unsigned int		phy_freq;	/* frequency (unused) */
-	unsigned char		phy_chan;	/* channel from driver */
+	unsigned int		phy_freq;	/* frequency */
 	unsigned int		phy_flags;	/* A, B, G, shortpre */
 
 	/* wlan mac */
@@ -364,7 +364,7 @@ net_send_chan_list(int fd)
 	struct net_chan_list *nc;
 	int i;
 
-	buf = malloc(sizeof(struct net_chan_list) + 2*(conf.num_channels - 1));
+	buf = malloc(sizeof(struct net_chan_list) + sizeof(struct net_chan_freq)*(conf.num_channels - 1));
 	if (buf == NULL)
 		return 0;
 
@@ -376,12 +376,15 @@ net_send_chan_list(int fd)
 		struct chan_freq* cf = channel_get_struct(i);
 		if (cf != NULL) {
 			nc->channel[i].chan = cf->chan;
-			nc->channel[i].freq = cf->freq;
+			nc->channel[i].freq = htole32(cf->freq);
+			DEBUG("NET send chan %d %d %d\n", i, cf->chan, cf->freq);
+		} else {
+			printlog("NET send chan ERR");
 		}
 	}
 	nc->num_channels = i;
 
-	net_write(fd, (unsigned char *)buf, sizeof(struct net_chan_list) + 2*(i - 1));
+	net_write(fd, (unsigned char *)buf, sizeof(struct net_chan_list) + sizeof(struct net_chan_freq)*(i - 1));
 	free(buf);
 	return 0;
 }
@@ -398,15 +401,22 @@ net_receive_chan_list(unsigned char *buffer, size_t len)
 
 	nc = (struct net_chan_list *)buffer;
 
-	if (len < sizeof(struct net_chan_list) + 2*(nc->num_channels - 1))
+	if (len < sizeof(struct net_chan_list) + sizeof(struct net_chan_freq)*(nc->num_channels - 1))
 		return 0;
 
-	for (i = 0; i < nc->num_channels && i < MAX_CHANNELS; i++) {
-		channel_set(i, nc->channel[i].chan, nc->channel[i].freq);
+	if (nc->num_channels > MAX_CHANNELS) {
+		printlog("ERR: server sent too many channels, truncated");
+		conf.num_channels = MAX_CHANNELS;
+	} else {
+		conf.num_channels = nc->num_channels;
 	}
-	conf.num_channels = i;
+
+	for (i = 0; i < conf.num_channels; i++) {
+		channel_set(i, nc->channel[i].chan, le32toh(nc->channel[i].freq));
+		DEBUG("NET recv chan %d %d %d\n", i, nc->channel[i].chan, le32toh(nc->channel[i].freq));
+	}
 	init_spectrum();
-	return sizeof(struct net_chan_list) + 2*(nc->num_channels - 1);
+	return sizeof(struct net_chan_list) + sizeof(struct net_chan_freq)*(nc->num_channels - 1);
 }
 
 
