@@ -242,22 +242,29 @@ write_to_file(struct packet_info* p)
 }
 
 
+/* return 1 if packet is filtered */
 static int
 filter_packet(struct packet_info* p)
 {
 	int i;
 
-	if (conf.filter_off || conf.filter_pkt == 0)
+	if (conf.filter_off)
 		return 0;
 
-	if (p->pkt_types & ~conf.filter_pkt) {
+	if (conf.filter_pkt != 0 && (p->pkt_types & ~conf.filter_pkt)) {
 		stats.filtered_packets++;
 		return 1;
 	}
 
-	/* cannot trust BSSID or MAC if FCS is bad */
+	/* cannot trust anything if FCS is bad */
 	if (p->phy_flags & PHY_FLAG_BADFCS)
 		return 0;
+
+	if (conf.filter_mode != 0 && ((p->wlan_mode & ~conf.filter_mode) || p->wlan_mode == 0)) {
+		/* this also filters out packets where we cannot associate a mode (ACK, RTS/CTS) */
+		stats.filtered_packets++;
+		return 1;
+	}
 
 	if (MAC_NOT_EMPTY(conf.filterbssid) &&
 	    memcmp(p->wlan_bssid, conf.filterbssid, MAC_LEN) != 0) {
