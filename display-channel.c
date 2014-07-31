@@ -41,7 +41,7 @@ update_channel_win(WINDOW *win)
 
 	mvwprintw(win, 6, 2, "m: Manually change channel: %d ", channel_get_current_chan());
 
-	print_centered(win, 9, 39, "[ Press key or ENTER ]");
+	print_centered(win, 8, 39, "[ Press key or ENTER ]");
 
 	wrefresh(win);
 }

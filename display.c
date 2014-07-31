@@ -301,7 +301,7 @@ show_conf_window(int key)
 			update_filter_win(conf_win);
 		}
 		else if (key == 'c') {
-			conf_win = newwin(10, 39, LINES/2-5, COLS/2-20);
+			conf_win = newwin(9, 39, LINES/2-6, COLS/2-20);
 			update_channel_win(conf_win);
 		}
 		scrollok(conf_win, FALSE);
