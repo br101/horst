@@ -173,8 +173,8 @@ filter_input(WINDOW *win, int c)
 		echo();
 		print_centered(win, FILTER_MAX, 57,
 			       "[ Enter new BSSID and ENTER ]");
-		mvwprintw(win, 5, MAC_COL + 4, ">");
-		mvwgetnstr(win, 5, MAC_COL + 7, buf, 17);
+		mvwprintw(win, 3, MAC_COL + 4, ">");
+		mvwgetnstr(win, 3, MAC_COL + 7, buf, 17);
 		noecho();
 		convert_string_to_mac(buf, conf.filterbssid);
 		break;
@@ -188,8 +188,8 @@ filter_input(WINDOW *win, int c)
 			echo();
 			print_centered(win, FILTER_MAX, 57,
 				       "[ Enter new MAC %d and ENTER ]", i+1);
-			mvwprintw(win, 9 + i, MAC_COL + 4, ">");
-			mvwgetnstr(win, 9 + i, MAC_COL + 7, buf, 17);
+			mvwprintw(win, 6 + i, MAC_COL + 4, ">");
+			mvwgetnstr(win, 6 + i, MAC_COL + 7, buf, 17);
 			noecho();
 			/* just enable old MAC if user pressed return only */
 			if (*buf == '\0' && MAC_NOT_EMPTY(conf.filtermac[i]))
