@@ -74,8 +74,8 @@ struct net_conf_filter {
 	char		filtermac_enabled[MAX_FILTERMAC];
 	unsigned char	filterbssid[MAC_LEN];
 	int		filter_pkt;
+	int		filter_mode;
 	unsigned char	filter_off;
-
 } __attribute__ ((packed));
 
 
@@ -348,6 +348,7 @@ net_send_conf_filter(int fd)
 	}
 	memcpy(nc.filterbssid, conf.filterbssid, MAC_LEN);
 	nc.filter_pkt = htole32(conf.filter_pkt);
+	nc.filter_mode = htole32(conf.filter_mode);
 	nc.filter_off = conf.filter_off;
 
 	net_write(fd, (unsigned char *)&nc, sizeof(nc));
@@ -372,6 +373,7 @@ net_receive_conf_filter(unsigned char *buffer, size_t len)
 	}
 	memcpy(conf.filterbssid, nc->filterbssid, MAC_LEN);
 	conf.filter_pkt = le32toh(nc->filter_pkt);
+	conf.filter_mode = le32toh(nc->filter_mode);
 	conf.filter_off = nc->filter_off;
 
 	return sizeof(struct net_conf_filter);
