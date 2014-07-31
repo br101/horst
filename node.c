@@ -93,8 +93,6 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		n->phy_snr_min = p->phy_snr;
 	if (p->wlan_channel != 0)
 		n->wlan_channel = p->wlan_channel;
-	else if (p->pkt_chan_idx >= 0)
-		n->wlan_channel = channel_get_chan_from_idx(p->pkt_chan_idx);
 
 	if ((p->wlan_type == WLAN_FRAME_DATA) ||
 	    (p->wlan_type == WLAN_FRAME_QDATA) ||

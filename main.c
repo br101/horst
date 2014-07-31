@@ -312,6 +312,10 @@ handle_packet(struct packet_info* p)
 		p->pkt_chan_idx = conf.channel_idx;
 	else
 		p->pkt_chan_idx = i;
+	/* wlan_channel is only known for beacons and probe response,
+	 * otherwise we set it from the physical channel */
+	if (p->wlan_channel == 0 && p->pkt_chan_idx >= 0)
+		p->wlan_channel = channel_get_chan_from_idx(p->pkt_chan_idx);
 
 	/* detect if noise reading is present or not */
 	if (!conf.have_noise && p->phy_noise)
