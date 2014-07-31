@@ -586,3 +586,10 @@ resize_display_main(void)
 	wresize(stat_win, stat_height, STAT_WIDTH);
 	mvwin(stat_win, win_split, COLS - STAT_WIDTH);
 }
+
+
+void
+clear_display_main(void) {
+	werase(dump_win);
+	werase(stat_win);
+}

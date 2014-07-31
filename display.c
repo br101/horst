@@ -43,6 +43,7 @@ static int display_resize_needed = 0;
 
 /* main windows are special */
 void init_display_main(void);
+void clear_display_main(void);
 void update_main_win(struct packet_info *pkt);
 void update_dump_win(struct packet_info* pkt);
 int main_input(int c);
@@ -444,6 +445,7 @@ handle_user_input(void)
 		exit(0);
 
 	case 'r': case 'R':
+		clear_display_main();
 		print_dump_win("\n- RESET -", show_win == NULL);
 		free_lists();
 		essids.split_active = 0;
