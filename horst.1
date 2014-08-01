@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH HORST 8 "June 11, 2014"
+.TH HORST 8 "August 1, 2014"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 horst \- Highly Optimized Radio Scanning Tool
@@ -54,7 +54,7 @@ Calculates channel utilization ("usage") by adding up the amount of time the pac
 .IP \[bu] 2
 "Spectrum Analyzer" shows signal levels and usage per channel.
 .IP \[bu] 2
-Graphical packet history, with signal/noise, packet type and physical rat.e
+Text-based "graphical" packet history, with signal/noise, packet type and physical rate
 .IP \[bu] 2
 Shows all stations per ESSID and the live TSF per node as it is counting.
 .IP \[bu] 2
@@ -69,8 +69,6 @@ Can filter specific packet types, source MAC addresses or BSSIDs.
 Client/server support for monitoring on remote nodes.
 .IP \[bu] 2
 Can be controlled via a named pipe.
-.IP \[bu] 2
-Upload via HTTP or HTTPS of selected node information in JSON format.
 
 
 .SH OPTIONS
@@ -133,7 +131,7 @@ Filter all MAC addresses except these, to show only packets originating from the
 .BI \-f\  pkt_type
 Filter all packets except these. This option can be specified multiple times. For valid packet names see NAMES AND ABBREVIATIONS below.
 .TP
-.BI \-m\  (AP|STA|ADH|PRB|WDS)
+.BI \-m\  (AP|STA|ADH|PRB|WDS|UNKNOWN)
 Only show/include nodes of this mode. Note that the mode is infered by the information of packets we received and it may take some time until a node is properly classified. This option can be specified multiple times.
 
 
@@ -312,6 +310,7 @@ Bit field of operating mode type which is infered from received packets. Modes m
  STA         0x04        Station (AP client)
  PRB         0x08        Sent PROBE requests
  WDS         0x10        WDS or 4 Address frames
+ UNKNOWN     0x20        Unknown e.g. RTS/CTS or ACK
 
 
 .SH MONITOR MODE
@@ -390,6 +389,9 @@ Packet length (MAC)
 phy_rate
 Physical data rate
 .TP
+phy_freq
+Received while tuned to this frequency.
+.TP
 wlan_tsf
 TFS timer value
 .TP
@@ -404,6 +406,12 @@ Channel number
 .TP
 wlan_wep
 Encryption in use
+.TP
+wlan_wpa
+WPA1 Encryption in use
+.TP
+wlan_rsn
+RSN (WPA2) Encryption in use
 .TP
 ip_src
 IP source address (if available)
