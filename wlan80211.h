@@ -105,6 +105,7 @@ struct wlan_frame {
 #define WLAN_FRAME_QOS_CF_ACKPOLL	_WLAN_FRAME_FC(_FC_TYPE_DATA, 0xf)
 
 #define WLAN_FRAME_QOS_TID_MASK		0x7
+#define WLAN_FRAME_QOS_AMSDU_PRESENT	0x80
 
 /*** individual frame formats ***/
 

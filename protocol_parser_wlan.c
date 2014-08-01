@@ -360,8 +360,14 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 		} else if ((fc & WLAN_FRAME_FC_FROM_DS) &&
 			   (fc & WLAN_FRAME_FC_TO_DS)) {
 			p->wlan_mode = WLAN_MODE_4ADDR;
-			//TODO bssid = either addr3 or add4;
 			hdrlen += 6;
+			if (WLAN_FRAME_IS_QOS(fc)) {
+				u_int16_t qos = le16toh(wh->u.addr4_qos_ht.qos);
+				DEBUG("4ADDR A-MSDU %x\n", qos & WLAN_FRAME_QOS_AMSDU_PRESENT);
+				if (qos & WLAN_FRAME_QOS_AMSDU_PRESENT)
+					bssid = wh->addr3;
+				// in the MSDU case BSSID is unknown
+			}
 		} else if (fc & WLAN_FRAME_FC_FROM_DS) {
 			p->wlan_mode = WLAN_MODE_AP;
 			bssid = wh->addr2;
