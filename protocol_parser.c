@@ -127,7 +127,7 @@ parse_batman_adv_packet(unsigned char** buf, int len, struct packet_info* p) {
 			DEBUG("ICMP\n");
 			break;
 		case BAT_UNICAST:
-			DEBUG("UNI %u\n", sizeof(struct unicast_packet));
+			DEBUG("UNI %zu\n", sizeof(struct unicast_packet));
 			*buf = *buf + sizeof(struct unicast_packet) + 14;
 			return len - sizeof(struct unicast_packet) - 14;
 		case BAT_BCAST:
