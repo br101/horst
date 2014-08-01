@@ -681,10 +681,10 @@ get_options(int argc, char** argv)
 				" Filters are generally 'positive' or 'inclusive' which means you define\n"
 				" what you want to see, and everything else is getting filtered out.\n"
 				" If a filter is not set it is inactive and nothing is filtered.\n"
-				" All filters can be specified multiple times.\n"
-				"  -e <MAC>\tSource MAC addresses (xx:xx:xx:xx:xx:xx, up to 9)\n"
+				" All filter options can be specified multiple times.\n"
+				"  -e <MAC>\tSource MAC addresses (xx:xx:xx:xx:xx:xx), up to 9 times\n"
 				"  -f <PKT_NAME>\tFilter packet types\n"
-				"  -m <MODE>\tOperating mode of nodes: AP|STA|ADH|PRB|WDS\n"
+				"  -m <MODE>\tOperating mode: AP|STA|ADH|PRB|WDS|UNKNOWN\n"
 				"\n",
 				argv[0]);
 			exit(0);
