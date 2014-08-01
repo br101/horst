@@ -35,21 +35,20 @@ static int parse_radiotap_header(unsigned char** buf, int len, struct packet_inf
 static int parse_80211_header(unsigned char** buf, int len, struct packet_info* p);
 
 
-/* return 1 if we parsed enough = min ieee header */
+/* return rest of packet length (may be 0) or negative value on error */
 int
 parse_packet_wlan(unsigned char** buf, int len, struct packet_info* p)
 {
 	if (conf.arphrd == ARPHRD_IEEE80211_PRISM) {
 		len = parse_prism_header(buf, len, p);
 		if (len <= 0)
-			return 0;
+			return -1;
 	}
 	else if (conf.arphrd == ARPHRD_IEEE80211_RADIOTAP) {
 		len = parse_radiotap_header(buf, len, p);
-		if (len == -1) /* Bad FCS, allow packet but stop parsing */
-			return 1;
-		else if (len <= 0) {
-			return 0;
+		if (len <= 0) {/* 0: Bad FCS, allow packet but stop parsing */
+			DEBUG("A");
+			return len;
 		}
 	}
 
@@ -58,6 +57,7 @@ parse_packet_wlan(unsigned char** buf, int len, struct packet_info* p)
 }
 
 
+/* return packet lenght or -1 on error */
 static int
 parse_prism_header(unsigned char** buf, int len, struct packet_info* p)
 {
@@ -249,6 +249,8 @@ get_radiotap_info(struct ieee80211_radiotap_iterator *iter, struct packet_info* 
 	}
 }
 
+
+/* return length of packet, 0 for bad FCS, -1 on error */
 static int
 parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 {
@@ -262,7 +264,7 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 	err = ieee80211_radiotap_iterator_init(&iter, rh, rt_len, NULL);
 	if (err) {
 		DEBUG("malformed radiotap header (init returns %d)\n", err);
-		return -2;
+		return -1;
 	}
 
 	while (!(err = ieee80211_radiotap_iterator_next(&iter))) {
@@ -312,7 +314,7 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 	if (p->phy_flags & PHY_FLAG_BADFCS) {
 		/* we can't trust frames with a bad FCS - stop parsing */
 		DEBUG("=== bad FCS, stop ===\n");
-		return -1;
+		return 0;
 	} else {
 		*buf = *buf + rt_len;
 		return len - rt_len;
@@ -320,6 +322,7 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 }
 
 
+/* return rest of packet length (may be 0) or -1 on error */
 static int
 parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 {
