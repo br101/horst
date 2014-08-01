@@ -10,9 +10,19 @@ struct wlan_frame {
 	u_int8_t	addr2[6];
 	u_int8_t	addr3[6];
 	u_int16_t	seq;
-	u_int8_t	addr4[6];
-	u_int16_t	qos;
-	u_int32_t	ht;
+	union {
+		u_int16_t	qos;
+		u_int8_t	addr4[6];
+		struct {
+			u_int16_t	qos;
+			u_int32_t	ht;
+		} __attribute__ ((packed)) ht;
+		struct {
+			u_int8_t	addr4[6];
+			u_int16_t	qos;
+			u_int32_t	ht;
+		} __attribute__ ((packed)) addr4_qos_ht;
+	} u;
 } __attribute__ ((packed));
 
 #define WLAN_FRAME_FC_VERSION_MASK	0x0003
@@ -94,6 +104,7 @@ struct wlan_frame {
 #define WLAN_FRAME_QOS_CF_POLL		_WLAN_FRAME_FC(_FC_TYPE_DATA, 0xe)
 #define WLAN_FRAME_QOS_CF_ACKPOLL	_WLAN_FRAME_FC(_FC_TYPE_DATA, 0xf)
 
+#define WLAN_FRAME_QOS_TID_MASK		0x7
 
 /*** individual frame formats ***/
 

@@ -381,7 +381,9 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 		DEBUG("A1 %s\n", ether_sprintf(wh->addr1));
 		DEBUG("A2 %s\n", ether_sprintf(wh->addr2));
 		DEBUG("A3 %s\n", ether_sprintf(wh->addr3));
-		DEBUG("A4 %s\n", ether_sprintf(wh->addr4));
+		if (p->wlan_mode == WLAN_MODE_4ADDR) {
+			DEBUG("A4 %s\n", ether_sprintf(wh->u.addr4));
+		}
 		DEBUG("ToDS %d FromDS %d\n", (fc & WLAN_FRAME_FC_FROM_DS) != 0, (fc & WLAN_FRAME_FC_TO_DS) != 0);
 
 		ra = wh->addr1;
@@ -437,9 +439,8 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 			break;
 
 		case WLAN_FRAME_QDATA:
-			/* TODO: ouch, should properly define a qos header */
 			p->pkt_types |= PKT_TYPE_QDATA;
-			p->wlan_qos_class = wh->addr4[0] & 0x7;
+			p->wlan_qos_class = le16toh(wh->u.qos) & WLAN_FRAME_QOS_TID_MASK;
 			DEBUG("***QDATA %x\n", p->wlan_qos_class);
 			break;
 
