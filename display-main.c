@@ -506,6 +506,8 @@ update_dump_win(struct packet_info* p)
 		case WLAN_FRAME_CTS:
 		case WLAN_FRAME_RTS:
 		case WLAN_FRAME_ACK:
+		case WLAN_FRAME_BLKACK:
+		case WLAN_FRAME_BLKACK_REQ:
 			wprintw(dump_win, "%s", ether_sprintf(p->wlan_dst));
 			break;
 		case WLAN_FRAME_BEACON:
