@@ -36,9 +36,6 @@
 
 #define MAC_LEN			6
 
-#define MAX_NODES		255
-#define MAX_ESSIDS		255
-#define MAX_BSSIDS		255
 #define MAX_HISTORY		255
 #define MAX_RATES		44	/* 12 legacy rates and 32 MCS */
 #define MAX_FSTYPE		0xff
