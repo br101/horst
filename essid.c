@@ -47,7 +47,7 @@ update_essid_split_status(struct essid_info* e)
 			n, ether_sprintf(n->last_pkt.wlan_src));
 		DEBUG(" bssid %s\n", ether_sprintf(n->wlan_bssid));
 
-		if (n->wlan_mode == WLAN_MODE_AP)
+		if (n->wlan_mode & WLAN_MODE_AP)
 			continue;
 
 		if (last_bssid && memcmp(last_bssid, n->wlan_bssid, MAC_LEN) != 0) {
