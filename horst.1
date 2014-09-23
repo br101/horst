@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH HORST 8 "August 1, 2014"
+.TH HORST 8 "September 23, 2014"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 horst \- Highly Optimized Radio Scanning Tool
@@ -10,6 +10,7 @@ horst \- Highly Optimized Radio Scanning Tool
 .B horst
 .RB [\| \-h \|]
 .RB [\| \-q \|]
+.RB [\| \-D \|]
 .RB [\| \-i 
 .IR interface \|] 
 .RB [\| \-t
@@ -78,6 +79,9 @@ Show summary of options.
 .TP
 .BI \-q
 Quiet mode. Don't show user interface. This is only useful in conjunction when running in server mode (\-C) or writing to a file (\-o).
+.TP
+.BI \-D
+Show lot's of debugging output, including a full package dump. Only available when compiled with DEBUG=1.
 .TP
 .BI \-i\  intf
 Operate on given network interface instead of the default "wlan0". Note that the interface is assumed to be in monitor mode already. See MONITOR MODE below for more information about preparing the network interface.
