@@ -276,9 +276,6 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 	DEBUG("\n");
 	DEBUG("SIG %d NOI %d SNR %d\n", p->phy_signal, p->phy_noise, p->phy_snr);
 
-	if (p->phy_signal > 0 || p->phy_signal < -95)
-		p->phy_signal = 0;
-
 	/* no SNR from radiotap, try to calculate, normal case nowadays */
 	if (p->phy_snr == 0 && p->phy_signal < 0) {
 		if (p->phy_noise < 0) {
