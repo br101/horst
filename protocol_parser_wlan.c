@@ -174,25 +174,23 @@ get_radiotap_info(struct ieee80211_radiotap_iterator *iter, struct packet_info* 
 		break;
 #define IEEE80211_CHAN_A \
 	(IEEE80211_CHAN_5GHZ | IEEE80211_CHAN_OFDM)
-#define IEEE80211_CHAN_B \
-	(IEEE80211_CHAN_2GHZ | IEEE80211_CHAN_CCK)
 #define IEEE80211_CHAN_G \
-	(IEEE80211_CHAN_2GHZ | IEEE80211_CHAN_DYN)
+	(IEEE80211_CHAN_2GHZ | IEEE80211_CHAN_OFDM)
 	case IEEE80211_RADIOTAP_CHANNEL:
 		/* channel & channel type */
 		p->phy_freq = le16toh(*(uint16_t*)iter->this_arg);
 		DEBUG("[freq %d", p->phy_freq);
 		iter->this_arg = iter->this_arg + 2;
 		x = le16toh(*(uint16_t*)iter->this_arg);
-		if (x & IEEE80211_CHAN_A) {
+		if ((x & IEEE80211_CHAN_A) == IEEE80211_CHAN_A) {
 			p->phy_flags |= PHY_FLAG_A;
 			DEBUG("A]");
 		}
-		else if (x & IEEE80211_CHAN_G) {
+		else if ((x & IEEE80211_CHAN_G) == IEEE80211_CHAN_G) {
 			p->phy_flags |= PHY_FLAG_G;
 			DEBUG("G]");
 		}
-		else if (x & IEEE80211_CHAN_B) {
+		else if ((x & IEEE80211_CHAN_2GHZ) == IEEE80211_CHAN_2GHZ) {
 			p->phy_flags |= PHY_FLAG_B;
 			DEBUG("B]");
 		}
