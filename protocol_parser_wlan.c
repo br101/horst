@@ -134,7 +134,7 @@ static void
 get_radiotap_info(struct ieee80211_radiotap_iterator *iter, struct packet_info* p)
 {
 	uint16_t x;
-	char c;
+	signed char c;
 	unsigned char known, flags, ht20, lgi;
 
 	switch (iter->this_arg_index) {
