@@ -196,7 +196,7 @@ get_radiotap_info(struct ieee80211_radiotap_iterator *iter, struct packet_info* 
 		}
 		break;
 	case IEEE80211_RADIOTAP_DBM_ANTSIGNAL:
-		c = *(char*)iter->this_arg;
+		c = *(signed char*)iter->this_arg;
 		DEBUG("[sig %0d]", c);
 		/* we get the signal per rx chain with newer drivers.
 		 * save the highest value, but make sure we don't override
@@ -205,8 +205,8 @@ get_radiotap_info(struct ieee80211_radiotap_iterator *iter, struct packet_info* 
 			p->phy_signal = c;
 		break;
 	case IEEE80211_RADIOTAP_DBM_ANTNOISE:
-		DEBUG("[noi %0x]", *(char*)iter->this_arg);
-		p->phy_noise = *(char*)iter->this_arg;
+		DEBUG("[noi %0x]", *(signed char*)iter->this_arg);
+		p->phy_noise = *(signed char*)iter->this_arg;
 		break;
 	case IEEE80211_RADIOTAP_ANTENNA:
 		DEBUG("[ant %0x]", *iter->this_arg);
