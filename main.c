@@ -105,7 +105,7 @@ printlog(const char *fmt, ...)
 	vsnprintf(&buf[1], 127, fmt, ap);
 	va_end(ap);
 
-	if (conf.quiet || DO_DEBUG || !conf.display_initialized)
+	if (conf.quiet || conf.debug || !conf.display_initialized)
 		printf("%s\n", &buf[1]);
 	else {
 		/* fix up string for display log */
@@ -298,7 +298,7 @@ handle_packet(struct packet_info* p)
 
 	/* filter on server side only */
 	if (!conf.serveraddr && filter_packet(p)) {
-		if (!conf.quiet && !conf.paused && !DO_DEBUG)
+		if (!conf.quiet && !conf.paused && !conf.debug)
 			update_display_clock();
 		return;
 	}
@@ -360,10 +360,8 @@ handle_packet(struct packet_info* p)
 	update_spectrum(p, n);
 	update_essids(p, n);
 
-#if !DO_DEBUG
-	if (!conf.quiet)
+	if (!conf.quiet && !conf.debug)
 		update_display(p);
-#endif
 }
 
 
@@ -376,7 +374,8 @@ local_receive_packet(int fd, unsigned char* buffer, size_t bufsize)
 	len = recv_packet(fd, buffer, bufsize);
 
 #if DO_DEBUG
-	dump_packet(buffer, len);
+	if (conf.debug)
+		dump_packet(buffer, len);
 #endif
 	memset(&p, 0, sizeof(p));
 
@@ -397,7 +396,7 @@ receive_any(void)
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);
 	FD_ZERO(&excpt_fds);
-	if (!conf.quiet && !DO_DEBUG)
+	if (!conf.quiet && !conf.debug)
 		FD_SET(0, &read_fds);
 	FD_SET(mon, &read_fds);
 	if (srv_fd != -1)
@@ -417,7 +416,7 @@ receive_any(void)
 	if (ret == -1 && errno == EINTR) /* interrupted */
 		return;
 	if (ret == 0) { /* timeout */
-		if (!conf.quiet && !DO_DEBUG)
+		if (!conf.quiet && !conf.debug)
 			update_display_clock();
 		return;
 	}
@@ -425,7 +424,7 @@ receive_any(void)
 		err(1, "select()");
 
 	/* stdin */
-	if (FD_ISSET(0, &read_fds) && !conf.quiet && !DO_DEBUG)
+	if (FD_ISSET(0, &read_fds) && !conf.quiet && !conf.debug)
 		handle_user_input();
 
 	/* local packet or client */
@@ -500,12 +499,11 @@ finish_all(void)
 	if (conf.allow_control)
 		control_finish();
 
-#if !DO_DEBUG
-	net_finish();
+	if (!conf.debug)
+		net_finish();
 
-	if (!conf.quiet)
+	if (!conf.quiet && !conf.debug)
 		finish_display();
-#endif
 }
 
 
@@ -536,7 +534,7 @@ get_options(int argc, char** argv)
 	int c;
 	static int n;
 
-	while((c = getopt(argc, argv, "hqsCi:t:c:p:e:f:d:o:b:X::x:m:u:U:a:")) > 0) {
+	while((c = getopt(argc, argv, "hqDsCi:t:c:p:e:f:d:o:b:X::x:m:u:U:a:")) > 0) {
 		switch (c) {
 		case 'p':
 			conf.port = optarg;
@@ -544,6 +542,15 @@ get_options(int argc, char** argv)
 		case 'q':
 			conf.quiet = 1;
 			break;
+		case 'D':
+#if DO_DEBUG
+			conf.debug = 1;
+#else
+			printf("Please compile with DEBUG=1 to use the -D option!\n");
+			exit(1);
+#endif
+			break;
+
 		case 'i':
 			conf.ifname = optarg;
 			break;
@@ -653,13 +660,16 @@ get_options(int argc, char** argv)
 			break;
 		case 'h':
 		default:
-			printf("\nUsage: %s [-h] [-q] [-i interface] [-t sec] [-d ms] [-b bytes]\n"
+			printf("\nUsage: %s [-h] [-q] [-D ] [-i interface] [-t sec] [-d ms] [-b bytes]\n"
 				"\t\t[-s] [-C] [-c IP] [-p port] [-o file] [-X[name]] [-x command]\n"
 				"\t\t[-e MAC] [-f PKT_NAME] [-m MODE]\n\n"
 
 				"General Options: Description (default value)\n"
 				"  -h\t\tHelp\n"
 				"  -q\t\tQuiet, no output\n"
+#if DO_DEBUG
+				"  -D\t\tShow lots of debug output, no UI\n"
+#endif
 				"  -i <intf>\tInterface name (wlan0)\n"
 				"  -t <sec>\tNode timeout in seconds (60)\n"
 				"  -d <ms>\tDisplay update interval in ms (100)\n"
@@ -750,7 +760,7 @@ main(int argc, char** argv)
 		init_spectrum();
 	}
 
-	if (!conf.quiet && !DO_DEBUG)
+	if (!conf.quiet && !conf.debug)
 		init_display();
 
 	if (conf.dumpfile != NULL)
@@ -769,7 +779,7 @@ main(int argc, char** argv)
 			if (channel_auto_change()) {
 				net_send_channel_config();
 				update_spectrum_durations();
-				if (!conf.quiet && !DO_DEBUG)
+				if (!conf.quiet && !conf.debug)
 					update_display(NULL);
 			}
 		}

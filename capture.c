@@ -31,6 +31,7 @@
 
 #include "capture.h"
 #include "util.h"
+#include "main.h"
 
 
 static int

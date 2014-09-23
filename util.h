@@ -40,11 +40,6 @@
 #include <byteswap.h>
 #endif
 
-#if DO_DEBUG
-#define DEBUG(...) printf(__VA_ARGS__)
-#else
-#define DEBUG(...)
-#endif
 
 #if BYTE_ORDER == LITTLE_ENDIAN
 

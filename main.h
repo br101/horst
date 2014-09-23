@@ -34,6 +34,12 @@
 #define DO_DEBUG 0
 #endif
 
+#if DO_DEBUG
+#define DEBUG(...) do { if (conf.debug) printf(__VA_ARGS__); } while (0)
+#else
+#define DEBUG(...)
+#endif
+
 #define MAC_LEN			6
 
 #define MAX_HISTORY		255
@@ -312,6 +318,7 @@ struct config {
 				do_change_channel:1,
 				allow_client:1,
 				allow_control:1,
+				debug:1,
 	/* this isn't exactly config, but wtf... */
 				do_macfilter:1,
 				have_noise:1,

@@ -44,14 +44,14 @@ dump_packet(const unsigned char* buf, int len)
 	int i;
 	for (i = 0; i < len; i++) {
 		if ((i % 2) == 0) {
-			DEBUG(" ");
+			printf(" ");
 		}
 		if ((i % 16) == 0) {
-			DEBUG("\n");
+			printf("\n");
 		}
-		DEBUG("%02x", buf[i]);
+		printf("%02x", buf[i]);
 	}
-	DEBUG("\n");
+	printf("\n");
 }
 #else
 void
