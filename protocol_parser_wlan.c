@@ -267,14 +267,14 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 		return -1;
 	}
 
+	DEBUG("Radiotap: ");
 	while (!(err = ieee80211_radiotap_iterator_next(&iter))) {
 		if (iter.is_radiotap_ns) {
 			get_radiotap_info(&iter, p);
 		}
 	}
 
-	DEBUG("\n");
-	DEBUG("SIG %d NOI %d SNR %d\n", p->phy_signal, p->phy_noise, p->phy_snr);
+	DEBUG("\nSIG %d NOI %d SNR %d", p->phy_signal, p->phy_noise, p->phy_snr);
 
 	/* no SNR from radiotap, try to calculate, normal case nowadays */
 	if (p->phy_snr == 0 && p->phy_signal < 0) {
@@ -302,11 +302,10 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 			p->phy_rate = 20;
 	}
 
-	DEBUG("\nrate: %.2f\n", (float)p->phy_rate/10);
-	DEBUG("rate_idx: %d\n", p->phy_rate_idx);
+	DEBUG("\nrate: %.2f = idx %d\n", (float)p->phy_rate/10, p->phy_rate_idx);
 	DEBUG("signal: %d\n", p->phy_signal);
 	DEBUG("noise: %d\n", p->phy_noise);
-	DEBUG("snr: %d\n", p->phy_snr);
+	DEBUG("snr: %d\n\n", p->phy_snr);
 
 	if (p->phy_flags & PHY_FLAG_BADFCS) {
 		/* we can't trust frames with a bad FCS - stop parsing */

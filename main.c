@@ -371,11 +371,15 @@ local_receive_packet(int fd, unsigned char* buffer, size_t bufsize)
 	int len;
 	struct packet_info p;
 
+	DEBUG("\n===============================================================================\n");
+
 	len = recv_packet(fd, buffer, bufsize);
 
 #if DO_DEBUG
-	if (conf.debug)
+	if (conf.debug) {
 		dump_packet(buffer, len);
+		DEBUG("\n");
+	}
 #endif
 	memset(&p, 0, sizeof(p));
 
