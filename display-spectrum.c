@@ -35,7 +35,7 @@ static unsigned int show_nodes;
 void
 update_spectrum_win(WINDOW *win)
 {
-	int i, sig, noi, siga, use, usen, usean, nnodes;
+	int i, sig, siga, use, usen, usean, nnodes;
 	struct chan_node *cn;
 	const char *id;
 
@@ -87,13 +87,6 @@ update_spectrum_win(WINDOW *win)
 			signal_average_bar(win, sig, siga,
 					   SPEC_POS_Y, SPEC_POS_X + CH_SPACE*i,
 					   SPEC_HEIGHT, show_nodes ? 1 : 2);
-		}
-
-		if (spectrum[i].noise != 0) {
-			noi = normalize_db(-spectrum[i].noise, SPEC_HEIGHT);
-			wattron(win, ALLRED);
-			mvwvline(win, SPEC_POS_Y + noi, SPEC_POS_X + CH_SPACE*i,
-				ACS_BLOCK, SPEC_HEIGHT - noi);
 		}
 
 		/* usage in percent */

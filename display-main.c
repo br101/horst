@@ -68,14 +68,14 @@ print_dump_win(const char *str, int refresh)
 /******************* SORTING *******************/
 
 static int
-compare_nodes_snr(const struct list_node *p1, const struct list_node *p2)
+compare_nodes_signal(const struct list_node *p1, const struct list_node *p2)
 {
 	struct node_info* n1 = list_entry(p1, struct node_info, list);
 	struct node_info* n2 = list_entry(p2, struct node_info, list);
 
-	if (n1->last_pkt.phy_snr > n2->last_pkt.phy_snr)
+	if (n1->last_pkt.phy_signal > n2->last_pkt.phy_signal)
 		return -1;
-	else if (n1->last_pkt.phy_snr == n2->last_pkt.phy_snr)
+	else if (n1->last_pkt.phy_signal == n2->last_pkt.phy_signal)
 		return 0;
 	else
 		return 1;
@@ -127,7 +127,7 @@ sort_input(int c)
 {
 	switch (c) {
 	case 'n': case 'N': sortfunc = NULL; break;
-	case 's': case 'S': sortfunc = compare_nodes_snr; break;
+	case 's': case 'S': sortfunc = compare_nodes_signal; break;
 	case 't': case 'T': sortfunc = compare_nodes_time; break;
 	case 'c': case 'C': sortfunc = compare_nodes_channel; break;
 	case 'b': case 'B': sortfunc = compare_nodes_bssid; break;
@@ -158,7 +158,7 @@ show_sort_win(void)
 		sort_win = newwin(1, COLS-2, win_split - 2, 1);
 		wattron(sort_win, BLACKONWHITE);
 		mvwhline(sort_win, 0, 0, ' ', COLS);
-		mvwprintw(sort_win, 0, 0, " -> Sort by s:SNR t:Time b:BSSID c:Channel n:Don't sort [current: %c]", do_sort);
+		mvwprintw(sort_win, 0, 0, " -> Sort by s:Signal t:Time b:BSSID c:Channel n:Don't sort [current: %c]", do_sort);
 		wrefresh(sort_win);
 	}
 }
@@ -199,8 +199,6 @@ update_status_win(struct packet_info* p)
 
 	if (p != NULL) {
 		sig = normalize_db(-p->phy_signal, max_stat_bar);
-		if (p->phy_noise)
-			noi = normalize_db(-p->phy_noise, max_stat_bar);
 
 		if (p->pkt_chan_idx > 0)
 			chan = &spectrum[p->pkt_chan_idx];
@@ -212,14 +210,7 @@ update_status_win(struct packet_info* p)
 			siga = sig;
 
 		wattron(stat_win, GREEN);
-		if (conf.have_noise) {
-			mvwprintw(stat_win, 0, 1, "S/ :-%02d/", -p->phy_signal);
-			wattron(stat_win, RED);
-			wprintw(stat_win, "%02d", -p->phy_noise);
-			mvwprintw(stat_win, 0, 3, "N");
-		}
-		else
-			mvwprintw(stat_win, 0, 1, "Sig: %5d", p->phy_signal);
+		mvwprintw(stat_win, 0, 1, "Sig: %5d", p->phy_signal);
 
 		signal_average_bar(stat_win, sig, siga, STAT_START, 2, stat_height, 2);
 
@@ -250,8 +241,8 @@ update_status_win(struct packet_info* p)
 
 #define COL_PKT		3
 #define COL_CHAN	COL_PKT + 7
-#define COL_SNR		COL_CHAN + 3
-#define COL_RATE	COL_SNR + 3
+#define COL_SIG		COL_CHAN + 3
+#define COL_RATE	COL_SIG + 4
 #define COL_SOURCE	COL_RATE + 4
 #define COL_MODE	COL_SOURCE + 18
 #define COL_ENC		COL_MODE + 9
@@ -285,8 +276,8 @@ print_node_list_line(int line, struct node_info* n)
 	if (n->wlan_channel)
 		mvwprintw(list_win, line, COL_CHAN, "%2d", n->wlan_channel );
 
-	mvwprintw(list_win, line, COL_SNR, "%2d", ewma_read(&n->phy_snr_avg));
-	mvwprintw(list_win, line, COL_RATE, "%3d q", p->phy_rate/10);
+	mvwprintw(list_win, line, COL_SIG, "%3d", -ewma_read(&n->phy_sig_avg));
+	mvwprintw(list_win, line, COL_RATE, "%3d", p->phy_rate/10);
 	mvwprintw(list_win, line, COL_SOURCE, "%s", ether_sprintf(p->wlan_src));
 
 	if (n->wlan_mode & WLAN_MODE_AP) {
@@ -349,14 +340,14 @@ static void
 update_node_list_win(void)
 {
 	struct node_info* n;
-	int line = 0, nadd = 0;
+	int line = 0;
 
 	werase(list_win);
 	wattron(list_win, WHITE);
 	box(list_win, 0 , 0);
 	mvwprintw(list_win, 0, COL_PKT, "Pk/Re%%");
 	mvwprintw(list_win, 0, COL_CHAN, "CH");
-	mvwprintw(list_win, 0, COL_SNR, "SN");
+	mvwprintw(list_win, 0, COL_SIG, "Sig");
 	mvwprintw(list_win, 0, COL_RATE, "RAT");
 	mvwprintw(list_win, 0, COL_SOURCE, "TRANSMITTER");
 	mvwprintw(list_win, 0, COL_MODE, "MODE");
@@ -366,14 +357,10 @@ update_node_list_win(void)
 
 	/* reuse bottom line for information on other win */
 	mvwprintw(list_win, win_split - 1, 0, "CH-Sig");
-	if (conf.have_noise) {
-		wprintw(list_win, "/No");
-		nadd = 3;
-	}
 	wprintw(list_win, "-RAT-TRANSMITTER");
-	mvwprintw(list_win, win_split - 1, 29 + nadd, "(BSSID)");
-	mvwprintw(list_win, win_split - 1, 49 + nadd, "TYPE");
-	mvwprintw(list_win, win_split - 1, 56 + nadd, "INFO");
+	mvwprintw(list_win, win_split - 1, 29, "(BSSID)");
+	mvwprintw(list_win, win_split - 1, 49, "TYPE");
+	mvwprintw(list_win, win_split - 1, 56, "INFO");
 	mvwprintw(list_win, win_split - 1, COLS-10, "LiveStatus");
 
 	if (sortfunc)
@@ -419,11 +406,7 @@ update_dump_win(struct packet_info* p)
 		wattron(dump_win, RED);
 
 	wprintw(dump_win, "\n%02d ", p->wlan_channel);
-	wprintw(dump_win, "-%02d", -p->phy_signal);
-	if (conf.have_noise)
-		wprintw(dump_win, "/%02d ", -p->phy_noise);
-	else
-		wprintw(dump_win, " ");
+	wprintw(dump_win, "%03d ", p->phy_signal);
 	wprintw(dump_win, "%3d ", p->phy_rate/10);
 	wprintw(dump_win, "%s ", ether_sprintf(p->wlan_src));
 	wprintw(dump_win, "(%s) ", ether_sprintf(p->wlan_bssid));

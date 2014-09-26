@@ -36,7 +36,7 @@ update_history_win(WINDOW *win)
 {
 	int i;
 	int col = COLS-2;
-	int sig, noi = 0, rat;
+	int sig, rat;
 
 	if (col > MAX_HISTORY)
 		col = 4 + MAX_HISTORY;
@@ -44,7 +44,7 @@ update_history_win(WINDOW *win)
 	werase(win);
 	wattron(win, WHITE);
 	box(win, 0 , 0);
-	print_centered(win, 0, COLS, " Signal/Noise/Rate History ");
+	print_centered(win, 0, COLS, " Signal/Rate History ");
 	mvwhline(win, SIGN_POS, 1, ACS_HLINE, col);
 	mvwhline(win, SIGN_POS+2, 1, ACS_HLINE, col);
 	mvwvline(win, 1, 4, ACS_VLINE, LINES-3);
@@ -61,16 +61,14 @@ update_history_win(WINDOW *win)
 	mvwprintw(win, SIGN_POS-1, 1, "-99");
 
 	mvwprintw(win, 1, col-6, "Signal");
-	wattron(win, RED);
-	mvwprintw(win, 2, col-5, "Noise");
 
 	wattron(win, CYAN);
 	mvwprintw(win, TYPE_POS, 1, "TYP");
-	mvwprintw(win, 3, col-11, "Packet Type");
+	mvwprintw(win, 2, col-11, "Packet Type");
 
 	wattron(win, A_BOLD);
 	wattron(win, BLUE);
-	mvwprintw(win, 4, col-4, "Rate");
+	mvwprintw(win, 3, col-4, "Rate");
 	mvwprintw(win, RATE_POS-12, 1, "300");
 	mvwprintw(win, RATE_POS-11, 1, "275");
 	mvwprintw(win, RATE_POS-10, 1, "250");
@@ -90,16 +88,9 @@ update_history_win(WINDOW *win)
 	while (col > 4 && hist.signal[i] != 0)
 	{
 		sig = normalize_db(-hist.signal[i], SIGN_POS - 1);
-		if (hist.noise[i])
-			noi = normalize_db(-hist.noise[i], SIGN_POS - 1);
 
 		wattron(win, ALLGREEN);
 		mvwvline(win, sig + 1, col, ACS_BLOCK, SIGN_POS - sig - 1);
-
-		if (hist.noise[i]) {
-			wattron(win, ALLRED);
-			mvwvline(win, noi + 1, col, '=', SIGN_POS - noi -1);
-		}
 
 		wattron(win, get_packet_type_color(hist.type[i]));
 		mvwprintw(win, TYPE_POS, col, "%c", \

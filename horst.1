@@ -49,13 +49,13 @@ on ad\-hoc (IBSS) mode in larger mesh networks. It can be useful to get
 a quick overview of what's going on on all wireless LAN channels and
 to identify problems.
 .IP \[bu] 2
-Shows signal/noise values per station.
+Shows signal values per station.
 .IP \[bu] 2
 Calculates channel utilization ("usage") by adding up the amount of time the packets actually occupy the medium.
 .IP \[bu] 2
 "Spectrum Analyzer" shows signal levels and usage per channel.
 .IP \[bu] 2
-Text-based "graphical" packet history, with signal/noise, packet type and physical rate
+Text-based "graphical" packet history, with signal, packet type and physical rate
 .IP \[bu] 2
 Shows all stations per ESSID and the live TSF per node as it is counting.
 .IP \[bu] 2
@@ -151,7 +151,7 @@ The initial (main) screen is split into three parts. The upper area shows a list
         Pk            Count of packets
         Re%           Percentage of Re-sent frames
         CH            Channel
-        SN            Signal to Noise ratio (SNR)
+        Sig           Signal value (RSSI) in dBm
         RAT           Physical data rate
         TRANSMITTER   MAC address of sender
         MODE          Operating Mode (AP, AHD, PRB, STA, WDS), see "NAMES AND ABBREVIATIONS"
@@ -161,7 +161,7 @@ The initial (main) screen is split into three parts. The upper area shows a list
 
 The lower area shows a scrolling list of packets as they come in:
         CH            Channel
-        Sig           Signal value (RSSI)
+        Sig           Signal value (RSSI) in dBm
         RAT           Physical data rate
         TRANSMITTER   MAC address of sender
         BSSID         BSSID
@@ -169,7 +169,7 @@ The lower area shows a scrolling list of packets as they come in:
         INFO          Additional info like ESSID, TFS, IP address...
 
 The lower right box shows bar graphs for:
-        Signal/Noise  of last received packet in green/red
+        Signal        of last received packet in green
         bps           Bits per second of all received packets
         Usage         Percentage of channel use
 
@@ -188,12 +188,12 @@ Clears all history and aggregated statistical data.
 .TP
 History ('h')
 
-The history screen scrolls from right to left and shows a bar for each packet indicating the signal and noise level. In the line below that, the packet type is indicated by one character (See NAMES AND ABBREVIATIONS below) and the rough physical data rate is indicated below that in blue.
+The history screen scrolls from right to left and shows a bar for each packet indicating the signal level. In the line below that, the packet type is indicated by one character (See NAMES AND ABBREVIATIONS below) and the rough physical data rate is indicated below that in blue.
 
 .TP
 ESSID ('e')
 
-The ESSID screen groups information by ESSID and shows the mode (AP, IBSS), the MAC address of the sender, the BSSID, the TSF, the beacon interval, the channel, the SNR, a "W" when encrytoion is used and the IP address if known.
+The ESSID screen groups information by ESSID and shows the mode (AP, IBSS), the MAC address of the sender, the BSSID, the TSF, the beacon interval, the channel, the signal, a "W" when encrytoion is used and the IP address if known.
 
 .TP
 Statistics ('a')
@@ -207,7 +207,7 @@ The "poor mans spectrum analyzer" screen is only really useful when \fBhorst\fP 
 
 It shows the available channels horizontally and vertical bars for each channel:
 
-        Signal/Noise    in green/red
+        Signal          in green
         Physical rate   in blue
         Channel usage   in orange/brown
 
@@ -226,7 +226,7 @@ This configuration dialog can be used to change the channel changing behaviour o
 .TP
 Sort ('o')
 
-Only active in the main screen, can be used to sort the node list in the upper area by SNR, Time, BSSID or Channel.
+Only active in the main screen, can be used to sort the node list in the upper area by Signal, Time, BSSID or Channel.
 
 
 .SH NAMES AND ABBREVIATIONS
@@ -324,7 +324,7 @@ Bit field of operating mode type which is infered from received packets. Modes m
 You have to put your card in monitor mode and set the channel manually before
 you start \fBhorst\fP. Usually this has to be done as root.
 
-Note that depending on the wireless driver capabilities and versions, noise values may not be available. Also, if the monitor interface is added to an existing interface, the driver does not allow the channel to be changed. 
+Note that depending on the wireless driver capabilities and versions, signal values and ranges may be different. Also, if the monitor interface is added to an existing interface, the driver does not allow the channel to be changed. 
 
 .TP
 Using iw:
@@ -382,10 +382,10 @@ phy_signal
 Signal strength in dBm
 .TP
 phy_noise
-Noise in dBm
+Noise in dBm (always 0)
 .TP
 phy_snr
-Signal to Noise ratio in dB
+Signal to Noise ratio in dB (always 0, redundant)
 .TP
 wlan_len
 Packet length (MAC)

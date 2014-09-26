@@ -40,7 +40,7 @@ update_essid_win(WINDOW *win)
 	box(win, 0 , 0);
 	print_centered(win, 0, COLS, " ESSIDs ");
 
-	mvwprintw(win, line++, 3, "NO. MODE SOURCE            (BSSID)             TSF              (BINT) CH SNR  E IP");
+	mvwprintw(win, line++, 3, "NO. MODE SOURCE            (BSSID)             TSF              (BINT) CH Sig E IP");
 
 	list_for_each(&essids.list, e, list) {
 		if (line > LINES-3)
@@ -74,7 +74,7 @@ update_essid_win(WINDOW *win)
 			if (n->wlan_bintval < 1000)
 				wprintw(win, " ");
 			wprintw(win, " %2d", n->wlan_channel);
-			wprintw(win, " %2ddB", n->last_pkt.phy_snr);
+			wprintw(win, " %3d", n->last_pkt.phy_signal);
 			wprintw(win, " %s", n->wlan_wep ? "W" : " ");
 			if (n->pkt_types & PKT_TYPE_IP)
 				wprintw(win, " %s", ip_sprintf(n->ip_src));

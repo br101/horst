@@ -54,14 +54,14 @@ community of Berlin but has since grown to be a useful tool for all kinds of
 Wireless networks.
 
 With the usual wireless tools like iw, iwconfig and iwspy and even kismet or 
-WireShark it is hard to measure the received signal strength (SNR or RSSI) of
+WireShark it is hard to measure the received signal strength (RSSI) of
 all available access points, stations and ad-hoc networks in a given location. 
 It's especially difficult to differentiate the different nodes which form an 
 ad-hoc network. This information however is very important for setting up, 
 debugging and optimizing wireless mesh networks and antenna positions.
 
 "horst" aims to fill this gap and lists each single node of an ad-hoc network
-separately, showing the signal strength (SNR) of the last received packet. This
+separately, showing the signal strength (RSSI) of the last received packet. This
 way you can see which nodes are part of a specific ad-hoc cell (BSSID), 
 discover problems with ad-hoc cell merging ("cell splitting", a problem of 
 many WLAN drivers) and get a general overview of what's going on in the "air".

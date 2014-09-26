@@ -72,33 +72,23 @@ parse_prism_header(unsigned char** buf, int len, struct packet_info* p)
 
 	/*
 	 * different drivers report S/N and rssi values differently
-	 * let's make sure here that SNR is always positive, so we
-	 * don't have do handle special cases later
 	*/
 	if (((int)ph->noise.data) < 0) {
 		/* new madwifi */
 		p->phy_signal = ph->signal.data;
-		p->phy_noise = ph->noise.data;
-		p->phy_snr = ph->rssi.data;
 	}
 	else if (((int)ph->rssi.data) < 0) {
 		/* broadcom hack */
 		p->phy_signal = ph->rssi.data;
-		p->phy_noise = -95;
-		p->phy_snr = 95 + ph->rssi.data;
 	}
 	else {
 		/* assume hostap */
 		p->phy_signal = ph->signal.data;
-		p->phy_noise = ph->noise.data;
-		p->phy_snr = ph->signal.data - ph->noise.data; //XXX rssi?
 	}
 
 	p->phy_rate = ph->rate.data * 10;
 
 	/* just in case...*/
-	if (p->phy_snr > 99)
-		p->phy_snr = 99;
 	if (p->phy_rate == 0 || p->phy_rate > 1080) {
 		/* assume min rate, guess mode from channel */
 		DEBUG("*** fixing wrong rate\n");
@@ -120,10 +110,8 @@ parse_prism_header(unsigned char** buf, int len, struct packet_info* p)
 
 	DEBUG("devname: %s\n", ph->devname);
 	DEBUG("signal: %d -> %d\n", ph->signal.data, p->phy_signal);
-	DEBUG("noise: %d -> %d\n", ph->noise.data, p->phy_noise);
 	DEBUG("rate: %d\n", ph->rate.data);
 	DEBUG("rssi: %d\n", ph->rssi.data);
-	DEBUG("*** SNR %d\n", p->phy_snr);
 
 	*buf = *buf + sizeof(wlan_ng_prism2_header);
 	return len - sizeof(wlan_ng_prism2_header);
@@ -206,14 +194,16 @@ get_radiotap_info(struct ieee80211_radiotap_iterator *iter, struct packet_info* 
 		break;
 	case IEEE80211_RADIOTAP_DBM_ANTNOISE:
 		DEBUG("[noi %0x]", *(signed char*)iter->this_arg);
-		p->phy_noise = *(signed char*)iter->this_arg;
+		// usually not present
+		//p->phy_noise = *(signed char*)iter->this_arg;
 		break;
 	case IEEE80211_RADIOTAP_ANTENNA:
 		DEBUG("[ant %0x]", *iter->this_arg);
 		break;
 	case IEEE80211_RADIOTAP_DB_ANTSIGNAL:
 		DEBUG("[snr %0x]", *iter->this_arg);
-		p->phy_snr = *iter->this_arg;
+		// usually not present
+		//p->phy_snr = *iter->this_arg;
 		break;
 	case IEEE80211_RADIOTAP_DB_ANTNOISE:
 		//printf("\tantnoise: %02d\n", *iter->this_arg);
@@ -272,21 +262,9 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 		}
 	}
 
-	DEBUG("\nSIG %d NOI %d SNR %d", p->phy_signal, p->phy_noise, p->phy_snr);
-
-	/* no SNR from radiotap, try to calculate, normal case nowadays */
-	if (p->phy_snr == 0 && p->phy_signal < 0) {
-		if (p->phy_noise < 0) {
-			p->phy_snr = p->phy_signal - p->phy_noise;
-		} else {
-			/* HACK: here we just assume noise to be -95dBm */
-			p->phy_snr = p->phy_signal + 95;
-		}
-	}
+	DEBUG("\nSIG %d", p->phy_signal);
 
 	/* sanitize */
-	if (p->phy_snr > 99)
-		p->phy_snr = 99;
 	if (p->phy_rate == 0 || p->phy_rate > 6000) {
 		/* assume min rate for mode */
 		DEBUG("*** fixing wrong rate\n");
@@ -302,8 +280,6 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 
 	DEBUG("\nrate: %.2f = idx %d\n", (float)p->phy_rate/10, p->phy_rate_idx);
 	DEBUG("signal: %d\n", p->phy_signal);
-	DEBUG("noise: %d\n", p->phy_noise);
-	DEBUG("snr: %d\n\n", p->phy_snr);
 
 	if (p->phy_flags & PHY_FLAG_BADFCS) {
 		/* we can't trust frames with a bad FCS - stop parsing */

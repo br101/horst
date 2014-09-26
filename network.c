@@ -104,8 +104,8 @@ struct net_packet_info {
 
 	/* wlan phy (from radiotap) */
 	int			phy_signal;	/* signal strength (usually dBm) */
-	int			phy_noise;	/* noise level (usually dBm) */
-	unsigned int		phy_snr;	/* signal to noise ratio */
+	int			phy_noise;	/* noise level (always 0) */
+	unsigned int		phy_snr;	/* signal to noise ratio (always 0, redundant!) */
 	unsigned int		phy_rate;	/* physical rate * 10 (= in 100kbps) */
 	unsigned int		phy_freq;	/* frequency */
 	unsigned int		phy_flags;	/* A, B, G, shortpre */
@@ -182,8 +182,8 @@ net_send_packet(struct packet_info *p)
 	np.version	= PKT_INFO_VERSION;
 	np.pkt_types	= htole32(p->pkt_types);
 	np.phy_signal	= htole32(p->phy_signal);
-	np.phy_noise	= htole32(p->phy_noise);
-	np.phy_snr	= htole32(p->phy_snr);
+	np.phy_noise	= htole32(0);
+	np.phy_snr	= htole32(0);
 	np.phy_rate	= htole32(p->phy_rate);
 	np.phy_rate_idx	= p->phy_rate_idx;
 	np.phy_rate_flags = p->phy_rate_flags;
@@ -248,8 +248,6 @@ net_receive_packet(unsigned char *buffer, size_t len)
 	memset(&p, 0, sizeof(p));
 	p.pkt_types	= le32toh(np->pkt_types);
 	p.phy_signal	= le32toh(np->phy_signal);
-	p.phy_noise	= le32toh(np->phy_noise);
-	p.phy_snr	= le32toh(np->phy_snr);
 	p.phy_rate	= le32toh(np->phy_rate);
 	p.phy_rate_idx	= np->phy_rate_idx;
 	p.phy_rate_flags= np->phy_rate_flags;
