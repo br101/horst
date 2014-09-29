@@ -662,7 +662,7 @@ get_options(int argc, char** argv)
 		case 'h':
 		default:
 			printf("\nUsage: %s [-h] [-q] [-D ] [-i interface] [-t sec] [-d ms] [-b bytes]\n"
-				"\t\t[-s] [-C] [-c IP] [-p port] [-o file] [-X[name]] [-x command]\n"
+				"\t\t[-s] [-u] [-C] [-c IP] [-p port] [-o file] [-X[name]] [-x command]\n"
 				"\t\t[-e MAC] [-f PKT_NAME] [-m MODE]\n\n"
 
 				"General Options: Description (default value)\n"
@@ -677,7 +677,8 @@ get_options(int argc, char** argv)
 				"  -b <bytes>\tReceive buffer size in bytes (not set)\n"
 
 				"\nFeature Options:\n"
-				"  -s\t\t(Poor mans) Spectrum analyzer mode\n\n"
+				"  -s\t\t(Poor mans) Spectrum analyzer mode\n"
+				"  -u\t\tUpper channel limit\n\n"
 
 				"  -C\t\tAllow client connection, server mode (off)\n"
 				"  -c <IP>\tConnect to server with <IP>, client mode (off)\n"

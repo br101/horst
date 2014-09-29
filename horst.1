@@ -20,6 +20,7 @@ horst \- Highly Optimized Radio Scanning Tool
 .RB [\| \-b
 .IR bytes \|]
 .RB [\| \-s \|] 
+.RB [\| \-u \|]
 .RB [\| \-C \|] 
 .RB [\| \-c
 .IR IP \|] 
@@ -97,6 +98,9 @@ Receive buffer size. The receive buffer size can be set to tune memory consumpti
 .TP
 .BI \-s
 Show a poor mans "spectrum analyzer". The same can be achieved by running \fBhorst\fP as normal and pressing the button 's' (Spec); then 'c' (Chan) and 'a' (Automatically change channel).
+.TP
+.BI \-u
+Upper channel limit for the automatic channel change.
 .TP
 .BI \-C
 Allow client connections. Server mode. Only one client connection is supported at the moment (default: off).
