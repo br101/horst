@@ -532,7 +532,7 @@ get_options(int argc, char** argv)
 	int c;
 	static int n;
 
-	while((c = getopt(argc, argv, "hqDsCi:t:c:p:e:f:d:o:b:X::x:m:u:U:a:")) > 0) {
+	while((c = getopt(argc, argv, "hqDsCi:t:c:p:e:f:d:o:b:X::x:m:u:a:")) > 0) {
 		switch (c) {
 		case 'p':
 			conf.port = optarg;
@@ -580,6 +580,9 @@ get_options(int argc, char** argv)
 			break;
 		case 'C':
 			conf.allow_client = 1;
+			break;
+		case 'u':
+			conf.channel_max = atoi(optarg);
 			break;
 		case 'X':
 			if (optarg != NULL)
