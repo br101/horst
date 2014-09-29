@@ -218,13 +218,13 @@ update_status_win(struct packet_info* p)
 	wattron(stat_win, CYAN);
 	mvwprintw(stat_win, 1, 1, "bps:%6s", kilo_mega_ize(bps));
 	general_average_bar(stat_win, bpsn, ewma_read(&bpsn_avg),
-			    5, max_stat_bar, 2,
+			    stat_height, 5, 2,
 			    CYAN, ALLCYAN);
 
 	wattron(stat_win, YELLOW);
 	mvwprintw(stat_win, 2, 1, "Use:%5.1f%%", use);
 	general_average_bar(stat_win, usen, ewma_read(&usen_avg),
-			    8, max_stat_bar, 2,
+			    stat_height, 8, 2,
 			    YELLOW, ALLYELLOW);
 
 	mvwprintw(stat_win, 3, 1, "Retry: %2.0f%%", rpsp);
