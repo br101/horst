@@ -28,7 +28,7 @@
 #include "channel.h"
 #include "wlan80211.h"
 
-#define VERSION "4.1"
+#define VERSION "4.2"
 
 #ifndef DO_DEBUG
 #define DO_DEBUG 0
