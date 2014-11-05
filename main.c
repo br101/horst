@@ -21,7 +21,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <getopt.h>
 #include <signal.h>
 #include <sys/time.h>
 #include <errno.h>
@@ -40,6 +39,7 @@
 #include "channel.h"
 #include "node.h"
 #include "essid.h"
+#include "conf_options.h"
 
 
 struct list_head nodes;
@@ -48,17 +48,7 @@ struct history hist;
 struct statistics stats;
 struct channel_info spectrum[MAX_CHANNELS];
 
-struct config conf = {
-	.node_timeout		= NODE_TIMEOUT,
-	.channel_time		= CHANNEL_TIME,
-	.ifname			= INTERFACE_NAME,
-	.display_interval	= DISPLAY_UPDATE_INTERVAL,
-	.recv_buffer_size	= RECV_BUFFER_SIZE,
-	.port			= DEFAULT_PORT,
-	.control_pipe		= DEFAULT_CONTROL_PIPE,
-	.filter_pkt		= PKT_TYPE_ALL,
-	.filter_mode		= WLAN_MODE_ALL,
-};
+struct config conf;
 
 struct timeval the_time;
 
@@ -295,7 +285,7 @@ handle_packet(struct packet_info* p)
 	int i = -1;
 
 	/* filter on server side only */
-	if (!conf.serveraddr && filter_packet(p)) {
+	if (!conf.serveraddr[0] != '\0' && filter_packet(p)) {
 		if (!conf.quiet && !conf.paused && !conf.debug)
 			update_display_clock();
 		return;
@@ -304,7 +294,7 @@ handle_packet(struct packet_info* p)
 	if (cli_fd != -1)
 		net_send_packet(p);
 
-	if (conf.dumpfile != NULL && !conf.paused && DF != NULL)
+	if (conf.dumpfile[0] != '\0' && !conf.paused && DF != NULL)
 		write_to_file(p);
 
 	if (conf.paused)
@@ -427,7 +417,7 @@ receive_any(void)
 
 	/* local packet or client */
 	if (FD_ISSET(mon, &read_fds)) {
-		if (conf.serveraddr)
+		if (conf.serveraddr[0] != '\0')
 			net_receive(mon, buffer, &buflen, sizeof(buffer));
 		else
 			local_receive_packet(mon, buffer, sizeof(buffer));
@@ -486,7 +476,7 @@ finish_all(void)
 {
 	free_lists();
 
-	if (!conf.serveraddr)
+	if (!conf.serveraddr[0] != '\0')
 		close_packet_socket(mon, conf.ifname);
 
 	if (DF != NULL) {
@@ -526,186 +516,6 @@ sigpipe_handler(__attribute__((unused)) int sig)
 }
 
 
-static void
-get_options(int argc, char** argv)
-{
-	int c;
-	static int n;
-
-	while((c = getopt(argc, argv, "hqDsCi:t:c:p:e:f:d:o:b:X::x:m:u:a:")) > 0) {
-		switch (c) {
-		case 'p':
-			conf.port = atoi(optarg);
-			break;
-		case 'q':
-			conf.quiet = 1;
-			break;
-		case 'D':
-#if DO_DEBUG
-			conf.debug = 1;
-#else
-			printf("Please compile with DEBUG=1 to use the -D option!\n");
-			exit(1);
-#endif
-			break;
-
-		case 'i':
-			conf.ifname = optarg;
-			break;
-		case 'o':
-			conf.dumpfile = optarg;
-			break;
-		case 't':
-			conf.node_timeout = atoi(optarg);
-			break;
-		case 'b':
-			conf.recv_buffer_size = atoi(optarg);
-			break;
-		case 's':
-			conf.do_change_channel = 1;
-			break;
-		case 'd':
-			conf.display_interval = atoi(optarg) * 1000;
-			break;
-		case 'e':
-			if (n >= MAX_FILTERMAC)
-				break;
-			conf.do_macfilter = 1;
-			convert_string_to_mac(optarg, conf.filtermac[n]);
-			conf.filtermac_enabled[n] = 1;
-			n++;
-			break;
-		case 'c':
-			conf.serveraddr = optarg;
-			break;
-		case 'C':
-			conf.allow_client = 1;
-			break;
-		case 'u':
-			conf.channel_max = atoi(optarg);
-			break;
-		case 'X':
-			if (optarg != NULL)
-				conf.control_pipe = optarg;
-			conf.allow_control = 1;
-			break;
-		case 'x':
-			control_send_command(optarg);
-			exit(0);
-		case 'm':
-			if (conf.filter_mode == WLAN_MODE_ALL)
-				conf.filter_mode = 0;
-			if (strcmp(optarg, "AP") == 0)
-				conf.filter_mode |= WLAN_MODE_AP;
-			else if (strcmp(optarg, "STA") == 0)
-				conf.filter_mode |= WLAN_MODE_STA;
-			else if (strcmp(optarg, "ADH") == 0 || strcmp(optarg, "IBSS") == 0)
-				conf.filter_mode |= WLAN_MODE_IBSS;
-			else if (strcmp(optarg, "PRB") == 0)
-				conf.filter_mode |= WLAN_MODE_PROBE;
-			else if (strcmp(optarg, "WDS") == 0)
-				conf.filter_mode |= WLAN_MODE_4ADDR;
-			else if (strcmp(optarg, "UNKNOWN") == 0)
-				conf.filter_mode |= WLAN_MODE_UNKNOWN;
-			break;
-		case 'f':
-			if (conf.filter_pkt == PKT_TYPE_ALL)
-				conf.filter_pkt = 0;
-			if (strcmp(optarg, "CTRL") == 0 || strcmp(optarg, "CONTROL") == 0)
-				conf.filter_pkt |= PKT_TYPE_CTRL | PKT_TYPE_ALL_CTRL;
-			else if (strcmp(optarg, "MGMT") == 0 || strcmp(optarg, "MANAGEMENT") == 0)
-				conf.filter_pkt |= PKT_TYPE_MGMT | PKT_TYPE_ALL_MGMT;
-			else if (strcmp(optarg, "DATA") == 0)
-				conf.filter_pkt |= PKT_TYPE_DATA | PKT_TYPE_ALL_DATA;
-			else if (strcmp(optarg, "BADFCS") == 0)
-				conf.filter_pkt |= PKT_TYPE_BADFCS;
-			else if (strcmp(optarg, "BEACON") == 0)
-				conf.filter_pkt |= PKT_TYPE_BEACON;
-			else if (strcmp(optarg, "PROBE") == 0)
-				conf.filter_pkt |= PKT_TYPE_PROBE;
-			else if (strcmp(optarg, "ASSOC") == 0)
-				conf.filter_pkt |= PKT_TYPE_ASSOC;
-			else if (strcmp(optarg, "AUTH") == 0)
-				conf.filter_pkt |= PKT_TYPE_AUTH;
-			else if (strcmp(optarg, "RTS") == 0)
-				conf.filter_pkt |= PKT_TYPE_RTSCTS;
-			else if (strcmp(optarg, "ACK") == 0)
-				conf.filter_pkt |= PKT_TYPE_ACK;
-			else if (strcmp(optarg, "NULL") == 0)
-				conf.filter_pkt |= PKT_TYPE_NULL;
-			else if (strcmp(optarg, "QDATA") == 0)
-				conf.filter_pkt |= PKT_TYPE_QDATA;
-			else if (strcmp(optarg, "ARP") == 0)
-				conf.filter_pkt |= PKT_TYPE_ARP;
-			else if (strcmp(optarg, "IP") == 0)
-				conf.filter_pkt |= PKT_TYPE_IP;
-			else if (strcmp(optarg, "ICMP") == 0)
-				conf.filter_pkt |= PKT_TYPE_ICMP;
-			else if (strcmp(optarg, "UDP") == 0)
-				conf.filter_pkt |= PKT_TYPE_UDP;
-			else if (strcmp(optarg, "TCP") == 0)
-				conf.filter_pkt |= PKT_TYPE_TCP;
-			else if (strcmp(optarg, "OLSR") == 0)
-				conf.filter_pkt |= PKT_TYPE_OLSR;
-			else if (strcmp(optarg, "BATMAN") == 0)
-				conf.filter_pkt |= PKT_TYPE_BATMAN;
-			else if (strcmp(optarg, "MESHZ") == 0)
-				conf.filter_pkt |= PKT_TYPE_MESHZ;
-			/* if one of the individual subtype frames is selected we enable the general frame type */
-			if (conf.filter_pkt & PKT_TYPE_ALL_MGMT)
-				conf.filter_pkt |= PKT_TYPE_MGMT;
-			if (conf.filter_pkt & PKT_TYPE_ALL_CTRL)
-				conf.filter_pkt |= PKT_TYPE_CTRL;
-			if (conf.filter_pkt & PKT_TYPE_ALL_DATA)
-				conf.filter_pkt |= PKT_TYPE_DATA;
-			break;
-		case 'h':
-		default:
-			printf("\nUsage: %s [-h] [-q] [-D ] [-i interface] [-t sec] [-d ms] [-b bytes]\n"
-				"\t\t[-s] [-u] [-C] [-c IP] [-p port] [-o file] [-X[name]] [-x command]\n"
-				"\t\t[-e MAC] [-f PKT_NAME] [-m MODE]\n\n"
-
-				"General Options: Description (default value)\n"
-				"  -h\t\tHelp\n"
-				"  -q\t\tQuiet, no output\n"
-#if DO_DEBUG
-				"  -D\t\tShow lots of debug output, no UI\n"
-#endif
-				"  -i <intf>\tInterface name (wlan0)\n"
-				"  -t <sec>\tNode timeout in seconds (60)\n"
-				"  -d <ms>\tDisplay update interval in ms (100)\n"
-				"  -b <bytes>\tReceive buffer size in bytes (not set)\n"
-
-				"\nFeature Options:\n"
-				"  -s\t\t(Poor mans) Spectrum analyzer mode\n"
-				"  -u\t\tUpper channel limit\n\n"
-
-				"  -C\t\tAllow client connection, server mode (off)\n"
-				"  -c <IP>\tConnect to server with <IP>, client mode (off)\n"
-				"  -p <port>\tPort number of server (4444)\n\n"
-
-				"  -o <filename>\tWrite packet info into 'filename'\n\n"
-
-				"  -X[filename]\tAllow control socket on 'filename' (/tmp/horst)\n"
-				"  -x <command>\tSend control command\n"
-
-				"\nFilter Options:\n"
-				" Filters are generally 'positive' or 'inclusive' which means you define\n"
-				" what you want to see, and everything else is getting filtered out.\n"
-				" If a filter is not set it is inactive and nothing is filtered.\n"
-				" All filter options can be specified multiple times.\n"
-				"  -e <MAC>\tSource MAC addresses (xx:xx:xx:xx:xx:xx), up to 9 times\n"
-				"  -f <PKT_NAME>\tFilter packet types\n"
-				"  -m <MODE>\tOperating mode: AP|STA|ADH|PRB|WDS|UNKNOWN\n"
-				"\n",
-				argv[0]);
-			exit(0);
-			break;
-		}
-	}
-}
-
-
 void
 init_spectrum(void)
 {
@@ -725,7 +535,7 @@ main(int argc, char** argv)
 	list_head_init(&essids.list);
 	list_head_init(&nodes);
 
-	get_options(argc, argv);
+	config_parse_file_and_cmdline(argc, argv);
 
 	signal(SIGINT, sigint_handler);
 	signal(SIGTERM, sigint_handler);
@@ -739,11 +549,11 @@ main(int argc, char** argv)
 	conf.channel_idx = -1;
 
 	if (conf.allow_control) {
-		printlog("Allowing control socket");
+		printlog("Allowing control socket '%s'", conf.control_pipe);
 		control_init_pipe();
 	}
 
-	if (conf.serveraddr)
+	if (conf.serveraddr[0] != '\0')
 		mon = net_open_client_socket(conf.serveraddr, conf.port);
 	else {
 		mon = open_packet_socket(conf.ifname, conf.recv_buffer_size);
@@ -765,7 +575,7 @@ main(int argc, char** argv)
 	if (!conf.quiet && !conf.debug)
 		init_display();
 
-	if (conf.dumpfile != NULL)
+	if (conf.dumpfile[0] != '\0')
 		dumpfile_open(conf.dumpfile);
 
 	if (!conf.serveraddr && conf.port && conf.allow_client)
@@ -777,7 +587,7 @@ main(int argc, char** argv)
 		gettimeofday(&the_time, NULL);
 		timeout_nodes();
 
-		if (!conf.serveraddr) { /* server */
+		if (conf.serveraddr[0] == '\0') { /* server */
 			if (channel_auto_change()) {
 				net_send_channel_config();
 				update_spectrum_durations();
@@ -809,11 +619,11 @@ dumpfile_open(char* name)
 
 	if (name == NULL || strlen(name) == 0) {
 		printlog("- Not writing outfile");
-		conf.dumpfile = NULL;
+		conf.dumpfile[0] = '\0';
 		return;
 	}
 
-	conf.dumpfile = name;
+	strncpy(conf.dumpfile, name, MAX_CONF_VALUE_LEN);
 	DF = fopen(conf.dumpfile, "w");
 	if (DF == NULL)
 		err(1, "Couldn't open dump file");

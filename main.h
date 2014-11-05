@@ -29,6 +29,7 @@
 #include "wlan80211.h"
 
 #define VERSION "4.2"
+#define CONFIG_FILE "/etc/horst.conf"
 
 #ifndef DO_DEBUG
 #define DO_DEBUG 0
@@ -41,6 +42,7 @@
 #endif
 
 #define MAC_LEN			6
+#define MAX_CONF_VALUE_LEN	200
 
 #define MAX_HISTORY		255
 #define MAX_RATES		44	/* 12 legacy rates and 32 MCS */
@@ -94,15 +96,6 @@
 #define PHY_FLAG_G		0x0040
 #define PHY_FLAG_MODE_MASK	0x00f0
 
-/* default config values */
-#define INTERFACE_NAME		"wlan0"
-#define NODE_TIMEOUT		60	/* seconds */
-#define CHANNEL_TIME		250000	/* 250 msec */
-/* update display every 100ms - "10 frames per sec should be enough for everyone" ;) */
-#define DISPLAY_UPDATE_INTERVAL 100000	/* usec */
-#define RECV_BUFFER_SIZE	0	/* not used by default */
-#define DEFAULT_PORT		4444
-#define DEFAULT_CONTROL_PIPE	"/tmp/horst"
 
 #ifndef ARPHRD_IEEE80211_RADIOTAP
 #define ARPHRD_IEEE80211_RADIOTAP 803    /* IEEE 802.11 + radiotap header */
@@ -289,7 +282,7 @@ struct chan_node {
 };
 
 struct config {
-	char*			ifname;
+	char			ifname[MAX_CONF_VALUE_LEN];
 	int			port;
 	int			quiet;
 	int			node_timeout;
@@ -297,10 +290,10 @@ struct config {
 	int			channel_max;
 	int			channel_idx;	/* index into channels array */
 	int			display_interval;
-	char*			dumpfile;
+	char			dumpfile[MAX_CONF_VALUE_LEN];
 	int			recv_buffer_size;
-	char*			serveraddr;
-	char*			control_pipe;
+	char			serveraddr[MAX_CONF_VALUE_LEN];
+	char			control_pipe[MAX_CONF_VALUE_LEN];
 
 	unsigned char		filtermac[MAX_FILTERMAC][MAC_LEN];
 	char			filtermac_enabled[MAX_FILTERMAC];

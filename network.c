@@ -616,7 +616,7 @@ net_finish(void) {
 void
 net_send_channel_config(void)
 {
-	if (conf.serveraddr)
+	if (conf.serveraddr[0] != '\0')
 		net_send_conf_chan(netmon_fd);
 	else if (conf.allow_client && cli_fd > -1)
 		net_send_conf_chan(cli_fd);
@@ -626,7 +626,7 @@ net_send_channel_config(void)
 void
 net_send_filter_config(void)
 {
-	if (conf.serveraddr)
+	if (conf.serveraddr[0] != '\0')
 		net_send_conf_filter(netmon_fd);
 	else if (conf.allow_client && cli_fd > -1)
 		net_send_conf_filter(cli_fd);

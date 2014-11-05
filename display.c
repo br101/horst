@@ -239,7 +239,7 @@ update_menu(void)
 	}
 #undef KEYMARK
 	mvwprintw(stdscr, LINES-1, COLS-15, "|%s",
-		  conf.serveraddr ? conf.serveraddr : conf.ifname);
+		  conf.serveraddr[0] != '\0' ? conf.serveraddr : conf.ifname);
 	wattroff(stdscr, BLACKONWHITE);
 
 	update_mini_status();

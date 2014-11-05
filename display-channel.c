@@ -88,7 +88,7 @@ channel_input(WINDOW *win, int c)
 		sscanf(buf, "%d", &x);
 		x = channel_find_index_from_chan(x);
 		if (x >= 0) {
-			if (!conf.serveraddr)
+			if (!conf.serveraddr[0] != '\0')
 				channel_change(x);
 			else
 				conf.channel_idx = x;

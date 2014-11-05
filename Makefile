@@ -27,7 +27,7 @@ OBJS=main.o capture$(if $(filter 1,$(PCAP)),-pcap).o protocol_parser.o \
 	display.o display-main.o display-filter.o display-help.o \
 	display-statistics.o display-essid.o display-history.o \
 	display-spectrum.o display-channel.o control.o \
-	radiotap/radiotap.o
+	radiotap/radiotap.o conf_options.o
 LIBS=-lncurses -lm
 CFLAGS+=-Wall -Wextra -g -I.
 
