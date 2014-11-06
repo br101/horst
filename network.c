@@ -523,17 +523,17 @@ int net_handle_server_conn( void )
 
 
 void
-net_init_server_socket(char* rport)
+net_init_server_socket(int rport)
 {
 	struct sockaddr_in sock_in;
 	int reuse = 1;
 
-	printlog("Initializing server port %s", rport);
+	printlog("Initializing server port %d", rport);
 
 	memset(&sock_in, 0, sizeof(struct sockaddr_in));
 	sock_in.sin_family = AF_INET;
 	sock_in.sin_addr.s_addr = htonl(INADDR_ANY);
-	sock_in.sin_port = htons(atoi(rport));
+	sock_in.sin_port = htons(rport);
 
 	if ((srv_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 		err(1, "Could not open server socket");
@@ -550,13 +550,16 @@ net_init_server_socket(char* rport)
 
 
 int
-net_open_client_socket(char* serveraddr, char* rport)
+net_open_client_socket(char* serveraddr, int rport)
 {
 	struct addrinfo saddr;
 	struct addrinfo *result, *rp;
+	char rport_str[20];
 	int ret;
 
-	printlog("Connecting to server %s port %s", serveraddr, rport);
+	snprintf(rport_str, 20, "%d", rport);
+
+	printlog("Connecting to server %s port %s", serveraddr, rport_str);
 
 	/* Obtain address(es) matching host/port */
 	memset(&saddr, 0, sizeof(struct addrinfo));
@@ -565,7 +568,7 @@ net_open_client_socket(char* serveraddr, char* rport)
 	saddr.ai_flags = 0;
 	saddr.ai_protocol = 0;
 
-	ret = getaddrinfo(serveraddr, rport, &saddr, &result);
+	ret = getaddrinfo(serveraddr, rport_str, &saddr, &result);
 	if (ret != 0) {
 		fprintf(stderr, "Could not resolve: %s\n", gai_strerror(ret));
 		exit(EXIT_FAILURE);

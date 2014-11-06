@@ -535,7 +535,7 @@ get_options(int argc, char** argv)
 	while((c = getopt(argc, argv, "hqDsCi:t:c:p:e:f:d:o:b:X::x:m:u:a:")) > 0) {
 		switch (c) {
 		case 'p':
-			conf.port = optarg;
+			conf.port = atoi(optarg);
 			break;
 		case 'q':
 			conf.quiet = 1;
