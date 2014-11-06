@@ -575,9 +575,6 @@ main(int argc, char** argv)
 	if (!conf.quiet && !conf.debug)
 		init_display();
 
-	if (conf.dumpfile[0] != '\0')
-		dumpfile_open(conf.dumpfile);
-
 	if (!conf.serveraddr && conf.port && conf.allow_client)
 		net_init_server_socket(conf.port);
 
@@ -610,7 +607,7 @@ main_pause(int pause)
 
 
 void
-dumpfile_open(char* name)
+dumpfile_open(const char* name)
 {
 	if (DF != NULL) {
 		fclose(DF);

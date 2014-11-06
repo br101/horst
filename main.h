@@ -337,6 +337,6 @@ void
 main_pause(int pause);
 
 void
-dumpfile_open(char* name);
+dumpfile_open(const char* name);
 
 #endif
