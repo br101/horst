@@ -27,6 +27,7 @@
 #include "main.h"
 #include "channel.h"
 #include "control.h"
+#include "conf_options.h"
 
 #define MAX_CMD 255
 
@@ -50,7 +51,7 @@ control_send_command(char* cmd)
 	char* pos;
 
 	while (access(conf.control_pipe, F_OK) < 0) {
-		printf("Waiting for control pipe...\n");
+		printf("Waiting for control pipe '%s'...\n", conf.control_pipe);
 		sleep(1);
 	}
 
@@ -79,7 +80,6 @@ static void
 parse_command(char* in) {
 	char* cmd;
 	char* val;
-	int n;
 
 	cmd = strsep(&in, "=");
 	val = in;
@@ -93,35 +93,9 @@ parse_command(char* in) {
 	else if (strcmp(cmd, "resume") == 0) {
 		main_pause(0);
 	}
-
-	/* all other commands require a value */
-
-	if (val == NULL)
-		return;
-
-	else if (strcmp(cmd, "channel") == 0) {
-		n = atoi(val);
-		printlog("- CHANNEL = %d", n);
-		conf.do_change_channel = 0;
-		channel_change(channel_find_index_from_chan(n));
-	}
-	else if (strcmp(cmd, "channel_auto") == 0) {
-		n = (strcmp(val, "1") == 0);
-		printlog("- CHANNEL AUTO = %d", n);
-		conf.do_change_channel = n;
-	}
-	else if (strcmp(cmd, "channel_dwell") == 0) {
-		n = atoi(val);
-		printlog("- CHANNEL DWELL = %d", n);
-		conf.channel_time = n*1000;
-	}
-	else if (strcmp(cmd, "channel_upper") == 0) {
-		n = atoi(val);
-		printlog("- CHANNEL MAX = %d", n);
-		conf.channel_max = n;
-	}
-	else if (strcmp(cmd, "outfile") == 0) {
-		dumpfile_open(val);
+	else {
+		/* handle the rest thru config options */
+		config_handle_option(0, cmd, val);
 	}
 }
 
