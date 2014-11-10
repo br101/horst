@@ -25,6 +25,9 @@
 #include "channel.h"
 
 
+static struct chan_freq channels[MAX_CHANNELS];
+
+
 #if defined(__APPLE__)
 
 int
@@ -40,23 +43,6 @@ channel_auto_change(void)
 }
 
 int
-channel_find_index_from_chan(__attribute__((unused)) int c)
-{
-	return -1;
-}
-
-int
-channel_find_index_from_freq(__attribute__((unused)) int f)
-{
-	return -1;
-}
-
-int
-channel_get_chan_from_idx(__attribute__((unused)) int i) {
-	return -1;
-}
-
-int
 channel_get_current_chan() {
 	return -1;
 }
@@ -65,23 +51,10 @@ void
 channel_init(void) {
 }
 
-struct chan_freq*
-channel_get_struct(__attribute__((unused)) int i) {
-	return NULL;
-}
-
-void
-channel_set(__attribute__((unused)) int i,
-	    __attribute__((unused)) int chan,
-	    __attribute__((unused)) int freq) {
-}
-
 #else
-
 
 static struct timeval last_channelchange;
 extern int mon; /* monitoring socket */
-static struct chan_freq channels[MAX_CHANNELS];
 
 
 int
@@ -130,37 +103,6 @@ channel_auto_change(void)
 
 
 int
-channel_find_index_from_chan(int c)
-{
-	int i = -1;
-	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++)
-		if (channels[i].chan == c)
-			return i;
-	return -1;
-}
-
-
-int
-channel_find_index_from_freq(int f)
-{
-	int i = -1;
-	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++)
-		if (channels[i].freq == f)
-			return i;
-	return -1;
-}
-
-
-int
-channel_get_chan_from_idx(int i) {
-	if (i >= 0 && i < conf.num_channels && i < MAX_CHANNELS)
-		return channels[i].chan;
-	else
-		return -1;
-}
-
-
-int
 channel_get_current_chan() {
 	return channel_get_chan_from_idx(conf.channel_idx);
 }
@@ -191,6 +133,40 @@ channel_init(void) {
 }
 
 
+#endif
+
+
+int
+channel_find_index_from_chan(int c)
+{
+	int i = -1;
+	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++)
+		if (channels[i].chan == c)
+			return i;
+	return -1;
+}
+
+
+int
+channel_find_index_from_freq(int f)
+{
+	int i = -1;
+	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++)
+		if (channels[i].freq == f)
+			return i;
+	return -1;
+}
+
+
+int
+channel_get_chan_from_idx(int i) {
+	if (i >= 0 && i < conf.num_channels && i < MAX_CHANNELS)
+		return channels[i].chan;
+	else
+		return -1;
+}
+
+
 struct chan_freq*
 channel_get_struct(int i) {
 	if (i < conf.num_channels && i < MAX_CHANNELS)
@@ -206,5 +182,3 @@ channel_set(int i, int chan, int freq) {
 		channels[i].freq = freq;
 	}
 }
-
-#endif
