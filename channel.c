@@ -45,11 +45,36 @@ channel_find_index_from_chan(__attribute__((unused)) int c)
 	return -1;
 }
 
-void
-get_current_channel(__attribute__((unused)) int mon)
+int
+channel_find_index_from_freq(__attribute__((unused)) int f)
 {
+	return -1;
 }
 
+int
+channel_get_chan_from_idx(__attribute__((unused)) int i) {
+	return -1;
+}
+
+int
+channel_get_current_chan() {
+	return -1;
+}
+
+void
+channel_init(void) {
+}
+
+struct chan_freq*
+channel_get_struct(__attribute__((unused)) int i) {
+	return NULL;
+}
+
+void
+channel_set(__attribute__((unused)) int i,
+	    __attribute__((unused)) int chan,
+	    __attribute__((unused)) int freq) {
+}
 
 #else
 
