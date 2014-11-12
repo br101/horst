@@ -226,23 +226,23 @@ static int conf_filter_pkt(const char* value) {
 
 static struct conf_option conf_options[] = {
 	/* C , NAME        VALUE REQUIRED, DEFAULT	CALLBACK */
-	{ 'q', "quiet",			0, NULL,	conf_quiet },
+	{ 'q', "quiet",			0, NULL,	conf_quiet },		// NOT dynamic
 #if DO_DEBUG
-	{ 'D', "debug", 		0, NULL,	conf_debug },
+	{ 'D', "debug", 		0, NULL,	conf_debug },		// NOT dynamic
 #endif
-	{ 'i', "interface", 		1, "wlan0",	conf_interface },
+	{ 'i', "interface", 		1, "wlan0",	conf_interface },	// NOT dynamic
 	{ 'd', "display_interval",	1, "100", 	conf_display_interval },
 	{ 'o', "outfile", 		1, NULL,	conf_outfile },
 	{ 't', "node_timeout", 		1, "60",	conf_node_timeout },
-	{ 'b', "receive_buffer",	1, NULL,	conf_receive_buffer },
-	{  0 , "channel",		1, NULL, 	conf_channel_set },
+	{ 'b', "receive_buffer",	1, NULL,	conf_receive_buffer },	// NOT dynamic
+	{  0 , "channel",		1, NULL, 	conf_channel_set },	// dynamic, but NOT init
 	{ 's', "channel_auto",		0, NULL,	conf_channel_auto },
 	{  0 , "channel_dwell",		1, "250", 	conf_channel_dwell },
 	{ 'u', "channel_upper",		1, NULL, 	conf_channel_upper },
-	{ 'N', "server",		0, NULL,	conf_server },
-	{ 'n', "client",		1, NULL,	conf_client },
-	{ 'p', "port",			1, "4444",	conf_port },
-	{ 'X', "control_pipe",		2, NULL,	conf_control_pipe },
+	{ 'N', "server",		0, NULL,	conf_server },		// NOT dynamic
+	{ 'n', "client",		1, NULL,	conf_client },		// NOT dynamic
+	{ 'p', "port",			1, "4444",	conf_port },		// NOT dynamic
+	{ 'X', "control_pipe",		2, NULL,	conf_control_pipe },	// NOT dynamic
 	{ 'e', "filter_mac", 		1, NULL,	conf_filter_mac },
 	{ 'm', "filter_mode",		1, "ALL",	conf_filter_mode },
 	{ 'f', "filter_packet",		1, "ALL",	conf_filter_pkt },
