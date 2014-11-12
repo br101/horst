@@ -26,7 +26,7 @@ void
 control_init_pipe();
 
 void
-control_send_command(char* cmd);
+control_send_command(const char* cmd);
 
 void
 control_receive_command();

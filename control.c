@@ -44,7 +44,7 @@ control_init_pipe(void)
 
 
 void
-control_send_command(char* cmd)
+control_send_command(const char* cmd)
 {
 	int len = strlen(cmd);
 	char new[len+1];
