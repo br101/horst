@@ -39,15 +39,12 @@ static int conf_quiet(__attribute__((unused)) const char* value) {
 	return 1;
 }
 
-static int conf_debug(__attribute__((unused)) const char* value) {
 #if DO_DEBUG
+static int conf_debug(__attribute__((unused)) const char* value) {
 	conf.debug = 1;
-#else
-	printf("Please compile with DEBUG=1 to use the -D option!\n");
-	exit(1);
-#endif
 	return 1;
 }
+#endif
 
 static int conf_interface(const char* value) {
 	strncpy(conf.ifname, value, MAX_CONF_VALUE_LEN);
@@ -228,14 +225,16 @@ static int conf_filter_pkt(const char* value) {
 static struct conf_option conf_options[] = {
 	/* C , NAME        VALUE REQUIRED, DEFAULT	CALLBACK */
 	{ 'q', "quiet",			0, NULL,	conf_quiet },
+#if DO_DEBUG
 	{ 'D', "debug", 		0, NULL,	conf_debug },
+#endif
 	{ 'i', "interface", 		1, "wlan0",	conf_interface },
 	{ 'd', "display_interval",	1, "100", 	conf_display_interval },
 	{ 'o', "outfile", 		1, NULL,	conf_outfile },
 	{ 't', "node_timeout", 		1, "60",	conf_node_timeout },
 	{ 'b', "receive_buffer",	1, NULL,	conf_receive_buffer },
-	{ 's', "channel_auto",		0, NULL,	conf_channel_auto },
 	{  0 , "channel",		1, NULL, 	conf_channel_set },
+	{ 's', "channel_auto",		0, NULL,	conf_channel_auto },
 	{  0 , "channel_dwell",		1, "250", 	conf_channel_dwell },
 	{ 'u', "channel_upper",		1, NULL, 	conf_channel_upper },
 	{ 'N', "server",		0, NULL,	conf_server },
@@ -348,14 +347,14 @@ config_get_getopt_string(char* buf, size_t maxlen, const char* add) {
 
 void print_usage(const char* name) {
 	printf("\nUsage: %s [-h] [-q] [-D] [-c file] [-i interface] [-t sec] [-d ms] [-b bytes]\n"
-		"\t\t[-s] [-u] [-C] [-c IP] [-p port] [-o file] [-X[name]] [-x command]\n"
+		"\t\t[-s] [-u] [-N] [-n IP] [-p port] [-o file] [-X[name]] [-x command]\n"
 		"\t\t[-e MAC] [-f PKT_NAME] [-m MODE]\n\n"
 
 		"General Options: Description (default value)\n"
 		"  -h\t\tHelp\n"
 		"  -q\t\tQuiet, no output\n"
 #if DO_DEBUG
-		"  -D\t\tShow lots of debugit g output, no UI\n"
+		"  -D\t\tShow lots of debug output, no UI\n"
 #endif
 		"  -c <file>\tConfig file (" CONFIG_FILE ")\n"
 		"  -i <intf>\tInterface name (wlan0)\n"
@@ -367,8 +366,8 @@ void print_usage(const char* name) {
 		"  -s\t\t(Poor mans) Spectrum analyzer mode\n"
 		"  -u\t\tUpper channel limit\n\n"
 
-		"  -C\t\tAllow client connection, server mode (off)\n"
-		"  -c <IP>\tConnect to server with <IP>, client mode (off)\n"
+		"  -N\t\tAllow network connection, server mode (off)\n"
+		"  -n <IP>\tConnect to server with <IP>, client mode (off)\n"
 		"  -p <port>\tPort number of server (4444)\n\n"
 
 		"  -o <filename>\tWrite packet info into 'filename'\n\n"
