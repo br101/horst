@@ -445,16 +445,7 @@ handle_user_input(void)
 		exit(0);
 
 	case 'r': case 'R':
-		clear_display_main();
-		print_dump_win("\n- RESET -", show_win == NULL);
-		free_lists();
-		essids.split_active = 0;
-		essids.split_essid = NULL;
-		memset(&hist, 0, sizeof(hist));
-		memset(&stats, 0, sizeof(stats));
-		memset(&spectrum, 0, sizeof(spectrum));
-		init_spectrum();
-		gettimeofday(&stats.stats_time, NULL);
+		main_reset();
 		break;
 
 	/* big windows */
@@ -530,4 +521,11 @@ void
 finish_display(void)
 {
 	endwin();
+}
+
+
+void
+display_clear(void)
+{
+	clear_display_main();
 }

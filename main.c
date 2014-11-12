@@ -606,6 +606,22 @@ main_pause(int pause)
 }
 
 
+void main_reset()
+{
+	if (!conf.quiet && !conf.debug)
+		display_clear();
+	printlog("- RESET -");
+	free_lists();
+	essids.split_active = 0;
+	essids.split_essid = NULL;
+	memset(&hist, 0, sizeof(hist));
+	memset(&stats, 0, sizeof(stats));
+	memset(&spectrum, 0, sizeof(spectrum));
+	init_spectrum();
+	gettimeofday(&stats.stats_time, NULL);
+}
+
+
 void
 dumpfile_open(const char* name)
 {

@@ -77,4 +77,7 @@ init_display(void);
 void
 finish_display(void);
 
+void
+display_clear(void);
+
 #endif

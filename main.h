@@ -337,6 +337,9 @@ void
 main_pause(int pause);
 
 void
+main_reset(void);
+
+void
 dumpfile_open(const char* name);
 
 #endif

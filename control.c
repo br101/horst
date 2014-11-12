@@ -97,6 +97,9 @@ parse_command(char* in) {
 	else if (strcmp(cmd, "resume") == 0) {
 		main_pause(0);
 	}
+	else if (strcmp(cmd, "reset") == 0) {
+		main_reset();
+	}
 	else {
 		/* handle the rest thru config options */
 		config_handle_option(0, cmd, val);
