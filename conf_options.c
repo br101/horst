@@ -146,6 +146,11 @@ static int conf_filter_mac(const char* value) {
 	return 1;
 }
 
+static int conf_filter_bssid(const char* value) {
+	convert_string_to_mac(value, conf.filterbssid);
+	return 1;
+}
+
 static int conf_filter_mode(const char* value) {
 	if (conf.filter_mode == WLAN_MODE_ALL)
 		conf.filter_mode = 0;
@@ -242,6 +247,7 @@ static struct conf_option conf_options[] = {
 	{ 'p', "port",			1, "4444",	conf_port },		// NOT dynamic
 	{ 'X', "control_pipe",		2, NULL,	conf_control_pipe },	// NOT dynamic
 	{ 'e', "filter_mac", 		1, NULL,	conf_filter_mac },
+	{ 'B', "filter_bssid", 		1, NULL,	conf_filter_bssid },
 	{ 'm', "filter_mode",		1, "ALL",	conf_filter_mode },
 	{ 'f', "filter_packet",		1, "ALL",	conf_filter_pkt },
 };
@@ -352,7 +358,7 @@ config_get_getopt_string(char* buf, size_t maxlen, const char* add) {
 void print_usage(const char* name) {
 	printf("\nUsage: %s [-h] [-q] [-D] [-c file] [-i interface] [-t sec] [-d ms] [-b bytes]\n"
 		"\t\t[-s] [-u] [-N] [-n IP] [-p port] [-o file] [-X[name]] [-x command]\n"
-		"\t\t[-e MAC] [-f PKT_NAME] [-m MODE]\n\n"
+		"\t\t[][-e MAC] [-f PKT_NAME] [-m MODE] [-B BSSID]\n\n"
 
 		"General Options: Description (default value)\n"
 		"  -h\t\tHelp\n"
@@ -383,10 +389,11 @@ void print_usage(const char* name) {
 		" Filters are generally 'positive' or 'inclusive' which means you define\n"
 		" what you want to see, and everything else is getting filtered out.\n"
 		" If a filter is not set it is inactive and nothing is filtered.\n"
-		" All filter options can be specified multiple times.\n"
+		" Most filter options can be specified multiple times and will be combined\n"
 		"  -e <MAC>\tSource MAC addresses (xx:xx:xx:xx:xx:xx), up to 9 times\n"
-		"  -f <PKT_NAME>\tFilter packet types\n"
-		"  -m <MODE>\tOperating mode: AP|STA|ADH|PRB|WDS|UNKNOWN\n"
+		"  -f <PKT_NAME>\tFilter packet types, multiple\n"
+		"  -m <MODE>\tOperating mode: AP|STA|ADH|PRB|WDS|UNKNOWN, multiple\n"
+		"  -B <MAC>\tBSSID (xx:xx:xx:xx:xx:xx), only one\n"
 		"\n",
 		name);
 }
