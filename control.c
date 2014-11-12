@@ -69,7 +69,7 @@ control_send_command(const char* cmd)
 	new[len+1] = '\0';
 
 	/* replace : with newline */
-	while ((pos = strchr(new, ':')) != NULL) {
+	while ((pos = strchr(new, ';')) != NULL) {
 		*pos = '\n';
 	}
 
