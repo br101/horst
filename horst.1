@@ -11,6 +11,8 @@ horst \- Highly Optimized Radio Scanning Tool
 .RB [\| \-h \|]
 .RB [\| \-q \|]
 .RB [\| \-D \|]
+.RB [\| \-c 
+.IR file \|] 
 .RB [\| \-i 
 .IR interface \|] 
 .RB [\| \-t
@@ -21,8 +23,8 @@ horst \- Highly Optimized Radio Scanning Tool
 .IR bytes \|]
 .RB [\| \-s \|] 
 .RB [\| \-u \|]
-.RB [\| \-C \|] 
-.RB [\| \-c
+.RB [\| \-N \|] 
+.RB [\| \-n
 .IR IP \|] 
 .RB [\| \-p
 .IR port \|]
@@ -84,6 +86,9 @@ Quiet mode. Don't show user interface. This is only useful in conjunction when r
 .BI \-D
 Show lot's of debugging output, including a full package dump. Only available when compiled with DEBUG=1.
 .TP
+.BI \-c\  configfile
+Use configfile instead of the default "/etc/horst.conf".
+.TP
 .BI \-i\  intf
 Operate on given network interface instead of the default "wlan0". Note that the interface is assumed to be in monitor mode already. See MONITOR MODE below for more information about preparing the network interface.
 .TP
@@ -102,10 +107,10 @@ Show a poor mans "spectrum analyzer". The same can be achieved by running \fBhor
 .BI \-u
 Upper channel limit for the automatic channel change.
 .TP
-.BI \-C
+.BI \-N
 Allow client connections. Server mode. Only one client connection is supported at the moment (default: off).
 .TP
-.BI \-c\  IP
+.BI \-n\  IP
 Connect to a \fBhorst\fP instance running in server-mode at the specified IP address.
 .TP
 .BI \-p\  port
@@ -121,7 +126,7 @@ Accept control commands on a named pipe (default /tmp/horst).
 Accept control commands on a named pipe with given name or set pipe name used with -x.
 .TP
 .BI \-x\  command
-Send control command to another \fBhorst\fP process who was started with -X and then exit. Multiple commands can be concatenated with ':'. Currently implemented commands are:
+Send control command to another \fBhorst\fP process who was started with -X and then exit. Multiple commands can be concatenated with ';'. Currently implemented commands are:
     pause              Pause \fBhorst\fP processing
     resume             Resume \fBhorst\fP processing
     channel=X          Set channel channel number
@@ -132,6 +137,9 @@ Send control command to another \fBhorst\fP process who was started with -X and 
                        If the file is already open, it is cleared and re-openend.
                        If filename is not specified ("outfile=") any existing file
                        is closed and no file is written.
+
+    And some, but not all options which can be used in the configuration file.
+
 .TP
 .BI \-e\  MAC
 Filter all MAC addresses except these, to show only packets originating from the specified MAC addresses. This option can be specified multiple times.
