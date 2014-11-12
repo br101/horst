@@ -269,6 +269,16 @@ static struct conf_option conf_options[] = {
 
 
 /*
+ * More possible config options:
+ *
+ * main view:
+ *	sort nodes by: signal, time, bssid, channel
+ * spec view:
+ *	show nodes or bars
+ */
+
+
+/*
  * This handles command line options from getopt as well as options from the config file
  * In the first case 'c' is non-zero and name is NULL
  * In the second case 'c' is 0 and name is set
