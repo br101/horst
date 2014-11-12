@@ -79,7 +79,6 @@ static int conf_channel_auto(const char* value) {
 		conf.do_change_channel = 0;
 	else
 		conf.do_change_channel = 1;
-	printlog("channel auto = %d", conf.do_change_channel);
 	return 1;
 }
 
@@ -103,7 +102,6 @@ static int conf_server(const char* value) {
 		conf.allow_client = 0;
 	else
 		conf.allow_client = 1;
-	printlog("server = %d", conf.allow_client);
 	return 1;
 }
 
@@ -263,7 +261,12 @@ config_handle_option(int c, const char* name, const char* value) {
 		    (name != NULL && strcmp(conf_options[i].name, name) == 0)) &&
 		     conf_options[i].func != NULL) {
 			/* call function */
-			printlog("Set '%s' = '%s'", name, value);
+			if (!conf.quiet) {
+				if (value != NULL)
+					printlog("Set '%s' = '%s'", conf_options[i].name, value);
+				else
+					printlog("Set '%s'", conf_options[i].name);
+			}
 			return conf_options[i].func(value);
 		}
 	}
