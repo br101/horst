@@ -77,8 +77,10 @@ static int conf_channel_set(const char* value) {
 static int conf_channel_auto(const char* value) {
 	if (value != NULL && strcmp(value, "0") == 0)
 		conf.do_change_channel = 0;
-	else
+	else {
 		conf.do_change_channel = 1;
+		conf.display_view = 's'; // show spectrum view
+	}
 	return 1;
 }
 
@@ -94,6 +96,18 @@ static int conf_channel_upper(const char* value) {
 
 static int conf_display_interval(const char* value) {
 	conf.display_interval = atoi(value) * 1000;
+	return 1;
+}
+
+static int conf_display_view(const char* value) {
+	if (strcasecmp(value, "history") == 0 || strcasecmp(value, "hist") == 0)
+		conf.display_view = 'h';
+	else if (strcasecmp(value, "essid") == 0)
+		conf.display_view = 'e';
+	else if (strcasecmp(value, "statistics") == 0 || strcasecmp(value, "stats") == 0)
+		conf.display_view = 'a';
+	else if (strcasecmp(value, "spectrum") == 0 || strcasecmp(value, "spec") == 0)
+		conf.display_view = 's';
 	return 1;
 }
 
@@ -235,6 +249,7 @@ static struct conf_option conf_options[] = {
 #endif
 	{ 'i', "interface", 		1, "wlan0",	conf_interface },	// NOT dynamic
 	{ 'd', "display_interval",	1, "100", 	conf_display_interval },
+	{ 'V', "display_view",		1, NULL, 	conf_display_view },
 	{ 'o', "outfile", 		1, NULL,	conf_outfile },
 	{ 't', "node_timeout", 		1, "60",	conf_node_timeout },
 	{ 'b', "receive_buffer",	1, NULL,	conf_receive_buffer },	// NOT dynamic
@@ -356,7 +371,7 @@ config_get_getopt_string(char* buf, size_t maxlen, const char* add) {
 
 
 void print_usage(const char* name) {
-	printf("\nUsage: %s [-h] [-q] [-D] [-c file] [-i interface] [-t sec] [-d ms] [-b bytes]\n"
+	printf("\nUsage: %s [-h] [-q] [-D] [-c file] [-i interface] [-t sec] [-d ms] [-V view] [-b bytes]\n"
 		"\t\t[-s] [-u] [-N] [-n IP] [-p port] [-o file] [-X[name]] [-x command]\n"
 		"\t\t[][-e MAC] [-f PKT_NAME] [-m MODE] [-B BSSID]\n\n"
 
@@ -370,6 +385,7 @@ void print_usage(const char* name) {
 		"  -i <intf>\tInterface name (wlan0)\n"
 		"  -t <sec>\tNode timeout in seconds (60)\n"
 		"  -d <ms>\tDisplay update interval in ms (100)\n"
+		"  -V view\tDisplay view: history|essid|statistics|spectrum\n"
 		"  -b <bytes>\tReceive buffer size in bytes (not set)\n"
 
 		"\nFeature Options:\n"

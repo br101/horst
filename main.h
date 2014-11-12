@@ -290,6 +290,7 @@ struct config {
 	int			channel_max;
 	int			channel_idx;	/* index into channels array */
 	int			display_interval;
+	char			display_view;
 	char			dumpfile[MAX_CONF_VALUE_LEN];
 	int			recv_buffer_size;
 	char			serveraddr[MAX_CONF_VALUE_LEN];

@@ -17,6 +17,8 @@ horst \- Highly Optimized Radio Scanning Tool
 .IR interface \|] 
 .RB [\| \-t
 .IR sec \|] 
+.RB [\| \-V
+.IR view \|] 
 .RB [\| \-d
 .IR ms \|] 
 .RB [\| \-b
@@ -95,6 +97,9 @@ Operate on given network interface instead of the default "wlan0". Note that the
 .TP
 .BI \-t\  sec
 Timeout (remove) nodes after not receiving packets from them for this time in seconds (default: 60 sec).
+.TP
+.BI \-V\  view
+Display 'view'. Valid view names are "history", "hist", "essid", "statistics", "stats", "spectrum", "spec".
 .TP
 .BI \-d\  ms
 Display update interval. The default value of 100ms can be increased to reduce CPU load caused by redrawing the screen.

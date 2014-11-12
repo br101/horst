@@ -506,8 +506,8 @@ init_display(void)
 
 	init_display_main();
 
-	if (conf.do_change_channel)
-		show_window('s');
+	if (conf.display_view != 0)
+		show_window(conf.display_view);
 
 	update_menu();
 	update_display(NULL);
