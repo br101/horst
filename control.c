@@ -50,6 +50,10 @@ control_send_command(const char* cmd)
 	char new[len+1];
 	char* pos;
 
+	if (conf.control_pipe[0] == '\0') {
+		strncpy(conf.control_pipe, DEFAULT_CONTROL_PIPE, MAX_CONF_VALUE_LEN);
+	}
+
 	while (access(conf.control_pipe, F_OK) < 0) {
 		printf("Waiting for control pipe '%s'...\n", conf.control_pipe);
 		sleep(1);

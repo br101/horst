@@ -20,6 +20,8 @@
 #ifndef _CONTROL_H_
 #define _CONTROL_H_
 
+#define DEFAULT_CONTROL_PIPE "/tmp/horst"
+
 extern int ctlpipe;
 
 void

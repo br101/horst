@@ -118,17 +118,19 @@ static int conf_port(const char* value) {
 }
 
 static int conf_control_pipe(const char* value) {
+	/*
+	 * Here it's a bit difficult because -X is used for two purposes:
+	 * 1) allow control pipe (-X with or without argument)
+	 * 2) set the name of the control pipe (-X with argument) which can
+	 *    also be used in conjuction with -x
+	 * That's why we don't set a default value (as it would always allow control)
+	 * and especially handle the default name here and in control_send_command()
+	 */
 	if (value != NULL)
 		strncpy(conf.control_pipe, value, MAX_CONF_VALUE_LEN);
 	else
-		strncpy(conf.control_pipe, "/tmp/horst", MAX_CONF_VALUE_LEN);
+		strncpy(conf.control_pipe, DEFAULT_CONTROL_PIPE, MAX_CONF_VALUE_LEN);
 	conf.allow_control = 1;
-	return 1;
-}
-
-static int conf_control_command(const char* value) {
-	control_send_command(value);
-	exit(0);
 	return 1;
 }
 
@@ -241,7 +243,6 @@ static struct conf_option conf_options[] = {
 	{ 'n', "client",		1, NULL,	conf_client },
 	{ 'p', "port",			1, "4444",	conf_port },
 	{ 'X', "control_pipe",		2, NULL,	conf_control_pipe },
-	{ 'x', "control_command",	1, NULL,	conf_control_command },
 	{ 'e', "filter_mac", 		1, NULL,	conf_filter_mac },
 	{ 'm', "filter_mode",		1, "ALL",	conf_filter_mode },
 	{ 'f', "filter_packet",		1, "ALL",	conf_filter_pkt },
@@ -395,18 +396,23 @@ config_parse_file_and_cmdline(int argc, char** argv)
 	char* conf_filename = CONFIG_FILE;
 	int c;
 
-	config_get_getopt_string(getopt_str, sizeof(getopt_str), "hc:");
+	config_get_getopt_string(getopt_str, sizeof(getopt_str), "hc:x:");
 
 	/* first: apply default values */
 	config_apply_defaults();
 
-	/* then: handle command line options which are not configuration options ("hc:") */
+	/*
+	 * then: handle command line options which are not
+	 * configuration options ("hc:")
+	 */
 	while ((c = getopt(argc, argv, getopt_str)) > 0) {
-		if (c == 'c') {
+		switch (c) {
+		case 'c':
 			printlog("Using config file '%s'", optarg);
 			conf_filename = optarg;
-		}
-		else if (c == 'h' || c == '?') {
+			break;
+		case 'h':
+		case '?':
 			print_usage(argv[0]);
 			exit(0);
 		}
@@ -416,11 +422,24 @@ config_parse_file_and_cmdline(int argc, char** argv)
 	config_read_file(conf_filename);
 
 	/*
-	 * and finally get command line options to let them override or add
-	 * to the config file options
+	 * get command line options which are configuration, to let them
+	 * override or add to the config file options
 	 */
 	optind = 1;
 	while ((c = getopt(argc, argv, getopt_str)) > 0) {
 		config_handle_option(c, NULL, optarg);
+	}
+
+	/*
+	 * and finally get command line options ("commands") which depend
+	 * on config options ("x:")
+	 */
+	optind = 1;
+	while ((c = getopt(argc, argv, getopt_str)) > 0) {
+		switch (c) {
+		case 'x':
+			control_send_command(optarg);
+			exit(0);
+		}
 	}
 }
