@@ -79,15 +79,22 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		n->wlan_bintval = p->wlan_bintval;
 		n->wlan_wpa = p->wlan_wpa;
 		n->wlan_rsn = p->wlan_rsn;
+		// Channel is only really known for Beacon and Probe response
+		n->wlan_channel = p->wlan_channel;
+	} else if ((n->wlan_mode & WLAN_MODE_STA) && n->wlan_ap_node != NULL) {
+		// for STA we can use the channel from the AP
+		n->wlan_channel = n->wlan_ap_node->wlan_channel;
+	} else if (n->wlan_channel == 0 && p->wlan_channel != 0) {
+		// otherwise only override if channel was unknown
+		n->wlan_channel = p->wlan_channel;
 	}
+
 	ewma_add(&n->phy_sig_avg, -p->phy_signal);
 	n->phy_sig_sum += -p->phy_signal;
 	n->phy_sig_count += 1;
 
 	if (p->phy_signal > n->phy_sig_max || n->phy_sig_max == 0)
 		n->phy_sig_max = p->phy_signal;
-	if (p->wlan_channel != 0)
-		n->wlan_channel = p->wlan_channel;
 
 	if ((p->wlan_type == WLAN_FRAME_DATA) ||
 	    (p->wlan_type == WLAN_FRAME_QDATA) ||
