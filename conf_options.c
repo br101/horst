@@ -74,7 +74,7 @@ static int conf_channel_set(const char* value) {
 	return 1;
 }
 
-static int conf_channel_auto(const char* value) {
+static int conf_channel_scan(const char* value) {
 	if (value != NULL && strcmp(value, "0") == 0)
 		conf.do_change_channel = 0;
 	else {
@@ -254,7 +254,7 @@ static struct conf_option conf_options[] = {
 	{ 't', "node_timeout", 		1, "60",	conf_node_timeout },
 	{ 'b', "receive_buffer",	1, NULL,	conf_receive_buffer },	// NOT dynamic
 	{  0 , "channel",		1, NULL, 	conf_channel_set },	// dynamic, but NOT init
-	{ 's', "channel_auto",		0, NULL,	conf_channel_auto },
+	{ 's', "channel_scan",		0, NULL,	conf_channel_scan },
 	{  0 , "channel_dwell",		1, "250", 	conf_channel_dwell },
 	{ 'u', "channel_upper",		1, NULL, 	conf_channel_upper },
 	{ 'N', "server",		0, NULL,	conf_server },		// NOT dynamic

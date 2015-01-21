@@ -137,7 +137,7 @@ Send control command to another \fBhorst\fP process who was started with -X and 
     resume             Resume \fBhorst\fP processing
     reset              Reset all history, statistics and views
     channel=X          Set channel channel number
-    channel_auto=X     Automatically change channels (1 or 0)
+    channel_scan=X     Automatically change channels (1 or 0)
     channel_dwell=X    Set channel dwell time when automatically changing channel (ms)
     channel_upper=X    Set max channel when automatically changing channel
     outfile=X          Write to outfile named X.
@@ -225,7 +225,7 @@ The statistics screen groups packets by physical rate and by packet type and sho
 .TP
 Spectrum Analyzer ('s')
 
-The "poor mans spectrum analyzer" screen is only really useful when \fBhorst\fP is started with the -s option or the "Automatically change channel" option is selected in the "Chan" settings.
+The "poor mans spectrum analyzer" screen is only really useful when \fBhorst\fP is started with the -s option or the "Automatically change channel" option is selected in the "Chan" settings, or the config option channel_scan is set.
 
 It shows the available channels horizontally and vertical bars for each channel:
 
