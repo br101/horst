@@ -39,7 +39,7 @@ update_channel_win(WINDOW *win)
 		  conf.channel_time/1000);
 	mvwprintw(win, 4, 2, "u: Upper channel limit: %d  ", conf.channel_max);
 
-	mvwprintw(win, 6, 2, "m: Manually change channel: %d ", channel_get_current_chan());
+	mvwprintw(win, 6, 2, "m: Manually change channel: %d  ", channel_get_current_chan());
 
 	print_centered(win, 8, 39, "[ Press key or ENTER ]");
 
@@ -82,7 +82,7 @@ channel_input(WINDOW *win, int c)
 		conf.do_change_channel = 0;
 		echo();
 		curs_set(1);
-		mvwgetnstr(win, 6, 30, buf, 2);
+		mvwgetnstr(win, 6, 30, buf, 3);
 		curs_set(0);
 		noecho();
 		sscanf(buf, "%d", &x);

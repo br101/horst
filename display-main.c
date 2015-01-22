@@ -235,7 +235,7 @@ update_status_win(struct packet_info* p)
 
 #define COL_PKT		3
 #define COL_CHAN	COL_PKT + 7
-#define COL_SIG		COL_CHAN + 3
+#define COL_SIG		COL_CHAN + 4
 #define COL_RATE	COL_SIG + 4
 #define COL_SOURCE	COL_RATE + 4
 #define COL_MODE	COL_SOURCE + 18
@@ -268,7 +268,7 @@ print_node_list_line(int line, struct node_info* n)
 		  n->wlan_retries_all * 100.0 / n->pkt_count);
 
 	if (n->wlan_channel)
-		mvwprintw(list_win, line, COL_CHAN, "%2d", n->wlan_channel );
+		mvwprintw(list_win, line, COL_CHAN, "%3d", n->wlan_channel );
 
 	mvwprintw(list_win, line, COL_SIG, "%3d", -ewma_read(&n->phy_sig_avg));
 	mvwprintw(list_win, line, COL_RATE, "%3d", p->phy_rate/10);
@@ -340,7 +340,7 @@ update_node_list_win(void)
 	wattron(list_win, WHITE);
 	box(list_win, 0 , 0);
 	mvwprintw(list_win, 0, COL_PKT, "Pk/Re%%");
-	mvwprintw(list_win, 0, COL_CHAN, "CH");
+	mvwprintw(list_win, 0, COL_CHAN, "Cha");
 	mvwprintw(list_win, 0, COL_SIG, "Sig");
 	mvwprintw(list_win, 0, COL_RATE, "RAT");
 	mvwprintw(list_win, 0, COL_SOURCE, "TRANSMITTER");
@@ -350,7 +350,7 @@ update_node_list_win(void)
 	mvwprintw(list_win, 0, COL_INFO, "INFO");
 
 	/* reuse bottom line for information on other win */
-	mvwprintw(list_win, win_split - 1, 0, "CH-Sig");
+	mvwprintw(list_win, win_split - 1, 0, "Cha-Sig");
 	wprintw(list_win, "-RAT-TRANSMITTER");
 	mvwprintw(list_win, win_split - 1, 29, "(BSSID)");
 	mvwprintw(list_win, win_split - 1, 49, "TYPE");
@@ -399,7 +399,7 @@ update_dump_win(struct packet_info* p)
 	if (p->phy_flags & PHY_FLAG_BADFCS)
 		wattron(dump_win, RED);
 
-	wprintw(dump_win, "\n%02d ", p->wlan_channel);
+	wprintw(dump_win, "\n%3d ", p->wlan_channel);
 	wprintw(dump_win, "%03d ", p->phy_signal);
 	wprintw(dump_win, "%3d ", p->phy_rate/10);
 	wprintw(dump_win, "%s ", ether_sprintf(p->wlan_src));

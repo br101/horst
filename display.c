@@ -203,12 +203,12 @@ static void
 update_mini_status(void)
 {
 	wattron(stdscr, BLACKONWHITE);
-	mvwprintw(stdscr, LINES-1, COLS-24, conf.paused ? "|=" : "|>");
+	mvwprintw(stdscr, LINES-1, COLS-25, conf.paused ? "|=" : "|>");
 	if (!conf.filter_off && (conf.do_macfilter || conf.filter_pkt != PKT_TYPE_ALL || conf.filter_mode != WLAN_MODE_ALL))
-		mvwprintw(stdscr, LINES-1, COLS-22, "|F");
+		mvwprintw(stdscr, LINES-1, COLS-23, "|F");
 	else
-		mvwprintw(stdscr, LINES-1, COLS-22, "| ");
-	mvwprintw(stdscr, LINES-1, COLS-20, "|Ch%02d", channel_get_current_chan());
+		mvwprintw(stdscr, LINES-1, COLS-23, "| ");
+	mvwprintw(stdscr, LINES-1, COLS-21, "|Ch%03d", channel_get_current_chan());
 	wattroff(stdscr, BLACKONWHITE);
 	wnoutrefresh(stdscr);
 }
