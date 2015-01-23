@@ -170,9 +170,9 @@ Main screen
 
 The initial (main) screen is split into three parts. The upper area shows a list of aggregated "node" information, the most useful information about each sender which was discovered, one per line:
         /             "Spinner" to show activity
-        Pk            Count of packets
-        Re%           Percentage of Re-sent frames
-        CH            Channel
+        Pk            Percentage of this node's packets in relation to all received packets
+        Re%           Percentage of retried frames of all frames this node sent
+        Cha           Channel number
         Sig           Signal value (RSSI) in dBm
         RAT           Physical data rate
         TRANSMITTER   MAC address of sender
@@ -182,7 +182,7 @@ The initial (main) screen is split into three parts. The upper area shows a list
         INFO          Additional info like "BATMAN", IP address...
 
 The lower area shows a scrolling list of packets as they come in:
-        CH            Channel
+        Cha           Channel number
         Sig           Signal value (RSSI) in dBm
         RAT           Physical data rate
         TRANSMITTER   MAC address of sender
