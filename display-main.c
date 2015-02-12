@@ -272,7 +272,7 @@ print_node_list_line(int line, struct node_info* n)
 
 	mvwprintw(list_win, line, COL_SIG, "%3d", -ewma_read(&n->phy_sig_avg));
 	mvwprintw(list_win, line, COL_RATE, "%3d", p->phy_rate/10);
-	mvwprintw(list_win, line, COL_SOURCE, "%s", ether_sprintf(p->wlan_src));
+	mvwprintw(list_win, line, COL_SOURCE, "%-17s", mac_name_lookup(p->wlan_src, 0));
 
 	if (n->wlan_mode & WLAN_MODE_AP) {
 		wprintw(list_win, " AP");
@@ -402,7 +402,7 @@ update_dump_win(struct packet_info* p)
 	wprintw(dump_win, "\n%3d ", p->wlan_channel);
 	wprintw(dump_win, "%03d ", p->phy_signal);
 	wprintw(dump_win, "%3d ", p->phy_rate/10);
-	wprintw(dump_win, "%s ", ether_sprintf(p->wlan_src));
+	wprintw(dump_win, "%-17s ", mac_name_lookup(p->wlan_src, 0));
 	wprintw(dump_win, "(%s) ", ether_sprintf(p->wlan_bssid));
 
 	if (p->phy_flags & PHY_FLAG_BADFCS) {
@@ -485,7 +485,7 @@ update_dump_win(struct packet_info* p)
 		case WLAN_FRAME_ACK:
 		case WLAN_FRAME_BLKACK:
 		case WLAN_FRAME_BLKACK_REQ:
-			wprintw(dump_win, "%s", ether_sprintf(p->wlan_dst));
+			wprintw(dump_win, "%-17s", mac_name_lookup(p->wlan_dst, 0));
 			break;
 		case WLAN_FRAME_BEACON:
 		case WLAN_FRAME_PROBE_RESP:

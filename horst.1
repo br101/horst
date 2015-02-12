@@ -23,6 +23,8 @@ horst \- Highly Optimized Radio Scanning Tool
 .IR ms \|] 
 .RB [\| \-b
 .IR bytes \|]
+.RB [\| \-M
+.IR file \|]
 .RB [\| \-s \|] 
 .RB [\| \-u \|]
 .RB [\| \-N \|] 
@@ -106,6 +108,9 @@ Display update interval. The default value of 100ms can be increased to reduce C
 .TP
 .BI \-b\  bytes
 Receive buffer size. The receive buffer size can be set to tune memory consumption and reduce lost packets under load.
+.TP
+.BI "\-M"filename
+MAC address to host name mapping file. The file can either be a dhcp.leases file from dnsmasq or contain mappings in the form "MAC<space>name" (e.g.: "00:01:02:03:04:05 test") line by line (default filename: /tmp/dhcp.leases).
 .TP
 .BI \-s
 Show a poor mans "spectrum analyzer". The same can be achieved by running \fBhorst\fP as normal and pressing the button 's' (Spec); then 'c' (Chan) and 'a' (Automatically change channel).

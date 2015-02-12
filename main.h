@@ -49,6 +49,9 @@
 #define MAX_FSTYPE		0xff
 #define MAX_FILTERMAC		9
 
+#define MAX_NODE_NAME_LEN	18
+#define MAX_NODE_NAMES		64
+
 /* packet types we actually care about, e.g filter */
 #define PKT_TYPE_CTRL		0x000001
 #define PKT_TYPE_MGMT		0x000002
@@ -105,6 +108,7 @@
 #define ARPHRD_IEEE80211_PRISM 802      /* IEEE 802.11 + Prism2 header  */
 #endif
 
+#define DEFAULT_MAC_NAME_FILE	"/tmp/dhcp.leases"
 
 struct packet_info {
 	/* general */
@@ -281,6 +285,16 @@ struct chan_node {
 	unsigned long		packets;
 };
 
+struct node_names_info {
+	struct node_name {
+		unsigned char	mac[MAC_LEN];
+		char		name[MAX_NODE_NAME_LEN];
+	} entry[MAX_NODE_NAMES];
+	int count;
+};
+
+extern struct node_names_info node_names;
+
 struct config {
 	char			ifname[MAX_CONF_VALUE_LEN];
 	int			port;
@@ -295,6 +309,7 @@ struct config {
 	int			recv_buffer_size;
 	char			serveraddr[MAX_CONF_VALUE_LEN];
 	char			control_pipe[MAX_CONF_VALUE_LEN];
+	char			mac_name_file[MAX_CONF_VALUE_LEN];
 
 	unsigned char		filtermac[MAX_FILTERMAC][MAC_LEN];
 	char			filtermac_enabled[MAX_FILTERMAC];
@@ -306,6 +321,7 @@ struct config {
 				allow_client:1,
 				allow_control:1,
 				debug:1,
+				mac_name_lookup:1,
 	/* this isn't exactly config, but wtf... */
 				do_macfilter:1,
 				display_initialized:1;
@@ -342,5 +358,8 @@ main_reset(void);
 
 void
 dumpfile_open(const char* name);
+
+const char*
+mac_name_lookup(const unsigned char* mac, int shorten_mac);
 
 #endif

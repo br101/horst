@@ -240,6 +240,15 @@ static int conf_filter_pkt(const char* value) {
 	return 1;
 }
 
+static int conf_mac_names(const char* value) {
+	if (value != NULL)
+		strncpy(conf.mac_name_file, value, MAX_CONF_VALUE_LEN);
+	else
+		strncpy(conf.mac_name_file, DEFAULT_MAC_NAME_FILE, MAX_CONF_VALUE_LEN);
+	conf.mac_name_lookup = 1;
+	return 1;
+}
+
 
 static struct conf_option conf_options[] = {
 	/* C , NAME        VALUE REQUIRED, DEFAULT	CALLBACK */
@@ -265,6 +274,7 @@ static struct conf_option conf_options[] = {
 	{ 'B', "filter_bssid", 		1, NULL,	conf_filter_bssid },
 	{ 'm', "filter_mode",		1, "ALL",	conf_filter_mode },
 	{ 'f', "filter_packet",		1, "ALL",	conf_filter_pkt },
+	{ 'M', "mac_names",		2, NULL,	conf_mac_names },
 };
 
 
@@ -397,6 +407,7 @@ void print_usage(const char* name) {
 		"  -d <ms>\tDisplay update interval in ms (100)\n"
 		"  -V view\tDisplay view: history|essid|statistics|spectrum\n"
 		"  -b <bytes>\tReceive buffer size in bytes (not set)\n"
+		"  -M[filename]\tMAC address to host name mapping (/tmp/dhcp.leases)\n"
 
 		"\nFeature Options:\n"
 		"  -s\t\t(Poor mans) Spectrum analyzer mode\n"

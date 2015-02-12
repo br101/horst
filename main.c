@@ -47,6 +47,7 @@ struct essid_meta_info essids;
 struct history hist;
 struct statistics stats;
 struct channel_info spectrum[MAX_CHANNELS];
+struct node_names_info node_names;
 
 struct config conf;
 
@@ -537,6 +538,54 @@ init_spectrum(void)
 	}
 }
 
+static void
+mac_name_file_read(const char* filename) {
+	FILE* fp;
+	char line[255];
+	char macs[18];
+	char name[18];
+	int idx = 0;
+	int n;
+
+	if ((fp = fopen(filename, "r")) == NULL) {
+		printlog("Could not open mac name file '%s'", filename);
+		return;
+	}
+
+	while (fgets(line, sizeof(line), fp) != NULL) {
+		// first try dnsmasq dhcp.leases format
+		n = sscanf(line, "%*s %17s %*s %17s", macs, name);
+		if (n < 2) // if not MAC name
+			n = sscanf(line, "%17s %17s", macs, name);
+		if (n == 2) {
+			convert_string_to_mac(macs, node_names.entry[idx].mac);
+			strncpy(node_names.entry[idx].name, name, MAX_NODE_NAME_LEN);
+			idx++;
+		}
+	}
+
+	fclose(fp);
+
+	node_names.count = idx;
+
+	for (n = 0; n < node_names.count; n++) {
+		printf("MAC %s = %s\n", ether_sprintf(node_names.entry[n].mac),
+		       node_names.entry[n].name );
+	}
+}
+
+
+const char* mac_name_lookup(const unsigned char* mac, int shorten_mac) {
+	int i;
+	if (conf.mac_name_lookup) {
+		for (i = 0; i < node_names.count; i++) {
+			if (memcmp(node_names.entry[i].mac, mac, MAC_LEN) == 0)
+				return node_names.entry[i].name;
+		}
+	}
+	return shorten_mac ? ether_sprintf_short(mac) : ether_sprintf(mac);
+}
+
 
 int
 main(int argc, char** argv)
@@ -556,6 +605,9 @@ main(int argc, char** argv)
 	gettimeofday(&the_time, NULL);
 
 	conf.channel_idx = -1;
+
+	if (conf.mac_name_lookup)
+		mac_name_file_read(conf.mac_name_file);
 
 	if (conf.allow_control) {
 		printlog("Allowing control socket '%s'", conf.control_pipe);
