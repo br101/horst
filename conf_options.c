@@ -297,17 +297,27 @@ static struct conf_option conf_options[] = {
 int
 config_handle_option(int c, const char* name, const char* value) {
 	unsigned int i;
+	char* end;
+
 	for (i=0; i < sizeof(conf_options)/sizeof(struct conf_option); i++) {
 		if (((c != 0 && conf_options[i].option == c) ||
 		    (name != NULL && strcmp(conf_options[i].name, name) == 0)) &&
 		     conf_options[i].func != NULL) {
-			/* call function */
 			if (!conf.quiet) {
 				if (value != NULL)
 					printlog("Set '%s' = '%s'", conf_options[i].name, value);
 				else
 					printlog("Set '%s'", conf_options[i].name);
 			}
+			if (value != NULL) {
+				/* split list values and call function multiple times */
+				while ((end = strchr(value, ',')) != NULL) {
+					*end = '\0';
+					conf_options[i].func(value);
+					value = end + 1;
+				}
+			}
+			/* call function */
 			return conf_options[i].func(value);
 		}
 	}
