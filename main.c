@@ -646,7 +646,7 @@ main(int argc, char** argv)
 		timeout_nodes();
 
 		if (conf.serveraddr[0] == '\0') { /* server */
-			if (channel_auto_change()) {
+			if (!conf.paused && channel_auto_change()) {
 				net_send_channel_config();
 				update_spectrum_durations();
 				if (!conf.quiet && !conf.debug)
