@@ -86,7 +86,8 @@ channel_auto_change(void)
 			new_chan = new_chan + 1;
 			if (new_chan >= conf.num_channels ||
 			    new_chan >= MAX_CHANNELS ||
-			    (conf.channel_max && new_chan >= conf.channel_max))
+			    (conf.channel_max &&
+			     channel_get_chan_from_idx(new_chan) > conf.channel_max))
 				new_chan = 0;
 
 			ret = channel_change(new_chan);
