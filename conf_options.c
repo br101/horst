@@ -88,6 +88,18 @@ static int conf_channel_scan(const char* value) {
 	return 1;
 }
 
+/*
+ * This configuration option (channel_scan_rounds=X) defines the number of
+ * rounds horst scans the channel spectrum when the automatic channel scanning
+ * is enabled (channel_scan=1). A scan round is considered to be complete when
+ * the current channel is changed back to the initial channel. When horst goes
+ * out of scan rounds, it quits.
+ */
+static int conf_channel_scan_rounds(const char* value) {
+	conf.channel_scan_rounds = atoi(value);
+	return 1;
+}
+
 static int conf_channel_dwell(const char* value) {
 	conf.channel_time = atoi(value) * 1000;
 	return 1;
@@ -271,6 +283,7 @@ static struct conf_option conf_options[] = {
 	{ 'b', "receive_buffer",	1, NULL,	conf_receive_buffer },	// NOT dynamic
 	{ 'C', "channel",		1, NULL, 	conf_channel_set },
 	{ 's', "channel_scan",		0, NULL,	conf_channel_scan },
+	{  0 , "channel_scan_rounds",	1, "-1",	conf_channel_scan_rounds },
 	{  0 , "channel_dwell",		1, "250", 	conf_channel_dwell },
 	{ 'u', "channel_upper",		1, NULL, 	conf_channel_upper },
 	{ 'N', "server",		0, NULL,	conf_server },		// NOT dynamic

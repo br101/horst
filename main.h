@@ -305,6 +305,7 @@ struct config {
 	int			channel_max;
 	int			channel_num_initial;
 	int			channel_idx;	/* index into channels array */
+	int			channel_scan_rounds;
 	int			display_interval;
 	char			display_view;
 	char			dumpfile[MAX_CONF_VALUE_STRLEN + 1];
