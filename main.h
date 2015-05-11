@@ -302,6 +302,7 @@ struct config {
 	int			node_timeout;
 	int			channel_time;
 	int			channel_max;
+	int			channel_num_initial;
 	int			channel_idx;	/* index into channels array */
 	int			display_interval;
 	char			display_view;
@@ -324,7 +325,8 @@ struct config {
 				mac_name_lookup:1,
 	/* this isn't exactly config, but wtf... */
 				do_macfilter:1,
-				display_initialized:1;
+				display_initialized:1,
+				channel_initialized:1;
 	int			arphrd; // the device ARP type
 	unsigned char		my_mac_addr[MAC_LEN];
 	int			paused;

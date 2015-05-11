@@ -69,8 +69,12 @@ static int conf_receive_buffer(const char* value) {
 static int conf_channel_set(const char* value) {
 	int n = atoi(value);
 	conf.do_change_channel = 0;
-	// TODO: this does not work @ init time:
-	channel_change(channel_find_index_from_chan(n));
+	if (conf.channel_initialized)
+	    channel_change(channel_find_index_from_chan(n));
+	else
+	    /* We have not yet initialized the channel module, channel will be
+	     * changed in channel_init(). */
+	    conf.channel_num_initial = n;
 	return 1;
 }
 
@@ -262,7 +266,7 @@ static struct conf_option conf_options[] = {
 	{ 'o', "outfile", 		1, NULL,	conf_outfile },
 	{ 't', "node_timeout", 		1, "60",	conf_node_timeout },
 	{ 'b', "receive_buffer",	1, NULL,	conf_receive_buffer },	// NOT dynamic
-	{  0 , "channel",		1, NULL, 	conf_channel_set },	// dynamic, but NOT init
+	{  0 , "channel",		1, NULL, 	conf_channel_set },
 	{ 's', "channel_scan",		0, NULL,	conf_channel_scan },
 	{  0 , "channel_dwell",		1, "250", 	conf_channel_dwell },
 	{ 'u', "channel_upper",		1, NULL, 	conf_channel_upper },

@@ -131,6 +131,11 @@ channel_init(void) {
 	/* get available channels */
 	conf.num_channels = wext_get_channels(mon, conf.ifname, channels);
 	conf.channel_idx = get_current_wext_channel_idx(mon);
+	if (conf.channel_num_initial > 0)
+	    channel_change(channel_find_index_from_chan(conf.channel_num_initial));
+	else
+	    conf.channel_num_initial = channel_get_chan_from_idx(conf.channel_idx);
+	conf.channel_initialized = 1;
 }
 
 
