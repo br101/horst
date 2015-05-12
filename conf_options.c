@@ -68,7 +68,6 @@ static int conf_receive_buffer(const char* value) {
 
 static int conf_channel_set(const char* value) {
 	int n = atoi(value);
-	conf.do_change_channel = 0;
 	if (conf.channel_initialized)
 	    channel_change(channel_find_index_from_chan(n));
 	else

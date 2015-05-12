@@ -79,7 +79,6 @@ channel_input(WINDOW *win, int c)
 		break;
 
 	case 'm': case 'M':
-		conf.do_change_channel = 0;
 		echo();
 		curs_set(1);
 		mvwgetnstr(win, 6, 30, buf, 3);
