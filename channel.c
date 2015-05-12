@@ -65,6 +65,7 @@ channel_change(int idx)
 		return 0;
 	}
 	conf.channel_idx = idx;
+	last_channelchange = the_time;
 	return 1;
 }
 
@@ -98,7 +99,6 @@ channel_auto_change(void)
 		} while (ret != 1 && new_idx != start_idx);
 	}
 
-	last_channelchange = the_time;
 	return ret;
 }
 
