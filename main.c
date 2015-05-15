@@ -522,7 +522,7 @@ exit_handler(void)
 static void
 sigint_handler(__attribute__((unused)) int sig)
 {
-	exit(0);
+	exit(1);
 }
 
 
