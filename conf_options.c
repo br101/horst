@@ -265,7 +265,7 @@ static struct conf_option conf_options[] = {
 	{ 'o', "outfile", 		1, NULL,	conf_outfile },
 	{ 't', "node_timeout", 		1, "60",	conf_node_timeout },
 	{ 'b', "receive_buffer",	1, NULL,	conf_receive_buffer },	// NOT dynamic
-	{  0 , "channel",		1, NULL, 	conf_channel_set },
+	{ 'C', "channel",		1, NULL, 	conf_channel_set },
 	{ 's', "channel_scan",		0, NULL,	conf_channel_scan },
 	{  0 , "channel_dwell",		1, "250", 	conf_channel_dwell },
 	{ 'u', "channel_upper",		1, NULL, 	conf_channel_upper },
@@ -415,6 +415,7 @@ void print_usage(const char* name) {
 		"  -D\t\tShow lots of debug output, no UI\n"
 #endif
 		"  -c <file>\tConfig file (" CONFIG_FILE ")\n"
+		"  -C <chan>\tSet initial channel\n"
 		"  -i <intf>\tInterface name (wlan0)\n"
 		"  -t <sec>\tNode timeout in seconds (60)\n"
 		"  -d <ms>\tDisplay update interval in ms (100)\n"

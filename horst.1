@@ -13,6 +13,8 @@ horst \- Highly Optimized Radio Scanning Tool
 .RB [\| \-D \|]
 .RB [\| \-c 
 .IR file \|] 
+.RB [\| \-C
+.IR channel \|] 
 .RB [\| \-i 
 .IR interface \|] 
 .RB [\| \-t
@@ -93,6 +95,9 @@ Show lot's of debugging output, including a full package dump. Only available wh
 .TP
 .BI \-c\  configfile
 Use configfile instead of the default "/etc/horst.conf".
+.TP
+.BI \-C\  channel
+Set inital channel (number not frequency).
 .TP
 .BI \-i\  intf
 Operate on given network interface instead of the default "wlan0". Note that the interface is assumed to be in monitor mode already. See MONITOR MODE below for more information about preparing the network interface.
