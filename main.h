@@ -126,7 +126,8 @@ struct packet_info {
 	unsigned int		wlan_wep:1,	/* WEP on/off */
 				wlan_retry:1,
 				wlan_wpa:1,
-				wlan_rsn:1;
+				wlan_rsn:1,
+				wlan_vht:1;
 
 	/* batman-adv */
 	unsigned char		bat_version;

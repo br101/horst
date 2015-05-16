@@ -93,7 +93,10 @@ struct wlan_frame {
 /* (reserved)								    0xf */
 
 /*** control ***/
-/* (reserved)								    0-6 */
+/* (reserved)								    0-3 */
+#define WLAN_FRAME_BEAM_REP		WLAN_FRAME_FC(WLAN_FRAME_TYPE_CTRL, 0x4)
+#define WLAN_FRAME_VHT_NDP		WLAN_FRAME_FC(WLAN_FRAME_TYPE_CTRL, 0x5)
+/* (reserved)								    0x6 */
 #define WLAN_FRAME_CTRL_WRAP		WLAN_FRAME_FC(WLAN_FRAME_TYPE_CTRL, 0x7)
 #define WLAN_FRAME_BLKACK_REQ		WLAN_FRAME_FC(WLAN_FRAME_TYPE_CTRL, 0x8)
 #define WLAN_FRAME_BLKACK		WLAN_FRAME_FC(WLAN_FRAME_TYPE_CTRL, 0x9)
@@ -124,6 +127,13 @@ struct wlan_frame {
 
 #define WLAN_FRAME_QOS_TID_MASK		0x7
 #define WLAN_FRAME_QOS_AMSDU_PRESENT	0x80
+
+#define WLAN_FRAME_HT_VHT		0x1
+#define WLAN_FRAME_VHT_BW_MASK		0x30000
+#define WLAN_FRAME_VHT_BW_20MHZ		0x0
+#define WLAN_FRAME_VHT_BW_40MHZ		0x10000
+#define WLAN_FRAME_VHT_BW_80MHZ		0x20000
+#define WLAN_FRAME_VHT_BW_160MHZ	0x30000
 
 /*** individual frame formats ***/
 
@@ -165,6 +175,9 @@ struct information_element {
 #define WLAN_IE_ID_SSID		0
 #define WLAN_IE_ID_DSSS_PARAM	3
 #define WLAN_IE_ID_RSN		48
+#define WLAN_IE_ID_VHT_CAPAB	191
+#define WLAN_IE_ID_VHT_OPER	192
+#define WLAN_IE_ID_VHT_OMN	199
 #define WLAN_IE_ID_VENDOR	221
 
 #define WLAN_MAX_SSID_LEN	34

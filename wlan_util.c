@@ -47,8 +47,8 @@ struct pkt_name stype_names[WLAN_NUM_TYPES][WLAN_NUM_STYPES] = {
 	{ '-', "-RESV-", 0x0014, "RESERVED" },
 	{ '-', "-RESV-", 0x0024, "RESERVED" },
 	{ '-', "-RESV-", 0x0034, "RESERVED" },
-	{ '-', "-RESV-", 0x0044, "RESERVED" },
-	{ '-', "-RESV-", 0x0054, "RESERVED" },
+	{ 'b', "BEAMRP", WLAN_FRAME_BEAM_REP, "Beamforming Report Poll" },
+	{ 'v', "VHTNDP", WLAN_FRAME_VHT_NDP, "VHT NDP Announcement" },
 	{ '-', "-RESV-", 0x0064, "RESERVED" },
 	{ 'w', "CTWRAP", WLAN_FRAME_CTRL_WRAP, "Control Wrapper" },
 	{ 'b', "BACKRQ", WLAN_FRAME_BLKACK_REQ, "Block Ack Request" },
@@ -220,6 +220,13 @@ wlan_parse_information_elements(unsigned char *buf, int len, struct packet_info 
 
 		case WLAN_IE_ID_RSN:
 			p->wlan_rsn = 1;
+			break;
+
+		case WLAN_IE_ID_VHT_CAPAB:
+		case WLAN_IE_ID_VHT_OPER:
+		case WLAN_IE_ID_VHT_OMN:
+			DEBUG("VHT\n");
+			p->wlan_vht = 1;
 			break;
 
 		case WLAN_IE_ID_VENDOR:
