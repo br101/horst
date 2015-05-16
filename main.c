@@ -23,6 +23,7 @@
 #include <string.h>
 #include <signal.h>
 #include <sys/time.h>
+#include <time.h>
 #include <errno.h>
 #include <err.h>
 #include <sys/socket.h>
@@ -216,6 +217,15 @@ update_spectrum_durations(void)
 static void 
 write_to_file(struct packet_info* p)
 {
+	char buf[40];
+	int i;
+	struct tm* ltm = localtime(&the_time.tv_sec);
+
+	//timestamp, e.g. 2015-05-16 15:05:44.338806
+	i = strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", ltm);
+	snprintf(buf+i, sizeof(buf)-i, ".%06ld", the_time.tv_usec);
+	fprintf(DF, "%s, ", buf);
+
 	fprintf(DF, "%s, %s, ",
 		get_packet_type_name(p->wlan_type), ether_sprintf(p->wlan_src));
 	fprintf(DF, "%s, ", ether_sprintf(p->wlan_dst));
