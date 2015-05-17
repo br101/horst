@@ -230,16 +230,13 @@ write_to_file(struct packet_info* p)
 		get_packet_type_name(p->wlan_type), ether_sprintf(p->wlan_src));
 	fprintf(DF, "%s, ", ether_sprintf(p->wlan_dst));
 	fprintf(DF, "%s, ", ether_sprintf(p->wlan_bssid));
-	fprintf(DF, "%x, %d, %d, %d, %d, %d, %d, ",
-		p->pkt_types, p->phy_signal, 0, 0,
-		p->wlan_len, p->phy_rate, p->phy_freq);
+	fprintf(DF, "%x, %d, %d, %d, %d, ",
+		p->pkt_types, p->phy_signal, p->wlan_len, p->phy_rate, p->phy_freq);
 	fprintf(DF, "%016llx, ", (unsigned long long)p->wlan_tsf);
 	fprintf(DF, "%s, %d, %d, %d, %d, %d, ",
 		p->wlan_essid, p->wlan_mode, p->wlan_channel,
 		p->wlan_wep, p->wlan_wpa, p->wlan_rsn);
-	fprintf(DF, "%s, ", ip_sprintf(p->ip_src));
-	fprintf(DF, "%s, ", ip_sprintf(p->ip_dst));
-	fprintf(DF, "%d, %d\n", p->olsr_type, p->olsr_neigh);
+	fprintf(DF, "%s, %s\n", ip_sprintf(p->ip_src), ip_sprintf(p->ip_dst));
 	fflush(DF);
 }
 
@@ -711,6 +708,10 @@ dumpfile_open(const char* name)
 	DF = fopen(conf.dumpfile, "w");
 	if (DF == NULL)
 		err(1, "Couldn't open dump file");
+
+	fprintf(DF, "TIME, WLAN TYPE, MAC SRC, MAC DST, BSSID, PACKET TYPES, SIGNAL, ");
+	fprintf(DF, "LENGTH, PHY RATE, FREQUENCY, TSF, ESSID, MODE, CHANNEL, ");
+	fprintf(DF, "WEP, WPA1, RSN (WPA2), IP SRC, IP DST\n");
 
 	printlog("- Writing to outfile %s", conf.dumpfile);
 }
