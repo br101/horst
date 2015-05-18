@@ -603,16 +603,24 @@ main(int argc, char** argv)
 {
 	sigset_t workmask;
 	sigset_t waitmask;
+	struct sigaction sigint_action;
+	struct sigaction sigpipe_action;
 
 	list_head_init(&essids.list);
 	list_head_init(&nodes);
 
 	config_parse_file_and_cmdline(argc, argv);
 
-	signal(SIGINT, sigint_handler);
-	signal(SIGTERM, sigint_handler);
-	signal(SIGHUP, sigint_handler);
-	signal(SIGPIPE, sigpipe_handler);
+	sigint_action.sa_handler = sigint_handler;
+	sigemptyset(&sigint_action.sa_mask);
+	sigint_action.sa_flags = 0;
+	sigaction(SIGINT, &sigint_action, NULL);
+	sigaction(SIGTERM, &sigint_action, NULL);
+	sigaction(SIGHUP, &sigint_action, NULL);
+
+	sigpipe_action.sa_handler = sigpipe_handler;
+	sigaction(SIGPIPE, &sigpipe_action, NULL);
+
 	atexit(exit_handler);
 
 	gettimeofday(&stats.stats_time, NULL);
