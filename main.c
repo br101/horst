@@ -84,8 +84,9 @@ static size_t cli_buflen;
 static fd_set read_fds;
 static fd_set write_fds;
 static fd_set excpt_fds;
-static struct timeval tv;
+static struct timespec ts;
 
+static volatile sig_atomic_t is_sigint_caught;
 
 void __attribute__ ((format (printf, 1, 2)))
 printlog(const char *fmt, ...)
@@ -394,7 +395,7 @@ local_receive_packet(int fd, unsigned char* buffer, size_t bufsize)
 
 
 static void
-receive_any(void)
+receive_any(const sigset_t *const waitmask)
 {
 	int ret, mfd;
 
@@ -411,13 +412,13 @@ receive_any(void)
 	if (ctlpipe != -1)
 		FD_SET(ctlpipe, &read_fds);
 
-	tv.tv_sec = 0;
-	tv.tv_usec = min(conf.channel_time, 1000000);
+	ts.tv_sec = 0;
+	ts.tv_nsec = min(conf.channel_time * 1000, 1000000000);
 	mfd = max(mon, srv_fd);
 	mfd = max(mfd, ctlpipe);
 	mfd = max(mfd, cli_fd) + 1;
 
-	ret = select(mfd, &read_fds, &write_fds, &excpt_fds, &tv);
+	ret = pselect(mfd, &read_fds, &write_fds, &excpt_fds, &ts, waitmask);
 	if (ret == -1 && errno == EINTR) /* interrupted */
 		return;
 	if (ret == 0) { /* timeout */
@@ -522,7 +523,10 @@ exit_handler(void)
 static void
 sigint_handler(__attribute__((unused)) int sig)
 {
-	exit(0);
+	/* Only set an atomic flag here to keep processing in the interrupt
+	 * context as minimal as possible (at least all unsafe functions are
+	 * prohibited, see signal(7)). The flag is handled in the mainloop. */
+	is_sigint_caught = 1;
 }
 
 
@@ -597,15 +601,26 @@ const char* mac_name_lookup(const unsigned char* mac, int shorten_mac) {
 int
 main(int argc, char** argv)
 {
+	sigset_t workmask;
+	sigset_t waitmask;
+	struct sigaction sigint_action;
+	struct sigaction sigpipe_action;
+
 	list_head_init(&essids.list);
 	list_head_init(&nodes);
 
 	config_parse_file_and_cmdline(argc, argv);
 
-	signal(SIGINT, sigint_handler);
-	signal(SIGTERM, sigint_handler);
-	signal(SIGHUP, sigint_handler);
-	signal(SIGPIPE, sigpipe_handler);
+	sigint_action.sa_handler = sigint_handler;
+	sigemptyset(&sigint_action.sa_mask);
+	sigint_action.sa_flags = 0;
+	sigaction(SIGINT, &sigint_action, NULL);
+	sigaction(SIGTERM, &sigint_action, NULL);
+	sigaction(SIGHUP, &sigint_action, NULL);
+
+	sigpipe_action.sa_handler = sigpipe_handler;
+	sigaction(SIGPIPE, &sigpipe_action, NULL);
+
 	atexit(exit_handler);
 
 	gettimeofday(&stats.stats_time, NULL);
@@ -646,9 +661,25 @@ main(int argc, char** argv)
 	if (!conf.serveraddr && conf.port && conf.allow_client)
 		net_init_server_socket(conf.port);
 
+	/* Race-free signal handling:
+	 *   1. block all handled signals while working (with workmask)
+	 *   2. receive signals *only* while waiting in pselect() (with waitmask)
+	 *   3. switch between these two masks atomically with pselect()
+	 */
+	if (sigemptyset(&workmask)                       == -1 ||
+	    sigaddset(&workmask, SIGINT)                 == -1 ||
+	    sigaddset(&workmask, SIGHUP)                 == -1 ||
+	    sigaddset(&workmask, SIGTERM)                == -1 ||
+	    sigprocmask(SIG_BLOCK, &workmask, &waitmask) == -1)
+		err(1, "failed to block signals: %m");
+
 	for ( /* ever */ ;;)
 	{
-		receive_any();
+		receive_any(&waitmask);
+
+		if (is_sigint_caught)
+			exit(1);
+
 		gettimeofday(&the_time, NULL);
 		timeout_nodes();
 
