@@ -90,8 +90,7 @@ channel_auto_change(void)
 	int ret = 1;
 	int start_idx;
 
-	if (the_time.tv_sec == last_channelchange.tv_sec &&
-	    (the_time.tv_usec - last_channelchange.tv_usec) < conf.channel_time)
+	if (channel_get_remaining_dwell_time() > 0)
 		return 0; /* too early */
 
 	if (conf.do_change_channel) {
