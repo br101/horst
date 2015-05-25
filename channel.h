@@ -58,4 +58,7 @@ channel_get_struct(int idx);
 void
 channel_set(int idx, int chan, int freq);
 
+long
+channel_get_remaining_dwell_time(void);
+
 #endif

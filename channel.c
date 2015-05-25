@@ -57,6 +57,19 @@ static struct timeval last_channelchange;
 extern int mon; /* monitoring socket */
 
 
+long
+channel_get_remaining_dwell_time(void)
+{
+	if (!conf.do_change_channel)
+		return LONG_MAX;
+
+	return conf.channel_time
+		- the_time.tv_sec * 1000000
+		- the_time.tv_usec
+		+ last_channelchange.tv_sec * 1000000
+		+ last_channelchange.tv_usec;
+}
+
 int
 channel_change(int idx)
 {
