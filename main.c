@@ -658,7 +658,7 @@ main(int argc, char** argv)
 	if (!conf.quiet && !conf.debug)
 		init_display();
 
-	if (!conf.serveraddr && conf.port && conf.allow_client)
+	if (conf.serveraddr[0] == '\0' && conf.port && conf.allow_client)
 		net_init_server_socket(conf.port);
 
 	/* Race-free signal handling:
