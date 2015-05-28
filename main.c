@@ -84,7 +84,6 @@ static size_t cli_buflen;
 static fd_set read_fds;
 static fd_set write_fds;
 static fd_set excpt_fds;
-static struct timespec ts;
 
 static volatile sig_atomic_t is_sigint_caught;
 
@@ -398,6 +397,8 @@ static void
 receive_any(const sigset_t *const waitmask)
 {
 	int ret, mfd;
+	long usecs;
+	struct timespec ts;
 
 	FD_ZERO(&read_fds);
 	FD_ZERO(&write_fds);
@@ -412,8 +413,9 @@ receive_any(const sigset_t *const waitmask)
 	if (ctlpipe != -1)
 		FD_SET(ctlpipe, &read_fds);
 
-	ts.tv_sec = 0;
-	ts.tv_nsec = min(conf.channel_time * 1000, 1000000000);
+	usecs = max(0, min(channel_get_remaining_dwell_time(), 1000000));
+	ts.tv_sec = usecs / 1000000;
+	ts.tv_nsec = usecs % 1000000 * 1000;
 	mfd = max(mon, srv_fd);
 	mfd = max(mfd, ctlpipe);
 	mfd = max(mfd, cli_fd) + 1;
