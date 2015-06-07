@@ -30,4 +30,13 @@
  */
 int ifctrl_iwadd_monitor(const char *interface, const char *monitor_interface);
 
+/**
+ * ifctrl_iwdel() - delete 802.11 interface
+ *
+ * @interface: the name of the interface
+ *
+ * Return 0 on success, -1 on error.
+ */
+int ifctrl_iwdel(const char *interface);
+
 #endif

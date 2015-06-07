@@ -151,3 +151,14 @@ err:
 	nl_socket_free(sock);
 	return -1;
 }
+
+int ifctrl_iwdel(const char *const interface)
+{
+	struct nl_sock *sock;
+	struct nl_msg *msg;
+
+	if (ifctrl_nl_prepare(&sock, &msg, NL80211_CMD_DEL_INTERFACE, interface))
+		return -1;
+
+	return ifctrl_nl_send(sock, msg); /* frees sock and msg */
+}
