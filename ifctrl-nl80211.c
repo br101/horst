@@ -162,3 +162,24 @@ int ifctrl_iwdel(const char *const interface)
 
 	return ifctrl_nl_send(sock, msg); /* frees sock and msg */
 }
+
+int ifctrl_iwset_monitor(const char *const interface)
+{
+	struct nl_sock *sock;
+	struct nl_msg *msg;
+	int err;
+
+	if (ifctrl_nl_prepare(&sock, &msg, NL80211_CMD_SET_INTERFACE, interface))
+		return -1;
+
+	err = nla_put_u32(msg, NL80211_ATTR_IFTYPE, NL80211_IFTYPE_MONITOR);
+	if (err) {
+		nl_perror(err, "failed to add interface type attribute to a "
+                          "netlink message");
+		nlmsg_free(msg);
+		nl_socket_free(sock);
+		return -1;
+	}
+
+	return ifctrl_nl_send(sock, msg); /* frees msg and sock */
+}
