@@ -624,6 +624,14 @@ static void generate_mon_ifname(char *const buf, const size_t buf_size)
 	}
 }
 
+static void open_monitor(void)
+{
+	mon = open_packet_socket(conf.ifname, conf.recv_buffer_size);
+	if (mon <= 0)
+		err(1, "Couldn't open packet socket");
+	conf.arphrd = device_get_hwinfo(mon, conf.ifname, conf.my_mac_addr);
+}
+
 int
 main(int argc, char** argv)
 {
@@ -668,11 +676,7 @@ main(int argc, char** argv)
 		if (ifctrl_iwset_monitor(conf.ifname))
 			warnx("failed to set interface '%s' to monitor mode",
 			      conf.ifname);
-		mon = open_packet_socket(conf.ifname, conf.recv_buffer_size);
-		if (mon <= 0)
-			err(1, "Couldn't open packet socket");
-
-		conf.arphrd = device_get_hwinfo(mon, conf.ifname, conf.my_mac_addr);
+		open_monitor();
 		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
 		    conf.arphrd != ARPHRD_IEEE80211_RADIOTAP) {
 			char mon_ifname[IF_NAMESIZE];
@@ -691,10 +695,7 @@ main(int argc, char** argv)
 			/* Now we have a new monitor interface, proceed
 			 * normally. The interface will be deleted at exit. */
 
-			mon = open_packet_socket(conf.ifname, conf.recv_buffer_size);
-			if (mon <= 0)
-				err(1, "Couldn't open packet socket");
-			conf.arphrd = device_get_hwinfo(mon, conf.ifname, conf.my_mac_addr);
+			open_monitor();
 		}
 
 		channel_init();
