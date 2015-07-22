@@ -61,15 +61,18 @@ to identify problems.
 .IP \[bu] 2
 Shows signal values per station.
 .IP \[bu] 2
-Calculates channel utilization ("usage") by adding up the amount of time the packets actually occupy the medium.
+Calculates channel utilization ("usage") by adding up the amount of time the
+packets actually occupy the medium.
 .IP \[bu] 2
 "Spectrum Analyzer" shows signal levels and usage per channel.
 .IP \[bu] 2
-Text-based "graphical" packet history, with signal, packet type and physical rate
+Text-based "graphical" packet history, with signal, packet type and physical
+rate
 .IP \[bu] 2
 Shows all stations per ESSID and the live TSF per node as it is counting.
 .IP \[bu] 2
-Detects IBSS "splits" (same ESSID but different BSSID \- this  is a common driver problem).
+Detects IBSS "splits" (same ESSID but different BSSID \- this is a common driver
+problem).
 .IP \[bu] 2
 Statistics of packets/bytes per physical rate and per packet type.
 .IP \[bu] 2
@@ -90,10 +93,12 @@ See MONITOR MODE below for more information about the network interface setup.
 Show summary of options.
 .TP
 .BI \-q
-Quiet mode. Don't show user interface. This is only useful in conjunction when running in server mode (\-C) or writing to a file (\-o).
+Quiet mode. Don't show user interface. This is only useful in conjunction when
+running in server mode (\-C) or writing to a file (\-o).
 .TP
 .BI \-D
-Show lot's of debugging output, including a full package dump. Only available when compiled with DEBUG=1.
+Show lot's of debugging output, including a full package dump. Only available
+when compiled with DEBUG=1.
 .TP
 .BI \-c\  configfile
 Use configfile instead of the default "/etc/horst.conf".
@@ -105,69 +110,94 @@ Set inital channel (number not frequency).
 Operate on the given network interface instead of the default "wlan0".
 .TP
 .BI \-t\  sec
-Timeout (remove) nodes after not receiving packets from them for this time in seconds (default: 60 sec).
+Timeout (remove) nodes after not receiving packets from them for this time in
+seconds (default: 60 sec).
 .TP
 .BI \-V\  view
-Display 'view'. Valid view names are "history", "hist", "essid", "statistics", "stats", "spectrum", "spec".
+Display 'view'. Valid view names are "history", "hist", "essid", "statistics",
+"stats", "spectrum", "spec".
 .TP
 .BI \-d\  ms
-Display update interval. The default value of 100ms can be increased to reduce CPU load caused by redrawing the screen.
+Display update interval. The default value of 100ms can be increased to reduce
+CPU load caused by redrawing the screen.
 .TP
 .BI \-b\  bytes
-Receive buffer size. The receive buffer size can be set to tune memory consumption and reduce lost packets under load.
+Receive buffer size. The receive buffer size can be set to tune memory
+consumption and reduce lost packets under load.
 .TP
-.BI "\-M"filename
-MAC address to host name mapping file. The file can either be a dhcp.leases file from dnsmasq or contain mappings in the form "MAC<space>name" (e.g.: "00:01:02:03:04:05 test") line by line (default filename: /tmp/dhcp.leases).
+.BI \-M\  filename
+MAC address to host name mapping file. The file can either be a dhcp.leases file
+from dnsmasq or contain mappings in the form "MAC<space>name" (e.g.:
+"00:01:02:03:04:05 test") line by line (default filename: /tmp/dhcp.leases).
 .TP
 .BI \-s
-Show a poor mans "spectrum analyzer". The same can be achieved by running \fBhorst\fP as normal and pressing the button 's' (Spec); then 'c' (Chan) and 'a' (Automatically change channel).
+Show a poor mans "spectrum analyzer". The same can be achieved by running
+\fBhorst\fP as normal and pressing the button 's' (Spec); then 'c' (Chan)
+and 'a' (Automatically change channel).
 .TP
 .BI \-u
 Upper channel limit for the automatic channel change.
 .TP
 .BI \-N
-Allow client connections. Server mode. Only one client connection is supported at the moment (default: off).
+Allow client connections. Server mode. Only one client connection is supported
+at the moment (default: off).
 .TP
 .BI \-n\  IP
-Connect to a \fBhorst\fP instance running in server-mode at the specified IP address.
+Connect to a \fBhorst\fP instance running in server-mode at the specified IP
+address.
 .TP
 .BI \-p\  port
 Use the specified port (default: 4444) for client/server connections.
 .TP
 .BI \-o\  filename
-Write a information about each received packet into file. Note that you can send to STDOUT by using \fB-o /dev/stdout\fP. See OUTPUT FILE FORMAT below. 
+Write a information about each received packet into file. Note that you can send
+to STDOUT by using \fB-o /dev/stdout\fP. See OUTPUT FILE FORMAT below.
 .TP
 .BI \-X
 Accept control commands on a named pipe (default /tmp/horst).
 .TP
-.BI "\-X"name
-Accept control commands on a named pipe with given name or set pipe name used with -x.
+.BI \-X\  name
+Accept control commands on a named pipe with given name or set pipe name used
+with -x.
 .TP
 .BI \-x\  command
-Send control command to another \fBhorst\fP process who was started with -X and then exit. Multiple commands can be concatenated with ';'. Currently implemented commands are:
-    pause              Pause \fBhorst\fP processing
-    resume             Resume \fBhorst\fP processing
-    reset              Reset all history, statistics and views
-    channel=X          Set channel channel number
-    channel_scan=X     Automatically change channels (1 or 0)
-    channel_dwell=X    Set channel dwell time when automatically changing channel (ms)
-    channel_upper=X    Set max channel when automatically changing channel
-    outfile=X          Write to outfile named X.
-                       If the file is already open, it is cleared and re-openend.
-                       If filename is not specified ("outfile=") any existing file
-                       is closed and no file is written.
-
-    And some, but not all options which can be used in the configuration file.
+Send control command to another \fBhorst\fP process who was started with -X and
+then exit. Multiple commands can be concatenated with ';'. Currently implemented
+commands are:
+.RS
+.IP pause
+\p Pause \fBhorst\fP processing
+.IP resume
+\p Resume \fBhorst\fP processing
+.IP reset
+\p Reset all history, statistics and views
+.IP channel=X
+Set channel channel number
+.IP channel_scan=X
+Automatically change channels (1 or 0)
+.IP channel_dwell=X
+Set channel dwell time when automatically changing channel (ms)
+.IP channel_upper=X
+Set max channel when automatically changing channel
+.IP outfile=X
+Write to outfile named X. If the file is already open, it is cleared and
+re-openend.  If filename is not specified ("outfile=") any existing file is
+closed and no file is written.
+.RE
 
 .TP
 .BI \-e\  MAC
-Filter all MAC addresses except these, to show only packets originating from the specified MAC addresses. This option can be specified multiple times.
+Filter all MAC addresses except these, to show only packets originating from the
+specified MAC addresses. This option can be specified multiple times.
 .TP
 .BI \-f\  pkt_type
-Filter all packets except these. This option can be specified multiple times. For valid packet names see NAMES AND ABBREVIATIONS below.
+Filter all packets except these. This option can be specified multiple
+times. For valid packet names see NAMES AND ABBREVIATIONS below.
 .TP
 .BI \-m\  (AP|STA|ADH|PRB|WDS|UNKNOWN)
-Only show/include packets and nodes of this mode. Note that the mode is infered by the information of packets we received and it may take some time until a node is properly classified. This option can be specified multiple times.
+Only show/include packets and nodes of this mode. Note that the mode is infered
+by the information of packets we received and it may take some time until a node
+is properly classified. This option can be specified multiple times.
 .TP
 .BI \-B\  BSSID
 Only show/include packets which belong to the given BSSID.
@@ -175,44 +205,113 @@ Only show/include packets which belong to the given BSSID.
 
 .SH TEXT USER INTERFACE
 
-The ncurses-based text interface tries to display a lot of information, so it may look confusing at first. Below we describe the different screens and options.
+The ncurses-based text interface tries to display a lot of information, so it
+may look confusing at first. Below we describe the different screens and
+options.
 
 .TP
 Main screen
 
-The initial (main) screen is split into three parts. The upper area shows a list of aggregated "node" information, the most useful information about each sender which was discovered, one per line:
-        /             "Spinner" to show activity
-        Pk            Percentage of this node's packets in relation to all received packets
-        Re%           Percentage of retried frames of all frames this node sent
-        Cha           Channel number
-        Sig           Signal value (RSSI) in dBm
-        RAT           Physical data rate
-        TRANSMITTER   MAC address of sender
-        MODE          Operating Mode (AP, AHD, PRB, STA, WDS), see "NAMES AND ABBREVIATIONS"
-        ENCR          Encryption (WPA1, WPA2, WEP)
-        ESSID         ESSID
-        INFO          Additional info like "BATMAN", IP address...
+.RS
+
+The initial (main) screen is split into three parts. The upper area shows a list
+of aggregated "node" information, the most useful information about each sender
+which was discovered, one per line:
+
+.RS
+
+.TP
+.BI /
+\p "Spinner" to show activity
+.TP
+.BI Pk
+\p Percentage of this node's packets in relation to all received packets
+.TP
+.BI Re%
+\p Percentage of retried frames of all frames this node sent
+.TP
+.BI Cha
+\p Channel number
+.TP
+.BI Sig
+\p Signal value (RSSI) in dBm
+.TP
+.BI RAT
+\p Physical data rate
+.TP
+.BI TRANSMITTER
+MAC address of sender
+.TP
+.BI MODE
+\p Operating Mode (AP, AHD, PRB, STA, WDS), see "NAMES AND ABBREVIATIONS"
+.TP
+.BI ENCR
+\p Encryption (WPA1, WPA2, WEP)
+.TP
+.BI ESSID
+\p ESSID
+.TP
+.BI INFO
+\p Additional info like "BATMAN", IP address...
+
+.RE
 
 The lower area shows a scrolling list of packets as they come in:
-        Cha           Channel number
-        Sig           Signal value (RSSI) in dBm
-        RAT           Physical data rate
-        TRANSMITTER   MAC address of sender
-        BSSID         BSSID
-        TYPE          Packet type, see "NAMES AND ABBREVIATIONS"
-        INFO          Additional info like ESSID, TFS, IP address...
+
+.RS
+
+.TP
+.BI Cha
+\p Channel number
+.TP
+.BI Sig
+\p Signal value (RSSI) in dBm
+.TP
+.BI RAT
+\p Physical data rate
+.TP
+.BI TRANSMITTER
+MAC address of sender
+.TP
+.BI BSSID
+\p BSSID
+.TP
+.BI TYPE
+\p Packet type, see "NAMES AND ABBREVIATIONS"
+.TP
+.BI INFO
+\p Additional info like ESSID, TFS, IP address...
+
+.RE
 
 The lower right box shows bar graphs for:
-        Signal        of last received packet in green
-        bps           Bits per second of all received packets
-        Usage         Percentage of channel use
 
-The lower edge is the menu and status bar, it shows which keys to press for other screens. The status shows ">" when \fBhorst\fP is running or "=" when it is paused, then "F" when any kind of filter is active, the Channel, the monitor interface in use and the time.
+.RS
+
+.TP
+.BI Signal
+of last received packet in green
+.TP
+.BI bps
+Bits per second of all received packets
+.TP
+.BI Usage
+Percentage of channel use
+
+.RE
+
+The lower edge is the menu and status bar, it shows which keys to press for
+other screens. The status shows ">" when \fBhorst\fP is running or "=" when it
+is paused, then "F" when any kind of filter is active, the Channel, the monitor
+interface in use and the time.
+
+.RE
 
 .TP
 Pause ('p' or <space>)
 
-Can be used to pause/resume \fBhorst\fP. When \fBhorst\fP is paused it will loose packets received in the mean time.
+Can be used to pause/resume \fBhorst\fP. When \fBhorst\fP is paused it will
+loose packets received in the mean time.
 
 .TP
 Reset ('r')
@@ -222,30 +321,48 @@ Clears all history and aggregated statistical data.
 .TP
 History ('h')
 
-The history screen scrolls from right to left and shows a bar for each packet indicating the signal level. In the line below that, the packet type is indicated by one character (See NAMES AND ABBREVIATIONS below) and the rough physical data rate is indicated below that in blue.
+The history screen scrolls from right to left and shows a bar for each packet
+indicating the signal level. In the line below that, the packet type is
+indicated by one character (See NAMES AND ABBREVIATIONS below) and the rough
+physical data rate is indicated below that in blue.
 
 .TP
 ESSID ('e')
 
-The ESSID screen groups information by ESSID and shows the mode (AP, IBSS), the MAC address of the sender, the BSSID, the TSF, the beacon interval, the channel, the signal, a "W" when encrytoion is used and the IP address if known.
+The ESSID screen groups information by ESSID and shows the mode (AP, IBSS), the
+MAC address of the sender, the BSSID, the TSF, the beacon interval, the channel,
+the signal, a "W" when encrytoion is used and the IP address if known.
 
 .TP
 Statistics ('a')
 
-The statistics screen groups packets by physical rate and by packet type and shows other kinds of aggregated and statistical information based on packets.
+The statistics screen groups packets by physical rate and by packet type and
+shows other kinds of aggregated and statistical information based on packets.
 
 .TP
 Spectrum Analyzer ('s')
 
-The "poor mans spectrum analyzer" screen is only really useful when \fBhorst\fP is started with the -s option or the "Automatically change channel" option is selected in the "Chan" settings, or the config option channel_scan is set.
+The "poor mans spectrum analyzer" screen is only really useful when \fBhorst\fP
+is started with the -s option or the "Automatically change channel" option is
+selected in the "Chan" settings, or the config option channel_scan is set.
 
 It shows the available channels horizontally and vertical bars for each channel:
 
-        Signal          in green
-        Physical rate   in blue
-        Channel usage   in orange/brown
+.RS
 
-By pressing the 'n' key, the display can be changed to show only the average signal level on each channel and the last 4 digits of the MAC address of the individual nodes at the level (height) they were received. This can give a quick graphical overview of the distance of nodes.
+.IP
+\fBSignal\fP in green
+.IP
+\fBPhysical\fP rate in blue
+.IP
+\fBChannel\fP usage in orange/brown
+
+.RE
+
+By pressing the 'n' key, the display can be changed to show only the average
+signal level on each channel and the last 4 digits of the MAC address of the
+individual nodes at the level (height) they were received. This can give a quick
+graphical overview of the distance of nodes.
 
 .TP
 Filters ('f')
@@ -255,12 +372,14 @@ This configuration dialog can be used to define the active filters.
 .TP
 Channel Settings ('c')
 
-This configuration dialog can be used to change the channel changing behaviour of \fBhorst\fP or to change to a different channel manually.
+This configuration dialog can be used to change the channel changing behaviour
+of \fBhorst\fP or to change to a different channel manually.
 
 .TP
 Sort ('o')
 
-Only active in the main screen, can be used to sort the node list in the upper area by Signal, Time, BSSID or Channel.
+Only active in the main screen, can be used to sort the node list in the upper
+area by Signal, Time, BSSID or Channel.
 
 
 .SH NAMES AND ABBREVIATIONS
@@ -268,88 +387,124 @@ Only active in the main screen, can be used to sort the node list in the upper a
 .TP
 802.11 standard frames
 
- Management frames:
- a    ASOCRQ    Association request
- A    ASOCRP    Associaion response
- a    REASRQ    Reassociation request
- A    REASRP    Reassociation response
- p    PROBRQ    Probe request
- P    PROBRP    Probe response
- T    TIMING    Timing Advertisement
- B    BEACON    Beacon
- t    ATIM      ATIM
- D    DISASC    Disassociation
- u    AUTH      Authentication
- U    DEAUTH    Deauthentication
- C    ACTION    Action
- c    ACTNOA    Action No Ack
+.TS
+;
+cB s s
+l | l | l .
+Management frames
+_
+a	ASOCRQ	Association request
+A	ASOCRP	Associaion response
+a	REASRQ	Reassociation request
+A	REASRP	Reassociation response
+p	PROBRQ	Probe request
+P	PROBRP	Probe response
+T	TIMING	Timing Advertisement
+B	BEACON	Beacon
+t	ATIM	ATIM
+D	DISASC	Disassociation
+u	AUTH	Authentication
+U	DEAUTH	Deauthentication
+C	ACTION	Action
+c	ACTNOA	Action No Ack
+.TE
 
- Control frames:
- w    CTWRAP    Control Wrapper
- b    BACKRQ    Block Ack Request
- B    BACK      Block Ack
- s    PSPOLL    PS-Poll
- R    RTS       RTS
- C    CTS       CTS
- K    ACK       ACK
- f    CFEND     CF-End
- f    CFENDK    CF-End + CF-Ack
+.TS
+;
+cB s s
+l | l | l .
+Control frames
+_
+w	CTWRAP	Control Wrapper
+b	BACKRQ	Block Ack Request
+B	BACK	Block Ack
+s	PSPOLL	PS-Poll
+R	RTS	RTS
+C	CTS	CTS
+K	ACK	ACK
+f	CFEND	CF-End
+f	CFENDK	CF-End + CF-Ack
+.TE
 
- Data frames:
- D    DATA      Data
- F    DCFACK    Data + CF-Ack
- F    DCFPLL    Data + CF-Poll
- F    DCFKPL    Data + CF-Ack + CF-Poll
- n    NULL      Null (no data)
- f    CFACK     CF-Ack (no data)
- f    CFPOLL    CF-Poll (no data)
- f    CFCKPL    CF-Ack + CF-Poll (no data)
- Q    QDATA     QoS Data
- F    QDCFCK    QoS Data + CF-Ack
- F    QDCFPL    QoS Data + CF-Poll
- F    QDCFKP    QoS Data + CF-Ack + CF-Poll
- N    QDNULL    QoS Null (no data)
- f    QCFPLL    QoS CF-Poll (no data)
- f    QCFKPL    QoS CF-Ack + CF-Poll (no data)
-
- *    BADFCS    Bad frame checksum
+.TS
+;
+cB s s
+l | l | l .
+Data frames
+_
+D	DATA	Data
+F	DCFACK	Data + CF-Ack
+F	DCFPLL	Data + CF-Poll
+F	DCFKPL	Data + CF-Ack + CF-Poll
+n	NULL	Null (no data)
+f	CFACK	CF-Ack (no data)
+f	CFPOLL	CF-Poll (no data)
+f	CFCKPL	CF-Ack + CF-Poll (no data)
+Q	QDATA	QoS Data
+F	QDCFCK	QoS Data + CF-Ack
+F	QDCFPL	QoS Data + CF-Poll
+F	QDCFKP	QoS Data + CF-Ack + CF-Poll
+N	QDNULL	QoS Null (no data)
+f	QCFPLL	QoS CF-Poll (no data)
+f	QCFKPL	QoS CF-Ack + CF-Poll (no data)
+*	BADFCS	Bad frame checksum
+.TE
 
 .TP
-Packet types
-Similar to 802.11 frames above but higher level and as a bit field (types can overlap, e.g. DATA + IP) and including more information, like IP, ARP, BATMAN, OLSR...
 
- CTRL        0x000001    WLAN Control frame
- MGMT        0x000002    WLAN Management frame
- DATA        0x000004    WLAN Data frame
- BADFCS      0x000008    WLAN frame checksum (FCS) bad
- BEACON      0x000010    WLAN beacon frame
- PROBE       0x000020    WLAN probe request or response
- ASSOC       0x000040    WLAN associaction request/response frame
- AUTH        0x000080    WLAN authentication frame
- RTSCTS      0x000100    WLAN RTS or CTS
- ACK         0x000200    WLAN ACK or BlockACK
- NULL        0x000400    WLAN NULL Data frame
- QDATA       0x000800    WLAN QoS Data frame (WME/WMM)
- ARP         0x001000    ARP packet
- IP          0x002000    IP packet
- ICMP        0x004000    IP ICMP packet
- UDP         0x008000    IP UDP
- TCP         0x010000    IP TCP
- OLSR        0x020000    OLSR protocol
- BATMAN      0x040000    BATMAND Layer3 or BATMAN-ADV Layer 2 frame
- MESHZ       0x080000    MeshCruzer protocol
+Packet types
+
+Similar to 802.11 frames above but higher level and as a bit field (types can
+overlap, e.g. DATA + IP) and including more information, like IP, ARP, BATMAN,
+OLSR...
+
+.TS
+;
+cB s s
+l | l | l .
+Packet types
+_
+CTRL	0x000001	WLAN Control frame
+MGMT	0x000002	WLAN Management frame
+DATA	0x000004	WLAN Data frame
+BADFCS	0x000008	WLAN frame checksum (FCS) bad
+BEACON	0x000010	WLAN beacon frame
+PROBE	0x000020	WLAN probe request or response
+ASSOC	0x000040	WLAN associaction request/response frame
+AUTH	0x000080	WLAN authentication frame
+RTSCTS	0x000100	WLAN RTS or CTS
+ACK	0x000200	WLAN ACK or BlockACK
+NULL	0x000400	WLAN NULL Data frame
+QDATA	0x000800	WLAN QoS Data frame (WME/WMM)
+ARP	0x001000	ARP packet
+IP	0x002000	IP packet
+ICMP	0x004000	IP ICMP packet
+UDP	0x008000	IP UDP
+TCP	0x010000	IP TCP
+OLSR	0x020000	OLSR protocol
+BATMAN	0x040000	BATMAND Layer3 or BATMAN-ADV Layer 2 frame
+MESHZ	0x080000	MeshCruzer protocol
+.TE
 
 .TP
 Operating modes
-Bit field of operating mode type which is infered from received packets. Modes may overlap, i.e. it is common to see STA and PRB at the same time.
 
- AP          0x01        Access Point (AP)
- ADH         0x02        Ad-hoc node
- STA         0x04        Station (AP client)
- PRB         0x08        Sent PROBE requests
- WDS         0x10        WDS or 4 Address frames
- UNKNOWN     0x20        Unknown e.g. RTS/CTS or ACK
+Bit field of operating mode type which is infered from received packets. Modes
+may overlap, i.e. it is common to see STA and PRB at the same time.
 
+.TS
+;
+cB s s
+l | l | l .
+Operating modes
+_
+AP	0x01	Access Point (AP)
+ADH	0x02	Ad-hoc node
+STA	0x04	Station (AP client)
+PRB	0x08	Sent PROBE requests
+WDS	0x10	WDS or 4 Address frames
+UNKNOWN	0x20	Unknown e.g. RTS/CTS or ACK
+.TE
 
 .SH MONITOR MODE
 
@@ -358,7 +513,9 @@ mode. You can either setup the interface manually beforehand or let \fBhorst\fP
 setup it automatically at startup. Usually, root privileges are required to
 modify an interface setup.
 
-\fBhorst\fP should work with any wireleass LAN card and driver which supports monitor mode, with either "prism2" or "radiotap" headers. This includes most modern mac80211-based drivers.
+\fBhorst\fP should work with any wireleass LAN card and driver which supports
+monitor mode, with either "prism2" or "radiotap" headers. This includes most
+modern mac80211-based drivers.
 
 If the interface is not in monitor mode at startup, \fBhorst\fP first tries to
 put the interface in monitor mode. If it fails (for example when the interface
@@ -407,7 +564,8 @@ Signal values and ranges may differ between wireless drivers and versions.
 
 .SH OUTPUT FILE FORMAT
 
-The format of the output file (-o flag) is a comma separated list of the following fields in the following order, one packet each line.
+The format of the output file (-o flag) is a comma separated list of the
+following fields in the following order, one packet each line.
 
 .TP
 timestamp
