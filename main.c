@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <err.h>
 #include <sys/socket.h>
+#include <net/if.h>
 
 #include "main.h"
 #include "util.h"
@@ -41,6 +42,7 @@
 #include "node.h"
 #include "essid.h"
 #include "conf_options.h"
+#include "ifctrl.h"
 
 
 struct list_head nodes;
@@ -86,6 +88,8 @@ static fd_set write_fds;
 static fd_set excpt_fds;
 
 static volatile sig_atomic_t is_sigint_caught;
+
+static int is_interface_added;
 
 void __attribute__ ((format (printf, 1, 2)))
 printlog(const char *fmt, ...)
@@ -499,6 +503,9 @@ finish_all(void)
 	if (!conf.serveraddr[0] != '\0')
 		close_packet_socket(mon, conf.ifname);
 
+	if (is_interface_added)
+		ifctrl_iwdel(conf.ifname);
+
 	if (DF != NULL) {
 		fclose(DF);
 		DF = NULL;
@@ -599,6 +606,31 @@ const char* mac_name_lookup(const unsigned char* mac, int shorten_mac) {
 	return shorten_mac ? ether_sprintf_short(mac) : ether_sprintf(mac);
 }
 
+static void generate_mon_ifname(char *const buf, const size_t buf_size)
+{
+	unsigned int i;
+
+	for (i=0;; ++i) {
+		int len;
+
+		len = snprintf(buf, buf_size, "horst%d", i);
+		if (len < 0)
+			err(1, "failed to generate a monitor interface name");
+		if ((unsigned int) len >= buf_size)
+			errx(1, "failed to generate a sufficiently short "
+			     "monitor interface name");
+		if (!if_nametoindex(buf))
+			break;
+	}
+}
+
+static void open_monitor(void)
+{
+	mon = open_packet_socket(conf.ifname, conf.recv_buffer_size);
+	if (mon <= 0)
+		err(1, "Couldn't open packet socket");
+	conf.arphrd = device_get_hwinfo(mon, conf.ifname, conf.my_mac_addr);
+}
 
 int
 main(int argc, char** argv)
@@ -641,16 +673,29 @@ main(int argc, char** argv)
 	if (conf.serveraddr[0] != '\0')
 		mon = net_open_client_socket(conf.serveraddr, conf.port);
 	else {
-		mon = open_packet_socket(conf.ifname, conf.recv_buffer_size);
-		if (mon <= 0)
-			err(1, "Couldn't open packet socket");
-
-		conf.arphrd = device_get_hwinfo(mon, conf.ifname, conf.my_mac_addr);
+		if (ifctrl_iwset_monitor(conf.ifname))
+			warnx("failed to set interface '%s' to monitor mode",
+			      conf.ifname);
+		open_monitor();
 		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
 		    conf.arphrd != ARPHRD_IEEE80211_RADIOTAP) {
-			printf("You need to put your interface into monitor mode!\n");
-			printf("(e.g. 'iw %s interface add mon0 type monitor' and 'horst -i mon0')\n", conf.ifname);
-			exit(1);
+			char mon_ifname[IF_NAMESIZE];
+
+			warnx("interface '%s' is not in monitor mode, "
+			      "adding a virtual monitor interface",
+			      conf.ifname);
+
+			close_packet_socket(mon, conf.ifname);
+			generate_mon_ifname(mon_ifname, IF_NAMESIZE);
+			if (ifctrl_iwadd_monitor(conf.ifname, mon_ifname))
+				err(1, "failed to add a virtual monitor "
+				    "interface");
+			strncpy(conf.ifname, mon_ifname, MAX_CONF_VALUE_LEN);
+			is_interface_added = 1;
+			/* Now we have a new monitor interface, proceed
+			 * normally. The interface will be deleted at exit. */
+
+			open_monitor();
 		}
 
 		channel_init();
