@@ -2,7 +2,7 @@
 .\" First parameter, NAME, should be all caps
 .\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
 .\" other parameters are allowed: see man(7), man(1)
-.TH HORST 8 "May 29, 2015"
+.TH HORST 8 "July 22, 2015"
 .\" Please adjust this date whenever revising the manpage.
 .SH NAME
 horst \- Highly Optimized Radio Scanning Tool
@@ -81,6 +81,8 @@ Client/server support for monitoring on remote nodes.
 .IP \[bu] 2
 Can be controlled via a named pipe.
 
+.TP
+See MONITOR MODE below for more information about the network interface setup.
 
 .SH OPTIONS
 .TP
@@ -100,7 +102,7 @@ Use configfile instead of the default "/etc/horst.conf".
 Set inital channel (number not frequency).
 .TP
 .BI \-i\  intf
-Operate on given network interface instead of the default "wlan0". Note that the interface is assumed to be in monitor mode already. See MONITOR MODE below for more information about preparing the network interface.
+Operate on the given network interface instead of the default "wlan0".
 .TP
 .BI \-t\  sec
 Timeout (remove) nodes after not receiving packets from them for this time in seconds (default: 60 sec).
@@ -351,12 +353,22 @@ Bit field of operating mode type which is infered from received packets. Modes m
 
 .SH MONITOR MODE
 
+To capture and analyze 802.11 traffic, the interface needs to be in monitor
+mode. You can either setup the interface manually beforehand or let \fBhorst\fP
+setup it automatically at startup. Usually, root privileges are required to
+modify an interface setup.
+
 \fBhorst\fP should work with any wireleass LAN card and driver which supports monitor mode, with either "prism2" or "radiotap" headers. This includes most modern mac80211-based drivers.
 
-You have to put your card in monitor mode and set the channel manually before
-you start \fBhorst\fP. Usually this has to be done as root.
+If the interface is not in monitor mode at startup, \fBhorst\fP first tries to
+put the interface in monitor mode. If it fails (for example when the interface
+is already in use), a new virtual monitor interface (horst0) is added and used
+instead. The virtual monitor interface is removed when \fBhorst\fP exits. Note
+that changing the channel via a virtual monitor interface is not allowed by the
+wireless driver, so options -C and -s do not work when virtual monitor interface
+is used.
 
-Note that depending on the wireless driver capabilities and versions, signal values and ranges may be different. Also, if the monitor interface is added to an existing interface, the driver does not allow the channel to be changed. 
+Examples of how to setup an interface manually:
 
 .TP
 Using iw:
@@ -389,6 +401,9 @@ iwconfig wlan0 mode monitor
 iwpriv wlan0 monitor_type 1
 .fi
 
+.SH NOTES
+
+Signal values and ranges may differ between wireless drivers and versions.
 
 .SH OUTPUT FILE FORMAT
 
