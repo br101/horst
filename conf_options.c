@@ -337,6 +337,7 @@ config_read_file(const char* filename) {
 	char name[MAX_CONF_NAME_STRLEN + 1];
 	char value[MAX_CONF_VALUE_LEN + 1];
 	int n;
+	int linenum = 0;
 
 	if ((fp = fopen(filename, "r")) == NULL) {
 		printlog("Could not open config file '%s'", filename);
@@ -344,18 +345,24 @@ config_read_file(const char* filename) {
 	}
 
 	while (fgets(line, sizeof(line), fp) != NULL) {
+		++linenum;
 		if (line[0] == '#' ) // comment
 			continue;
 
 		// Note: 200 below has to match MAX_CONF_VALUE_LEN
 		// Note: 32 below has to match MAX_CONF_NAME_STRLEN
 		n = sscanf(line, " %32[^= \n] = %200[^ \n]", name, value);
-		if (n < 0) // empty line
+		if (n < 0) { // empty line
 			continue;
-		else if (n < 2) // no value
+		} else if (n == 0) {
+			printlog("Config file has garbage on line %d, "
+				 "ignoring the line.", linenum);
+			continue;
+		} else if (n == 1) { // no value
 			config_handle_option(0, name, NULL);
-		else
+		} else {
 			config_handle_option(0, name, value);
+		}
 	}
 
 	fclose(fp);
