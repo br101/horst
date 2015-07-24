@@ -334,8 +334,8 @@ static void
 config_read_file(const char* filename) {
 	FILE* fp ;
 	char line[255];
-	char name[32];
-	char value[MAX_CONF_VALUE_LEN];
+	char name[MAX_CONF_NAME_STRLEN + 1];
+	char value[MAX_CONF_VALUE_LEN + 1];
 	int n;
 
 	if ((fp = fopen(filename, "r")) == NULL) {
@@ -348,6 +348,7 @@ config_read_file(const char* filename) {
 			continue;
 
 		// Note: 200 below has to match MAX_CONF_VALUE_LEN
+		// Note: 32 below has to match MAX_CONF_NAME_STRLEN
 		n = sscanf(line, " %32[^= \n] = %200[^ \n]", name, value);
 		if (n < 0) // empty line
 			continue;

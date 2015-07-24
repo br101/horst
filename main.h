@@ -43,6 +43,7 @@
 
 #define MAC_LEN			6
 #define MAX_CONF_VALUE_LEN	200
+#define MAX_CONF_NAME_STRLEN	32
 
 #define MAX_HISTORY		255
 #define MAX_RATES		44	/* 12 legacy rates and 32 MCS */
