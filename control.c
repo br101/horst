@@ -47,7 +47,7 @@ void
 control_send_command(const char* cmd)
 {
 	int len = strlen(cmd);
-	char new[len+1];
+	char new[len + 2];
 	char* pos;
 
 	if (conf.control_pipe[0] == '\0') {
