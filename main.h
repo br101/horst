@@ -50,7 +50,7 @@
 #define MAX_FSTYPE		0xff
 #define MAX_FILTERMAC		9
 
-#define MAX_NODE_NAME_LEN	18
+#define MAX_NODE_NAME_STRLEN	18
 #define MAX_NODE_NAMES		64
 
 /* packet types we actually care about, e.g filter */
@@ -289,7 +289,7 @@ struct chan_node {
 struct node_names_info {
 	struct node_name {
 		unsigned char	mac[MAC_LEN];
-		char		name[MAX_NODE_NAME_LEN];
+		char		name[MAX_NODE_NAME_STRLEN + 1];
 	} entry[MAX_NODE_NAMES];
 	int count;
 };

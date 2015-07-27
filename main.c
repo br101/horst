@@ -579,7 +579,7 @@ mac_name_file_read(const char* filename) {
 			n = sscanf(line, "%17s %17s", macs, name);
 		if (n == 2) {
 			convert_string_to_mac(macs, node_names.entry[idx].mac);
-			strncpy(node_names.entry[idx].name, name, MAX_NODE_NAME_LEN);
+			strncpy(node_names.entry[idx].name, name, MAX_NODE_NAME_STRLEN);
 			idx++;
 		}
 	}
