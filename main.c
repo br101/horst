@@ -690,7 +690,7 @@ main(int argc, char** argv)
 			if (ifctrl_iwadd_monitor(conf.ifname, mon_ifname))
 				err(1, "failed to add a virtual monitor "
 				    "interface");
-			strncpy(conf.ifname, mon_ifname, MAX_CONF_VALUE_LEN);
+			strncpy(conf.ifname, mon_ifname, MAX_CONF_VALUE_STRLEN);
 			is_interface_added = 1;
 			/* Now we have a new monitor interface, proceed
 			 * normally. The interface will be deleted at exit. */
@@ -782,7 +782,7 @@ dumpfile_open(const char* name)
 		return;
 	}
 
-	strncpy(conf.dumpfile, name, MAX_CONF_VALUE_LEN);
+	strncpy(conf.dumpfile, name, MAX_CONF_VALUE_STRLEN);
 	DF = fopen(conf.dumpfile, "w");
 	if (DF == NULL)
 		err(1, "Couldn't open dump file");

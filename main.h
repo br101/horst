@@ -42,7 +42,7 @@
 #endif
 
 #define MAC_LEN			6
-#define MAX_CONF_VALUE_LEN	200
+#define MAX_CONF_VALUE_STRLEN	200
 #define MAX_CONF_NAME_STRLEN	32
 
 #define MAX_HISTORY		255
@@ -297,7 +297,7 @@ struct node_names_info {
 extern struct node_names_info node_names;
 
 struct config {
-	char			ifname[MAX_CONF_VALUE_LEN];
+	char			ifname[MAX_CONF_VALUE_STRLEN + 1];
 	int			port;
 	int			quiet;
 	int			node_timeout;
@@ -307,11 +307,11 @@ struct config {
 	int			channel_idx;	/* index into channels array */
 	int			display_interval;
 	char			display_view;
-	char			dumpfile[MAX_CONF_VALUE_LEN];
+	char			dumpfile[MAX_CONF_VALUE_STRLEN + 1];
 	int			recv_buffer_size;
-	char			serveraddr[MAX_CONF_VALUE_LEN];
-	char			control_pipe[MAX_CONF_VALUE_LEN];
-	char			mac_name_file[MAX_CONF_VALUE_LEN];
+	char			serveraddr[MAX_CONF_VALUE_STRLEN + 1];
+	char			control_pipe[MAX_CONF_VALUE_STRLEN + 1];
+	char			mac_name_file[MAX_CONF_VALUE_STRLEN + 1];
 
 	unsigned char		filtermac[MAX_FILTERMAC][MAC_LEN];
 	char			filtermac_enabled[MAX_FILTERMAC];

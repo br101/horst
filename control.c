@@ -51,7 +51,7 @@ control_send_command(const char* cmd)
 	char* pos;
 
 	if (conf.control_pipe[0] == '\0') {
-		strncpy(conf.control_pipe, DEFAULT_CONTROL_PIPE, MAX_CONF_VALUE_LEN);
+		strncpy(conf.control_pipe, DEFAULT_CONTROL_PIPE, MAX_CONF_VALUE_STRLEN);
 	}
 
 	while (access(conf.control_pipe, F_OK) < 0) {
