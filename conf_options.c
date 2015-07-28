@@ -48,6 +48,7 @@ static int conf_debug(__attribute__((unused)) const char* value) {
 
 static int conf_interface(const char* value) {
 	strncpy(conf.ifname, value, MAX_CONF_VALUE_STRLEN);
+	conf.ifname[MAX_CONF_VALUE_STRLEN] = '\0';
 	return 1;
 }
 
@@ -124,6 +125,7 @@ static int conf_server(const char* value) {
 
 static int conf_client(const char* value) {
 	strncpy(conf.serveraddr, value, MAX_CONF_VALUE_STRLEN);
+	conf.serveraddr[MAX_CONF_VALUE_STRLEN] = '\0';
 	return 1;
 }
 
@@ -145,6 +147,7 @@ static int conf_control_pipe(const char* value) {
 		strncpy(conf.control_pipe, value, MAX_CONF_VALUE_STRLEN);
 	else
 		strncpy(conf.control_pipe, DEFAULT_CONTROL_PIPE, MAX_CONF_VALUE_STRLEN);
+	conf.control_pipe[MAX_CONF_VALUE_STRLEN] = '\0';
 	conf.allow_control = 1;
 	return 1;
 }
@@ -248,6 +251,7 @@ static int conf_mac_names(const char* value) {
 		strncpy(conf.mac_name_file, value, MAX_CONF_VALUE_STRLEN);
 	else
 		strncpy(conf.mac_name_file, DEFAULT_MAC_NAME_FILE, MAX_CONF_VALUE_STRLEN);
+	conf.mac_name_file[MAX_CONF_VALUE_STRLEN] = '\0';
 	conf.mac_name_lookup = 1;
 	return 1;
 }
