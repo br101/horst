@@ -40,7 +40,7 @@ CFLAGS+=-DPCAP
 LIBS+=-lpcap
 endif
 
-.PHONY: force
+.PHONY: all check clean force
 
 all: $(NAME)
 
