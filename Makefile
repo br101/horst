@@ -46,12 +46,15 @@ all: $(NAME)
 
 # dependencies, generated with 'gcc -MM *.c' and pasted here
 average.o: average.c average.h util.h
-capture.o: capture.c capture.h util.h
+capture.o: capture.c capture.h util.h main.h ccan/list/list.h average.h \
+ channel.h wlan80211.h
 capture-pcap.o: capture-pcap.c capture.h util.h
 channel.o: channel.c main.h ccan/list/list.h average.h channel.h \
  wlan80211.h util.h wext.h
+conf_options.o: conf_options.c main.h ccan/list/list.h average.h \
+ channel.h wlan80211.h util.h control.h
 control.o: control.c main.h ccan/list/list.h average.h channel.h \
- wlan80211.h control.h
+ wlan80211.h control.h conf_options.h
 display.o: display.c display.h main.h ccan/list/list.h average.h \
  channel.h wlan80211.h
 display-channel.o: display-channel.c display.h main.h ccan/list/list.h \
@@ -75,10 +78,11 @@ essid.o: essid.c main.h ccan/list/list.h average.h channel.h wlan80211.h \
  util.h essid.h
 ieee80211_util.o: ieee80211_util.c ieee80211_util.h wlan80211.h main.h \
  ccan/list/list.h average.h channel.h util.h
+ifctrl-nl80211.o: ifctrl-nl80211.c ifctrl.h
 listsort.o: listsort.c ccan/list/list.h listsort.h
 main.o: main.c main.h ccan/list/list.h average.h channel.h wlan80211.h \
  util.h capture.h protocol_parser.h network.h display.h wlan_util.h \
- ieee80211_util.h control.h node.h essid.h
+ ieee80211_util.h control.h node.h essid.h conf_options.h ifctrl.h
 network.o: network.c main.h ccan/list/list.h average.h channel.h \
  wlan80211.h util.h network.h
 node.o: node.c main.h ccan/list/list.h average.h channel.h wlan80211.h \
