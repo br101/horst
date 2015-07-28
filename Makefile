@@ -21,13 +21,34 @@ DEBUG=1
 PCAP=0
 
 NAME=horst
-OBJS=main.o capture$(if $(filter 1,$(PCAP)),-pcap).o protocol_parser.o \
-	protocol_parser_wlan.o network.o wext.o node.o essid.o channel.o \
-	util.o wlan_util.o ieee80211_util.o listsort.o average.o \
-	display.o display-main.o display-filter.o display-help.o \
-	display-statistics.o display-essid.o display-history.o \
-	display-spectrum.o display-channel.o control.o \
-	radiotap/radiotap.o conf_options.o ifctrl-nl80211.o
+OBJS=						   \
+	average.o				   \
+	capture$(if $(filter 1,$(PCAP)),-pcap).o   \
+	channel.o				   \
+	conf_options.o				   \
+	control.o				   \
+	display-channel.o			   \
+	display-essid.o				   \
+	display-filter.o			   \
+	display-help.o				   \
+	display-history.o			   \
+	display-main.o				   \
+	display-spectrum.o			   \
+	display-statistics.o			   \
+	display.o				   \
+	essid.o					   \
+	ieee80211_util.o			   \
+	ifctrl-nl80211.o			   \
+	listsort.o				   \
+	main.o					   \
+	network.o				   \
+	node.o					   \
+	protocol_parser.o			   \
+	protocol_parser_wlan.o			   \
+	radiotap/radiotap.o			   \
+	util.o					   \
+	wext.o					   \
+	wlan_util.o
 LIBS=-lncurses -lm -lnl-3 -lnl-genl-3
 CFLAGS+=-Wall -Wextra -g -I. $(shell pkg-config --cflags libnl-3.0)
 
