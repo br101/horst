@@ -203,12 +203,12 @@ static void
 update_mini_status(void)
 {
 	wattron(stdscr, BLACKONWHITE);
-	mvwprintw(stdscr, LINES-1, COLS-25, conf.paused ? "|=" : "|>");
+	mvwprintw(stdscr, LINES-1, COLS-27, conf.paused ? "|=" : "|>");
 	if (!conf.filter_off && (conf.do_macfilter || conf.filter_pkt != PKT_TYPE_ALL || conf.filter_mode != WLAN_MODE_ALL))
-		mvwprintw(stdscr, LINES-1, COLS-23, "|F");
+		mvwprintw(stdscr, LINES-1, COLS-25, "|F");
 	else
-		mvwprintw(stdscr, LINES-1, COLS-23, "| ");
-	mvwprintw(stdscr, LINES-1, COLS-21, "|Ch%03d", channel_get_current_chan());
+		mvwprintw(stdscr, LINES-1, COLS-25, "| ");
+	mvwprintw(stdscr, LINES-1, COLS-23, "|Ch%03d", channel_get_current_chan());
 	wattroff(stdscr, BLACKONWHITE);
 	wnoutrefresh(stdscr);
 }
@@ -238,7 +238,7 @@ update_menu(void)
 		attron(KEYMARK); printw("N"); attroff(KEYMARK); printw("odes");
 	}
 #undef KEYMARK
-	mvwprintw(stdscr, LINES-1, COLS-15, "|%s",
+	mvwprintw(stdscr, LINES-1, COLS-17, "|%7s",
 		  conf.serveraddr[0] != '\0' ? conf.serveraddr : conf.ifname);
 	wattroff(stdscr, BLACKONWHITE);
 
