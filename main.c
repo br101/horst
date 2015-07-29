@@ -676,39 +676,35 @@ main(int argc, char** argv)
 	if (conf.serveraddr[0] != '\0')
 		mon = net_open_client_socket(conf.serveraddr, conf.port);
 	else {
-		if (ifctrl_ifup(conf.ifname))
-			err(1, "failed to bring interface '%s' up",
-			    conf.ifname);
-
-		if (ifctrl_iwset_monitor(conf.ifname))
-			warnx("failed to set interface '%s' to monitor mode",
-			      conf.ifname);
-		open_monitor();
-		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
-		    conf.arphrd != ARPHRD_IEEE80211_RADIOTAP) {
+		/* Try to set the interface to monitor mode or create a virtual
+		 * monitor interface as a fallback. */
+		if (ifctrl_iwset_monitor(conf.ifname)) {
 			char mon_ifname[IF_NAMESIZE];
 
-			warnx("interface '%s' is not in monitor mode, "
+			warnx("failed to set interface '%s' to monitor mode, "
 			      "adding a virtual monitor interface",
 			      conf.ifname);
 
-			close_packet_socket(mon, conf.ifname);
 			generate_mon_ifname(mon_ifname, IF_NAMESIZE);
 			if (ifctrl_iwadd_monitor(conf.ifname, mon_ifname))
 				err(1, "failed to add a virtual monitor "
 				    "interface");
+
 			strncpy(conf.ifname, mon_ifname, MAX_CONF_VALUE_STRLEN);
 			conf.ifname[MAX_CONF_VALUE_STRLEN] = '\0';
 			is_interface_added = 1;
 			/* Now we have a new monitor interface, proceed
 			 * normally. The interface will be deleted at exit. */
-
-			if (ifctrl_ifup(conf.ifname))
-				err(1, "failed to bring interface '%s' up",
-				    conf.ifname);
-
-			open_monitor();
 		}
+
+		if (ifctrl_ifup(conf.ifname))
+			err(1, "failed to bring interface '%s' up",
+			    conf.ifname);
+		open_monitor();
+		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
+		    conf.arphrd != ARPHRD_IEEE80211_RADIOTAP)
+			err(1, "interface '%s' is not in monitor mode",
+			    conf.ifname);
 
 		channel_init();
 		init_spectrum();
