@@ -69,7 +69,8 @@ wext_set_freq(int fd, const char* devname, int freq)
 	struct iwreq iwr;
 
 	memset(&iwr, 0, sizeof(iwr));
-	strncpy(iwr.ifr_name, devname, IFNAMSIZ);
+	strncpy(iwr.ifr_name, devname, IFNAMSIZ - 1);
+	iwr.ifr_name[IFNAMSIZ - 1] = '\0';
 	freq *= 100000;
 	iwr.u.freq.m = freq;
 	iwr.u.freq.e = 1;
@@ -88,7 +89,8 @@ wext_get_freq(int fd, const char* devname)
 	struct iwreq iwr;
 
 	memset(&iwr, 0, sizeof(iwr));
-	strncpy(iwr.ifr_name, devname, IFNAMSIZ);
+	strncpy(iwr.ifr_name, devname, IFNAMSIZ - 1);
+	iwr.ifr_name[IFNAMSIZ - 1] = '\0';
 
 	if (ioctl(fd, SIOCGIWFREQ, &iwr) < 0)
 		return 0;
@@ -110,7 +112,8 @@ wext_get_channels(int fd, const char* devname,
 	memset(&iwr, 0, sizeof(iwr));
 	memset(&range, 0, sizeof(range));
 
-	strncpy(iwr.ifr_name, devname, IFNAMSIZ);
+	strncpy(iwr.ifr_name, devname, IFNAMSIZ - 1);
+	iwr.ifr_name[IFNAMSIZ - 1] = '\0';
 	iwr.u.data.pointer = (caddr_t) &range;
 	iwr.u.data.length = sizeof(range);
 	iwr.u.data.flags = 0;

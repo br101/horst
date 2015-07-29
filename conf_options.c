@@ -47,7 +47,8 @@ static int conf_debug(__attribute__((unused)) const char* value) {
 #endif
 
 static int conf_interface(const char* value) {
-	strncpy(conf.ifname, value, MAX_CONF_VALUE_LEN);
+	strncpy(conf.ifname, value, MAX_CONF_VALUE_STRLEN);
+	conf.ifname[MAX_CONF_VALUE_STRLEN] = '\0';
 	return 1;
 }
 
@@ -123,7 +124,8 @@ static int conf_server(const char* value) {
 }
 
 static int conf_client(const char* value) {
-	strncpy(conf.serveraddr, value, MAX_CONF_VALUE_LEN);
+	strncpy(conf.serveraddr, value, MAX_CONF_VALUE_STRLEN);
+	conf.serveraddr[MAX_CONF_VALUE_STRLEN] = '\0';
 	return 1;
 }
 
@@ -142,9 +144,10 @@ static int conf_control_pipe(const char* value) {
 	 * and especially handle the default name here and in control_send_command()
 	 */
 	if (value != NULL)
-		strncpy(conf.control_pipe, value, MAX_CONF_VALUE_LEN);
+		strncpy(conf.control_pipe, value, MAX_CONF_VALUE_STRLEN);
 	else
-		strncpy(conf.control_pipe, DEFAULT_CONTROL_PIPE, MAX_CONF_VALUE_LEN);
+		strncpy(conf.control_pipe, DEFAULT_CONTROL_PIPE, MAX_CONF_VALUE_STRLEN);
+	conf.control_pipe[MAX_CONF_VALUE_STRLEN] = '\0';
 	conf.allow_control = 1;
 	return 1;
 }
@@ -245,9 +248,10 @@ static int conf_filter_pkt(const char* value) {
 
 static int conf_mac_names(const char* value) {
 	if (value != NULL)
-		strncpy(conf.mac_name_file, value, MAX_CONF_VALUE_LEN);
+		strncpy(conf.mac_name_file, value, MAX_CONF_VALUE_STRLEN);
 	else
-		strncpy(conf.mac_name_file, DEFAULT_MAC_NAME_FILE, MAX_CONF_VALUE_LEN);
+		strncpy(conf.mac_name_file, DEFAULT_MAC_NAME_FILE, MAX_CONF_VALUE_STRLEN);
+	conf.mac_name_file[MAX_CONF_VALUE_STRLEN] = '\0';
 	conf.mac_name_lookup = 1;
 	return 1;
 }
@@ -334,9 +338,10 @@ static void
 config_read_file(const char* filename) {
 	FILE* fp ;
 	char line[255];
-	char name[32];
-	char value[MAX_CONF_VALUE_LEN];
+	char name[MAX_CONF_NAME_STRLEN + 1];
+	char value[MAX_CONF_VALUE_STRLEN + 1];
 	int n;
+	int linenum = 0;
 
 	if ((fp = fopen(filename, "r")) == NULL) {
 		printlog("Could not open config file '%s'", filename);
@@ -344,17 +349,24 @@ config_read_file(const char* filename) {
 	}
 
 	while (fgets(line, sizeof(line), fp) != NULL) {
+		++linenum;
 		if (line[0] == '#' ) // comment
 			continue;
 
-		// Note: 200 below has to match MAX_CONF_VALUE_LEN
+		// Note: 200 below has to match MAX_CONF_VALUE_STRLEN
+		// Note: 32 below has to match MAX_CONF_NAME_STRLEN
 		n = sscanf(line, " %32[^= \n] = %200[^ \n]", name, value);
-		if (n < 0) // empty line
+		if (n < 0) { // empty line
 			continue;
-		else if (n < 2) // no value
+		} else if (n == 0) {
+			printlog("Config file has garbage on line %d, "
+				 "ignoring the line.", linenum);
+			continue;
+		} else if (n == 1) { // no value
 			config_handle_option(0, name, NULL);
-		else
+		} else {
 			config_handle_option(0, name, value);
+		}
 	}
 
 	fclose(fp);

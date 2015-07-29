@@ -47,11 +47,12 @@ void
 control_send_command(const char* cmd)
 {
 	int len = strlen(cmd);
-	char new[len+1];
+	char new[len + 2];
 	char* pos;
 
 	if (conf.control_pipe[0] == '\0') {
-		strncpy(conf.control_pipe, DEFAULT_CONTROL_PIPE, MAX_CONF_VALUE_LEN);
+		strncpy(conf.control_pipe, DEFAULT_CONTROL_PIPE, MAX_CONF_VALUE_STRLEN);
+		conf.control_pipe[MAX_CONF_VALUE_STRLEN] = '\0';
 	}
 
 	while (access(conf.control_pipe, F_OK) < 0) {

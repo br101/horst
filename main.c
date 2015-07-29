@@ -581,7 +581,8 @@ mac_name_file_read(const char* filename) {
 			n = sscanf(line, "%17s %17s", macs, name);
 		if (n == 2) {
 			convert_string_to_mac(macs, node_names.entry[idx].mac);
-			strncpy(node_names.entry[idx].name, name, MAX_NODE_NAME_LEN);
+			strncpy(node_names.entry[idx].name, name, MAX_NODE_NAME_STRLEN);
+			node_names.entry[idx].name[MAX_NODE_NAME_STRLEN] = '\0';
 			idx++;
 		}
 	}
@@ -696,7 +697,8 @@ main(int argc, char** argv)
 			if (ifctrl_iwadd_monitor(conf.ifname, mon_ifname))
 				err(1, "failed to add a virtual monitor "
 				    "interface");
-			strncpy(conf.ifname, mon_ifname, MAX_CONF_VALUE_LEN);
+			strncpy(conf.ifname, mon_ifname, MAX_CONF_VALUE_STRLEN);
+			conf.ifname[MAX_CONF_VALUE_STRLEN] = '\0';
 			is_interface_added = 1;
 			/* Now we have a new monitor interface, proceed
 			 * normally. The interface will be deleted at exit. */
@@ -792,7 +794,8 @@ dumpfile_open(const char* name)
 		return;
 	}
 
-	strncpy(conf.dumpfile, name, MAX_CONF_VALUE_LEN);
+	strncpy(conf.dumpfile, name, MAX_CONF_VALUE_STRLEN);
+	conf.dumpfile[MAX_CONF_VALUE_STRLEN] = '\0';
 	DF = fopen(conf.dumpfile, "w");
 	if (DF == NULL)
 		err(1, "Couldn't open dump file");

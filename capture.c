@@ -39,7 +39,8 @@ device_index(int fd, const char *devname)
 {
 	struct ifreq req;
 
-	strncpy(req.ifr_name, devname, IFNAMSIZ);
+	strncpy(req.ifr_name, devname, IFNAMSIZ - 1);
+	req.ifr_name[IFNAMSIZ - 1] = '\0';
 	req.ifr_addr.sa_family = AF_INET;
 
 	if (ioctl(fd, SIOCGIFINDEX, &req) < 0)
@@ -58,7 +59,8 @@ device_promisc(int fd, const char *devname, int on)
 {
 	struct ifreq req;
 
-	strncpy(req.ifr_name, devname, IFNAMSIZ);
+	strncpy(req.ifr_name, devname, IFNAMSIZ - 1);
+	req.ifr_name[IFNAMSIZ - 1] = '\0';
 	req.ifr_addr.sa_family = AF_INET;
 
 	if (ioctl(fd, SIOCGIFFLAGS, &req) < 0)
@@ -86,7 +88,8 @@ device_get_hwinfo(int fd, char* ifname, unsigned char* mac)
 	struct ifreq ifr;
 
 	memset(&ifr, 0, sizeof(ifr));
-	strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
+	strncpy(ifr.ifr_name, ifname, IFNAMSIZ - 1);
+	ifr.ifr_name[IFNAMSIZ - 1] = '\0';
 
 	if (ioctl(fd, SIOCGIFHWADDR, &ifr) < 0)
 		err(1, "Could not get arptype");
