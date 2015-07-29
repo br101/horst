@@ -503,8 +503,10 @@ finish_all(void)
 	if (!conf.serveraddr[0] != '\0')
 		close_packet_socket(mon, conf.ifname);
 
-	if (is_interface_added)
+	if (is_interface_added) {
+		ifctrl_ifdown(conf.ifname);
 		ifctrl_iwdel(conf.ifname);
+	}
 
 	if (DF != NULL) {
 		fclose(DF);
@@ -673,6 +675,10 @@ main(int argc, char** argv)
 	if (conf.serveraddr[0] != '\0')
 		mon = net_open_client_socket(conf.serveraddr, conf.port);
 	else {
+		if (ifctrl_ifup(conf.ifname))
+			err(1, "failed to bring interface '%s' up",
+			    conf.ifname);
+
 		if (ifctrl_iwset_monitor(conf.ifname))
 			warnx("failed to set interface '%s' to monitor mode",
 			      conf.ifname);
@@ -694,6 +700,10 @@ main(int argc, char** argv)
 			is_interface_added = 1;
 			/* Now we have a new monitor interface, proceed
 			 * normally. The interface will be deleted at exit. */
+
+			if (ifctrl_ifup(conf.ifname))
+				err(1, "failed to bring interface '%s' up",
+				    conf.ifname);
 
 			open_monitor();
 		}
