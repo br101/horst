@@ -627,14 +627,6 @@ static void generate_mon_ifname(char *const buf, const size_t buf_size)
 	}
 }
 
-static void open_monitor(void)
-{
-	mon = open_packet_socket(conf.ifname, conf.recv_buffer_size);
-	if (mon <= 0)
-		err(1, "Couldn't open packet socket");
-	conf.arphrd = device_get_hwinfo(mon, conf.ifname, conf.my_mac_addr);
-}
-
 int
 main(int argc, char** argv)
 {
@@ -700,7 +692,13 @@ main(int argc, char** argv)
 		if (ifctrl_ifup(conf.ifname))
 			err(1, "failed to bring interface '%s' up",
 			    conf.ifname);
-		open_monitor();
+
+		mon = open_packet_socket(conf.ifname, conf.recv_buffer_size);
+		if (mon <= 0)
+			err(1, "Couldn't open packet socket");
+		conf.arphrd = device_get_hwinfo(mon, conf.ifname,
+						conf.my_mac_addr);
+
 		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
 		    conf.arphrd != ARPHRD_IEEE80211_RADIOTAP)
 			err(1, "interface '%s' is not in monitor mode",
