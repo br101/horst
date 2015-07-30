@@ -732,7 +732,7 @@ main(int argc, char** argv)
 	    sigprocmask(SIG_BLOCK, &workmask, &waitmask) == -1)
 		err(1, "failed to block signals: %m");
 
-	for ( /* ever */ ;;)
+	while (!conf.do_change_channel || conf.channel_scan_rounds != 0)
 	{
 		receive_any(&waitmask);
 
@@ -748,10 +748,13 @@ main(int argc, char** argv)
 				update_spectrum_durations();
 				if (!conf.quiet && !conf.debug)
 					update_display(NULL);
+
+				if (channel_get_chan_from_idx(conf.channel_idx) == conf.channel_num_initial
+				    && conf.channel_scan_rounds > 0)
+					--conf.channel_scan_rounds;
 			}
 		}
 	}
-	/* will never */
 	return 0;
 }
 
