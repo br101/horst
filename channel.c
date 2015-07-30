@@ -90,6 +90,20 @@ channel_auto_change(void)
 	int ret = 1;
 	int start_idx;
 
+	if (conf.channel_idx == -1)
+		return 0; /* The current channel is still unknown for some
+			   * reason (mac80211 bug, busy physical interface,
+			   * etc.), it will be fixed when the first packet
+			   * arrives, see fixup_packet_channel().
+			   *
+			   * Without this return, horst would busy-loop forever
+			   * (making the ui totally unresponsive) in the channel
+			   * changing code below because start_idx would be -1
+			   * as well. Short-circuit exiting here is quite
+			   * logical though: it does not make any sense to scan
+			   * channels as long as the channel module is not
+			   * initialized properly. */
+
 	if (channel_get_remaining_dwell_time() > 0)
 		return 0; /* too early */
 

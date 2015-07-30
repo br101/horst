@@ -627,14 +627,6 @@ static void generate_mon_ifname(char *const buf, const size_t buf_size)
 	}
 }
 
-static void open_monitor(void)
-{
-	mon = open_packet_socket(conf.ifname, conf.recv_buffer_size);
-	if (mon <= 0)
-		err(1, "Couldn't open packet socket");
-	conf.arphrd = device_get_hwinfo(mon, conf.ifname, conf.my_mac_addr);
-}
-
 int
 main(int argc, char** argv)
 {
@@ -676,39 +668,42 @@ main(int argc, char** argv)
 	if (conf.serveraddr[0] != '\0')
 		mon = net_open_client_socket(conf.serveraddr, conf.port);
 	else {
-		if (ifctrl_ifup(conf.ifname))
-			err(1, "failed to bring interface '%s' up",
-			    conf.ifname);
-
-		if (ifctrl_iwset_monitor(conf.ifname))
-			warnx("failed to set interface '%s' to monitor mode",
-			      conf.ifname);
-		open_monitor();
-		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
-		    conf.arphrd != ARPHRD_IEEE80211_RADIOTAP) {
+		/* Try to set the interface to monitor mode or create a virtual
+		 * monitor interface as a fallback. */
+		if (ifctrl_iwset_monitor(conf.ifname)) {
 			char mon_ifname[IF_NAMESIZE];
 
-			warnx("interface '%s' is not in monitor mode, "
+			warnx("failed to set interface '%s' to monitor mode, "
 			      "adding a virtual monitor interface",
 			      conf.ifname);
 
-			close_packet_socket(mon, conf.ifname);
 			generate_mon_ifname(mon_ifname, IF_NAMESIZE);
 			if (ifctrl_iwadd_monitor(conf.ifname, mon_ifname))
 				err(1, "failed to add a virtual monitor "
 				    "interface");
-			strncpy(conf.ifname, mon_ifname, MAX_CONF_VALUE_STRLEN);
-			conf.ifname[MAX_CONF_VALUE_STRLEN] = '\0';
+
+			printlog("INFO: A virtual interface '%s' will be used "
+				 "instead of '%s'.", mon_ifname, conf.ifname);
+			config_handle_option(0, "interface", mon_ifname);
 			is_interface_added = 1;
 			/* Now we have a new monitor interface, proceed
 			 * normally. The interface will be deleted at exit. */
-
-			if (ifctrl_ifup(conf.ifname))
-				err(1, "failed to bring interface '%s' up",
-				    conf.ifname);
-
-			open_monitor();
 		}
+
+		if (ifctrl_ifup(conf.ifname))
+			err(1, "failed to bring interface '%s' up",
+			    conf.ifname);
+
+		mon = open_packet_socket(conf.ifname, conf.recv_buffer_size);
+		if (mon <= 0)
+			err(1, "Couldn't open packet socket");
+		conf.arphrd = device_get_hwinfo(mon, conf.ifname,
+						conf.my_mac_addr);
+
+		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
+		    conf.arphrd != ARPHRD_IEEE80211_RADIOTAP)
+			err(1, "interface '%s' is not in monitor mode",
+			    conf.ifname);
 
 		channel_init();
 		init_spectrum();
