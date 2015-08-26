@@ -476,6 +476,7 @@ init_display(void)
 {
 	initscr();
 	start_color();	/* Start the color functionality */
+	use_default_colors();
 	keypad(stdscr, TRUE);
 	nonl();		/* tell curses not to do NL->CR/NL on output */
 	cbreak();	/* take input chars one at a time, no wait for \n */
