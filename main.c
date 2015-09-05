@@ -705,7 +705,8 @@ main(int argc, char** argv)
 			err(1, "interface '%s' is not in monitor mode",
 			    conf.ifname);
 
-		channel_init();
+		if (!channel_init() && conf.quiet)
+			err(1, "failed to change the initial channel number");
 		init_spectrum();
 	}
 

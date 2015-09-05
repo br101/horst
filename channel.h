@@ -49,7 +49,7 @@ channel_get_chan_from_idx(int idx);
 int
 channel_get_current_chan();
 
-void
+int
 channel_init(void);
 
 struct chan_freq*
