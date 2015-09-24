@@ -135,7 +135,7 @@ open_packet_socket(char* devname, int recv_buffer_size)
 
 	mon_fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
 	if (mon_fd < 0) {
-		printf("Could not create packet socket! Please run horst as root!\n");
+		printlog("Could not create packet socket! Please run horst as root!");
 		exit(1);
 	}
 

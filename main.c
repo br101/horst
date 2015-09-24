@@ -592,8 +592,8 @@ mac_name_file_read(const char* filename) {
 	node_names.count = idx;
 
 	for (n = 0; n < node_names.count; n++) {
-		printf("MAC %s = %s\n", ether_sprintf(node_names.entry[n].mac),
-		       node_names.entry[n].name );
+		printlog("MAC %s = %s", ether_sprintf(node_names.entry[n].mac),
+			 node_names.entry[n].name );
 	}
 }
 
