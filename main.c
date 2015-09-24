@@ -102,7 +102,7 @@ printlog(const char *fmt, ...)
 	va_end(ap);
 
 	if (conf.quiet || conf.debug || !conf.display_initialized)
-		printf("%s\n", &buf[1]);
+		fprintf(stderr, "%s\n", &buf[1]);
 	else {
 		/* fix up string for display log */
 		buf[0] = '\n';
