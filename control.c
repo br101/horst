@@ -56,7 +56,7 @@ control_send_command(const char* cmd)
 	}
 
 	while (access(conf.control_pipe, F_OK) < 0) {
-		printf("Waiting for control pipe '%s'...\n", conf.control_pipe);
+		printlog("Waiting for control pipe '%s'...", conf.control_pipe);
 		sleep(1);
 	}
 
@@ -74,7 +74,7 @@ control_send_command(const char* cmd)
 		*pos = '\n';
 	}
 
-	printf("Sending command: %s\n", new);
+	printlog("Sending command: %s", new);
 
 	write(ctlpipe, new, len+1);
 	close(ctlpipe);

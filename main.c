@@ -102,7 +102,7 @@ printlog(const char *fmt, ...)
 	va_end(ap);
 
 	if (conf.quiet || conf.debug || !conf.display_initialized)
-		printf("%s\n", &buf[1]);
+		fprintf(stderr, "%s\n", &buf[1]);
 	else {
 		/* fix up string for display log */
 		buf[0] = '\n';
@@ -592,8 +592,8 @@ mac_name_file_read(const char* filename) {
 	node_names.count = idx;
 
 	for (n = 0; n < node_names.count; n++) {
-		printf("MAC %s = %s\n", ether_sprintf(node_names.entry[n].mac),
-		       node_names.entry[n].name );
+		printlog("MAC %s = %s", ether_sprintf(node_names.entry[n].mac),
+			 node_names.entry[n].name );
 	}
 }
 
@@ -705,7 +705,8 @@ main(int argc, char** argv)
 			err(1, "interface '%s' is not in monitor mode",
 			    conf.ifname);
 
-		channel_init();
+		if (!channel_init() && conf.quiet)
+			err(1, "failed to change the initial channel number");
 		init_spectrum();
 	}
 
