@@ -496,7 +496,7 @@ free_lists(void)
 
 
 static void
-finish_all(void)
+exit_handler(void)
 {
 	free_lists();
 
@@ -521,13 +521,6 @@ finish_all(void)
 
 	if (!conf.quiet && !conf.debug)
 		finish_display();
-}
-
-
-static void
-exit_handler(void)
-{
-	finish_all();
 }
 
 
