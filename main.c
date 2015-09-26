@@ -546,7 +546,7 @@ init_spectrum(void)
 {
 	int i;
 
-	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++) {
+	for (i = 0; i < MAX_CHANNELS; i++) {
 		list_head_init(&spectrum[i].nodes);
 		ewma_init(&spectrum[i].signal_avg, 1024, 8);
 		ewma_init(&spectrum[i].durations_avg, 1024, 8);
@@ -630,6 +630,7 @@ main(int argc, char** argv)
 
 	list_head_init(&essids.list);
 	list_head_init(&nodes);
+	init_spectrum();
 
 	config_parse_file_and_cmdline(argc, argv);
 
@@ -700,7 +701,6 @@ main(int argc, char** argv)
 
 		if (!channel_init() && conf.quiet)
 			err(1, "failed to change the initial channel number");
-		init_spectrum();
 	}
 
 	if (!conf.quiet && !conf.debug)
