@@ -17,6 +17,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#define _GNU_SOURCE	/* necessary for libnl-tiny */
+
 #include <errno.h>
 #include <net/if.h>
 #include <string.h>
@@ -117,7 +119,12 @@ static int ifctrl_nl_send(struct nl_sock *const sock, struct nl_msg *const msg)
 {
 	int err;
 
-	err = nl_send_sync(sock, msg); /* frees nl_msg */
+	err = nl_send_auto_complete(sock, msg);
+	nlmsg_free(msg);
+
+	if (err > 0)
+		err = nl_wait_for_ack(sock);
+
 	nl_socket_free(sock);
 
 	if (!err)
@@ -127,7 +134,7 @@ static int ifctrl_nl_send(struct nl_sock *const sock, struct nl_msg *const msg)
 	return -1;
 }
 
-int ifctrl_iwadd_monitor(const char *const interface, 
+int ifctrl_iwadd_monitor(const char *const interface,
                          const char *const monitor_interface)
 {
 	struct nl_sock *sock;

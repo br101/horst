@@ -19,6 +19,7 @@
 # build options
 DEBUG=1
 PCAP=0
+LIBNL_VERSION=3.0
 
 NAME=horst
 OBJS=						   \
@@ -49,8 +50,8 @@ OBJS=						   \
 	util.o					   \
 	wext.o					   \
 	wlan_util.o
-LIBS=-lncurses -lm -lnl-3 -lnl-genl-3
-CFLAGS+=-Wall -Wextra -g -I. $(shell pkg-config --cflags libnl-3.0)
+LIBS=-lncurses -lm
+CFLAGS+=-Wall -Wextra -g -I.
 
 ifeq ($(DEBUG),1)
 CFLAGS+=-DDO_DEBUG
@@ -59,6 +60,12 @@ endif
 ifeq ($(PCAP),1)
 CFLAGS+=-DPCAP
 LIBS+=-lpcap
+endif
+
+ifeq ($(LIBNL_VERSION),tiny)
+LIBS+=-lnl-tiny
+else
+LIBS+=-lnl-3 -lnl-genl-3
 endif
 
 .PHONY: all check clean force
@@ -74,6 +81,10 @@ $(NAME): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
 $(OBJS): .buildflags
+
+# libnl-tiny header files somehow pollute, so just include them for this file:
+ifctrl-nl80211.o:
+	$(CC) -c $(CFLAGS) $(shell pkg-config --cflags libnl-$(LIBNL_VERSION)) -o $@ $<
 
 check:
 	sparse *.[ch]
