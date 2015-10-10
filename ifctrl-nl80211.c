@@ -36,6 +36,10 @@
 
 #include "ifctrl.h"
 
+#ifndef NL80211_GENL_NAME
+#define NL80211_GENL_NAME "nl80211"
+#endif
+
 static int ifctrl_nl_prepare(struct nl_sock **const sockp,
                              struct nl_msg **const msgp,
                              const enum nl80211_commands cmd,
