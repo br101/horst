@@ -225,9 +225,10 @@ write_to_file(struct packet_info* p)
 	int i;
 	struct tm* ltm = localtime(&the_time.tv_sec);
 
-	//timestamp, e.g. 2015-05-16 15:05:44.338806
+	//timestamp, e.g. 2015-05-16 15:05:44.338806 +0300
 	i = strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", ltm);
-	snprintf(buf+i, sizeof(buf)-i, ".%06ld", the_time.tv_usec);
+	i += snprintf(buf + i, sizeof(buf) - i, ".%06ld", the_time.tv_usec);
+	i += strftime(buf + i, sizeof(buf) - i, " %z", ltm);
 	fprintf(DF, "%s, ", buf);
 
 	fprintf(DF, "%s, %s, ",
