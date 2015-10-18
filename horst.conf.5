@@ -1,0 +1,122 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH HORST.CONF 5 "October 18, 2015"
+.\" Please adjust this date whenever revising the manpage.
+.SH NAME
+horst.conf \- configuration file for \fBhorst(1)\fP
+.SH SYNOPSIS
+/etc/horst.conf
+
+.SH DESCRIPTION
+The file \fI/etc/horst.conf\fP is the default configuration file. The
+configuration file consists of zero or more lines.  Each line must be
+either \fBEMPTY\fP, \fBCOMMENT\fP or \fBOPTION\fP and must end with a
+new line character ('\\n', ASCII 0xa).
+
+\fBEMPTY\fP lines must have zero or more spaces (' ', ASCII 0x20).
+
+\fBCOMMENT\fP lines must begin with a hash sign ('#', ASCII 0x23).
+
+\fBOPTION\fP lines must be in the following form:
+
+.RS
+option[=value]
+.RE
+
+Options and their acceptable values are described below in section
+\fBOPTIONS\fP.
+
+Lines not matching the format described above will cause \fBhorst\fP
+to exit with non-zero status.
+
+.SH OPTIONS
+
+.IP channel=CHANNEL_NUMBER
+Set the initial channel number to which \fBhorst\fP tunes the radio
+at startup.
+
+.IP channel_dwell=MILLISECONDS
+Set the time \fBhorst\fP scans each channel when channel_scan=1 is
+defined.
+
+.IP channel_scan
+Make \fBhorst\fP change/scan channels automatically in ascending
+numeric order.
+
+.IP channel_scan_rounds=N
+Set the number of rounds \fBhorst\fP scans the channel range when
+channel_scan=1 is defined. When N is reached, \fBhorst\fP exits with
+zero status. If N is a negative number, \fBhorst\fP scans the channel
+range infinitely.
+
+.IP channel_upper=CHANNEL_NUMBER
+Set the highest channel \fBhorst\fP will change to when
+channel_scan=1 is defined. When CHANNEL_NUMBER is reached, the next
+channel will be 1.
+
+.IP client=SERVER_ADDRESS
+Run \fBhorst\fP in client mode and connect to a server running in
+SERVER_ADDRESS.
+
+.IP control_pipe=FILEPATH
+Accept control commands on a named pipe.
+
+.IP display_interval=MILLISECONDS
+Set the refresh interval of the user interface display. This option
+can be used to reduce CPU load by using longer intervals.
+
+.IP display_view=history|essid|statistics|spectrum
+Set the initial display view.
+
+.IP filter_bssid=BSSID[,BSSID]...
+Ignore all packets except packets belonging to BSSID.
+
+.IP filter_mac=MAC_ADDRESS[,MAC_ADDRESS]...
+Ignore all packets except packets originating from MAC_ADDRESS.
+
+.IP filter_mode=MODE[,MODE]...
+Ignore all packets/nodes except packets/nodes of mode MODE.
+
+.IP filter_packet=PACKET_TYPE[,PACKET_TYPE]...
+Ignore all packets except packets of type PACKET_TYPE.
+
+.IP interface=INTERFACE_NAME
+Set the wireless interface which \fBhorst\fP uses to monitor the
+radio spectrum. If interface INTERFACE_NAME is not already in monitor
+mode at startup, \fBhorst\fP first tries to put the interface in
+monitor mode and if it fails, a temporary virtual monitor interface is
+added and used instead. The name of the temporary virtual monitor
+interface is in the form horst[0-9]+. The virtual interface created by
+\fBhorst\fP is deleted at exit.
+
+.IP mac_names=FILEPATH
+The file containing a mapping from MAC addresses to host names. The
+file can either be a dhcp.leases file from dnsmasq or contain mappings
+in the form "MAC<space>name" (e.g.: "00:01:02:03:04:05 test") line by
+line.
+
+.IP node_timeout=SECONDS
+Set the time after nodes will be removed if no frames have been
+received from them.
+
+.IP outfile=FILEPATH
+Write information about each received packet to FILEPATH.
+
+.IP port=PORT_NUMBER
+Set the port \fBhorst\fP listens to when run in server mode or the
+port which \fBhorst\fP connects to when run in client mode.
+
+.IP quiet
+\p Make \fBhorst\fP less verbose and suppress the user interface.
+
+.IP receive_buffer=BYTES
+Set the size of the receive buffer. This option can be used to tune
+memory consumption and reduce packet loss under high load.
+
+.IP server
+\p Run \fBhorst\fP in server mode.
+
+.SH SEE ALSO
+.BR horst (1)
