@@ -316,8 +316,6 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 	DEBUG("%s\n", get_packet_type_name(fc));
 
 	if (WLAN_FRAME_IS_DATA(fc)) {
-		p->pkt_types |= PKT_TYPE_DATA;
-
 		hdrlen = 24;
 		if (WLAN_FRAME_IS_QOS(fc)) {
 			hdrlen += 2;
@@ -376,8 +374,6 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 			p->wlan_retry = 1;
 
 	} else if (WLAN_FRAME_IS_CTRL(fc)) {
-		p->pkt_types |= PKT_TYPE_CTRL;
-
 		if (p->wlan_type == WLAN_FRAME_CTS ||
 		    p->wlan_type == WLAN_FRAME_ACK)
 			hdrlen = 10;
@@ -388,8 +384,6 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 			return -1;
 
 	} else if (WLAN_FRAME_IS_MGMT(fc)) {
-		p->pkt_types |= PKT_TYPE_MGMT;
-
 		hdrlen = 24;
 		if (fc & WLAN_FRAME_FC_ORDER)
 			hdrlen += 4;

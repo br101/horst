@@ -45,7 +45,7 @@ update_filter_win(WINDOW *win)
 	l = 2;
 	wattron(win, get_packet_type_color(WLAN_FRAME_TYPE_MGMT));
 	wattron(win, A_BOLD);
-	mvwprintw(win, l++, 2, "m: [%c] MANAGEMENT Frames", CHECKED(PKT_TYPE_MGMT));
+	mvwprintw(win, l++, 2, "m: [%c] MANAGEMENT Frames", CHECKED(PKT_TYPE_ALL_MGMT));
 	wattroff(win, A_BOLD);
 	mvwprintw(win, l++, 2, "b: [%c] Beacons", CHECKED(PKT_TYPE_BEACON));
 	mvwprintw(win, l++, 2, "p: [%c] Probe Req/Resp", CHECKED(PKT_TYPE_PROBE));
@@ -54,14 +54,14 @@ update_filter_win(WINDOW *win)
 	l++;
 	wattron(win, get_packet_type_color(WLAN_FRAME_TYPE_CTRL));
 	wattron(win, A_BOLD);
-	mvwprintw(win, l++, 2, "c: [%c] CONTROL Frames", CHECKED(PKT_TYPE_CTRL));
+	mvwprintw(win, l++, 2, "c: [%c] CONTROL Frames", CHECKED(PKT_TYPE_ALL_CTRL));
 	wattroff(win, A_BOLD);
 	mvwprintw(win, l++, 2, "r: [%c] CTS/RTS", CHECKED(PKT_TYPE_RTSCTS));
 	mvwprintw(win, l++, 2, "k: [%c] ACK", CHECKED(PKT_TYPE_ACK));
 	l++;
 	wattron(win, get_packet_type_color(WLAN_FRAME_TYPE_DATA));
 	wattron(win, A_BOLD);
-	mvwprintw(win, l++, 2, "d: [%c] DATA Frames", CHECKED(PKT_TYPE_DATA));
+	mvwprintw(win, l++, 2, "d: [%c] DATA Frames", CHECKED(PKT_TYPE_ALL_DATA));
 	wattroff(win, A_BOLD);
 	mvwprintw(win, l++, 2, "Q: [%c] QoS Data", CHECKED(PKT_TYPE_QDATA));
 	mvwprintw(win, l++, 2, "n: [%c] Null Data", CHECKED(PKT_TYPE_NULL));
@@ -125,33 +125,15 @@ filter_input(WINDOW *win, int c)
 	int i;
 
 	switch (c) {
-	case 'm':
-		TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_MGMT);
-		if (conf.filter_pkt & PKT_TYPE_MGMT)
-			conf.filter_pkt |= PKT_TYPE_ALL_MGMT;
-		else
-			conf.filter_pkt &= ~PKT_TYPE_ALL_MGMT;
-		break;
+	case 'm': TOGGLE_BITSET(conf.filter_pkt, PKT_TYPE_ALL_MGMT); break;
 	case 'b': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_BEACON); break;
 	case 'p': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_PROBE); break;
 	case 'a': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ASSOC); break;
 	case 'u': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_AUTH); break;
-	case 'c':
-		TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_CTRL);
-		if (conf.filter_pkt & PKT_TYPE_CTRL)
-			conf.filter_pkt |= PKT_TYPE_ALL_CTRL;
-		else
-			conf.filter_pkt &= ~PKT_TYPE_ALL_CTRL;
-		break;
+	case 'c': TOGGLE_BITSET(conf.filter_pkt, PKT_TYPE_ALL_CTRL); break;
 	case 'r': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_RTSCTS); break;
 	case 'k': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ACK); break;
-	case 'd':
-		TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_DATA);
-		if (conf.filter_pkt & PKT_TYPE_DATA)
-			conf.filter_pkt |= PKT_TYPE_ALL_DATA;
-		else
-			conf.filter_pkt &= ~PKT_TYPE_ALL_DATA;
-		break;
+	case 'd': TOGGLE_BITSET(conf.filter_pkt, PKT_TYPE_ALL_DATA); break;
 	case 'Q': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_QDATA); break;
 	case 'n': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_NULL); break;
 	case 'R': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ARP); break;
@@ -211,15 +193,6 @@ filter_input(WINDOW *win, int c)
 	default:
 		return 0;
 	}
-
-	/* convenience: */
-	/* if one of the individual subtype frames is selected we enable the general frame type */
-	if (conf.filter_pkt & PKT_TYPE_ALL_MGMT)
-		conf.filter_pkt |= PKT_TYPE_MGMT;
-	if (conf.filter_pkt & PKT_TYPE_ALL_CTRL)
-		conf.filter_pkt |= PKT_TYPE_CTRL;
-	if (conf.filter_pkt & PKT_TYPE_ALL_DATA)
-		conf.filter_pkt |= PKT_TYPE_DATA;
 
 	/* recalculate filter flag */
 	conf.do_macfilter = 0;
