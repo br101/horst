@@ -17,10 +17,12 @@ LANs with a focus on ad-hoc (IBSS) mode in larger mesh networks. It can be
 useful to get a quick overview of what’s going on on all wireless LAN channels 
 and to identify problems.
 
-See the man page for more detailed and up-to-date information:
+See the man pages for more detailed and up-to-date information:
 	$ man -l horst.1
+	$ man -l horst.conf.5
 	(or)
 	$ nroff -mandoc horst.1
+	$ nroff -mandoc horst.conf.5
 
 Also see: http://br1.einfach.org/tech/horst/
 
