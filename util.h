@@ -122,6 +122,21 @@ kilo_mega_ize(unsigned int val);
 
 #define TOGGLE_BIT(_x, _m) (_x) ^= (_m)
 
+/**
+ * TOGGLE_BITSET() - toggle set of bits as a whole
+ * @_x: an integer variable
+ * @_s: an integer variable interpreted as a bitset
+ *
+ * If any of the bits are set, all bits will be unset. Otherwise, if
+ * none of the bits are set, all bits will be set.
+ */
+#define TOGGLE_BITSET(_x, _s) do {	\
+	if ((_x) & (_s))		\
+		(_x) &= ~(_s);		\
+	else				\
+		(_x) |= (_s);		\
+	} while(0)
+
 #define max(_x, _y) ((_x) > (_y) ? (_x) : (_y))
 #define min(_x, _y) ((_x) < (_y) ? (_x) : (_y))
 
