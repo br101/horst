@@ -209,11 +209,11 @@ static int conf_filter_pkt(const char* value) {
 	if (strcmp(value, "ALL") == 0)
 		conf.filter_pkt = PKT_TYPE_ALL;
 	else if (strcmp(value, "CTRL") == 0 || strcmp(value, "CONTROL") == 0)
-		conf.filter_pkt |= PKT_TYPE_CTRL | PKT_TYPE_ALL_CTRL;
+		conf.filter_pkt |= PKT_TYPE_ALL_CTRL;
 	else if (strcmp(value, "MGMT") == 0 || strcmp(value, "MANAGEMENT") == 0)
-		conf.filter_pkt |= PKT_TYPE_MGMT | PKT_TYPE_ALL_MGMT;
+		conf.filter_pkt |= PKT_TYPE_ALL_MGMT;
 	else if (strcmp(value, "DATA") == 0)
-		conf.filter_pkt |= PKT_TYPE_DATA | PKT_TYPE_ALL_DATA;
+		conf.filter_pkt |= PKT_TYPE_ALL_DATA;
 	else if (strcmp(value, "BADFCS") == 0)
 		conf.filter_pkt |= PKT_TYPE_BADFCS;
 	else if (strcmp(value, "BEACON") == 0)
@@ -248,13 +248,6 @@ static int conf_filter_pkt(const char* value) {
 		conf.filter_pkt |= PKT_TYPE_BATMAN;
 	else if (strcmp(optarg, "MESHZ") == 0)
 		conf.filter_pkt |= PKT_TYPE_MESHZ;
-	/* if one of the individual subtype frames is selected we enable the general frame type */
-	if (conf.filter_pkt & PKT_TYPE_ALL_MGMT)
-		conf.filter_pkt |= PKT_TYPE_MGMT;
-	if (conf.filter_pkt & PKT_TYPE_ALL_CTRL)
-		conf.filter_pkt |= PKT_TYPE_CTRL;
-	if (conf.filter_pkt & PKT_TYPE_ALL_DATA)
-		conf.filter_pkt |= PKT_TYPE_DATA;
 	return 1;
 }
 

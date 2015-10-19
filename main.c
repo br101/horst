@@ -255,9 +255,16 @@ filter_packet(struct packet_info* p)
 	if (conf.filter_off)
 		return 0;
 
-	if (conf.filter_pkt != PKT_TYPE_ALL && (p->pkt_types & ~conf.filter_pkt)) {
-		stats.filtered_packets++;
-		return 1;
+	if (conf.filter_pkt != PKT_TYPE_ALL) {
+                if (p->pkt_types == 0) {
+                        /* Unmapped packets are filtered if filter is set. */
+                        stats.filtered_packets++;
+                        return 1;
+                }
+                if (p->pkt_types & ~conf.filter_pkt) {
+                        stats.filtered_packets++;
+                        return 1;
+                }
 	}
 
 	/* cannot trust anything if FCS is bad */
