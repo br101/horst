@@ -20,6 +20,8 @@
 #ifndef IFCTRL_H
 #define IFCTRL_H
 
+#include "channel.h"
+
 /**
  * ifctrl_iwadd_monitor() - add virtual 802.11 monitor interface
  *
@@ -65,5 +67,11 @@ int ifctrl_ifdown(const char *interface);
  * Return 0 on success, -1 on error.
  */
 int ifctrl_iwset_monitor(const char *interface);
+
+int ifctrl_iwset_freq(const char *interface, unsigned int freq);
+
+int ifctrl_iwget_interface_info(const char *interface);
+
+int ifctrl_iwget_freqlist(int phy, struct chan_freq* chan);
 
 #endif
