@@ -218,7 +218,7 @@ update_spectrum_durations(void)
 }
 
 
-static void 
+static void
 write_to_file(struct packet_info* p)
 {
 	char buf[40];
@@ -263,6 +263,12 @@ filter_packet(struct packet_info* p)
 	/* cannot trust anything if FCS is bad */
 	if (p->phy_flags & PHY_FLAG_BADFCS)
 		return 0;
+
+	/* filter by WLAN frame type */
+	if (!(conf.filter_stype[WLAN_FRAME_TYPE(p->wlan_type)] & (1 << WLAN_FRAME_STYPE(p->wlan_type)))) {
+		stats.filtered_packets++;
+		return 1;
+	}
 
 	if (conf.filter_mode != WLAN_MODE_ALL && ((p->wlan_mode & ~conf.filter_mode) || p->wlan_mode == 0)) {
 		/* this also filters out packets where we cannot associate a mode (ACK, RTS/CTS) */

@@ -316,7 +316,6 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 	DEBUG("%s\n", get_packet_type_name(fc));
 
 	if (WLAN_FRAME_IS_DATA(fc)) {
-		p->pkt_types |= PKT_TYPE_DATA;
 
 		hdrlen = 24;
 		if (WLAN_FRAME_IS_QOS(fc)) {
@@ -376,8 +375,6 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 			p->wlan_retry = 1;
 
 	} else if (WLAN_FRAME_IS_CTRL(fc)) {
-		p->pkt_types |= PKT_TYPE_CTRL;
-
 		if (p->wlan_type == WLAN_FRAME_CTS ||
 		    p->wlan_type == WLAN_FRAME_ACK)
 			hdrlen = 10;
@@ -388,8 +385,6 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 			return -1;
 
 	} else if (WLAN_FRAME_IS_MGMT(fc)) {
-		p->pkt_types |= PKT_TYPE_MGMT;
-
 		hdrlen = 24;
 		if (fc & WLAN_FRAME_FC_ORDER)
 			hdrlen += 4;
@@ -414,17 +409,14 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 
 	switch (p->wlan_type) {
 		case WLAN_FRAME_NULL:
-			p->pkt_types |= PKT_TYPE_NULL;
 			break;
 
 		case WLAN_FRAME_QDATA:
-			p->pkt_types |= PKT_TYPE_QDATA;
 			p->wlan_qos_class = le16toh(wh->u.qos) & WLAN_FRAME_QOS_TID_MASK;
 			DEBUG("***QDATA %x\n", p->wlan_qos_class);
 			break;
 
 		case WLAN_FRAME_RTS:
-			p->pkt_types |= PKT_TYPE_RTSCTS;
 			p->wlan_nav = le16toh(wh->duration);
 			DEBUG("RTS NAV %d\n", p->wlan_nav);
 			ra = wh->addr1;
@@ -432,14 +424,12 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 			break;
 
 		case WLAN_FRAME_CTS:
-			p->pkt_types |= PKT_TYPE_RTSCTS;
 			p->wlan_nav = le16toh(wh->duration);
 			DEBUG("CTS NAV %d\n", p->wlan_nav);
 			ra = wh->addr1;
 			break;
 
 		case WLAN_FRAME_ACK:
-			p->pkt_types |= PKT_TYPE_ACK;
 			p->wlan_nav = le16toh(wh->duration);
 			DEBUG("ACK NAV %d\n", p->wlan_nav);
 			ra = wh->addr1;
@@ -460,7 +450,6 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 
 		case WLAN_FRAME_BLKACK:
 		case WLAN_FRAME_BLKACK_REQ:
-			p->pkt_types |= PKT_TYPE_ACK;
 			p->wlan_nav = le16toh(wh->duration);
 			ra = wh->addr1;
 			ta = wh->addr2;
@@ -468,10 +457,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 
 		case WLAN_FRAME_BEACON:
 		case WLAN_FRAME_PROBE_RESP:
-			if (p->wlan_type == WLAN_FRAME_BEACON)
-				p->pkt_types |= PKT_TYPE_BEACON;
-			else
-				p->pkt_types |= PKT_TYPE_PROBE;
+			;
 			struct wlan_frame_beacon* bc = (struct wlan_frame_beacon*)(*buf + hdrlen);
 			p->wlan_tsf = le64toh(bc->tsf);
 			p->wlan_bintval = le16toh(bc->bintval);
@@ -491,7 +477,6 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 			break;
 
 		case WLAN_FRAME_PROBE_REQ:
-			p->pkt_types |= PKT_TYPE_PROBE;
 			wlan_parse_information_elements((*buf + hdrlen),
 				len - hdrlen - 4 /* FCS */, p);
 			p->wlan_mode = WLAN_MODE_PROBE;
@@ -502,7 +487,6 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 		case WLAN_FRAME_REASSOC_REQ:
 		case WLAN_FRAME_REASSOC_RESP:
 		case WLAN_FRAME_DISASSOC:
-			p->pkt_types |= PKT_TYPE_ASSOC;
 			break;
 
 		case WLAN_FRAME_AUTH:
@@ -510,7 +494,6 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 				p->wlan_wep = 1;
 				/* no break */
 		case WLAN_FRAME_DEAUTH:
-			p->pkt_types |= PKT_TYPE_AUTH;
 			break;
 
 		case WLAN_FRAME_ACTION:

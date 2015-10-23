@@ -37,6 +37,9 @@
 #define ALLYELLOW	COLOR_PAIR(13)
 #define WHITEONRED	COLOR_PAIR(14)
 
+#define FILTER_WIN_WIDTH	56
+#define FILTER_WIN_HEIGHT	35
+
 struct packet_info;
 struct node_info;
 

@@ -24,70 +24,78 @@
 #include "display.h"
 #include "main.h"
 #include "util.h"
+#include "wlan_util.h"
 #include "wlan80211.h"
 #include "network.h"
 
-#define CHECKED(_x) (conf.filter_pkt & (_x)) ? '*' : ' '
+#define CHECKED_PKT(_x) (conf.filter_pkt & (_x)) ? '*' : ' '
+#define CHECKED_STYPE(_type, _x) (conf.filter_stype[_type] & (1 << _x)) ? '*' : ' '
+#define CHECKED_STYPE_MASK(_type, _x) (conf.filter_stype[_type] & _x) ? '*' : ' '
 #define CHECKED_MODE(_x) (conf.filter_mode & (_x)) ? '*' : ' '
 #define CHECK_ETHER(_mac) MAC_NOT_EMPTY(_mac) ? '*' : ' '
 #define CHECK_FILTER_EN(_i) conf.filtermac_enabled[_i] ? '*' : ' '
-#define MAC_COL 30
-#define FILTER_MAX 26
+#define MAC_COL 2
+#define MODE_COL 30
+#define SECOND_ROW 19
+#define THIRD_ROW 23
 
 void
 update_filter_win(WINDOW *win)
 {
-	int l, i;
+	int l, i, t, col = 2;
 
 	box(win, 0 , 0);
 	print_centered(win, 0, 57, " Edit Filters ");
 
-	l = 2;
-	wattron(win, get_packet_type_color(WLAN_FRAME_TYPE_MGMT));
-	wattron(win, A_BOLD);
-	mvwprintw(win, l++, 2, "m: [%c] MANAGEMENT Frames", CHECKED(PKT_TYPE_MGMT));
-	wattroff(win, A_BOLD);
-	mvwprintw(win, l++, 2, "b: [%c] Beacons", CHECKED(PKT_TYPE_BEACON));
-	mvwprintw(win, l++, 2, "p: [%c] Probe Req/Resp", CHECKED(PKT_TYPE_PROBE));
-	mvwprintw(win, l++, 2, "a: [%c] Association", CHECKED(PKT_TYPE_ASSOC));
-	mvwprintw(win, l++, 2, "u: [%c] Authentication", CHECKED(PKT_TYPE_AUTH));
-	l++;
-	wattron(win, get_packet_type_color(WLAN_FRAME_TYPE_CTRL));
-	wattron(win, A_BOLD);
-	mvwprintw(win, l++, 2, "c: [%c] CONTROL Frames", CHECKED(PKT_TYPE_CTRL));
-	wattroff(win, A_BOLD);
-	mvwprintw(win, l++, 2, "r: [%c] CTS/RTS", CHECKED(PKT_TYPE_RTSCTS));
-	mvwprintw(win, l++, 2, "k: [%c] ACK", CHECKED(PKT_TYPE_ACK));
-	l++;
-	wattron(win, get_packet_type_color(WLAN_FRAME_TYPE_DATA));
-	wattron(win, A_BOLD);
-	mvwprintw(win, l++, 2, "d: [%c] DATA Frames", CHECKED(PKT_TYPE_DATA));
-	wattroff(win, A_BOLD);
-	mvwprintw(win, l++, 2, "Q: [%c] QoS Data", CHECKED(PKT_TYPE_QDATA));
-	mvwprintw(win, l++, 2, "n: [%c] Null Data", CHECKED(PKT_TYPE_NULL));
-	mvwprintw(win, l++, 2, "R: [%c] ARP", CHECKED(PKT_TYPE_ARP));
-	mvwprintw(win, l++, 2, "P: [%c] ICMP/PING", CHECKED(PKT_TYPE_ICMP));
-	mvwprintw(win, l++, 2, "i: [%c] IP", CHECKED(PKT_TYPE_IP));
-	mvwprintw(win, l++, 2, "U: [%c] UDP", CHECKED(PKT_TYPE_UDP));
-	mvwprintw(win, l++, 2, "T: [%c] TCP", CHECKED(PKT_TYPE_TCP));
-	mvwprintw(win, l++, 2, "o: [%c] OLSR", CHECKED(PKT_TYPE_OLSR));
-	mvwprintw(win, l++, 2, "B: [%c] BATMAN", CHECKED(PKT_TYPE_BATMAN));
-	mvwprintw(win, l++, 2, "M: [%c] MeshCruzer", CHECKED(PKT_TYPE_MESHZ));
+	for (t = 0; t < 3; t++) {
+		l = 2;
+		wattron(win, get_packet_type_color(_WLAN_FRAME_FC(t, 0)));
+		wattron(win, A_BOLD);
+		if (t == 0)
+			mvwprintw(win, l++, col, "m: [%c] Management", CHECKED_STYPE_MASK(t, 0xffff));
+		else if (t == 1)
+			mvwprintw(win, l++, col, "c: [%c] Control", CHECKED_STYPE_MASK(t, 0xffff));
+		else
+			mvwprintw(win, l++, col, "d: [%c] Data", CHECKED_STYPE_MASK(t, 0xffff));
 
-	l++;
-	wattron(win, RED);
-	mvwprintw(win, l++, 2, "*: [%c] Bad FCS", CHECKED(PKT_TYPE_BADFCS));
-	wattroff(win, RED);
+		wattroff(win, A_BOLD);
+		for (i = 0; i < 16; i++) {
+			if (pkt_names[t][i].c != '-')
+				mvwprintw(win, l++, col, "%c: [%c] %s", pkt_names[t][i].c,
+					  CHECKED_STYPE(t, i), pkt_names[t][i].name);
+		}
+		col += 19;
+	}
 
-	l = 2;
+	l = 14;
+	wattron(win, A_BOLD);
 	wattron(win, WHITE);
-	wattron(win, A_BOLD);
-	mvwprintw(win, l++, MAC_COL, "BSSID");
+	mvwprintw(win, l++, 21, "General");
 	wattroff(win, A_BOLD);
-	mvwprintw(win, l++, MAC_COL, "s: [%c] %s",
-		CHECK_ETHER(conf.filterbssid), ether_sprintf(conf.filterbssid));
+	wattron(win, RED);
+	mvwprintw(win, l++, 21, "*: [%c] Bad FCS", CHECKED_PKT(PKT_TYPE_BADFCS));
+	wattroff(win, RED);
+	wattron(win, A_BOLD);
+	mvwprintw(win, l++, 21, "0: [%c] All Off", conf.filter_off ? '*' : ' ' );
+	wattroff(win, A_BOLD);
 
-	l++;
+	l = SECOND_ROW-1;
+	wattron(win, A_BOLD);
+	mvwprintw(win, l++, 2, "Higher Level Protocols");
+	wattroff(win, A_BOLD);
+	wattron(win, WHITE);
+	mvwprintw(win, l++, 2, "R: [%c] ARP", CHECKED_PKT(PKT_TYPE_ARP));
+	mvwprintw(win, l++, 2, "P: [%c] ICMP/PING", CHECKED_PKT(PKT_TYPE_ICMP));
+	mvwprintw(win, l++, 2, "i: [%c] IP", CHECKED_PKT(PKT_TYPE_IP));
+	l = SECOND_ROW;
+	mvwprintw(win, l++, 21, "U: [%c] UDP", CHECKED_PKT(PKT_TYPE_UDP));
+	mvwprintw(win, l++, 21, "T: [%c] TCP", CHECKED_PKT(PKT_TYPE_TCP));
+	l = SECOND_ROW;
+	mvwprintw(win, l++, 40, "o: [%c] OLSR", CHECKED_PKT(PKT_TYPE_OLSR));
+	mvwprintw(win, l++, 40, "B: [%c] BATMAN", CHECKED_PKT(PKT_TYPE_BATMAN));
+	mvwprintw(win, l++, 40, "M: [%c] Meshz", CHECKED_PKT(PKT_TYPE_MESHZ));
+
+	l = THIRD_ROW;
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, MAC_COL, "Source MAC Addresses");
 	wattroff(win, A_BOLD);
@@ -97,23 +105,27 @@ update_filter_win(WINDOW *win)
 			CHECK_FILTER_EN(i), ether_sprintf(conf.filtermac[i]));
 	}
 
-	l++;
+	l = THIRD_ROW;
 	wattron(win, A_BOLD);
-	mvwprintw(win, l++, MAC_COL, "Mode");
+	mvwprintw(win, l++, MODE_COL, "BSSID");
 	wattroff(win, A_BOLD);
-	mvwprintw(win, l++, MAC_COL, "A: [%c] Access Point", CHECKED_MODE(WLAN_MODE_AP));
-	mvwprintw(win, l++, MAC_COL, "S: [%c] Station", CHECKED_MODE(WLAN_MODE_STA));
-	mvwprintw(win, l++, MAC_COL, "I: [%c] IBSS (Ad-hoc)", CHECKED_MODE(WLAN_MODE_IBSS));
-	mvwprintw(win, l++, MAC_COL, "O: [%c] Probe Request", CHECKED_MODE(WLAN_MODE_PROBE));
-	mvwprintw(win, l++, MAC_COL, "W: [%c] WDS/4ADDR", CHECKED_MODE(WLAN_MODE_4ADDR));
-	mvwprintw(win, l++, MAC_COL, "N: [%c] Unknown", CHECKED_MODE(WLAN_MODE_UNKNOWN));
+	mvwprintw(win, l++, MODE_COL, "s: [%c] %s",
+		CHECK_ETHER(conf.filterbssid), ether_sprintf(conf.filterbssid));
 
 	l++;
-	wattron(win, A_BOLD);
-	mvwprintw(win, l++, MAC_COL, "0: [%c] All Filters Off", conf.filter_off ? '*' : ' ' );
-	wattroff(win, A_BOLD);
 
-	print_centered(win, FILTER_MAX, 57, "[ Press key or ENTER ]");
+	wattron(win, A_BOLD);
+	mvwprintw(win, l++, MODE_COL, "Mode");
+	wattroff(win, A_BOLD);
+	mvwprintw(win, l++, MODE_COL, "A: [%c] Access Point", CHECKED_MODE(WLAN_MODE_AP));
+	mvwprintw(win, l++, MODE_COL, "S: [%c] Station", CHECKED_MODE(WLAN_MODE_STA));
+	mvwprintw(win, l++, MODE_COL, "I: [%c] IBSS (Ad-hoc)", CHECKED_MODE(WLAN_MODE_IBSS));
+	mvwprintw(win, l++, MODE_COL, "O: [%c] Probe Request", CHECKED_MODE(WLAN_MODE_PROBE));
+	mvwprintw(win, l++, MODE_COL, "W: [%c] WDS/4ADDR", CHECKED_MODE(WLAN_MODE_4ADDR));
+	mvwprintw(win, l++, MODE_COL, "N: [%c] Unknown", CHECKED_MODE(WLAN_MODE_UNKNOWN));
+
+	wattroff(win, WHITE);
+	print_centered(win, ++l, FILTER_WIN_WIDTH, "[ Press key or ENTER ]");
 
 	wrefresh(win);
 }
@@ -122,38 +134,12 @@ int
 filter_input(WINDOW *win, int c)
 {
 	char buf[18];
-	int i;
+	int i, t;
 
 	switch (c) {
-	case 'm':
-		TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_MGMT);
-		if (conf.filter_pkt & PKT_TYPE_MGMT)
-			conf.filter_pkt |= PKT_TYPE_ALL_MGMT;
-		else
-			conf.filter_pkt &= ~PKT_TYPE_ALL_MGMT;
-		break;
-	case 'b': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_BEACON); break;
-	case 'p': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_PROBE); break;
-	case 'a': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ASSOC); break;
-	case 'u': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_AUTH); break;
-	case 'c':
-		TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_CTRL);
-		if (conf.filter_pkt & PKT_TYPE_CTRL)
-			conf.filter_pkt |= PKT_TYPE_ALL_CTRL;
-		else
-			conf.filter_pkt &= ~PKT_TYPE_ALL_CTRL;
-		break;
-	case 'r': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_RTSCTS); break;
-	case 'k': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ACK); break;
-	case 'd':
-		TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_DATA);
-		if (conf.filter_pkt & PKT_TYPE_DATA)
-			conf.filter_pkt |= PKT_TYPE_ALL_DATA;
-		else
-			conf.filter_pkt &= ~PKT_TYPE_ALL_DATA;
-		break;
-	case 'Q': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_QDATA); break;
-	case 'n': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_NULL); break;
+	case 'm': TOGGLE_BITSET(conf.filter_stype[_FC_TYPE_MGMT], 0xffff, u_int16_t); break;
+	case 'c': TOGGLE_BITSET(conf.filter_stype[_FC_TYPE_CTRL], 0xffff, u_int16_t); break;
+	case 'd': TOGGLE_BITSET(conf.filter_stype[_FC_TYPE_DATA], 0xffff, u_int16_t); break;
 	case 'R': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ARP); break;
 	case 'P': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ICMP); break;
 	case 'i': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_IP); break;
@@ -173,10 +159,10 @@ filter_input(WINDOW *win, int c)
 
 	case 's':
 		echo();
-		print_centered(win, FILTER_MAX, 57,
+		print_centered(win, FILTER_WIN_HEIGHT-1, FILTER_WIN_WIDTH,
 			       "[ Enter new BSSID and ENTER ]");
-		mvwprintw(win, 3, MAC_COL + 4, ">");
-		mvwgetnstr(win, 3, MAC_COL + 7, buf, 17);
+		mvwprintw(win, THIRD_ROW + 1, MODE_COL + 4, ">");
+		mvwgetnstr(win, THIRD_ROW + 1, MODE_COL + 7, buf, 17);
 		noecho();
 		convert_string_to_mac(buf, conf.filterbssid);
 		break;
@@ -188,10 +174,10 @@ filter_input(WINDOW *win, int c)
 		}
 		else {
 			echo();
-			print_centered(win, FILTER_MAX, 57,
+			print_centered(win, FILTER_WIN_HEIGHT-1, FILTER_WIN_WIDTH,
 				       "[ Enter new MAC %d and ENTER ]", i+1);
-			mvwprintw(win, 6 + i, MAC_COL + 4, ">");
-			mvwgetnstr(win, 6 + i, MAC_COL + 7, buf, 17);
+			mvwprintw(win, THIRD_ROW + 1 + i, MAC_COL + 4, ">");
+			mvwgetnstr(win, THIRD_ROW + 1 + i, MAC_COL + 7, buf, 17);
 			noecho();
 			/* just enable old MAC if user pressed return only */
 			if (*buf == '\0' && MAC_NOT_EMPTY(conf.filtermac[i]))
@@ -209,18 +195,18 @@ filter_input(WINDOW *win, int c)
 		break;
 
 	default:
-		return 0;
+		for (t = 0; t < 3; t++) {
+			for (i = 0; i < 16; i++) {
+				if (pkt_names[t][i].c == c) {
+					TOGGLE_BIT(conf.filter_stype[t], (1 << i));
+					goto out;
+				}
+			}
+		}
+		return 0; // not found
 	}
 
-	/* convenience: */
-	/* if one of the individual subtype frames is selected we enable the general frame type */
-	if (conf.filter_pkt & PKT_TYPE_ALL_MGMT)
-		conf.filter_pkt |= PKT_TYPE_MGMT;
-	if (conf.filter_pkt & PKT_TYPE_ALL_CTRL)
-		conf.filter_pkt |= PKT_TYPE_CTRL;
-	if (conf.filter_pkt & PKT_TYPE_ALL_DATA)
-		conf.filter_pkt |= PKT_TYPE_DATA;
-
+out:
 	/* recalculate filter flag */
 	conf.do_macfilter = 0;
 	for (i = 0; i < MAX_FILTERMAC; i++) {

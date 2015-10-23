@@ -24,6 +24,7 @@
 
 #include "main.h"
 #include "util.h"
+#include "wlan_util.h"
 #include "control.h"
 
 struct conf_option {
@@ -204,34 +205,26 @@ static int conf_filter_mode(const char* value) {
 }
 
 static int conf_filter_pkt(const char* value) {
-	if (conf.filter_pkt == PKT_TYPE_ALL)
+	int t, i;
+
+	if (conf.filter_pkt == PKT_TYPE_ALL) {
 		conf.filter_pkt = 0;
-	if (strcmp(value, "ALL") == 0)
+		conf.filter_stype[_FC_TYPE_MGMT] = 0;
+		conf.filter_stype[_FC_TYPE_CTRL] = 0;
+		conf.filter_stype[_FC_TYPE_DATA] = 0;
+	}
+	if (strcmp(value, "ALL") == 0) {
 		conf.filter_pkt = PKT_TYPE_ALL;
+		conf.filter_stype[_FC_TYPE_MGMT] = 0xffff;
+		conf.filter_stype[_FC_TYPE_CTRL] = 0xffff;
+		conf.filter_stype[_FC_TYPE_DATA] = 0xffff;
+	}
 	else if (strcmp(value, "CTRL") == 0 || strcmp(value, "CONTROL") == 0)
-		conf.filter_pkt |= PKT_TYPE_CTRL | PKT_TYPE_ALL_CTRL;
+		conf.filter_stype[_FC_TYPE_CTRL] = 0xffff;
 	else if (strcmp(value, "MGMT") == 0 || strcmp(value, "MANAGEMENT") == 0)
-		conf.filter_pkt |= PKT_TYPE_MGMT | PKT_TYPE_ALL_MGMT;
+		conf.filter_stype[_FC_TYPE_MGMT] = 0xffff;
 	else if (strcmp(value, "DATA") == 0)
-		conf.filter_pkt |= PKT_TYPE_DATA | PKT_TYPE_ALL_DATA;
-	else if (strcmp(value, "BADFCS") == 0)
-		conf.filter_pkt |= PKT_TYPE_BADFCS;
-	else if (strcmp(value, "BEACON") == 0)
-		conf.filter_pkt |= PKT_TYPE_BEACON;
-	else if (strcmp(value, "PROBE") == 0)
-		conf.filter_pkt |= PKT_TYPE_PROBE;
-	else if (strcmp(value, "ASSOC") == 0)
-		conf.filter_pkt |= PKT_TYPE_ASSOC;
-	else if (strcmp(value, "AUTH") == 0)
-		conf.filter_pkt |= PKT_TYPE_AUTH;
-	else if (strcmp(value, "RTS") == 0)
-		conf.filter_pkt |= PKT_TYPE_RTSCTS;
-	else if (strcmp(value, "ACK") == 0)
-		conf.filter_pkt |= PKT_TYPE_ACK;
-	else if (strcmp(value, "NULL") == 0)
-		conf.filter_pkt |= PKT_TYPE_NULL;
-	else if (strcmp(value, "QDATA") == 0)
-		conf.filter_pkt |= PKT_TYPE_QDATA;
+		conf.filter_stype[_FC_TYPE_DATA] = 0xffff;
 	else if (strcmp(value, "ARP") == 0)
 		conf.filter_pkt |= PKT_TYPE_ARP;
 	else if (strcmp(value, "IP") == 0)
@@ -248,13 +241,15 @@ static int conf_filter_pkt(const char* value) {
 		conf.filter_pkt |= PKT_TYPE_BATMAN;
 	else if (strcmp(optarg, "MESHZ") == 0)
 		conf.filter_pkt |= PKT_TYPE_MESHZ;
-	/* if one of the individual subtype frames is selected we enable the general frame type */
-	if (conf.filter_pkt & PKT_TYPE_ALL_MGMT)
-		conf.filter_pkt |= PKT_TYPE_MGMT;
-	if (conf.filter_pkt & PKT_TYPE_ALL_CTRL)
-		conf.filter_pkt |= PKT_TYPE_CTRL;
-	if (conf.filter_pkt & PKT_TYPE_ALL_DATA)
-		conf.filter_pkt |= PKT_TYPE_DATA;
+
+	for (t = 0; t < 3; t++) {
+		for (i = 0; i < 16; i++) {
+			if (strcasecmp(pkt_names[t][i].name, value) == 0) {
+				conf.filter_stype[t] |= (1 << i);
+				return 1;
+			}
+		}
+	}
 	return 1;
 }
 

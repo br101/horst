@@ -297,7 +297,8 @@ show_conf_window(int key)
 	}
 	if (conf_win == NULL) {
 		if (key == 'f') {
-			conf_win = newwin(27, 57, LINES/2-13, COLS/2-28);
+			conf_win = newwin(FILTER_WIN_HEIGHT, FILTER_WIN_WIDTH,
+					  LINES/2-13, COLS/2-28);
 			update_filter_win(conf_win);
 		}
 		else if (key == 'c') {
