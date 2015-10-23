@@ -59,6 +59,9 @@ struct wlan_frame {
 
 #define WLAN_FRAME_FC_MASK		(WLAN_FRAME_FC_TYPE_MASK | WLAN_FRAME_FC_STYPE_MASK)
 
+#define WLAN_FRAME_TYPE(_fc)		((_fc & WLAN_FRAME_FC_TYPE_MASK) >> 2)
+#define WLAN_FRAME_STYPE(_fc)		((_fc & WLAN_FRAME_FC_STYPE_MASK) >> 4)
+
 /* internal use only */
 #define _WLAN_FRAME_FC(_type, _stype)	(((_type) << 2) | ((_stype) << 4))
 #define _FC_TYPE_MGMT			0x0
