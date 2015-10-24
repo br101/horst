@@ -29,8 +29,7 @@
 void
 update_help_win(WINDOW *win)
 {
-	int i, l;
-	struct pkt_name c;
+	int i, t, col, l;
 
 	werase(win);
 	wattron(win, WHITE);
@@ -44,31 +43,35 @@ update_help_win(WINDOW *win)
 
 	mvwprintw(win, 8, 2, "Known IEEE802.11 Packet Types:");
 
-	l = 10;
-	/* this is weird but it works */
-	mvwprintw(win, l++, 2, "MANAGEMENT FRAMES");
-	for (i = 0x00; i <= 0xE0; i = i + 0x10) {
-		c = get_packet_struct(i);
-		if (c.c != '?')
-			mvwprintw(win, l++, 4, "%c  %-6s  %s", c.c, c.name, c.desc);
+	for (t = 0; t < 3; t++) {
+		wattron(win, A_BOLD);
+		if (t == 0) {
+			l = 10;
+			col = 4;
+			mvwprintw(win, l++, 2, "MANAGEMENT FRAMES");
+		}
+		else if (t == 1) {
+			l++;
+			mvwprintw(win, l++, 2, "CONTROL FRAMES");
+
+		} else {
+			l = 10;
+			col = 47;
+			mvwprintw(win, l++, 45, "DATA FRAMES");
+		}
+		wattroff(win, A_BOLD);
+
+		for (i = 0; i < 16; i++) {
+			if (pkt_names[t][i].c != '-')
+				mvwprintw(win, l++, col, "%c  %-6s  %s",
+					  pkt_names[t][i].c,
+					  pkt_names[t][i].name,
+					  pkt_names[t][i].desc);
+		}
 	}
 
-	l = 10;
-	mvwprintw(win, l++, 45, "DATA FRAMES");
-	for (i = 0x08; i <= 0xF8; i = i + 0x10) {
-		c = get_packet_struct(i);
-		if (c.c != '?')
-			mvwprintw(win, l++, 47, "%c  %-6s  %s", c.c, c.name, c.desc);
-	}
-
-	mvwprintw(win, l++, 2, "CONTROL FRAMES");
-	for (i = 0x74; i <= 0xF4; i = i + 0x10) {
-		c = get_packet_struct(i);
-		if (c.c != '?')
-			mvwprintw(win, l++, 4, "%c  %-6s  %s", c.c, c.name, c.desc);
-	}
-
-	print_centered(win, ++l, COLS, "For more info read the man page or check http://br1.einfach.org/horst/");
+	wattron(win, WHITE);
+	print_centered(win, 38, COLS, "For more info read the man page or check http://br1.einfach.org/horst/");
 
 	wrefresh(win);
 }
