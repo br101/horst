@@ -209,22 +209,22 @@ static int conf_filter_pkt(const char* value) {
 
 	if (conf.filter_pkt == PKT_TYPE_ALL) {
 		conf.filter_pkt = 0;
-		conf.filter_stype[_FC_TYPE_MGMT] = 0;
-		conf.filter_stype[_FC_TYPE_CTRL] = 0;
-		conf.filter_stype[_FC_TYPE_DATA] = 0;
+		conf.filter_stype[WLAN_FRAME_TYPE_MGMT] = 0;
+		conf.filter_stype[WLAN_FRAME_TYPE_CTRL] = 0;
+		conf.filter_stype[WLAN_FRAME_TYPE_DATA] = 0;
 	}
 	if (strcmp(value, "ALL") == 0) {
 		conf.filter_pkt = PKT_TYPE_ALL;
-		conf.filter_stype[_FC_TYPE_MGMT] = 0xffff;
-		conf.filter_stype[_FC_TYPE_CTRL] = 0xffff;
-		conf.filter_stype[_FC_TYPE_DATA] = 0xffff;
+		conf.filter_stype[WLAN_FRAME_TYPE_MGMT] = 0xffff;
+		conf.filter_stype[WLAN_FRAME_TYPE_CTRL] = 0xffff;
+		conf.filter_stype[WLAN_FRAME_TYPE_DATA] = 0xffff;
 	}
 	else if (strcmp(value, "CTRL") == 0 || strcmp(value, "CONTROL") == 0)
-		conf.filter_stype[_FC_TYPE_CTRL] = 0xffff;
+		conf.filter_stype[WLAN_FRAME_TYPE_CTRL] = 0xffff;
 	else if (strcmp(value, "MGMT") == 0 || strcmp(value, "MANAGEMENT") == 0)
-		conf.filter_stype[_FC_TYPE_MGMT] = 0xffff;
+		conf.filter_stype[WLAN_FRAME_TYPE_MGMT] = 0xffff;
 	else if (strcmp(value, "DATA") == 0)
-		conf.filter_stype[_FC_TYPE_DATA] = 0xffff;
+		conf.filter_stype[WLAN_FRAME_TYPE_DATA] = 0xffff;
 	else if (strcmp(value, "ARP") == 0)
 		conf.filter_pkt |= PKT_TYPE_ARP;
 	else if (strcmp(value, "IP") == 0)

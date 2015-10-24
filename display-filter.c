@@ -49,7 +49,7 @@ update_filter_win(WINDOW *win)
 
 	for (t = 0; t < 3; t++) {
 		l = 2;
-		wattron(win, get_packet_type_color(_WLAN_FRAME_FC(t, 0)));
+		wattron(win, get_packet_type_color(WLAN_FRAME_FC(t, 0)));
 		wattron(win, A_BOLD);
 		if (t == 0)
 			mvwprintw(win, l++, col, "m: [%c] Management", CHECKED_STYPE_MASK(t, 0xffff));
@@ -137,9 +137,9 @@ filter_input(WINDOW *win, int c)
 	int i, t;
 
 	switch (c) {
-	case 'm': TOGGLE_BITSET(conf.filter_stype[_FC_TYPE_MGMT], 0xffff, u_int16_t); break;
-	case 'c': TOGGLE_BITSET(conf.filter_stype[_FC_TYPE_CTRL], 0xffff, u_int16_t); break;
-	case 'd': TOGGLE_BITSET(conf.filter_stype[_FC_TYPE_DATA], 0xffff, u_int16_t); break;
+	case 'm': TOGGLE_BITSET(conf.filter_stype[WLAN_FRAME_TYPE_MGMT], 0xffff, u_int16_t); break;
+	case 'c': TOGGLE_BITSET(conf.filter_stype[WLAN_FRAME_TYPE_CTRL], 0xffff, u_int16_t); break;
+	case 'd': TOGGLE_BITSET(conf.filter_stype[WLAN_FRAME_TYPE_DATA], 0xffff, u_int16_t); break;
 	case 'R': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ARP); break;
 	case 'P': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ICMP); break;
 	case 'i': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_IP); break;

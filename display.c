@@ -122,7 +122,7 @@ get_packet_type_color(int type)
 {
 	if (type == 1) /* special case for bad FCS */
 		return RED;
-	switch (type & WLAN_FRAME_FC_TYPE_MASK) {
+	switch (WLAN_FRAME_TYPE(type)) {
 		case WLAN_FRAME_TYPE_DATA: return BLUE;
 		case WLAN_FRAME_TYPE_CTRL: return WHITE;
 		case WLAN_FRAME_TYPE_MGMT: return CYAN;
