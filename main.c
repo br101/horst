@@ -264,8 +264,9 @@ filter_packet(struct packet_info* p)
 	if (p->phy_flags & PHY_FLAG_BADFCS)
 		return 0;
 
-	/* filter by WLAN frame type */
-	if (!(conf.filter_stype[WLAN_FRAME_TYPE(p->wlan_type)] & (1 << WLAN_FRAME_STYPE(p->wlan_type)))) {
+	/* filter by WLAN frame type and also type 3 which is not defined */
+	i = WLAN_FRAME_TYPE(p->wlan_type);
+	if (i == 3 || !(conf.filter_stype[i] & (1 << WLAN_FRAME_STYPE(p->wlan_type)))) {
 		stats.filtered_packets++;
 		return 1;
 	}

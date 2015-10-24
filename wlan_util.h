@@ -21,9 +21,9 @@
 #define _WLAN_UTIL_H_
 
 struct pkt_name {
-	char c;
+	const char c;
 	const char* name;
-	u_int16_t fc;
+	const u_int16_t fc;
 	const char* desc;
 };
 

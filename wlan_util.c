@@ -83,10 +83,13 @@ static struct pkt_name badfcs = { '*', "BADFCS", 0, "Bad FCS" };
 
 struct pkt_name
 get_packet_struct(u_int16_t type) {
+	int t = WLAN_FRAME_TYPE(type);
+
 	if (type == 1) /* special case for bad FCS */
 		return badfcs;
-
-	if (stype_names[WLAN_FRAME_TYPE(type)][WLAN_FRAME_STYPE(type)].c)
+	if (t == 3)
+		return unknow;
+	else
 		return stype_names[WLAN_FRAME_TYPE(type)][WLAN_FRAME_STYPE(type)];
 
 	return unknow;
