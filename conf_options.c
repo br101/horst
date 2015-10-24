@@ -245,7 +245,7 @@ static int conf_filter_pkt(const char* value) {
 	for (t = 0; t < WLAN_NUM_TYPES; t++) {
 		for (i = 0; i < WLAN_NUM_STYPES; i++) {
 			if (strcasecmp(stype_names[t][i].name, value) == 0) {
-				conf.filter_stype[t] |= (1 << i);
+				conf.filter_stype[t] |= BIT(i);
 				return 1;
 			}
 		}

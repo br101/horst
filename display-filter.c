@@ -29,7 +29,7 @@
 #include "network.h"
 
 #define CHECKED_PKT(_x) (conf.filter_pkt & (_x)) ? '*' : ' '
-#define CHECKED_STYPE(_type, _x) (conf.filter_stype[_type] & (1 << _x)) ? '*' : ' '
+#define CHECKED_STYPE(_type, _x) (conf.filter_stype[_type] & BIT(_x)) ? '*' : ' '
 #define CHECKED_STYPE_MASK(_type, _x) (conf.filter_stype[_type] & _x) ? '*' : ' '
 #define CHECKED_MODE(_x) (conf.filter_mode & (_x)) ? '*' : ' '
 #define CHECK_ETHER(_mac) MAC_NOT_EMPTY(_mac) ? '*' : ' '
@@ -198,7 +198,7 @@ filter_input(WINDOW *win, int c)
 		for (t = 0; t < WLAN_NUM_TYPES; t++) {
 			for (i = 0; i < WLAN_NUM_STYPES; i++) {
 				if (stype_names[t][i].c == c) {
-					TOGGLE_BIT(conf.filter_stype[t], (1 << i));
+					TOGGLE_BIT(conf.filter_stype[t], BIT(i));
 					goto out;
 				}
 			}

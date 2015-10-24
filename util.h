@@ -120,6 +120,8 @@ kilo_mega_ize(unsigned int val);
 #define MAC_NOT_EMPTY(_mac) (_mac[0] || _mac[1] || _mac[2] || _mac[3] || _mac[4] || _mac[5])
 #define MAC_EMPTY(_mac) (!_mac[0] && !_mac[1] && !_mac[2] && !_mac[3] && !_mac[4] && !_mac[5])
 
+#define BIT(nr) (1 << (nr))
+
 #define TOGGLE_BIT(_x, _m) (_x) ^= (_m)
 
 /**

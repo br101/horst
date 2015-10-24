@@ -255,6 +255,11 @@ filter_packet(struct packet_info* p)
 	if (conf.filter_off)
 		return 0;
 
+	/*
+	 * put this first since it also defines if we filter BADFCS or not,
+	 * but the rest of it is higher level packet type (ARP, IP, etc)
+	 */
+	 DEBUG("type %x filter %x\n", p->pkt_types, conf.filter_pkt);
 	if (conf.filter_pkt != PKT_TYPE_ALL && (p->pkt_types & ~conf.filter_pkt)) {
 		stats.filtered_packets++;
 		return 1;
@@ -266,7 +271,7 @@ filter_packet(struct packet_info* p)
 
 	/* filter by WLAN frame type and also type 3 which is not defined */
 	i = WLAN_FRAME_TYPE(p->wlan_type);
-	if (i == 3 || !(conf.filter_stype[i] & (1 << WLAN_FRAME_STYPE(p->wlan_type)))) {
+	if (i == 3 || !(conf.filter_stype[i] & BIT(WLAN_FRAME_STYPE(p->wlan_type)))) {
 		stats.filtered_packets++;
 		return 1;
 	}

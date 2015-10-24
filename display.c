@@ -26,6 +26,7 @@
 #include <signal.h>
 #include <sys/ioctl.h>
 
+#include "util.h"
 #include "display.h"
 #include "main.h"
 #include "wlan80211.h"
