@@ -78,13 +78,8 @@ struct pkt_name stype_names[WLAN_NUM_TYPES][WLAN_NUM_STYPES] = {
 	{ 'f', "QCFKPL", WLAN_FRAME_QOS_CF_ACKPOLL, "QoS CF-Ack + CF-Poll (no data)" },
 } };
 
-static struct pkt_name unknow = { '?', "UNKNOW", 0 , "Unknown" };
-static struct pkt_name badfcs = { '*', "BADFCS", 0 , "Bad FCS" };
-
-#define DATA_NAME_INDEX(_i) (((_i) & WLAN_FRAME_FC_STYPE_MASK)>>4)
-#define MGMT_NAME_INDEX(_i) (((_i) & WLAN_FRAME_FC_STYPE_MASK)>>4)
-#define CTRL_NAME_INDEX(_i) ((((_i) & WLAN_FRAME_FC_STYPE_MASK)>>4))
-
+static struct pkt_name unknow = { '?', "UNKNOW", 0, "Unknown" };
+static struct pkt_name badfcs = { '*', "BADFCS", 0, "Bad FCS" };
 
 struct pkt_name
 get_packet_struct(u_int16_t type) {
