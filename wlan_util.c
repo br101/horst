@@ -24,7 +24,7 @@
 
 /* lists of packet names */
 
-struct pkt_name pkt_names[3][16] = {
+struct pkt_name stype_names[3][16] = {
 {
 	{ 'a', "ASOCRQ", WLAN_FRAME_ASSOC_REQ, "Association request" },
 	{ 'A', "ASOCRP", WLAN_FRAME_ASSOC_RESP, "Association response" },
@@ -91,8 +91,8 @@ get_packet_struct(u_int16_t type) {
 	if (type == 1) /* special case for bad FCS */
 		return badfcs;
 
-	if (pkt_names[WLAN_FRAME_TYPE(type)][WLAN_FRAME_STYPE(type)].c)
-		return pkt_names[WLAN_FRAME_TYPE(type)][WLAN_FRAME_STYPE(type)];
+	if (stype_names[WLAN_FRAME_TYPE(type)][WLAN_FRAME_STYPE(type)].c)
+		return stype_names[WLAN_FRAME_TYPE(type)][WLAN_FRAME_STYPE(type)];
 
 	return unknow;
 }

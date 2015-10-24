@@ -60,9 +60,9 @@ update_filter_win(WINDOW *win)
 
 		wattroff(win, A_BOLD);
 		for (i = 0; i < 16; i++) {
-			if (pkt_names[t][i].c != '-')
-				mvwprintw(win, l++, col, "%c: [%c] %s", pkt_names[t][i].c,
-					  CHECKED_STYPE(t, i), pkt_names[t][i].name);
+			if (stype_names[t][i].c != '-')
+				mvwprintw(win, l++, col, "%c: [%c] %s", stype_names[t][i].c,
+					  CHECKED_STYPE(t, i), stype_names[t][i].name);
 		}
 		col += 19;
 	}
@@ -197,7 +197,7 @@ filter_input(WINDOW *win, int c)
 	default:
 		for (t = 0; t < 3; t++) {
 			for (i = 0; i < 16; i++) {
-				if (pkt_names[t][i].c == c) {
+				if (stype_names[t][i].c == c) {
 					TOGGLE_BIT(conf.filter_stype[t], (1 << i));
 					goto out;
 				}

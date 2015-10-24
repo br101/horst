@@ -31,7 +31,7 @@ struct pkt_name {
  * Names and abbreviations for all WLAN frame types (2 bit, but only MGMT, CTRL
  * and DATA defined) and subtypes (4 bit)
  */
-struct pkt_name pkt_names[3][16];
+struct pkt_name stype_names[3][16];
 
 struct pkt_name
 get_packet_struct(u_int16_t type);

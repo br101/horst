@@ -244,7 +244,7 @@ static int conf_filter_pkt(const char* value) {
 
 	for (t = 0; t < 3; t++) {
 		for (i = 0; i < 16; i++) {
-			if (strcasecmp(pkt_names[t][i].name, value) == 0) {
+			if (strcasecmp(stype_names[t][i].name, value) == 0) {
 				conf.filter_stype[t] |= (1 << i);
 				return 1;
 			}

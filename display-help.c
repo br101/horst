@@ -62,11 +62,11 @@ update_help_win(WINDOW *win)
 		wattroff(win, A_BOLD);
 
 		for (i = 0; i < 16; i++) {
-			if (pkt_names[t][i].c != '-')
+			if (stype_names[t][i].c != '-')
 				mvwprintw(win, l++, col, "%c  %-6s  %s",
-					  pkt_names[t][i].c,
-					  pkt_names[t][i].name,
-					  pkt_names[t][i].desc);
+					  stype_names[t][i].c,
+					  stype_names[t][i].name,
+					  stype_names[t][i].desc);
 		}
 	}
 
