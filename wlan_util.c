@@ -24,7 +24,7 @@
 
 /* lists of packet names */
 
-struct pkt_name stype_names[3][16] = {
+struct pkt_name stype_names[WLAN_NUM_TYPES][WLAN_NUM_STYPES] = {
 {
 	{ 'a', "ASOCRQ", WLAN_FRAME_ASSOC_REQ, "Association request" },
 	{ 'A', "ASOCRP", WLAN_FRAME_ASSOC_RESP, "Association response" },

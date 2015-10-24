@@ -302,7 +302,7 @@ struct config {
 	char			filtermac_enabled[MAX_FILTERMAC];
 	unsigned char		filterbssid[MAC_LEN];
 	unsigned int		filter_pkt;
-	u_int16_t		filter_stype[3];  /* one for MGMT, CTRL, DATA */
+	u_int16_t		filter_stype[WLAN_NUM_TYPES];  /* one for MGMT, CTRL, DATA */
 	unsigned int		filter_mode;
 	unsigned int		filter_off:1,
 				do_change_channel:1,

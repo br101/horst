@@ -47,7 +47,7 @@ update_filter_win(WINDOW *win)
 	box(win, 0 , 0);
 	print_centered(win, 0, 57, " Edit Filters ");
 
-	for (t = 0; t < 3; t++) {
+	for (t = 0; t < WLAN_NUM_TYPES; t++) {
 		l = 2;
 		wattron(win, get_packet_type_color(WLAN_FRAME_FC(t, 0)));
 		wattron(win, A_BOLD);
@@ -59,7 +59,7 @@ update_filter_win(WINDOW *win)
 			mvwprintw(win, l++, col, "d: [%c] Data", CHECKED_STYPE_MASK(t, 0xffff));
 
 		wattroff(win, A_BOLD);
-		for (i = 0; i < 16; i++) {
+		for (i = 0; i < WLAN_NUM_STYPES; i++) {
 			if (stype_names[t][i].c != '-')
 				mvwprintw(win, l++, col, "%c: [%c] %s", stype_names[t][i].c,
 					  CHECKED_STYPE(t, i), stype_names[t][i].name);
@@ -195,8 +195,8 @@ filter_input(WINDOW *win, int c)
 		break;
 
 	default:
-		for (t = 0; t < 3; t++) {
-			for (i = 0; i < 16; i++) {
+		for (t = 0; t < WLAN_NUM_TYPES; t++) {
+			for (i = 0; i < WLAN_NUM_STYPES; i++) {
 				if (stype_names[t][i].c == c) {
 					TOGGLE_BIT(conf.filter_stype[t], (1 << i));
 					goto out;

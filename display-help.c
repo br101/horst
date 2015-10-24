@@ -43,7 +43,7 @@ update_help_win(WINDOW *win)
 
 	mvwprintw(win, 8, 2, "Known IEEE802.11 Packet Types:");
 
-	for (t = 0; t < 3; t++) {
+	for (t = 0; t < WLAN_NUM_TYPES; t++) {
 		wattron(win, A_BOLD);
 		if (t == 0) {
 			l = 10;
@@ -61,7 +61,7 @@ update_help_win(WINDOW *win)
 		}
 		wattroff(win, A_BOLD);
 
-		for (i = 0; i < 16; i++) {
+		for (i = 0; i < WLAN_NUM_STYPES; i++) {
 			if (stype_names[t][i].c != '-')
 				mvwprintw(win, l++, col, "%c  %-6s  %s",
 					  stype_names[t][i].c,

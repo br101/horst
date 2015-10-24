@@ -242,8 +242,8 @@ static int conf_filter_pkt(const char* value) {
 	else if (strcmp(optarg, "MESHZ") == 0)
 		conf.filter_pkt |= PKT_TYPE_MESHZ;
 
-	for (t = 0; t < 3; t++) {
-		for (i = 0; i < 16; i++) {
+	for (t = 0; t < WLAN_NUM_TYPES; t++) {
+		for (i = 0; i < WLAN_NUM_STYPES; i++) {
 			if (strcasecmp(stype_names[t][i].name, value) == 0) {
 				conf.filter_stype[t] |= (1 << i);
 				return 1;
