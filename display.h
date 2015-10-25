@@ -37,6 +37,8 @@
 #define ALLYELLOW	COLOR_PAIR(13)
 #define WHITEONRED	COLOR_PAIR(14)
 
+#define CHECKED(_exp) (_exp) ? '*' : ' '
+
 #define FILTER_WIN_WIDTH	56
 #define FILTER_WIN_HEIGHT	35
 
