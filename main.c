@@ -255,19 +255,15 @@ filter_packet(struct packet_info* p)
 	if (conf.filter_off)
 		return 0;
 
-	/*
-	 * put this first since it also defines if we filter BADFCS or not,
-	 * but the rest of it is higher level packet type (ARP, IP, etc)
-	 */
-	 DEBUG("type %x filter %x\n", p->pkt_types, conf.filter_pkt);
-	if (conf.filter_pkt != PKT_TYPE_ALL && (p->pkt_types & ~conf.filter_pkt)) {
-		stats.filtered_packets++;
-		return 1;
-	}
-
-	/* cannot trust anything if FCS is bad */
-	if (p->phy_flags & PHY_FLAG_BADFCS)
+	/* if packets with bad FCS are not filtered, still we can not trust any
+	 * other header, so in any case return */
+	if (p->phy_flags & PHY_FLAG_BADFCS) {
+		if (!conf.filter_badfcs) {
+			stats.filtered_packets++;
+			return 1;
+		}
 		return 0;
+	}
 
 	/* filter by WLAN frame type and also type 3 which is not defined */
 	i = WLAN_FRAME_TYPE(p->wlan_type);
@@ -276,18 +272,27 @@ filter_packet(struct packet_info* p)
 		return 1;
 	}
 
+	/* filter by MODE (AP, IBSS, ...) this also filters packets where we
+	 * cannot associate a mode (ACK, RTS/CTS) */
 	if (conf.filter_mode != WLAN_MODE_ALL && ((p->wlan_mode & ~conf.filter_mode) || p->wlan_mode == 0)) {
-		/* this also filters out packets where we cannot associate a mode (ACK, RTS/CTS) */
 		stats.filtered_packets++;
 		return 1;
 	}
 
+	/* filter higher level packet types */
+	if (conf.filter_pkt != PKT_TYPE_ALL && (p->pkt_types & ~conf.filter_pkt)) {
+		stats.filtered_packets++;
+		return 1;
+	}
+
+	/* filter BSSID */
 	if (MAC_NOT_EMPTY(conf.filterbssid) &&
 	    memcmp(p->wlan_bssid, conf.filterbssid, MAC_LEN) != 0) {
 		stats.filtered_packets++;
 		return 1;
 	}
 
+	/* filter MAC adresses */
 	if (conf.do_macfilter) {
 		for (i = 0; i < MAX_FILTERMAC; i++) {
 			if (MAC_NOT_EMPTY(p->wlan_src) &&
@@ -299,6 +304,7 @@ filter_packet(struct packet_info* p)
 		stats.filtered_packets++;
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -354,11 +360,10 @@ handle_packet(struct packet_info* p)
 	if (conf.paused)
 		return;
 
-	DEBUG("handle %s\n", get_packet_type_name(p->wlan_type));
-
+	/* we can't trust any fields except phy_* of packets with bad FCS */
 	if (!(p->phy_flags & PHY_FLAG_BADFCS)) {
-		/* we can't trust any fields except phy_* of packets with bad FCS,
-		 * so we can't do all this here */
+		DEBUG("handle %s\n", get_packet_type_name(p->wlan_type));
+
 		n = node_update(p);
 
 		if (n)

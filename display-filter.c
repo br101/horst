@@ -73,7 +73,7 @@ update_filter_win(WINDOW *win)
 	mvwprintw(win, l++, 21, "General");
 	wattroff(win, A_BOLD);
 	wattron(win, RED);
-	mvwprintw(win, l++, 21, "*: [%c] Bad FCS", CHECKED_PKT(PKT_TYPE_BADFCS));
+	mvwprintw(win, l++, 21, "*: [%c] Bad FCS", conf.filter_badfcs ? '*' : ' ' );
 	wattroff(win, RED);
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, 21, "0: [%c] All Off", conf.filter_off ? '*' : ' ' );
@@ -148,7 +148,6 @@ filter_input(WINDOW *win, int c)
 	case 'o': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_OLSR); break;
 	case 'B': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_BATMAN); break;
 	case 'M': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_MESHZ); break;
-	case '*': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_BADFCS); break;
 
 	case 'A': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_AP); break;
 	case 'S': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_STA); break;
@@ -192,6 +191,10 @@ filter_input(WINDOW *win, int c)
 
 	case '0':
 		conf.filter_off = conf.filter_off ? 0 : 1;
+		break;
+
+	case '*':
+		conf.filter_badfcs = conf.filter_badfcs ? 0 : 1;
 		break;
 
 	default:

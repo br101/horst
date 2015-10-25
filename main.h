@@ -54,17 +54,16 @@
 #define MAX_NODE_NAMES		64
 
 /* higher level packet types */
-#define PKT_TYPE_BADFCS		BIT(0)
-#define PKT_TYPE_ARP		BIT(1)
-#define PKT_TYPE_IP		BIT(2)
-#define PKT_TYPE_ICMP		BIT(3)
-#define PKT_TYPE_UDP		BIT(4)
-#define PKT_TYPE_TCP		BIT(5)
-#define PKT_TYPE_OLSR		BIT(6)
-#define PKT_TYPE_BATMAN		BIT(7)
-#define PKT_TYPE_MESHZ		BIT(8)
+#define PKT_TYPE_ARP		BIT(0)
+#define PKT_TYPE_IP		BIT(1)
+#define PKT_TYPE_ICMP		BIT(2)
+#define PKT_TYPE_UDP		BIT(3)
+#define PKT_TYPE_TCP		BIT(4)
+#define PKT_TYPE_OLSR		BIT(5)
+#define PKT_TYPE_BATMAN		BIT(6)
+#define PKT_TYPE_MESHZ		BIT(7)
 
-#define PKT_TYPE_ALL		(PKT_TYPE_BADFCS | PKT_TYPE_ARP | PKT_TYPE_IP | PKT_TYPE_ICMP | \
+#define PKT_TYPE_ALL		(PKT_TYPE_ARP | PKT_TYPE_IP | PKT_TYPE_ICMP | \
 				 PKT_TYPE_UDP | PKT_TYPE_TCP | \
 				 PKT_TYPE_OLSR | PKT_TYPE_BATMAN | PKT_TYPE_MESHZ)
 
@@ -306,6 +305,7 @@ struct config {
 	u_int16_t		filter_stype[WLAN_NUM_TYPES];  /* one for MGMT, CTRL, DATA */
 	unsigned int		filter_mode;
 	unsigned int		filter_off:1,
+				filter_badfcs:1,
 				do_change_channel:1,
 				allow_client:1,
 				allow_control:1,

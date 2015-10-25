@@ -148,7 +148,6 @@ get_radiotap_info(struct ieee80211_radiotap_iterator *iter, struct packet_info* 
 		}
 		if (*iter->this_arg & IEEE80211_RADIOTAP_F_BADFCS) {
 			p->phy_flags |= PHY_FLAG_BADFCS;
-			p->pkt_types |= PKT_TYPE_BADFCS;
 			DEBUG(" badfcs");
 		}
 		DEBUG("]");
