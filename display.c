@@ -290,7 +290,7 @@ static void
 show_conf_window(int key)
 {
 	if (conf_win != NULL &&
-	    (conf_win_current == key || key == '\r' || key == KEY_ENTER)) {
+	    (conf_win_current == key || key == '\r' || key == KEY_ENTER || key == 27)) {
 		delwin(conf_win);
 		conf_win = NULL;
 		conf_win_current = 0;
@@ -463,6 +463,7 @@ handle_user_input(void)
 	case 'f': case 'F':
 	case 'c': case 'C':
 	case '\r': case KEY_ENTER: /* used to close win */
+	case 27 : /* ESC */
 		show_conf_window(tolower(key));
 		break;
 	}
@@ -485,6 +486,7 @@ init_display(void)
 	curs_set(0);	/* don't show cursor */
 	noecho();
 	nodelay(stdscr, TRUE);
+	ESCDELAY = 25;	/* we don't use ESC sequences */
 
 	init_pair(1, COLOR_WHITE, COLOR_BLACK);
 	init_pair(2, COLOR_GREEN, COLOR_BLACK);
