@@ -680,6 +680,8 @@ main(int argc, char** argv)
 	if (conf.serveraddr[0] != '\0')
 		mon = net_open_client_socket(conf.serveraddr, conf.port);
 	else {
+		ifctrl_iwget_interface_info(conf.ifname);
+
 		/* Try to set the interface to monitor mode or create a virtual
 		 * monitor interface as a fallback. */
 		if (ifctrl_iwset_monitor(conf.ifname)) {

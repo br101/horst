@@ -35,6 +35,7 @@
 #include <linux/nl80211.h>
 
 #include "ifctrl.h"
+#include "main.h"
 
 #ifndef NL80211_GENL_NAME
 #define NL80211_GENL_NAME "nl80211"
@@ -311,18 +312,19 @@ static struct nlattr** nl80211_parse(struct nl_msg *msg)
 	return attr;
 }
 
-static int nl80211_get_interface_info_cb(struct nl_msg *msg, void *arg)
+static int nl80211_get_interface_info_cb(struct nl_msg *msg,
+					 __attribute__((unused)) void *arg)
 {
 	struct nlattr **tb = nl80211_parse(msg);
 
 	if (tb[NL80211_ATTR_WIPHY_FREQ])
-		printf("freq: %d\n", nla_get_u32(tb[NL80211_ATTR_WIPHY_FREQ]));
+		conf.if_freq = nla_get_u32(tb[NL80211_ATTR_WIPHY_FREQ]);
 
 	if (tb[NL80211_ATTR_IFTYPE])
-		printf("type: %x\n", nla_get_u32(tb[NL80211_ATTR_IFTYPE]));
+		conf.if_type = nla_get_u32(tb[NL80211_ATTR_IFTYPE]);
 
 	if (tb[NL80211_ATTR_WIPHY])
-		printf("phy %d\n", nla_get_u32(tb[NL80211_ATTR_WIPHY]));
+		conf.if_phy = nla_get_u32(tb[NL80211_ATTR_WIPHY]);
 
 	return NL_SKIP;
 }

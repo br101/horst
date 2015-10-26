@@ -320,6 +320,9 @@ struct config {
 	unsigned char		my_mac_addr[MAC_LEN];
 	int			paused;
 	int			num_channels;
+	int			if_type;
+	int			if_phy;
+	int			if_freq;
 };
 
 extern struct config conf;
