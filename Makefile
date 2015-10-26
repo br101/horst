@@ -19,6 +19,7 @@
 # build options
 DEBUG=1
 PCAP=0
+WEXT=0
 LIBNL_VERSION=3.0
 
 NAME=horst
@@ -39,7 +40,7 @@ OBJS=						   \
 	display.o				   \
 	essid.o					   \
 	ieee80211_util.o			   \
-	ifctrl-nl80211.o			   \
+	ifctrl-ioctl.o			   	   \
 	listsort.o				   \
 	main.o					   \
 	network.o				   \
@@ -48,7 +49,6 @@ OBJS=						   \
 	protocol_parser_wlan.o			   \
 	radiotap/radiotap.o			   \
 	util.o					   \
-	wext.o					   \
 	wlan_util.o
 LIBS=-lncurses -lm
 CFLAGS+=-Wall -Wextra -g -I.
@@ -66,6 +66,12 @@ ifeq ($(LIBNL_VERSION),tiny)
 LIBS+=-lnl-tiny
 else
 LIBS+=-lnl-3 -lnl-genl-3
+endif
+
+ifeq ($(WEXT),1)
+OBJS += ifctrl-wext.o
+else
+OBJS += ifctrl-nl80211.o
 endif
 
 .PHONY: all check clean force
@@ -93,6 +99,7 @@ clean:
 	-rm -f *.o radiotap/*.o *~
 	-rm -f $(NAME)
 	-rm -f .buildflags
+	-rm -f .objdeps.mk
 
 .buildflags: force
 	echo '$(CFLAGS)' | cmp -s - $@ || echo '$(CFLAGS)' > $@

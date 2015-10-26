@@ -56,7 +56,6 @@ channel_init(void) {
 #else
 
 static struct timeval last_channelchange;
-extern int mon; /* monitoring socket */
 
 
 long

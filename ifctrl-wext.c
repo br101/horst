@@ -62,6 +62,7 @@ wext_get_channels(__attribute__((unused)) int fd,
 #include <sys/socket.h>
 #include <linux/wireless.h>
 
+extern int mon; /* monitoring socket */
 
 int
 wext_set_freq(int fd, const char* devname, int freq)
@@ -142,20 +143,48 @@ wext_get_channels(int fd, const char* devname,
 	return range.num_frequency;
 }
 
-static int
-get_current_wext_channel_idx(int mon)
-{
-	int freq, ch;
 
-	/* get current channel &  map to our channel array */
-	freq = wext_get_freq(mon, conf.ifname);
-	if (freq == 0)
+/*
+ * ifctrl.h implementation
+ */
+int ifctrl_iwadd_monitor(__attribute__((unused)) const char *interface,
+			 __attribute__((unused)) const char *monitor_interface) {
+	printlog("add monitor: not supported with WEXT");
+	return -1;
+}
+
+int ifctrl_iwdel(__attribute__((unused)) const char *interface) {
+	printlog("del: not supported with WEXT");
+	return -1;
+}
+
+int ifctrl_iwset_monitor(__attribute__((unused)) const char *interface) {
+	printlog("set monitor: not supported with WEXT");
+	return -1;
+}
+
+int ifctrl_iwset_freq(const char *interface, unsigned int freq) {
+	if (wext_set_freq(mon, interface, freq))
+		return 0;
+	return -1;
+}
+
+int ifctrl_iwget_interface_info(const char *interface) {
+	conf.if_freq = wext_get_freq(mon, interface);
+	if (conf.if_freq == 0)
 		return -1;
+	return 0;
+}
 
-	ch = channel_find_index_from_freq(freq);
+int ifctrl_iwget_freqlist(__attribute__((unused)) int phy, struct chan_freq* chan) {
+	conf.num_channels = wext_get_channels(mon, conf.ifname, chan);
+	if (conf.num_channels)
+		return 0;
+	return -1;
+}
 
-	DEBUG("***%d\n", ch);
-	return ch;
+int ifctrl_is_monitor() {
+	return 1; /* assume yes */
 }
 
 #endif
