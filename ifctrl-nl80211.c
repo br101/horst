@@ -398,3 +398,7 @@ int ifctrl_iwget_freqlist(int phy, struct chan_freq chan[MAX_CHANNELS])
 	}
 	return 0;
 }
+
+int ifctrl_is_monitor() {
+	return conf.if_type == NL80211_IFTYPE_MONITOR;
+}

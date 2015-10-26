@@ -74,4 +74,6 @@ int ifctrl_iwget_interface_info(const char *interface);
 
 int ifctrl_iwget_freqlist(int phy, struct chan_freq* chan);
 
+int ifctrl_is_monitor();
+
 #endif

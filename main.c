@@ -682,9 +682,9 @@ main(int argc, char** argv)
 	else {
 		ifctrl_iwget_interface_info(conf.ifname);
 
-		/* Try to set the interface to monitor mode or create a virtual
-		 * monitor interface as a fallback. */
-		if (ifctrl_iwset_monitor(conf.ifname)) {
+		/* if the interface is not already in monitor mode, try to set
+		 * it to monitor or create an additional virtual monitor interface */
+		if (!ifctrl_is_monitor() && ifctrl_iwset_monitor(conf.ifname)) {
 			char mon_ifname[IF_NAMESIZE];
 
 			warnx("failed to set interface '%s' to monitor mode, "
