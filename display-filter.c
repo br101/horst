@@ -62,11 +62,7 @@ update_filter_win(WINDOW *win)
 		col += 19;
 	}
 
-	l = 14;
-	wattron(win, A_BOLD);
-	wattron(win, WHITE);
-	mvwprintw(win, l++, 21, "General");
-	wattroff(win, A_BOLD);
+	l = 15;
 	wattron(win, RED);
 	mvwprintw(win, l++, 21, "*: [%c] Bad FCS", CHECKED(conf.filter_badfcs));
 	wattroff(win, RED);
@@ -79,16 +75,16 @@ update_filter_win(WINDOW *win)
 	mvwprintw(win, l++, 2, "Higher Level Protocols");
 	wattroff(win, A_BOLD);
 	wattron(win, WHITE);
-	mvwprintw(win, l++, 2, "R: [%c] ARP", CHECKED(conf.filter_pkt & PKT_TYPE_ARP));
-	mvwprintw(win, l++, 2, "P: [%c] ICMP/PING", CHECKED(conf.filter_pkt & PKT_TYPE_ICMP));
+	mvwprintw(win, l++, 2, "r: [%c] ARP", CHECKED(conf.filter_pkt & PKT_TYPE_ARP));
+	mvwprintw(win, l++, 2, "M: [%c] ICMP/PING", CHECKED(conf.filter_pkt & PKT_TYPE_ICMP));
 	mvwprintw(win, l++, 2, "i: [%c] IP", CHECKED(conf.filter_pkt & PKT_TYPE_IP));
 	l = SECOND_ROW;
-	mvwprintw(win, l++, 21, "U: [%c] UDP", CHECKED(conf.filter_pkt & PKT_TYPE_UDP));
-	mvwprintw(win, l++, 21, "T: [%c] TCP", CHECKED(conf.filter_pkt & PKT_TYPE_TCP));
+	mvwprintw(win, l++, 21, "V: [%c] UDP", CHECKED(conf.filter_pkt & PKT_TYPE_UDP));
+	mvwprintw(win, l++, 21, "W: [%c] TCP", CHECKED(conf.filter_pkt & PKT_TYPE_TCP));
 	l = SECOND_ROW;
-	mvwprintw(win, l++, 40, "o: [%c] OLSR", CHECKED(conf.filter_pkt & PKT_TYPE_OLSR));
-	mvwprintw(win, l++, 40, "B: [%c] BATMAN", CHECKED(conf.filter_pkt & PKT_TYPE_BATMAN));
-	mvwprintw(win, l++, 40, "M: [%c] Meshz", CHECKED(conf.filter_pkt & PKT_TYPE_MESHZ));
+	mvwprintw(win, l++, 40, "I: [%c] OLSR", CHECKED(conf.filter_pkt & PKT_TYPE_OLSR));
+	mvwprintw(win, l++, 40, "K: [%c] BATMAN", CHECKED(conf.filter_pkt & PKT_TYPE_BATMAN));
+	mvwprintw(win, l++, 40, "Z: [%c] Meshz", CHECKED(conf.filter_pkt & PKT_TYPE_MESHZ));
 
 	l = THIRD_ROW;
 	wattron(win, A_BOLD);
@@ -105,7 +101,7 @@ update_filter_win(WINDOW *win)
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, MODE_COL, "BSSID");
 	wattroff(win, A_BOLD);
-	mvwprintw(win, l++, MODE_COL, "s: [%c] %s",
+	mvwprintw(win, l++, MODE_COL, "_: [%c] %s",
 		CHECKED(MAC_NOT_EMPTY(conf.filterbssid)), ether_sprintf(conf.filterbssid));
 
 	l++;
@@ -113,12 +109,12 @@ update_filter_win(WINDOW *win)
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, MODE_COL, "Mode");
 	wattroff(win, A_BOLD);
-	mvwprintw(win, l++, MODE_COL, "A: [%c] Access Point", CHECKED(conf.filter_mode & WLAN_MODE_AP));
-	mvwprintw(win, l++, MODE_COL, "S: [%c] Station", CHECKED(conf.filter_mode & WLAN_MODE_STA));
-	mvwprintw(win, l++, MODE_COL, "I: [%c] IBSS (Ad-hoc)", CHECKED(conf.filter_mode & WLAN_MODE_IBSS));
-	mvwprintw(win, l++, MODE_COL, "O: [%c] Probe Request", CHECKED(conf.filter_mode & WLAN_MODE_PROBE));
-	mvwprintw(win, l++, MODE_COL, "W: [%c] WDS/4ADDR", CHECKED(conf.filter_mode & WLAN_MODE_4ADDR));
-	mvwprintw(win, l++, MODE_COL, "N: [%c] Unknown", CHECKED(conf.filter_mode & WLAN_MODE_UNKNOWN));
+	mvwprintw(win, l++, MODE_COL, "!: [%c] Access Point", CHECKED(conf.filter_mode & WLAN_MODE_AP));
+	mvwprintw(win, l++, MODE_COL, "@: [%c] Station", CHECKED(conf.filter_mode & WLAN_MODE_STA));
+	mvwprintw(win, l++, MODE_COL, "#: [%c] IBSS (Ad-hoc)", CHECKED(conf.filter_mode & WLAN_MODE_IBSS));
+	mvwprintw(win, l++, MODE_COL, "$: [%c] Probe Request", CHECKED(conf.filter_mode & WLAN_MODE_PROBE));
+	mvwprintw(win, l++, MODE_COL, "%: [%c] WDS/4ADDR", CHECKED(conf.filter_mode & WLAN_MODE_4ADDR));
+	mvwprintw(win, l++, MODE_COL, "^: [%c] Unknown", CHECKED(conf.filter_mode & WLAN_MODE_UNKNOWN));
 
 	wattroff(win, WHITE);
 	print_centered(win, ++l, FILTER_WIN_WIDTH, "[ Press key or ENTER ]");
@@ -136,23 +132,24 @@ filter_input(WINDOW *win, int c)
 	case 'm': TOGGLE_BITSET(conf.filter_stype[WLAN_FRAME_TYPE_MGMT], 0xffff, u_int16_t); break;
 	case 'c': TOGGLE_BITSET(conf.filter_stype[WLAN_FRAME_TYPE_CTRL], 0xffff, u_int16_t); break;
 	case 'd': TOGGLE_BITSET(conf.filter_stype[WLAN_FRAME_TYPE_DATA], 0xffff, u_int16_t); break;
-	case 'R': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ARP); break;
-	case 'P': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ICMP); break;
+
+	case 'r': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ARP); break;
+	case 'M': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ICMP); break;
 	case 'i': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_IP); break;
-	case 'U': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_UDP); break;
-	case 'T': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_TCP); break;
-	case 'o': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_OLSR); break;
-	case 'B': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_BATMAN); break;
-	case 'M': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_MESHZ); break;
+	case 'V': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_UDP); break;
+	case 'W': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_TCP); break;
+	case 'I': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_OLSR); break;
+	case 'K': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_BATMAN); break;
+	case 'Z': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_MESHZ); break;
 
-	case 'A': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_AP); break;
-	case 'S': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_STA); break;
-	case 'I': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_IBSS); break;
-	case 'O': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_PROBE); break;
-	case 'W': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_4ADDR); break;
-	case 'N': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_UNKNOWN); break;
+	case '!': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_AP); break;
+	case '@': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_STA); break;
+	case '#': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_IBSS); break;
+	case '$': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_PROBE); break;
+	case '%': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_4ADDR); break;
+	case '^': TOGGLE_BIT(conf.filter_mode, WLAN_MODE_UNKNOWN); break;
 
-	case 's':
+	case '_':
 		echo();
 		print_centered(win, FILTER_WIN_HEIGHT-1, FILTER_WIN_WIDTH,
 			       "[ Enter new BSSID and ENTER ]");
