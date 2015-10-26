@@ -22,6 +22,7 @@
 #include "main.h"
 #include "util.h"
 #include "wext.h"
+#include "ifctrl.h"
 #include "channel.h"
 
 
@@ -74,7 +75,7 @@ channel_get_remaining_dwell_time(void)
 int
 channel_change(int idx)
 {
-	if (wext_set_freq(mon, conf.ifname, channels[idx].freq) == 0) {
+	if (ifctrl_iwset_freq(conf.ifname, channels[idx].freq) < 0) {
 		printlog("ERROR: could not set channel %d", channels[idx].chan);
 		return 0;
 	}
@@ -135,29 +136,12 @@ channel_get_current_chan() {
 	return channel_get_chan_from_idx(conf.channel_idx);
 }
 
-
-static int
-get_current_wext_channel_idx(int mon)
-{
-	int freq, ch;
-
-	/* get current channel &  map to our channel array */
-	freq = wext_get_freq(mon, conf.ifname);
-	if (freq == 0)
-		return -1;
-
-	ch = channel_find_index_from_freq(freq);
-
-	DEBUG("***%d\n", ch);
-	return ch;
-}
-
-
 int
 channel_init(void) {
 	/* get available channels */
-	conf.num_channels = wext_get_channels(mon, conf.ifname, channels);
-	conf.channel_idx = get_current_wext_channel_idx(mon);
+	ifctrl_iwget_freqlist(conf.if_phy, channels);
+	conf.channel_idx = channel_find_index_from_freq(conf.if_freq);
+
 	if (conf.channel_num_initial > 0) {
 	    if (!channel_change(channel_find_index_from_chan(conf.channel_num_initial)))
 	        return 0;

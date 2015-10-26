@@ -142,4 +142,20 @@ wext_get_channels(int fd, const char* devname,
 	return range.num_frequency;
 }
 
+static int
+get_current_wext_channel_idx(int mon)
+{
+	int freq, ch;
+
+	/* get current channel &  map to our channel array */
+	freq = wext_get_freq(mon, conf.ifname);
+	if (freq == 0)
+		return -1;
+
+	ch = channel_find_index_from_freq(freq);
+
+	DEBUG("***%d\n", ch);
+	return ch;
+}
+
 #endif
