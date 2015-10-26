@@ -41,26 +41,12 @@
 #define NL80211_GENL_NAME "nl80211"
 #endif
 
-static int ifctrl_nl_prepare(struct nl_sock **const sockp,
-                             struct nl_msg **const msgp,
-                             const enum nl80211_commands cmd,
-                             const char *const interface)
-{
-	struct nl_msg *msg	   = NULL;
-	struct nl_sock *sock       = NULL;
-	struct nl_cache *cache	   = NULL;
-	struct genl_family *family = NULL;
-	int err		           = -1;
-	unsigned int if_index;
+static struct nl_sock *sock       = NULL;
+static struct nl_cache *cache	   = NULL;
+static struct genl_family *family = NULL;
 
-	if (interface) { //TODO: PHY commands don't need interface name but wiphy index
-		if_index = if_nametoindex(interface);
-		if (!if_index) {
-			fprintf(stderr, "interface %s does not exist\n", interface);
-			goto out;
-		}
-	}
-
+int ifctrl_init() {
+	int err = -1;
 	sock = nl_socket_alloc();
 	if (!sock) {
 		fprintf(stderr, "%s\n", "failed to allocate a netlink socket");
@@ -86,6 +72,37 @@ static int ifctrl_nl_prepare(struct nl_sock **const sockp,
 		goto out;
 	}
 
+out:
+        if (err) {
+		genl_family_put(family);
+		nl_cache_free(cache);
+		nl_socket_free(sock);
+        }
+        return err;
+}
+
+void ifctrl_finish() {
+	nl_socket_free(sock);
+	genl_family_put(family);
+	nl_cache_free(cache);
+}
+
+static int ifctrl_nl_prepare(struct nl_msg **const msgp,
+                             const enum nl80211_commands cmd,
+                             const char *const interface)
+{
+	struct nl_msg *msg	   = NULL;
+	int err		           = -1;
+	unsigned int if_index;
+
+	if (interface) { //TODO: PHY commands don't need interface name but wiphy index
+		if_index = if_nametoindex(interface);
+		if (!if_index) {
+			fprintf(stderr, "interface %s does not exist\n", interface);
+			goto out;
+		}
+	}
+
 	msg = nlmsg_alloc();
 	if (!msg) {
 		fprintf(stderr, "%s\n", "failed to allocate a netlink message");
@@ -109,18 +126,12 @@ static int ifctrl_nl_prepare(struct nl_sock **const sockp,
 
 	err = 0;
 out:
-	genl_family_put(family);
-	nl_cache_free(cache);
-
 	if (err) {
 		nlmsg_free(msg);
-		nl_socket_free(sock);
 		return -1;
 	}
 
-	*sockp = sock;
 	*msgp = msg;
-
 	return 0;
 }
 
@@ -133,8 +144,6 @@ static int ifctrl_nl_send(struct nl_sock *const sock, struct nl_msg *const msg)
 
 	if (err > 0)
 		err = nl_wait_for_ack(sock);
-
-	nl_socket_free(sock);
 
 	if (!err)
 		return 0;
@@ -160,7 +169,6 @@ static int ifctrl_nl_send_recv(struct nl_sock *const sock, struct nl_msg *const 
 		err = nl_wait_for_ack(sock);
 
 	nl_cb_put(cb);
-	nl_socket_free(sock);
 
 	if (!err)
 		return 0;
@@ -172,11 +180,10 @@ static int ifctrl_nl_send_recv(struct nl_sock *const sock, struct nl_msg *const 
 int ifctrl_iwadd_monitor(const char *const interface,
                          const char *const monitor_interface)
 {
-	struct nl_sock *sock;
 	struct nl_msg *msg;
 	int err;
 
-	if (ifctrl_nl_prepare(&sock, &msg, NL80211_CMD_NEW_INTERFACE, interface))
+	if (ifctrl_nl_prepare(&msg, NL80211_CMD_NEW_INTERFACE, interface))
 		return -1;
 
 	err = nla_put_string(msg, NL80211_ATTR_IFNAME, monitor_interface);
@@ -193,31 +200,28 @@ int ifctrl_iwadd_monitor(const char *const interface,
 		goto err;
 	}
 
-	return ifctrl_nl_send(sock, msg); /* frees sock and msg */
+	return ifctrl_nl_send(sock, msg); /* frees msg */
 err:
 	nlmsg_free(msg);
-	nl_socket_free(sock);
 	return -1;
 }
 
 int ifctrl_iwdel(const char *const interface)
 {
-	struct nl_sock *sock;
 	struct nl_msg *msg;
 
-	if (ifctrl_nl_prepare(&sock, &msg, NL80211_CMD_DEL_INTERFACE, interface))
+	if (ifctrl_nl_prepare(&msg, NL80211_CMD_DEL_INTERFACE, interface))
 		return -1;
 
-	return ifctrl_nl_send(sock, msg); /* frees sock and msg */
+	return ifctrl_nl_send(sock, msg); /* frees msg */
 }
 
 int ifctrl_iwset_monitor(const char *const interface)
 {
-	struct nl_sock *sock;
 	struct nl_msg *msg;
 	int err;
 
-	if (ifctrl_nl_prepare(&sock, &msg, NL80211_CMD_SET_INTERFACE, interface))
+	if (ifctrl_nl_prepare(&msg, NL80211_CMD_SET_INTERFACE, interface))
 		return -1;
 
 	err = nla_put_u32(msg, NL80211_ATTR_IFTYPE, NL80211_IFTYPE_MONITOR);
@@ -225,20 +229,18 @@ int ifctrl_iwset_monitor(const char *const interface)
 		nl_perror(err, "failed to add interface type attribute to a "
                           "netlink message");
 		nlmsg_free(msg);
-		nl_socket_free(sock);
 		return -1;
 	}
 
-	return ifctrl_nl_send(sock, msg); /* frees msg and sock */
+	return ifctrl_nl_send(sock, msg); /* frees msg */
 }
 
 int ifctrl_iwset_freq(const char *const interface, unsigned int freq)
 {
-	struct nl_sock *sock;
 	struct nl_msg *msg;
 	int err;
 
-	if (ifctrl_nl_prepare(&sock, &msg, NL80211_CMD_SET_WIPHY, interface))
+	if (ifctrl_nl_prepare(&msg, NL80211_CMD_SET_WIPHY, interface))
 		return -1;
 
 	err = nla_put_u32(msg, NL80211_ATTR_WIPHY_FREQ, freq);
@@ -248,11 +250,10 @@ int ifctrl_iwset_freq(const char *const interface, unsigned int freq)
 		nl_perror(err, "failed to add interface type attribute to a "
                           "netlink message");
 		nlmsg_free(msg);
-		nl_socket_free(sock);
 		return -1;
 	}
 
-	return ifctrl_nl_send(sock, msg); /* frees msg and sock */
+	return ifctrl_nl_send(sock, msg); /* frees msg */
 }
 
 static struct nlattr** nl80211_parse(struct nl_msg *msg)
@@ -285,14 +286,13 @@ static int nl80211_get_interface_info_cb(struct nl_msg *msg,
 
 int ifctrl_iwget_interface_info(const char *const interface)
 {
-	struct nl_sock *sock;
 	struct nl_msg *msg;
 	int err = 0;
 
-	if (ifctrl_nl_prepare(&sock, &msg, NL80211_CMD_GET_INTERFACE, interface))
+	if (ifctrl_nl_prepare(&msg, NL80211_CMD_GET_INTERFACE, interface))
 		return -1;
 
-	err = ifctrl_nl_send_recv(sock, msg, nl80211_get_interface_info_cb, NULL); /* frees msg and sock */
+	err = ifctrl_nl_send_recv(sock, msg, nl80211_get_interface_info_cb, NULL); /* frees msg */
 	if (err) {
 		nl_perror(err, "failed to get freq");
 	}
@@ -339,16 +339,15 @@ static int nl80211_get_freqlist_cb(struct nl_msg *msg, void *arg)
 
 int ifctrl_iwget_freqlist(int phy, struct chan_freq chan[MAX_CHANNELS])
 {
-	struct nl_sock *sock;
 	struct nl_msg *msg;
 	int err = 0;
 
-	if (ifctrl_nl_prepare(&sock, &msg, NL80211_CMD_GET_WIPHY, NULL))
+	if (ifctrl_nl_prepare(&msg, NL80211_CMD_GET_WIPHY, NULL))
 		return -1;
 
 	nla_put_u32(msg, NL80211_ATTR_WIPHY, phy);
 
-	err = ifctrl_nl_send_recv(sock, msg, nl80211_get_freqlist_cb, chan); /* frees msg and sock */
+	err = ifctrl_nl_send_recv(sock, msg, nl80211_get_freqlist_cb, chan); /* frees msg */
 	if (err) {
 		nl_perror(err, "failed to get freqlist");
 	}

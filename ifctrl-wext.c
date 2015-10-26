@@ -147,6 +147,14 @@ wext_get_channels(int fd, const char* devname,
 /*
  * ifctrl.h implementation
  */
+
+int ifctrl_init() {
+	return 0;
+};
+
+void ifctrl_finish() {
+};
+
 int ifctrl_iwadd_monitor(__attribute__((unused)) const char *interface,
 			 __attribute__((unused)) const char *monitor_interface) {
 	printlog("add monitor: not supported with WEXT");

@@ -539,6 +539,8 @@ exit_handler(void)
 
 	if (!conf.quiet && !conf.debug)
 		finish_display();
+
+	ifctrl_finish();
 }
 
 
@@ -680,6 +682,7 @@ main(int argc, char** argv)
 	if (conf.serveraddr[0] != '\0')
 		mon = net_open_client_socket(conf.serveraddr, conf.port);
 	else {
+		ifctrl_init();
 		ifctrl_iwget_interface_info(conf.ifname);
 
 		/* if the interface is not already in monitor mode, try to set

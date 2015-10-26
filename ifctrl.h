@@ -22,6 +22,9 @@
 
 #include "channel.h"
 
+int ifctrl_init();
+void ifctrl_finish();
+
 /**
  * ifctrl_iwadd_monitor() - add virtual 802.11 monitor interface
  *
