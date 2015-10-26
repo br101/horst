@@ -71,7 +71,7 @@ update_help_win(WINDOW *win)
 	}
 
 	wattron(win, WHITE);
-	print_centered(win, 38, COLS, "For more info read the man page or check http://br1.einfach.org/horst/");
+	print_centered(win, 39, COLS, "For more info read the man page or check http://br1.einfach.org/horst/");
 
 	wrefresh(win);
 }
