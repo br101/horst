@@ -109,7 +109,7 @@ static int ifctrl_nl_prepare(struct nl_msg **const msgp,
 		goto out;
 	}
 
-	if (!genlmsg_put(msg, 0, 0, genl_family_get_id(family), 0, 0, cmd, 0)) {
+	if (!genlmsg_put(msg, 0, 0, genl_family_get_id(family), 0, 0 /*flags*/, cmd, 0)) {
 		fprintf(stderr, "%s\n", "failed to add generic netlink headers "
                         "to a nelink message");
 		goto out;
@@ -152,29 +152,65 @@ static int ifctrl_nl_send(struct nl_sock *const sock, struct nl_msg *const msg)
 	return -1;
 }
 
+static int nl80211_ack_cb(__attribute__((unused)) struct nl_msg *msg, void *arg)
+{
+	int *ret = arg;
+	*ret = 0; /* set "ACK" */
+	return NL_STOP;
+}
+
+static int nl80211_finish_cb(__attribute__((unused)) struct nl_msg *msg, void *arg)
+{
+	int *ret = arg;
+	*ret = 0; /* set "ACK" */
+	return NL_SKIP;
+}
+
+static int nl80211_err_cb(__attribute__((unused)) struct sockaddr_nl *nla,
+			  struct nlmsgerr *nlerr, __attribute__((unused)) void *arg)
+{
+	int *ret = arg;
+	*ret = nlerr->error; /* set error code */
+	return NL_STOP;
+}
+
 static int ifctrl_nl_send_recv(struct nl_sock *const sock, struct nl_msg *const msg,
 			   int (*cb_func)(struct nl_msg *, void *), void* cb_arg)
 {
 	int err;
-	struct nl_cb *cb = NULL;
-
-	cb = nl_cb_alloc(NL_CB_DEFAULT);
-	nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, cb_func, cb_arg);
-	nl_socket_set_cb(sock, cb);
+	struct nl_cb *cb;
 
 	err = nl_send_auto_complete(sock, msg);
 	nlmsg_free(msg);
 
-	if (err > 0)
-		err = nl_wait_for_ack(sock);
+	if (err < 0) {
+		nl_perror(err, "failed to send netlink message");
+		return err;
+	}
+
+	/* set up callback */
+	cb = nl_cb_alloc(NL_CB_DEFAULT);
+	if (cb_func != NULL)
+		nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, cb_func, cb_arg);
+
+	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, nl80211_ack_cb, &err);
+	nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, nl80211_finish_cb, &err);
+	nl_cb_err(cb, NL_CB_CUSTOM, nl80211_err_cb, &err);
+
+	/*
+	 * wait for reply message *and* ACK, or error
+	 *
+	 * Note that err is set by the handlers above. This is done because we
+	 * receive two netlink messages, one with the result (and handled by
+	 * cb_func) and another one with ACK. We are only done when we received
+	 * the ACK or an error!
+	 */
+	err = 1;
+	while (err > 0)
+		nl_recvmsgs(sock, cb);
 
 	nl_cb_put(cb);
-
-	if (!err)
-		return 0;
-
-	nl_perror(err, "failed to send a netlink message");
-	return -1;
+	return err;
 }
 
 int ifctrl_iwadd_monitor(const char *const interface,
@@ -294,7 +330,7 @@ int ifctrl_iwget_interface_info(const char *const interface)
 
 	err = ifctrl_nl_send_recv(sock, msg, nl80211_get_interface_info_cb, NULL); /* frees msg */
 	if (err) {
-		nl_perror(err, "failed to get freq");
+		nl_perror(err, "failed to get interface info");
 	}
 	return 0;
 }
