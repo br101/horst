@@ -91,48 +91,40 @@ static int ifctrl_nl_prepare(struct nl_msg **const msgp,
                              const enum nl80211_commands cmd,
                              const char *const interface)
 {
-	struct nl_msg *msg	   = NULL;
-	int err		           = -1;
-	unsigned int if_index;
-
-	if (interface) { //TODO: PHY commands don't need interface name but wiphy index
-		if_index = if_nametoindex(interface);
-		if (!if_index) {
-			fprintf(stderr, "interface %s does not exist\n", interface);
-			goto out;
-		}
-	}
+	struct nl_msg *msg = NULL;
 
 	msg = nlmsg_alloc();
 	if (!msg) {
-		fprintf(stderr, "%s\n", "failed to allocate a netlink message");
-		goto out;
+		fprintf(stderr, "%s\n", "failed to allocate netlink message");
+		return -1;
 	}
 
 	if (!genlmsg_put(msg, 0, 0, genl_family_get_id(family), 0, 0 /*flags*/, cmd, 0)) {
-		fprintf(stderr, "%s\n", "failed to add generic netlink headers "
-                        "to a nelink message");
-		goto out;
+		fprintf(stderr, "%s\n", "failed to add generic netlink headers");
+		goto err;
 	}
 
 	if (interface) { //TODO: PHY commands don't need interface name but wiphy index
+		unsigned int if_index = if_nametoindex(interface);
+		int err;
+		if (!if_index) {
+			fprintf(stderr, "interface %s does not exist\n", interface);
+			goto err;
+		}
+
 		err = nla_put_u32(msg, NL80211_ATTR_IFINDEX, if_index);
 		if (err) {
-			nl_perror(err, "failed to add interface index attribute to a "
-				  "netlink message");
-			goto out;
+			nl_perror(err, "failed to add ifindex to netlink message");
+			goto err;
 		}
-	}
-
-	err = 0;
-out:
-	if (err) {
-		nlmsg_free(msg);
-		return -1;
 	}
 
 	*msgp = msg;
 	return 0;
+
+err:
+	nlmsg_free(msg);
+	return -1;
 }
 
 static int ifctrl_nl_send(struct nl_sock *const sock, struct nl_msg *const msg)
