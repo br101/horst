@@ -27,8 +27,8 @@ Also see: http://br1.einfach.org/tech/horst/
 
 ## Building
 
-Official git repository:	git://br1.einfach.org/horst
-GitHub clone:			https://github.com/br101/horst
+* Official git repository: git://br1.einfach.org/horst
+* GitHub: https://github.com/br101/horst
 
 "horst" is just a simple tool, and "libncurses" is the only hard requirement
 (be sure to install it's header files too). Recently we have added support for
