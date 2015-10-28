@@ -54,24 +54,24 @@ LIBS=-lncurses -lm
 CFLAGS+=-std=gnu99 -Wall -Wextra -g -I.
 
 ifeq ($(DEBUG),1)
-CFLAGS+=-DDO_DEBUG
+  CFLAGS+=-DDO_DEBUG
 endif
 
 ifeq ($(PCAP),1)
-CFLAGS+=-DPCAP
-LIBS+=-lpcap
-endif
-
-ifeq ($(LIBNL_VERSION),tiny)
-LIBS+=-lnl-tiny
-else
-LIBS+=-lnl-3 -lnl-genl-3
+  CFLAGS+=-DPCAP
+  LIBS+=-lpcap
 endif
 
 ifeq ($(WEXT),1)
-OBJS += ifctrl-wext.o
+  OBJS += ifctrl-wext.o
 else
-OBJS += ifctrl-nl80211.o
+  OBJS += ifctrl-nl80211.o
+  CFLAGS += $(shell pkg-config --cflags libnl-$(LIBNL_VERSION))
+  ifeq ($(LIBNL_VERSION),tiny)
+    LIBS+=-lnl-tiny
+  else
+    LIBS+=-lnl-3 -lnl-genl-3
+  endif
 endif
 
 .PHONY: all check clean force
@@ -87,10 +87,6 @@ $(NAME): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
 $(OBJS): .buildflags
-
-# libnl-tiny header files somehow pollute, so just include them for this file:
-ifctrl-nl80211.o:
-	$(CC) -c $(CFLAGS) $(shell pkg-config --cflags libnl-$(LIBNL_VERSION)) -o $@ $<
 
 check:
 	sparse *.[ch]
