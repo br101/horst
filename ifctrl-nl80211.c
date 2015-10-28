@@ -45,7 +45,7 @@ static struct nl_sock *sock       = NULL;
 static struct nl_cache *cache	   = NULL;
 static struct genl_family *family = NULL;
 
-bool ifctrl_init() {
+bool nl80211_init() {
 	int err = -1;
 	sock = nl_socket_alloc();
 	if (!sock) {
@@ -80,13 +80,13 @@ out:
 	return false;
 }
 
-void ifctrl_finish() {
+void nl80211_finish() {
 	nl_socket_free(sock);
 	genl_family_put(family);
 	nl_cache_free(cache);
 }
 
-static bool ifctrl_nl_prepare(struct nl_msg **const msgp,
+static bool nl80211_msg_prepare(struct nl_msg **const msgp,
                              const enum nl80211_commands cmd,
                              const char *const interface)
 {
@@ -126,7 +126,7 @@ err:
 	return false;
 }
 
-static bool ifctrl_nl_send(struct nl_sock *const sock, struct nl_msg *const msg)
+static bool nl80211_send(struct nl_sock *const sock, struct nl_msg *const msg)
 {
 	int err;
 
@@ -165,7 +165,7 @@ static int nl80211_err_cb(__attribute__((unused)) struct sockaddr_nl *nla,
 	return NL_STOP;
 }
 
-static bool ifctrl_nl_send_recv(struct nl_sock *const sock, struct nl_msg *const msg,
+static bool nl80211_send_recv(struct nl_sock *const sock, struct nl_msg *const msg,
 			   int (*cb_func)(struct nl_msg *, void *), void* cb_arg)
 {
 	int err;
@@ -205,13 +205,36 @@ static bool ifctrl_nl_send_recv(struct nl_sock *const sock, struct nl_msg *const
 	return err < 0 ? false : true;
 }
 
+static struct nlattr** nl80211_parse(struct nl_msg *msg)
+{
+	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
+	static struct nlattr *attr[NL80211_ATTR_MAX + 1];
+
+	nla_parse(attr, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
+	          genlmsg_attrlen(gnlh, 0), NULL);
+
+	return attr;
+}
+
+/*
+ * ifctrl interface
+ */
+
+bool ifctrl_init() {
+	return nl80211_init();
+}
+
+void ifctrl_finish() {
+	nl80211_finish();
+}
+
 bool ifctrl_iwadd_monitor(const char *const interface,
                          const char *const monitor_interface)
 {
 	struct nl_msg *msg;
 	int err;
 
-	if (!ifctrl_nl_prepare(&msg, NL80211_CMD_NEW_INTERFACE, interface))
+	if (!nl80211_msg_prepare(&msg, NL80211_CMD_NEW_INTERFACE, interface))
 		return false;
 
 	err = nla_put_string(msg, NL80211_ATTR_IFNAME, monitor_interface);
@@ -228,7 +251,7 @@ bool ifctrl_iwadd_monitor(const char *const interface,
 		goto err;
 	}
 
-	return ifctrl_nl_send(sock, msg); /* frees msg */
+	return nl80211_send(sock, msg); /* frees msg */
 err:
 	nlmsg_free(msg);
 	return false;
@@ -238,10 +261,10 @@ bool ifctrl_iwdel(const char *const interface)
 {
 	struct nl_msg *msg;
 
-	if (!ifctrl_nl_prepare(&msg, NL80211_CMD_DEL_INTERFACE, interface))
+	if (!nl80211_msg_prepare(&msg, NL80211_CMD_DEL_INTERFACE, interface))
 		return false;
 
-	return ifctrl_nl_send(sock, msg); /* frees msg */
+	return nl80211_send(sock, msg); /* frees msg */
 }
 
 bool ifctrl_iwset_monitor(const char *const interface)
@@ -249,7 +272,7 @@ bool ifctrl_iwset_monitor(const char *const interface)
 	struct nl_msg *msg;
 	int err;
 
-	if (!ifctrl_nl_prepare(&msg, NL80211_CMD_SET_INTERFACE, interface))
+	if (!nl80211_msg_prepare(&msg, NL80211_CMD_SET_INTERFACE, interface))
 		return false;
 
 	err = nla_put_u32(msg, NL80211_ATTR_IFTYPE, NL80211_IFTYPE_MONITOR);
@@ -260,7 +283,7 @@ bool ifctrl_iwset_monitor(const char *const interface)
 		return false;
 	}
 
-	return ifctrl_nl_send(sock, msg); /* frees msg */
+	return nl80211_send(sock, msg); /* frees msg */
 }
 
 bool ifctrl_iwset_freq(const char *const interface, unsigned int freq)
@@ -268,7 +291,7 @@ bool ifctrl_iwset_freq(const char *const interface, unsigned int freq)
 	struct nl_msg *msg;
 	int err;
 
-	if (!ifctrl_nl_prepare(&msg, NL80211_CMD_SET_WIPHY, interface))
+	if (!nl80211_msg_prepare(&msg, NL80211_CMD_SET_WIPHY, interface))
 		return false;
 
 	err = nla_put_u32(msg, NL80211_ATTR_WIPHY_FREQ, freq);
@@ -281,18 +304,7 @@ bool ifctrl_iwset_freq(const char *const interface, unsigned int freq)
 		return false;
 	}
 
-	return ifctrl_nl_send(sock, msg); /* frees msg */
-}
-
-static struct nlattr** nl80211_parse(struct nl_msg *msg)
-{
-	struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
-	static struct nlattr *attr[NL80211_ATTR_MAX + 1];
-
-	nla_parse(attr, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0),
-	          genlmsg_attrlen(gnlh, 0), NULL);
-
-	return attr;
+	return nl80211_send(sock, msg); /* frees msg */
 }
 
 static int nl80211_get_interface_info_cb(struct nl_msg *msg,
@@ -317,10 +329,10 @@ bool ifctrl_iwget_interface_info(const char *const interface)
 	struct nl_msg *msg;
 	bool ret;
 
-	if (!ifctrl_nl_prepare(&msg, NL80211_CMD_GET_INTERFACE, interface))
+	if (!nl80211_msg_prepare(&msg, NL80211_CMD_GET_INTERFACE, interface))
 		return false;
 
-	ret = ifctrl_nl_send_recv(sock, msg, nl80211_get_interface_info_cb, NULL); /* frees msg */
+	ret = nl80211_send_recv(sock, msg, nl80211_get_interface_info_cb, NULL); /* frees msg */
 	if (!ret)
 		fprintf(stderr, "failed to get interface info");
 	return ret;
@@ -369,12 +381,12 @@ bool ifctrl_iwget_freqlist(int phy, struct chan_freq chan[MAX_CHANNELS])
 	struct nl_msg *msg;
 	bool ret;
 
-	if (!ifctrl_nl_prepare(&msg, NL80211_CMD_GET_WIPHY, NULL))
+	if (!nl80211_msg_prepare(&msg, NL80211_CMD_GET_WIPHY, NULL))
 		return false;
 
 	nla_put_u32(msg, NL80211_ATTR_WIPHY, phy);
 
-	ret = ifctrl_nl_send_recv(sock, msg, nl80211_get_freqlist_cb, chan); /* frees msg */
+	ret = nl80211_send_recv(sock, msg, nl80211_get_freqlist_cb, chan); /* frees msg */
 	if (!ret)
 		fprintf(stderr, "failed to get freqlist");
 	return ret;
