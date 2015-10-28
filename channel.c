@@ -21,7 +21,6 @@
 
 #include "main.h"
 #include "util.h"
-#include "wext.h"
 #include "ifctrl.h"
 #include "channel.h"
 

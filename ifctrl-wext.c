@@ -21,7 +21,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "wext.h"
 #include "main.h"
 #include "util.h"
 
@@ -29,7 +28,7 @@
 #if defined(__APPLE__)
 
 
-int
+bool
 wext_set_freq(__attribute__((unused)) int fd,
 	      __attribute__((unused)) const char* devname,
 	      __attribute__((unused)) int freq)
