@@ -696,7 +696,8 @@ main(int argc, char** argv)
 
 			printlog("INFO: A virtual interface '%s' will be used "
 				 "instead of '%s'.", mon_ifname, conf.ifname);
-			config_handle_option(0, "interface", mon_ifname);
+
+			strncpy(conf.ifname, mon_ifname, IF_NAMESIZE);
 			conf.monitor_added = 1;
 			/* Now we have a new monitor interface, proceed
 			 * normally. The interface will be deleted at exit. */

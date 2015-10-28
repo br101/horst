@@ -48,8 +48,8 @@ static bool conf_debug(__attribute__((unused)) const char* value) {
 #endif
 
 static bool conf_interface(const char* value) {
-	strncpy(conf.ifname, value, MAX_CONF_VALUE_STRLEN);
-	conf.ifname[MAX_CONF_VALUE_STRLEN] = '\0';
+	strncpy(conf.ifname, value, IF_NAMESIZE);
+	conf.ifname[IF_NAMESIZE] = '\0';
 	return true;
 }
 

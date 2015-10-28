@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <sys/time.h>
+#include <net/if.h>
 
 #include "ccan/list/list.h"
 #include "average.h"
@@ -282,7 +283,7 @@ struct node_names_info {
 extern struct node_names_info node_names;
 
 struct config {
-	char			ifname[MAX_CONF_VALUE_STRLEN + 1];
+	char			ifname[IF_NAMESIZE + 1];
 	int			port;
 	int			quiet;
 	int			node_timeout;
