@@ -20,7 +20,7 @@
 DEBUG=1
 PCAP=0
 WEXT=0
-LIBNL_VERSION=3.0
+LIBNL=3.0
 
 NAME=horst
 OBJS=						   \
@@ -65,12 +65,16 @@ endif
 ifeq ($(WEXT),1)
   OBJS += ifctrl-wext.o
 else
-  OBJS += ifctrl-nl80211.o
-  CFLAGS += $(shell pkg-config --cflags libnl-$(LIBNL_VERSION))
-  ifeq ($(LIBNL_VERSION),tiny)
-    LIBS+=-lnl-tiny
+  ifeq ($(LIBNL),0)
+    OBJS += ifctrl-dummy.o
   else
-    LIBS+=-lnl-3 -lnl-genl-3
+    OBJS += ifctrl-nl80211.o
+    CFLAGS += $(shell pkg-config --cflags libnl-$(LIBNL))
+    ifeq ($(LIBNL),tiny)
+      LIBS+=-lnl-tiny
+    else
+      LIBS+=-lnl-3 -lnl-genl-3
+    endif
   endif
 endif
 

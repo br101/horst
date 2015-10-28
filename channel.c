@@ -26,34 +26,6 @@
 
 
 static struct chan_freq channels[MAX_CHANNELS];
-
-
-#if defined(__APPLE__)
-
-int
-channel_change(__attribute__((unused)) int idx)
-{
-	return 0;
-}
-
-int
-channel_auto_change(void)
-{
-	return 0;
-}
-
-int
-channel_get_current_chan() {
-	return -1;
-}
-
-int
-channel_init(void) {
-	return 1;
-}
-
-#else
-
 static struct timeval last_channelchange;
 
 
@@ -69,6 +41,7 @@ channel_get_remaining_dwell_time(void)
 		+ last_channelchange.tv_sec * 1000000
 		+ last_channelchange.tv_usec;
 }
+
 
 bool
 channel_change(int idx)
@@ -134,6 +107,7 @@ channel_get_current_chan() {
 	return channel_get_chan_from_idx(conf.channel_idx);
 }
 
+
 bool
 channel_init(void) {
 	/* get available channels */
@@ -149,9 +123,6 @@ channel_init(void) {
 	conf.channel_initialized = 1;
 	return true;
 }
-
-
-#endif
 
 
 int

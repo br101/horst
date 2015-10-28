@@ -20,46 +20,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-
-#include "main.h"
-#include "util.h"
-
-
-#if defined(__APPLE__)
-
-
-bool
-wext_set_freq(__attribute__((unused)) int fd,
-	      __attribute__((unused)) const char* devname,
-	      __attribute__((unused)) int freq)
-{
-	return 0;
-}
-
-
-int
-wext_get_freq(__attribute__((unused)) int fd,
-	      __attribute__((unused)) const char* devname)
-{
-	return 0;
-}
-
-
-int
-wext_get_channels(__attribute__((unused)) int fd,
-		  __attribute__((unused)) const char* devname,
-		  __attribute__((unused)) struct chan_freq channels[MAX_CHANNELS])
-{
-	return 0;
-}
-
-
-#else
-
-
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <linux/wireless.h>
+
+#include "main.h"
+#include "util.h"
 
 extern int mon; /* monitoring socket */
 
@@ -193,5 +159,3 @@ bool ifctrl_iwget_freqlist(__attribute__((unused)) int phy, struct chan_freq* ch
 bool ifctrl_is_monitor() {
 	return true; /* assume yes */
 }
-
-#endif
