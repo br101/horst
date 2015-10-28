@@ -11,6 +11,7 @@ horst \- Highly Optimized Radio Scanning Tool
 .RB [\| \-h \|]
 .RB [\| \-q \|]
 .RB [\| \-D \|]
+.RB [\| \-a \|]
 .RB [\| \-c 
 .IR file \|] 
 .RB [\| \-C
@@ -99,6 +100,10 @@ running in server mode (\-C) or writing to a file (\-o).
 .BI \-D
 Show lot's of debugging output, including a full package dump. Only available
 when compiled with DEBUG=1.
+.TP
+.BI \-a
+Always add virtual monitor interface. Don't try to set existing interface to
+monitor mode.
 .TP
 .BI \-c\  configfile
 Use configfile instead of the default "/etc/horst.conf".

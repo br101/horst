@@ -313,6 +313,7 @@ struct config {
 				allow_control:1,
 				debug:1,
 				mac_name_lookup:1,
+				add_monitor:1,
 	/* this isn't exactly config, but wtf... */
 				do_macfilter:1,
 				display_initialized:1,

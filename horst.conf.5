@@ -91,6 +91,10 @@ added and used instead. The name of the temporary virtual monitor
 interface is in the form horst[0-9]+. The virtual interface created by
 \fBhorst\fP is deleted at exit.
 
+.IP add_monitor
+Always add virtual monitor interface. Don't try to set existing interface to
+monitor mode.
+
 .IP mac_names=FILEPATH
 The file containing a mapping from MAC addresses to host names. The
 file can either be a dhcp.leases file from dnsmasq or contain mappings

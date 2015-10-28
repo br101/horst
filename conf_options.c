@@ -53,6 +53,15 @@ static bool conf_interface(const char* value) {
 	return true;
 }
 
+static bool conf_add_monitor(const char* value) {
+	if (value != NULL && strcmp(value, "0") == 0)
+		conf.add_monitor = 0;
+	else {
+		conf.add_monitor = 1;
+	}
+	return true;
+}
+
 static bool conf_outfile(const char* value) {
 	dumpfile_open(value);
 	return true;
@@ -275,6 +284,7 @@ static struct conf_option conf_options[] = {
 	{ 'D', "debug", 		0, NULL,	conf_debug },		// NOT dynamic
 #endif
 	{ 'i', "interface", 		1, "wlan0",	conf_interface },	// NOT dynamic
+	{ 'a', "add_monitor",		0, NULL,	conf_add_monitor },
 	{ 'd', "display_interval",	1, "100", 	conf_display_interval },
 	{ 'V', "display_view",		1, NULL, 	conf_display_view },
 	{ 'o', "outfile", 		1, NULL,	conf_outfile },
@@ -428,7 +438,7 @@ config_get_getopt_string(char* buf, size_t maxlen, const char* add) {
 
 
 void print_usage(const char* name) {
-	printf("\nUsage: %s [-h] [-q] [-D] [-c file] [-i interface] [-t sec] [-d ms] [-V view] [-b bytes]\n"
+	printf("\nUsage: %s [-h] [-q] [-D] [-a] [-c file] [-i interface] [-t sec] [-d ms] [-V view] [-b bytes]\n"
 		"\t\t[-s] [-u] [-N] [-n IP] [-p port] [-o file] [-X[name]] [-x command]\n"
 		"\t\t[][-e MAC] [-f PKT_NAME] [-m MODE] [-B BSSID]\n\n"
 
@@ -438,6 +448,7 @@ void print_usage(const char* name) {
 #if DO_DEBUG
 		"  -D\t\tShow lots of debug output, no UI\n"
 #endif
+		"  -a\t\tAlways add virtual monitor interface\n"
 		"  -c <file>\tConfig file (" CONFIG_FILE ")\n"
 		"  -C <chan>\tSet initial channel\n"
 		"  -i <intf>\tInterface name (wlan0)\n"

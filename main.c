@@ -687,10 +687,9 @@ main(int argc, char** argv)
 
 		/* if the interface is not already in monitor mode, try to set
 		 * it to monitor or create an additional virtual monitor interface */
-		if (!ifctrl_is_monitor() && !ifctrl_iwset_monitor(conf.ifname)) {
+		if (conf.add_monitor || (!ifctrl_is_monitor() &&
+					 !ifctrl_iwset_monitor(conf.ifname))) {
 			char mon_ifname[IF_NAMESIZE];
-			warnx("failed to set '%s' to monitor mode", conf.ifname);
-
 			generate_mon_ifname(mon_ifname, IF_NAMESIZE);
 			if (!ifctrl_iwadd_monitor(conf.ifname, mon_ifname))
 				err(1, "failed to add virtual monitor interface");
