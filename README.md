@@ -30,9 +30,9 @@ Also see: http://br1.einfach.org/tech/horst/
 Official git repository:	git://br1.einfach.org/horst
 GitHub clone:			https://github.com/br101/horst
 
-"horst" is just a simple tool, and "libncurses" is the only hard requirement (be 
-sure to install it's header files too). Recently we have added support for nl80211
-via libnl, so you normally need libnl3 + header files as well.
+"horst" is just a simple tool, and "libncurses" is the only hard requirement
+(be sure to install it's header files too). Recently we have added support for
+nl80211 via libnl, so you normally need libnl3 + header files as well.
 
 Building is as simple as typing:
 
