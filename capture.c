@@ -34,31 +34,6 @@
 #include "main.h"
 
 
-static void
-device_promisc(int fd, const char *devname, int on)
-{
-	struct ifreq req;
-
-	strncpy(req.ifr_name, devname, IFNAMSIZ - 1);
-	req.ifr_name[IFNAMSIZ - 1] = '\0';
-	req.ifr_addr.sa_family = AF_INET;
-
-	if (ioctl(fd, SIOCGIFFLAGS, &req) < 0)
-		err(1, "Could not get device flags for %s", devname);
-
-	/* put interface up in any case */
-	req.ifr_flags |= IFF_UP;
-
-	if (on)
-		req.ifr_flags |= IFF_PROMISC;
-	else
-		req.ifr_flags &= ~IFF_PROMISC;
-
-	if (ioctl(fd, SIOCSIFFLAGS, &req) < 0)
-		err(1, "Could not set promisc mode for %s", devname);
-}
-
-
 /*
  *  Get the hardware type of the given interface as ARPHRD_xxx constant.
  */
@@ -131,8 +106,6 @@ open_packet_socket(char* devname, int recv_buffer_size)
 	if (ret != 0)
 		err(1, "bind failed");
 
-	device_promisc(mon_fd, devname, 1);
-
 	if (recv_buffer_size)
 		set_receive_buffer(mon_fd, recv_buffer_size);
 
@@ -148,10 +121,8 @@ recv_packet(int fd, unsigned char* buffer, size_t bufsize)
 
 
 void
-close_packet_socket(int fd, char* ifname)
+close_packet_socket(int fd)
 {
-	if (fd > 0) {
-		device_promisc(fd, ifname, 0);
+	if (fd > 0)
 		close(fd);
-	}
 }

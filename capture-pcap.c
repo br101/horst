@@ -106,7 +106,7 @@ int
 recv_packet(__attribute__((unused)) int fd,
 	    unsigned char* buffer, size_t bufsize)
 {
-	int ret = 0; 
+	int ret = 0;
 	pcap_buffer = buffer;
 	pcap_bufsize = bufsize;
 	if (0 == pcap_dispatch(pcap_fp, 1, handler, (u_char *)&ret))
@@ -116,8 +116,7 @@ recv_packet(__attribute__((unused)) int fd,
 
 
 void
-close_packet_socket(__attribute__((unused)) int fd,
-		    __attribute__((unused)) char* ifname)
+close_packet_socket(__attribute__((unused)) int fd)
 {
 	if (pcap_fp != NULL)
 		pcap_close(pcap_fp);

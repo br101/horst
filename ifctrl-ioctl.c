@@ -5,10 +5,12 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <err.h>
 
 #include "ifctrl.h"
 
-static bool ifctrl_ifupdown(const char *const interface, char up)
+
+bool ifctrl_flags(const char *const interface, bool up, bool promisc)
 {
 	int fd;
 	struct ifreq ifreq;
@@ -20,6 +22,7 @@ static bool ifctrl_ifupdown(const char *const interface, char up)
 	strncpy(ifreq.ifr_name, interface, IF_NAMESIZE - 1);
 
 	if (ioctl(fd, SIOCGIFFLAGS, &ifreq) == -1) {
+		warn("Could not get flags for %s", interface);
 		int orig_errno = errno;
 		close(fd);
 		errno = orig_errno;
@@ -31,7 +34,13 @@ static bool ifctrl_ifupdown(const char *const interface, char up)
 	else
 		ifreq.ifr_flags &= ~IFF_UP;
 
+	if (promisc)
+		ifreq.ifr_flags |= IFF_PROMISC;
+	else
+		ifreq.ifr_flags &= ~IFF_PROMISC;
+
 	if (ioctl(fd, SIOCSIFFLAGS, &ifreq) == -1) {
+		warn("Could not set flags for %s", interface);
 		int orig_errno = errno;
 		close(fd);
 		errno = orig_errno;
@@ -42,14 +51,4 @@ static bool ifctrl_ifupdown(const char *const interface, char up)
 		return false;
 
 	return true;
-}
-
-bool ifctrl_ifdown(const char *const interface)
-{
-	return ifctrl_ifupdown(interface, 0);
-}
-
-bool ifctrl_ifup(const char *const interface)
-{
-	return ifctrl_ifupdown(interface, 1);
 }

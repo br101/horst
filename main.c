@@ -517,13 +517,14 @@ exit_handler(void)
 {
 	free_lists();
 
-	if (!conf.serveraddr[0] != '\0')
-		close_packet_socket(mon, conf.ifname);
-
-	if (conf.monitor_added) {
-		ifctrl_ifdown(conf.ifname);
-		ifctrl_iwdel(conf.ifname);
+	if (!conf.serveraddr[0] != '\0') {
+		close_packet_socket(mon);
 	}
+
+	ifctrl_flags(conf.ifname, false, false);
+
+	if (conf.monitor_added)
+		ifctrl_iwdel(conf.ifname);
 
 	if (DF != NULL) {
 		fclose(DF);
@@ -703,7 +704,7 @@ main(int argc, char** argv)
 			 * normally. The interface will be deleted at exit. */
 		}
 
-		if (!ifctrl_ifup(conf.ifname))
+		if (!ifctrl_flags(conf.ifname, true, true))
 			err(1, "failed to bring interface '%s' up",
 			    conf.ifname);
 
