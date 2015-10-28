@@ -41,34 +41,34 @@
 #define NL80211_GENL_NAME "nl80211"
 #endif
 
-static struct nl_sock *sock       = NULL;
-static struct nl_cache *cache	   = NULL;
+static struct nl_sock *sock = NULL;
+static struct nl_cache *cache = NULL;
 static struct genl_family *family = NULL;
 
-bool nl80211_init() {
-	int err = -1;
+static bool nl80211_init() {
+	int err;
+
 	sock = nl_socket_alloc();
 	if (!sock) {
-		fprintf(stderr, "%s\n", "failed to allocate a netlink socket");
+		fprintf(stderr, "failed to allocate netlink socket\n");
 		goto out;
 	}
 
 	err = genl_connect(sock);
 	if (err) {
-		nl_perror(err, "failed to make a generic netlink connection");
+		nl_perror(err, "failed to make generic netlink connection");
 		goto out;
 	}
 
 	err = genl_ctrl_alloc_cache(sock, &cache);
 	if (err) {
-		nl_perror(err, "failed to allocate a netlink controller cache");
+		nl_perror(err, "failed to allocate netlink controller cache");
 		goto out;
 	}
 
 	family = genl_ctrl_search_by_name(cache, NL80211_GENL_NAME);
 	if (!family) {
-		fprintf(stderr, "%s\n", "failed to find a generic netlink "
-                        "family object");
+		fprintf(stderr, "failed to find nl80211\n");
 		goto out;
 	}
 
@@ -80,26 +80,24 @@ out:
 	return false;
 }
 
-void nl80211_finish() {
+static void nl80211_finish() {
 	nl_socket_free(sock);
 	genl_family_put(family);
 	nl_cache_free(cache);
 }
 
 static bool nl80211_msg_prepare(struct nl_msg **const msgp,
-                             const enum nl80211_commands cmd,
-                             const char *const interface)
+				const enum nl80211_commands cmd,
+				const char *const interface)
 {
-	struct nl_msg *msg = NULL;
-
-	msg = nlmsg_alloc();
+	struct nl_msg *msg = nlmsg_alloc();
 	if (!msg) {
-		fprintf(stderr, "%s\n", "failed to allocate netlink message");
+		fprintf(stderr, "failed to allocate netlink message\n");
 		return false;
 	}
 
 	if (!genlmsg_put(msg, 0, 0, genl_family_get_id(family), 0, 0 /*flags*/, cmd, 0)) {
-		fprintf(stderr, "%s\n", "failed to add generic netlink headers");
+		fprintf(stderr, "failed to add generic netlink headers\n");
 		goto err;
 	}
 
@@ -120,12 +118,14 @@ static bool nl80211_msg_prepare(struct nl_msg **const msgp,
 
 	*msgp = msg;
 	return true;
-
 err:
 	nlmsg_free(msg);
 	return false;
 }
 
+/**
+ * send message, free msg and wait for ACK
+ */
 static bool nl80211_send(struct nl_sock *const sock, struct nl_msg *const msg)
 {
 	int err;
@@ -133,14 +133,17 @@ static bool nl80211_send(struct nl_sock *const sock, struct nl_msg *const msg)
 	err = nl_send_auto_complete(sock, msg);
 	nlmsg_free(msg);
 
-	if (err > 0)
-		err = nl_wait_for_ack(sock);
+	if (err <= 0) {
+		nl_perror(err, "failed to send netlink message");
+		return false;
+	}
 
-	if (!err)
-		return true;
-
-	nl_perror(err, "failed to send a netlink message");
-	return false;
+	err = nl_wait_for_ack(sock);
+	if (err < 0) {
+		nl_perror(err, "failed to receive ACK");
+		return false;
+	}
+	return true;
 }
 
 static int nl80211_ack_cb(__attribute__((unused)) struct nl_msg *msg, void *arg)
@@ -165,6 +168,9 @@ static int nl80211_err_cb(__attribute__((unused)) struct sockaddr_nl *nla,
 	return NL_STOP;
 }
 
+/**
+ * send message, free msg, receive reply and wait for ACK
+ */
 static bool nl80211_send_recv(struct nl_sock *const sock, struct nl_msg *const msg,
 			   int (*cb_func)(struct nl_msg *, void *), void* cb_arg)
 {
@@ -174,7 +180,7 @@ static bool nl80211_send_recv(struct nl_sock *const sock, struct nl_msg *const m
 	err = nl_send_auto_complete(sock, msg);
 	nlmsg_free(msg);
 
-	if (err < 0) {
+	if (err <= 0) {
 		nl_perror(err, "failed to send netlink message");
 		return false;
 	}
@@ -202,7 +208,12 @@ static bool nl80211_send_recv(struct nl_sock *const sock, struct nl_msg *const m
 
 	nl_cb_put(cb);
 
-	return err < 0 ? false : true;
+	if (err < 0) {
+		nl_perror(err, "failed to receive netlink message");
+		return false;
+	}
+
+	return true;
 }
 
 static struct nlattr** nl80211_parse(struct nl_msg *msg)
