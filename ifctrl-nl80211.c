@@ -98,27 +98,22 @@ static bool nl80211_msg_prepare(struct nl_msg **const msgp,
 
 	if (!genlmsg_put(msg, 0, 0, genl_family_get_id(family), 0, 0 /*flags*/, cmd, 0)) {
 		fprintf(stderr, "failed to add generic netlink headers\n");
-		goto err;
+		goto nla_put_failure;
 	}
 
 	if (interface) { //TODO: PHY commands don't need interface name but wiphy index
 		unsigned int if_index = if_nametoindex(interface);
-		int err;
 		if (!if_index) {
 			fprintf(stderr, "interface %s does not exist\n", interface);
-			goto err;
+			goto nla_put_failure;
 		}
-
-		err = nla_put_u32(msg, NL80211_ATTR_IFINDEX, if_index);
-		if (err) {
-			nl_perror(err, "failed to add ifindex to netlink message");
-			goto err;
-		}
+		NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, if_index);
 	}
 
 	*msgp = msg;
 	return true;
-err:
+
+nla_put_failure:
 	nlmsg_free(msg);
 	return false;
 }
@@ -243,27 +238,17 @@ bool ifctrl_iwadd_monitor(const char *const interface,
                          const char *const monitor_interface)
 {
 	struct nl_msg *msg;
-	int err;
 
 	if (!nl80211_msg_prepare(&msg, NL80211_CMD_NEW_INTERFACE, interface))
 		return false;
 
-	err = nla_put_string(msg, NL80211_ATTR_IFNAME, monitor_interface);
-	if (err) {
-		nl_perror(err, "failed to add interface name attribute to a "
-                          "netlink message");
-		goto err;
-	}
-
-	err = nla_put_u32(msg, NL80211_ATTR_IFTYPE, NL80211_IFTYPE_MONITOR);
-	if (err) {
-		nl_perror(err, "failed to add interface type attribute to a "
-                          "netlink message");
-		goto err;
-	}
+	NLA_PUT_STRING(msg, NL80211_ATTR_IFNAME, monitor_interface);
+	NLA_PUT_U32(msg, NL80211_ATTR_IFTYPE, NL80211_IFTYPE_MONITOR);
 
 	return nl80211_send(sock, msg); /* frees msg */
-err:
+
+nla_put_failure:
+	fprintf(stderr, "failed to add attribute to netlink message\n");
 	nlmsg_free(msg);
 	return false;
 }
@@ -281,41 +266,34 @@ bool ifctrl_iwdel(const char *const interface)
 bool ifctrl_iwset_monitor(const char *const interface)
 {
 	struct nl_msg *msg;
-	int err;
 
 	if (!nl80211_msg_prepare(&msg, NL80211_CMD_SET_INTERFACE, interface))
 		return false;
 
-	err = nla_put_u32(msg, NL80211_ATTR_IFTYPE, NL80211_IFTYPE_MONITOR);
-	if (err) {
-		nl_perror(err, "failed to add interface type attribute to a "
-                          "netlink message");
-		nlmsg_free(msg);
-		return false;
-	}
-
+	NLA_PUT_U32(msg, NL80211_ATTR_IFTYPE, NL80211_IFTYPE_MONITOR);
 	return nl80211_send(sock, msg); /* frees msg */
+
+nla_put_failure:
+	fprintf(stderr, "failed to add attribute to netlink message\n");
+	nlmsg_free(msg);
+	return false;
 }
 
 bool ifctrl_iwset_freq(const char *const interface, unsigned int freq)
 {
 	struct nl_msg *msg;
-	int err;
 
 	if (!nl80211_msg_prepare(&msg, NL80211_CMD_SET_WIPHY, interface))
 		return false;
 
-	err = nla_put_u32(msg, NL80211_ATTR_WIPHY_FREQ, freq);
-	err = nla_put_u32(msg, NL80211_ATTR_WIPHY_CHANNEL_TYPE, NL80211_CHAN_NO_HT);
-
-	if (err) {
-		nl_perror(err, "failed to add interface type attribute to a "
-                          "netlink message");
-		nlmsg_free(msg);
-		return false;
-	}
-
+	NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_FREQ, freq);
+	NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_CHANNEL_TYPE, NL80211_CHAN_NO_HT);
 	return nl80211_send(sock, msg); /* frees msg */
+
+nla_put_failure:
+	fprintf(stderr, "failed to add attribute to netlink message\n");
+	nlmsg_free(msg);
+	return false;
 }
 
 static int nl80211_get_interface_info_cb(struct nl_msg *msg,
@@ -395,12 +373,17 @@ bool ifctrl_iwget_freqlist(int phy, struct chan_freq chan[MAX_CHANNELS])
 	if (!nl80211_msg_prepare(&msg, NL80211_CMD_GET_WIPHY, NULL))
 		return false;
 
-	nla_put_u32(msg, NL80211_ATTR_WIPHY, phy);
+	NLA_PUT_U32(msg, NL80211_ATTR_WIPHY, phy);
 
 	ret = nl80211_send_recv(sock, msg, nl80211_get_freqlist_cb, chan); /* frees msg */
 	if (!ret)
 		fprintf(stderr, "failed to get freqlist");
 	return ret;
+
+nla_put_failure:
+	fprintf(stderr, "failed to add attribute to netlink message\n");
+	nlmsg_free(msg);
+	return false;
 }
 
 bool ifctrl_is_monitor() {
