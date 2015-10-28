@@ -45,7 +45,8 @@ static struct nl_sock *sock = NULL;
 static struct nl_cache *cache = NULL;
 static struct genl_family *family = NULL;
 
-static bool nl80211_init() {
+static bool nl80211_init()
+{
 	int err;
 
 	sock = nl_socket_alloc();
@@ -144,7 +145,8 @@ static int nl80211_err_cb(__attribute__((unused)) struct sockaddr_nl *nla,
 }
 
 static int nl80211_default_cb(__attribute__((unused)) struct nl_msg *msg,
-			      __attribute__((unused)) void *arg) {
+			      __attribute__((unused)) void *arg)
+{
 	return NL_SKIP;
 }
 
@@ -152,7 +154,7 @@ static int nl80211_default_cb(__attribute__((unused)) struct nl_msg *msg,
  * send message, free msg, receive reply and wait for ACK
  */
 static bool nl80211_send_recv(struct nl_sock *const sock, struct nl_msg *const msg,
-			   int (*cb_func)(struct nl_msg *, void *), void* cb_arg)
+			      nl_recvmsg_msg_cb_t cb_func, void* cb_arg)
 {
 	int err;
 	struct nl_cb *cb;
@@ -221,16 +223,18 @@ static struct nlattr** nl80211_parse(struct nl_msg *msg)
  * ifctrl interface
  */
 
-bool ifctrl_init() {
+bool ifctrl_init()
+{
 	return nl80211_init();
 }
 
-void ifctrl_finish() {
+void ifctrl_finish()
+{
 	nl80211_finish();
 }
 
 bool ifctrl_iwadd_monitor(const char *const interface,
-                         const char *const monitor_interface)
+			  const char *const monitor_interface)
 {
 	struct nl_msg *msg;
 
