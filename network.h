@@ -30,9 +30,10 @@ extern int cli_fd;
 void
 net_init_server_socket(int rport);
 
-int net_handle_server_conn(void);
+void
+net_handle_server_conn(void);
 
-int
+void
 net_send_packet(struct packet_info *pkt);
 
 void

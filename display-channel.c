@@ -47,7 +47,7 @@ update_channel_win(WINDOW *win)
 }
 
 
-int
+bool
 channel_input(WINDOW *win, int c)
 {
 	char buf[6];
@@ -95,11 +95,11 @@ channel_input(WINDOW *win, int c)
 		break;
 
 	default:
-		return 0; /* didn't handle input */
+		return false; /* didn't handle input */
 	}
 
 	net_send_channel_config();
 
 	update_channel_win(win);
-	return 1;
+	return true;
 }

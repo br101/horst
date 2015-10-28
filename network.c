@@ -150,7 +150,7 @@ struct net_packet_info {
 } __attribute__ ((packed));
 
 
-static int
+static bool
 net_write(int fd, unsigned char* buf, size_t len)
 {
 	int ret;
@@ -165,13 +165,13 @@ net_write(int fd, unsigned char* buf, size_t len)
 		}
 		else
 			printlog("ERROR: in net_write");
-		return 0;
+		return false;
 	}
-	return 1;
+	return true;
 }
 
 
-int
+void
 net_send_packet(struct packet_info *p)
 {
 	struct net_packet_info np;
@@ -224,7 +224,6 @@ net_send_packet(struct packet_info *p)
 	np.bat_pkt_type = p->bat_packet_type;
 
 	net_write(cli_fd, (unsigned char *)&np, sizeof(np));
-	return 0;
 }
 
 
@@ -331,7 +330,7 @@ net_receive_conf_chan(unsigned char *buffer, size_t len)
 }
 
 
-static int
+static void
 net_send_conf_filter(int fd)
 {
 	struct net_conf_filter nc;
@@ -350,7 +349,6 @@ net_send_conf_filter(int fd)
 	nc.filter_off = conf.filter_off;
 
 	net_write(fd, (unsigned char *)&nc, sizeof(nc));
-	return 0;
 }
 
 
@@ -378,7 +376,7 @@ net_receive_conf_filter(unsigned char *buffer, size_t len)
 }
 
 
-static int
+static void
 net_send_chan_list(int fd)
 {
 	char* buf;
@@ -387,7 +385,7 @@ net_send_chan_list(int fd)
 
 	buf = malloc(sizeof(struct net_chan_list) + sizeof(struct net_chan_freq)*(conf.num_channels - 1));
 	if (buf == NULL)
-		return 0;
+		return;
 
 	nc = (struct net_chan_list *)buf;
 	nc->proto.version = PROTO_VERSION;
@@ -407,7 +405,6 @@ net_send_chan_list(int fd)
 
 	net_write(fd, (unsigned char *)buf, sizeof(struct net_chan_list) + sizeof(struct net_chan_freq)*(i - 1));
 	free(buf);
-	return 0;
 }
 
 
@@ -498,7 +495,8 @@ net_receive(int fd, unsigned char* buffer, size_t* buflen, size_t maxlen)
 }
 
 
-int net_handle_server_conn( void )
+void
+net_handle_server_conn(void)
 {
 	struct sockaddr_in cin;
 	socklen_t cinlen;
@@ -517,8 +515,6 @@ int net_handle_server_conn( void )
 	/* we only accept one client, so close server socket */
 	close(srv_fd);
 	srv_fd = -1;
-
-	return 0;
 }
 
 

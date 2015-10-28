@@ -143,7 +143,7 @@ update_spectrum_win(WINDOW *win)
 }
 
 
-int
+bool
 spectrum_input(WINDOW *win, int c)
 {
 	switch (c) {
@@ -152,9 +152,9 @@ spectrum_input(WINDOW *win, int c)
 		break;
 
 	default:
-		return 0; /* didn't handle input */
+		return false; /* didn't handle input */
 	}
 
 	update_spectrum_win(win);
-	return 1;
+	return true;
 }

@@ -20,7 +20,9 @@
 #ifndef _CONF_OPTIONS_H_
 #define _CONF_OPTIONS_H_
 
+#include <stdbool.h>
+
 void config_parse_file_and_cmdline(int argc, char** argv);
-int config_handle_option(char c, const char* name, const char* value);
+bool config_handle_option(char c, const char* name, const char* value);
 
 #endif

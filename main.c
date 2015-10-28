@@ -246,50 +246,50 @@ write_to_file(struct packet_info* p)
 }
 
 
-/* return 1 if packet is filtered */
-static int
+/* return true if packet is filtered */
+static bool
 filter_packet(struct packet_info* p)
 {
 	int i;
 
 	if (conf.filter_off)
-		return 0;
+		return false;
 
 	/* if packets with bad FCS are not filtered, still we can not trust any
 	 * other header, so in any case return */
 	if (p->phy_flags & PHY_FLAG_BADFCS) {
 		if (!conf.filter_badfcs) {
 			stats.filtered_packets++;
-			return 1;
+			return true;
 		}
-		return 0;
+		return false;
 	}
 
 	/* filter by WLAN frame type and also type 3 which is not defined */
 	i = WLAN_FRAME_TYPE(p->wlan_type);
 	if (i == 3 || !(conf.filter_stype[i] & BIT(WLAN_FRAME_STYPE(p->wlan_type)))) {
 		stats.filtered_packets++;
-		return 1;
+		return true;
 	}
 
 	/* filter by MODE (AP, IBSS, ...) this also filters packets where we
 	 * cannot associate a mode (ACK, RTS/CTS) */
 	if (conf.filter_mode != WLAN_MODE_ALL && ((p->wlan_mode & ~conf.filter_mode) || p->wlan_mode == 0)) {
 		stats.filtered_packets++;
-		return 1;
+		return true;
 	}
 
 	/* filter higher level packet types */
 	if (conf.filter_pkt != PKT_TYPE_ALL && (p->pkt_types & ~conf.filter_pkt)) {
 		stats.filtered_packets++;
-		return 1;
+		return true;
 	}
 
 	/* filter BSSID */
 	if (MAC_NOT_EMPTY(conf.filterbssid) &&
 	    memcmp(p->wlan_bssid, conf.filterbssid, MAC_LEN) != 0) {
 		stats.filtered_packets++;
-		return 1;
+		return true;
 	}
 
 	/* filter MAC adresses */
@@ -298,14 +298,14 @@ filter_packet(struct packet_info* p)
 			if (MAC_NOT_EMPTY(p->wlan_src) &&
 			    conf.filtermac_enabled[i] &&
 			    memcmp(p->wlan_src, conf.filtermac[i], MAC_LEN) == 0) {
-				return 0;
+				return false;
 			}
 		}
 		stats.filtered_packets++;
-		return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 
 
@@ -687,7 +687,7 @@ main(int argc, char** argv)
 
 		/* if the interface is not already in monitor mode, try to set
 		 * it to monitor or create an additional virtual monitor interface */
-		if (!ifctrl_is_monitor() && ifctrl_iwset_monitor(conf.ifname)) {
+		if (!ifctrl_is_monitor() && !ifctrl_iwset_monitor(conf.ifname)) {
 			char mon_ifname[IF_NAMESIZE];
 
 			warnx("failed to set interface '%s' to monitor mode, "
@@ -695,7 +695,7 @@ main(int argc, char** argv)
 			      conf.ifname);
 
 			generate_mon_ifname(mon_ifname, IF_NAMESIZE);
-			if (ifctrl_iwadd_monitor(conf.ifname, mon_ifname))
+			if (!ifctrl_iwadd_monitor(conf.ifname, mon_ifname))
 				err(1, "failed to add a virtual monitor "
 				    "interface");
 
@@ -707,7 +707,7 @@ main(int argc, char** argv)
 			 * normally. The interface will be deleted at exit. */
 		}
 
-		if (ifctrl_ifup(conf.ifname))
+		if (!ifctrl_ifup(conf.ifname))
 			err(1, "failed to bring interface '%s' up",
 			    conf.ifname);
 

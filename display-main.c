@@ -122,7 +122,7 @@ compare_nodes_bssid(const struct list_node *p1, const struct list_node *p2)
 }
 
 
-static int
+static bool
 sort_input(int c)
 {
 	switch (c) {
@@ -145,9 +145,9 @@ sort_input(int c)
 		delwin(sort_win);
 		sort_win = NULL;
 		update_display(NULL);
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
 
@@ -519,7 +519,7 @@ update_main_win(struct packet_info *p)
 }
 
 
-int
+bool
 main_input(int key)
 {
 	if (sort_win != NULL)
@@ -528,9 +528,9 @@ main_input(int key)
 	switch(key) {
 	case 'o': case 'O':
 		show_sort_win();
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
 

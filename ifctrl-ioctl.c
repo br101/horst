@@ -6,13 +6,15 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-static int ifctrl_ifupdown(const char *const interface, char up)
+#include "ifctrl.h"
+
+static bool ifctrl_ifupdown(const char *const interface, char up)
 {
 	int fd;
 	struct ifreq ifreq;
 
 	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) == -1)
-		return -1;
+		return false;
 
 	memset(&ifreq, 0, sizeof(ifreq));
 	strncpy(ifreq.ifr_name, interface, IF_NAMESIZE - 1);
@@ -21,7 +23,7 @@ static int ifctrl_ifupdown(const char *const interface, char up)
 		int orig_errno = errno;
 		close(fd);
 		errno = orig_errno;
-		return -1;
+		return false;
 	}
 
 	if (up)
@@ -33,21 +35,21 @@ static int ifctrl_ifupdown(const char *const interface, char up)
 		int orig_errno = errno;
 		close(fd);
 		errno = orig_errno;
-		return -1;
+		return false;
 	}
 
 	if (close(fd))
-		return -1;
+		return false;
 
-	return 0;
+	return true;
 }
 
-int ifctrl_ifdown(const char *const interface)
+bool ifctrl_ifdown(const char *const interface)
 {
 	return ifctrl_ifupdown(interface, 0);
 }
 
-int ifctrl_ifup(const char *const interface)
+bool ifctrl_ifup(const char *const interface)
 {
 	return ifctrl_ifupdown(interface, 1);
 }

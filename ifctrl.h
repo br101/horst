@@ -20,9 +20,10 @@
 #ifndef IFCTRL_H
 #define IFCTRL_H
 
+#include <stdbool.h>
 #include "channel.h"
 
-int ifctrl_init();
+bool ifctrl_init();
 void ifctrl_finish();
 
 /**
@@ -31,52 +32,52 @@ void ifctrl_finish();
  * @interface: the name of the interface the monitor interface is attached to
  * @monitor_interface: the name of the new monitor interface
  *
- * Return 0 on success, -1 on error.
+ * Return true on success, false on error.
  */
-int ifctrl_iwadd_monitor(const char *interface, const char *monitor_interface);
+bool ifctrl_iwadd_monitor(const char *interface, const char *monitor_interface);
 
 /**
  * ifctrl_iwdel() - delete 802.11 interface
  *
  * @interface: the name of the interface
  *
- * Return 0 on success, -1 on error.
+ * Return true on success, false on error.
  */
-int ifctrl_iwdel(const char *interface);
+bool ifctrl_iwdel(const char *interface);
 
 /**
  * ifctrl_ifup() - bring interface up
  *
  * @interface: the name of the interface
  *
- * Return 0 on success, -1 on error.
+ * Return true on success, false on error.
  */
-int ifctrl_ifup(const char *interface);
+bool ifctrl_ifup(const char *interface);
 
 /**
  * ifctrl_ifdown() - take interface down
  *
  * @interface: the name of the interface
  *
- * Return 0 on success, -1 on error.
+ * Return true on success, false on error.
  */
-int ifctrl_ifdown(const char *interface);
+bool ifctrl_ifdown(const char *interface);
 
 /**
  * ifctrl_iwset_monitor() - set 802.11 interface to monitor mode
  *
  * @interface: the name of the interface
  *
- * Return 0 on success, -1 on error.
+ * Return true on success, false on error.
  */
-int ifctrl_iwset_monitor(const char *interface);
+bool ifctrl_iwset_monitor(const char *interface);
 
-int ifctrl_iwset_freq(const char *interface, unsigned int freq);
+bool ifctrl_iwset_freq(const char *interface, unsigned int freq);
 
-int ifctrl_iwget_interface_info(const char *interface);
+bool ifctrl_iwget_interface_info(const char *interface);
 
-int ifctrl_iwget_freqlist(int phy, struct chan_freq* chan);
+bool ifctrl_iwget_freqlist(int phy, struct chan_freq* chan);
 
-int ifctrl_is_monitor();
+bool ifctrl_is_monitor();
 
 #endif

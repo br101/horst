@@ -64,7 +64,7 @@ wext_get_channels(__attribute__((unused)) int fd,
 
 extern int mon; /* monitoring socket */
 
-int
+bool
 wext_set_freq(int fd, const char* devname, int freq)
 {
 	struct iwreq iwr;
@@ -78,9 +78,9 @@ wext_set_freq(int fd, const char* devname, int freq)
 
 	if (ioctl(fd, SIOCSIWFREQ, &iwr) < 0) {
 		printlog("ERROR: wext set channel");
-		return 0;
+		return false;
 	}
-	return 1;
+	return true;
 }
 
 
@@ -148,51 +148,51 @@ wext_get_channels(int fd, const char* devname,
  * ifctrl.h implementation
  */
 
-int ifctrl_init() {
-	return 0;
+bool ifctrl_init() {
+	return true;
 };
 
 void ifctrl_finish() {
 };
 
-int ifctrl_iwadd_monitor(__attribute__((unused)) const char *interface,
+bool ifctrl_iwadd_monitor(__attribute__((unused)) const char *interface,
 			 __attribute__((unused)) const char *monitor_interface) {
 	printlog("add monitor: not supported with WEXT");
-	return -1;
+	return false;
 }
 
-int ifctrl_iwdel(__attribute__((unused)) const char *interface) {
+bool ifctrl_iwdel(__attribute__((unused)) const char *interface) {
 	printlog("del: not supported with WEXT");
-	return -1;
+	return false;
 }
 
-int ifctrl_iwset_monitor(__attribute__((unused)) const char *interface) {
+bool ifctrl_iwset_monitor(__attribute__((unused)) const char *interface) {
 	printlog("set monitor: not supported with WEXT");
-	return -1;
+	return false;
 }
 
-int ifctrl_iwset_freq(const char *interface, unsigned int freq) {
+bool ifctrl_iwset_freq(const char *interface, unsigned int freq) {
 	if (wext_set_freq(mon, interface, freq))
-		return 0;
-	return -1;
+		return true;
+	return false;
 }
 
-int ifctrl_iwget_interface_info(const char *interface) {
+bool ifctrl_iwget_interface_info(const char *interface) {
 	conf.if_freq = wext_get_freq(mon, interface);
 	if (conf.if_freq == 0)
-		return -1;
-	return 0;
+		return false;
+	return true;
 }
 
-int ifctrl_iwget_freqlist(__attribute__((unused)) int phy, struct chan_freq* chan) {
+bool ifctrl_iwget_freqlist(__attribute__((unused)) int phy, struct chan_freq* chan) {
 	conf.num_channels = wext_get_channels(mon, conf.ifname, chan);
 	if (conf.num_channels)
-		return 0;
-	return -1;
+		return true;
+	return false;
 }
 
-int ifctrl_is_monitor() {
-	return 1; /* assume yes */
+bool ifctrl_is_monitor() {
+	return true; /* assume yes */
 }
 
 #endif

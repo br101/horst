@@ -20,6 +20,8 @@
 #ifndef _CHANNEL_H_
 #define _CHANNEL_H_
 
+#include <stdbool.h>
+
 #define MAX_CHANNELS		64
 
 /* channel to frequency mapping */
@@ -28,10 +30,10 @@ struct chan_freq {
 	int			freq;
 };
 
-int
+bool
 channel_change(int idx);
 
-int
+bool
 channel_auto_change(void);
 
 int
@@ -49,7 +51,7 @@ channel_get_chan_from_idx(int idx);
 int
 channel_get_current_chan();
 
-int
+bool
 channel_init(void);
 
 struct chan_freq*

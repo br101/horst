@@ -71,28 +71,28 @@ channel_get_remaining_dwell_time(void)
 		+ last_channelchange.tv_usec;
 }
 
-int
+bool
 channel_change(int idx)
 {
-	if (ifctrl_iwset_freq(conf.ifname, channels[idx].freq) < 0) {
+	if (!ifctrl_iwset_freq(conf.ifname, channels[idx].freq)) {
 		printlog("ERROR: could not set channel %d", channels[idx].chan);
-		return 0;
+		return false;
 	}
 	conf.channel_idx = idx;
 	last_channelchange = the_time;
-	return 1;
+	return true;
 }
 
 
-int
+bool
 channel_auto_change(void)
 {
 	int new_idx;
-	int ret = 1;
+	bool ret = true;
 	int start_idx;
 
 	if (conf.channel_idx == -1)
-		return 0; /* The current channel is still unknown for some
+		return false; /* The current channel is still unknown for some
 			   * reason (mac80211 bug, busy physical interface,
 			   * etc.), it will be fixed when the first packet
 			   * arrives, see fixup_packet_channel().
@@ -106,7 +106,7 @@ channel_auto_change(void)
 			   * initialized properly. */
 
 	if (channel_get_remaining_dwell_time() > 0)
-		return 0; /* too early */
+		return false; /* too early */
 
 	if (conf.do_change_channel) {
 		start_idx = new_idx = conf.channel_idx;
@@ -135,7 +135,7 @@ channel_get_current_chan() {
 	return channel_get_chan_from_idx(conf.channel_idx);
 }
 
-int
+bool
 channel_init(void) {
 	/* get available channels */
 	ifctrl_iwget_freqlist(conf.if_phy, channels);
@@ -143,12 +143,12 @@ channel_init(void) {
 
 	if (conf.channel_num_initial > 0) {
 	    if (!channel_change(channel_find_index_from_chan(conf.channel_num_initial)))
-	        return 0;
+	        return false;
 	} else {
 	    conf.channel_num_initial = channel_get_chan_from_idx(conf.channel_idx);
 	}
 	conf.channel_initialized = 1;
-	return 1;
+	return true;
 }
 
 

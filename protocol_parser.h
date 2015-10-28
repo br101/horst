@@ -22,7 +22,7 @@
 
 struct packet_info;
 
-int
+bool
 parse_packet(unsigned char* buf, int len, struct packet_info* p);
 
 #endif

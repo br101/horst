@@ -41,29 +41,29 @@ static int parse_batman_adv_packet(unsigned char** buf, int len, struct packet_i
 static int parse_meshcruzer_packet(unsigned char** buf, int len, struct packet_info* p, int port);
 
 
-/* return 1 if we parsed enough = min ieee header */
-int
+/* return true if we parsed enough = min ieee header */
+bool
 parse_packet(unsigned char* buf, int len, struct packet_info* p)
 {
 	len = parse_packet_wlan(&buf, len, p);
 	if (len == 0)
-		return 1;
+		return true;
 	else if (len < 0)
-		return 0;
+		return false;
 
 	len = parse_llc(&buf, len, p);
 	if (len <= 0)
-		return 1;
+		return true;
 
 	len = parse_ip_header(&buf, len, p);
 	if (len <= 0)
-		return 1;
+		return true;
 
 	len = parse_udp_header(&buf, len, p);
 	if (len <= 0)
-		return 1;
+		return true;
 
-	return 1;
+	return true;
 }
 
 

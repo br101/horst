@@ -122,7 +122,7 @@ update_filter_win(WINDOW *win)
 	wrefresh(win);
 }
 
-int
+bool
 filter_input(WINDOW *win, int c)
 {
 	char buf[18];
@@ -199,7 +199,7 @@ filter_input(WINDOW *win, int c)
 				}
 			}
 		}
-		return 0; // not found
+		return false; // not found
 	}
 
 out:
@@ -213,5 +213,5 @@ out:
 	net_send_filter_config();
 
 	update_filter_win(win);
-	return 1;
+	return true;
 }

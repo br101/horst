@@ -57,7 +57,7 @@ parse_packet_wlan(unsigned char** buf, int len, struct packet_info* p)
 }
 
 
-/* return packet lenght or -1 on error */
+/* return packet length or -1 on error */
 static int
 parse_prism_header(unsigned char** buf, int len, struct packet_info* p)
 {

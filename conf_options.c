@@ -32,43 +32,43 @@ struct conf_option {
 	const char*	name;
 	int		value_required;
 	const char*	default_value;
-	int		(*func)(const char* value);
+	bool		(*func)(const char* value);
 };
 
-static int conf_quiet(__attribute__((unused)) const char* value) {
+static bool conf_quiet(__attribute__((unused)) const char* value) {
 	conf.quiet = 1;
-	return 1;
+	return true;
 }
 
 #if DO_DEBUG
-static int conf_debug(__attribute__((unused)) const char* value) {
+static bool conf_debug(__attribute__((unused)) const char* value) {
 	conf.debug = 1;
-	return 1;
+	return true;
 }
 #endif
 
-static int conf_interface(const char* value) {
+static bool conf_interface(const char* value) {
 	strncpy(conf.ifname, value, MAX_CONF_VALUE_STRLEN);
 	conf.ifname[MAX_CONF_VALUE_STRLEN] = '\0';
-	return 1;
+	return true;
 }
 
-static int conf_outfile(const char* value) {
+static bool conf_outfile(const char* value) {
 	dumpfile_open(value);
-	return 1;
+	return true;
 }
 
-static int conf_node_timeout(const char* value) {
+static bool conf_node_timeout(const char* value) {
 	conf.node_timeout = atoi(value);
-	return 1;
+	return true;
 }
 
-static int conf_receive_buffer(const char* value) {
+static bool conf_receive_buffer(const char* value) {
 	conf.recv_buffer_size = atoi(value);
-	return 1;
+	return true;
 }
 
-static int conf_channel_set(const char* value) {
+static bool conf_channel_set(const char* value) {
 	int n = atoi(value);
 	if (conf.channel_initialized)
 	    channel_change(channel_find_index_from_chan(n));
@@ -76,17 +76,17 @@ static int conf_channel_set(const char* value) {
 	    /* We have not yet initialized the channel module, channel will be
 	     * changed in channel_init(). */
 	    conf.channel_num_initial = n;
-	return 1;
+	return true;
 }
 
-static int conf_channel_scan(const char* value) {
+static bool conf_channel_scan(const char* value) {
 	if (value != NULL && strcmp(value, "0") == 0)
 		conf.do_change_channel = 0;
 	else {
 		conf.do_change_channel = 1;
 		conf.display_view = 's'; // show spectrum view
 	}
-	return 1;
+	return true;
 }
 
 /*
@@ -96,27 +96,27 @@ static int conf_channel_scan(const char* value) {
  * the current channel is changed back to the initial channel. When horst goes
  * out of scan rounds, it quits.
  */
-static int conf_channel_scan_rounds(const char* value) {
+static bool conf_channel_scan_rounds(const char* value) {
 	conf.channel_scan_rounds = atoi(value);
-	return 1;
+	return true;
 }
 
-static int conf_channel_dwell(const char* value) {
+static bool conf_channel_dwell(const char* value) {
 	conf.channel_time = atoi(value) * 1000;
-	return 1;
+	return true;
 }
 
-static int conf_channel_upper(const char* value) {
+static bool conf_channel_upper(const char* value) {
 	conf.channel_max = atoi(value);
-	return 1;
+	return true;
 }
 
-static int conf_display_interval(const char* value) {
+static bool conf_display_interval(const char* value) {
 	conf.display_interval = atoi(value) * 1000;
-	return 1;
+	return true;
 }
 
-static int conf_display_view(const char* value) {
+static bool conf_display_view(const char* value) {
 	if (strcasecmp(value, "history") == 0 || strcasecmp(value, "hist") == 0)
 		conf.display_view = 'h';
 	else if (strcasecmp(value, "essid") == 0)
@@ -125,29 +125,29 @@ static int conf_display_view(const char* value) {
 		conf.display_view = 'a';
 	else if (strcasecmp(value, "spectrum") == 0 || strcasecmp(value, "spec") == 0)
 		conf.display_view = 's';
-	return 1;
+	return true;
 }
 
-static int conf_server(const char* value) {
+static bool conf_server(const char* value) {
 	if (value != NULL && strcmp(value, "0") == 0)
 		conf.allow_client = 0;
 	else
 		conf.allow_client = 1;
-	return 1;
+	return true;
 }
 
-static int conf_client(const char* value) {
+static bool conf_client(const char* value) {
 	strncpy(conf.serveraddr, value, MAX_CONF_VALUE_STRLEN);
 	conf.serveraddr[MAX_CONF_VALUE_STRLEN] = '\0';
-	return 1;
+	return true;
 }
 
-static int conf_port(const char* value) {
+static bool conf_port(const char* value) {
 	conf.port = atoi(value);
-	return 1;
+	return true;
 }
 
-static int conf_control_pipe(const char* value) {
+static bool conf_control_pipe(const char* value) {
 	/*
 	 * Here it's a bit difficult because -X is used for two purposes:
 	 * 1) allow control pipe (-X with or without argument)
@@ -162,29 +162,29 @@ static int conf_control_pipe(const char* value) {
 		strncpy(conf.control_pipe, DEFAULT_CONTROL_PIPE, MAX_CONF_VALUE_STRLEN);
 	conf.control_pipe[MAX_CONF_VALUE_STRLEN] = '\0';
 	conf.allow_control = 1;
-	return 1;
+	return true;
 }
 
-static int conf_filter_mac(const char* value) {
+static bool conf_filter_mac(const char* value) {
 	static int n;
 	if (n >= MAX_FILTERMAC) {
 		printlog("Can only handle %d MAC filters", MAX_FILTERMAC);
-		return 0;
+		return false;
 	}
 
 	conf.do_macfilter = 1;
 	convert_string_to_mac(value, conf.filtermac[n]);
 	conf.filtermac_enabled[n] = 1;
 	n++;
-	return 1;
+	return true;
 }
 
-static int conf_filter_bssid(const char* value) {
+static bool conf_filter_bssid(const char* value) {
 	convert_string_to_mac(value, conf.filterbssid);
-	return 1;
+	return true;
 }
 
-static int conf_filter_mode(const char* value) {
+static bool conf_filter_mode(const char* value) {
 	if (conf.filter_mode == WLAN_MODE_ALL)
 		conf.filter_mode = 0;
 	if (strcmp(value, "ALL") == 0)
@@ -201,10 +201,10 @@ static int conf_filter_mode(const char* value) {
 		conf.filter_mode |= WLAN_MODE_4ADDR;
 	else if (strcmp(value, "UNKNOWN") == 0)
 		conf.filter_mode |= WLAN_MODE_UNKNOWN;
-	return 1;
+	return true;
 }
 
-static int conf_filter_pkt(const char* value) {
+static bool conf_filter_pkt(const char* value) {
 	int t, i;
 
 	if (conf.filter_pkt == PKT_TYPE_ALL) {
@@ -250,21 +250,21 @@ static int conf_filter_pkt(const char* value) {
 		for (i = 0; i < WLAN_NUM_STYPES; i++) {
 			if (strcasecmp(stype_names[t][i].name, value) == 0) {
 				conf.filter_stype[t] |= BIT(i);
-				return 1;
+				return true;
 			}
 		}
 	}
-	return 1;
+	return true;
 }
 
-static int conf_mac_names(const char* value) {
+static bool conf_mac_names(const char* value) {
 	if (value != NULL)
 		strncpy(conf.mac_name_file, value, MAX_CONF_VALUE_STRLEN);
 	else
 		strncpy(conf.mac_name_file, DEFAULT_MAC_NAME_FILE, MAX_CONF_VALUE_STRLEN);
 	conf.mac_name_file[MAX_CONF_VALUE_STRLEN] = '\0';
 	conf.mac_name_lookup = 1;
-	return 1;
+	return true;
 }
 
 
@@ -313,7 +313,7 @@ static struct conf_option conf_options[] = {
  * In the second case 'c' is 0 and name is set
  * Value may be null in all cases
  */
-int
+bool
 config_handle_option(int c, const char* name, const char* value) {
 	unsigned int i;
 	char* end;
@@ -342,7 +342,7 @@ config_handle_option(int c, const char* name, const char* value) {
 	}
 	if (name != NULL)
 		printlog("Ignoring unknown config option '%s' = '%s'", name, value);
-	return -1;
+	return false;
 }
 
 

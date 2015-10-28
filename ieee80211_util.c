@@ -33,18 +33,18 @@
  *
  * Check if a given rate is an Extended Rate PHY (ERP) rate.
  */
-static inline int
+static inline bool
 ieee80211_is_erp_rate(int phymode, int rate)
 {
 	if (phymode & PHY_FLAG_G) {
 		if (rate != 10 && rate != 20 &&
 		    rate != 55 && rate != 110) {
 			DEBUG("erp\n");
-			return 1;
+			return true;
 		}
 	}
 	DEBUG("no erp\n");
-	return 0;
+	return false;
 }
 
 static int
@@ -72,7 +72,7 @@ ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
 			 int shortslot, int type, char qos_class, int retries)
 {
 	int dur;
-	int erp;
+	bool erp;
 	int sifs, slottime;
 	static int last_was_cts;
 
