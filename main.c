@@ -89,7 +89,6 @@ static fd_set excpt_fds;
 
 static volatile sig_atomic_t is_sigint_caught;
 
-static int is_interface_added;
 
 void __attribute__ ((format (printf, 1, 2)))
 printlog(const char *fmt, ...)
@@ -521,7 +520,7 @@ exit_handler(void)
 	if (!conf.serveraddr[0] != '\0')
 		close_packet_socket(mon, conf.ifname);
 
-	if (is_interface_added) {
+	if (conf.monitor_added) {
 		ifctrl_ifdown(conf.ifname);
 		ifctrl_iwdel(conf.ifname);
 	}
@@ -631,12 +630,12 @@ static void generate_mon_ifname(char *const buf, const size_t buf_size)
 
 		len = snprintf(buf, buf_size, "horst%d", i);
 		if (len < 0)
-			err(1, "failed to generate a monitor interface name");
+			err(1, "failed to generate monitor interface name");
 		if ((unsigned int) len >= buf_size)
 			errx(1, "failed to generate a sufficiently short "
 			     "monitor interface name");
 		if (!if_nametoindex(buf))
-			break;
+			break;  /* interface does not exist yet, done */
 	}
 }
 
@@ -689,20 +688,16 @@ main(int argc, char** argv)
 		 * it to monitor or create an additional virtual monitor interface */
 		if (!ifctrl_is_monitor() && !ifctrl_iwset_monitor(conf.ifname)) {
 			char mon_ifname[IF_NAMESIZE];
-
-			warnx("failed to set interface '%s' to monitor mode, "
-			      "adding a virtual monitor interface",
-			      conf.ifname);
+			warnx("failed to set '%s' to monitor mode", conf.ifname);
 
 			generate_mon_ifname(mon_ifname, IF_NAMESIZE);
 			if (!ifctrl_iwadd_monitor(conf.ifname, mon_ifname))
-				err(1, "failed to add a virtual monitor "
-				    "interface");
+				err(1, "failed to add virtual monitor interface");
 
 			printlog("INFO: A virtual interface '%s' will be used "
 				 "instead of '%s'.", mon_ifname, conf.ifname);
 			config_handle_option(0, "interface", mon_ifname);
-			is_interface_added = 1;
+			conf.monitor_added = 1;
 			/* Now we have a new monitor interface, proceed
 			 * normally. The interface will be deleted at exit. */
 		}
