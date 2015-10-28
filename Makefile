@@ -51,7 +51,7 @@ OBJS=						   \
 	util.o					   \
 	wlan_util.o
 LIBS=-lncurses -lm
-CFLAGS+=-Wall -Wextra -g -I.
+CFLAGS+=-std=gnu99 -Wall -Wextra -g -I.
 
 ifeq ($(DEBUG),1)
 CFLAGS+=-DDO_DEBUG
