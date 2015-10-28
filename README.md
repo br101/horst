@@ -1,13 +1,10 @@
+# HORST - Highly Optimized Radio Scanning Tool
+or Horsts OLSR Radio Scanning Tool
 
-HORST - Horsts OLSR Radio Scanning Tool (or)
-HORST - Highly Optimized Radio Scanning Tool
--------------------------------------------------------------------------------
-Copyright (C) 2005-2015 Bruno Randolf (br1@einfach.org)
+Copyright (C) 2005-2015 Bruno Randolf (br1@einfach.org) and licensed under 
+the GNU Public License (GPL) V2
 
-Licensed under the GNU Public License (GPL) V2
-
-
-= Overview =
+## Overview
 
 “horst” is a small, lightweight IEEE802.11 wireless LAN analyzer with a text 
 interface. Its basic function is similar to tcpdump, Wireshark or Kismet, but 
@@ -18,6 +15,7 @@ useful to get a quick overview of what’s going on on all wireless LAN channels
 and to identify problems.
 
 See the man pages for more detailed and up-to-date information:
+
 	$ man -l horst.1
 	$ man -l horst.conf.5
 	(or)
@@ -27,29 +25,33 @@ See the man pages for more detailed and up-to-date information:
 Also see: http://br1.einfach.org/tech/horst/
 
 
-= Building =
+## Building
 
 Official git repository:	git://br1.einfach.org/horst
 GitHub clone:			https://github.com/br101/horst
 
-"horst" is just a simple tool, and "libncurses" is the only requirement (be sure
-to install it's header files too). Therefore building is as simple as typing:
+"horst" is just a simple tool, and "libncurses" is the only hard requirement (be 
+sure to install it's header files too). Recently we have added support for nl80211
+via libnl, so you normally need libnl3 + header files as well.
+
+Building is as simple as typing:
 
 	$ make
 
-To see very detailled debugging output you can use
+If you have an old or proprietary WLAN driver which only knows the deprecated
+"wireless-extensions" you can build horst with support for them:
 
-	$ make DEBUG=1
+	$ make WEXT=1
 
 To experimentally build for Mac OSX or other Unix using libpcap use:
 
 	$ make PCAP=1 WEXT=0 LIBNL=0
 
-Please note that PCAP and OSX support is not well tested and some features,
-like getting or setting the channel are not implemented on OSX.
+Please note that PCAP and OSX support is not well tested and some features, like
+getting or setting the channel are not implemented on OSX.
 
 
-= Background =
+## Background
 
 "horst" was created to fill a need in the Wireless Mesh networking / Freifunk
 community of Berlin but has since grown to be a useful tool for all kinds of 
@@ -75,16 +77,16 @@ packets are summarized by the MAC address of the sending node, analyzed and
 aggregated and displayed in a simple text (ncurses) interface.
 
 
-= Contributors =
+## Contributors
 
 Thanks to the following persons for contributions:
 
-Horst Krause
-Sven-Ola Tuecke
-Robert Schuster
-Jonathan Guerin
-David Rowe
-Antoine Beaupré
-Rami Refaeli
-Joerg Albert
-Tuomas Räsänen
+* Horst Krause
+* Sven-Ola Tuecke
+* Robert Schuster
+* Jonathan Guerin
+* David Rowe
+* Antoine Beaupré
+* Rami Refaeli
+* Joerg Albert
+* Tuomas Räsänen
