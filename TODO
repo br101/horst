@@ -1,5 +1,5 @@
 TODO:
 -----
 
-* 802.11ac support
-* Integrate 'iw survey dump' info
+* Detect 802.11n and 802.11ac and respective channel widths (40, 80 160)
+* Integrate 'iw survey dump' info (noise)
