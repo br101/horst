@@ -118,29 +118,6 @@ nla_put_failure:
 	return false;
 }
 
-/**
- * send message, free msg and wait for ACK
- */
-static bool nl80211_send(struct nl_sock *const sock, struct nl_msg *const msg)
-{
-	int err;
-
-	err = nl_send_auto_complete(sock, msg);
-	nlmsg_free(msg);
-
-	if (err <= 0) {
-		nl_perror(err, "failed to send netlink message");
-		return false;
-	}
-
-	err = nl_wait_for_ack(sock);
-	if (err < 0) {
-		nl_perror(err, "failed to receive ACK");
-		return false;
-	}
-	return true;
-}
-
 static int nl80211_ack_cb(__attribute__((unused)) struct nl_msg *msg, void *arg)
 {
 	int *ret = arg;
@@ -159,8 +136,16 @@ static int nl80211_err_cb(__attribute__((unused)) struct sockaddr_nl *nla,
 			  struct nlmsgerr *nlerr, __attribute__((unused)) void *arg)
 {
 	int *ret = arg;
-	*ret = nlerr->error; /* set error code */
+	/* as we want to treat the error like other errors from recvmsg, and
+	 * print it with nl_perror, we need to convert the error code to libnl
+	 * error codes like it is done in the verbose error handler of libnl */
+	*ret = -nl_syserr2nlerr(nlerr->error);
 	return NL_STOP;
+}
+
+static int nl80211_default_cb(__attribute__((unused)) struct nl_msg *msg,
+			      __attribute__((unused)) void *arg) {
+	return NL_SKIP;
 }
 
 /**
@@ -184,6 +169,8 @@ static bool nl80211_send_recv(struct nl_sock *const sock, struct nl_msg *const m
 	cb = nl_cb_alloc(NL_CB_DEFAULT);
 	if (cb_func != NULL)
 		nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, cb_func, cb_arg);
+	else
+		nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, nl80211_default_cb, NULL);
 
 	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, nl80211_ack_cb, &err);
 	nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, nl80211_finish_cb, &err);
@@ -204,11 +191,19 @@ static bool nl80211_send_recv(struct nl_sock *const sock, struct nl_msg *const m
 	nl_cb_put(cb);
 
 	if (err < 0) {
-		nl_perror(err, "failed to receive netlink message");
+		nl_perror(err, "nl80211 message failed");
 		return false;
 	}
 
 	return true;
+}
+
+/**
+ * send message, free msg and wait for ACK
+ */
+static bool nl80211_send(struct nl_sock *const sock, struct nl_msg *const msg)
+{
+	return nl80211_send_recv(sock, msg, NULL, NULL); /* frees msg */
 }
 
 static struct nlattr** nl80211_parse(struct nl_msg *msg)
