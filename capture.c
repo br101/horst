@@ -34,26 +34,6 @@
 #include "main.h"
 
 
-static int
-device_index(int fd, const char *devname)
-{
-	struct ifreq req;
-
-	strncpy(req.ifr_name, devname, IFNAMSIZ - 1);
-	req.ifr_name[IFNAMSIZ - 1] = '\0';
-	req.ifr_addr.sa_family = AF_INET;
-
-	if (ioctl(fd, SIOCGIFINDEX, &req) < 0)
-		err(1, "Interface %s not found", devname);
-
-	if (req.ifr_ifindex < 0)
-		err(1, "Interface %s not found", devname);
-
-	DEBUG("index %d\n", req.ifr_ifindex);
-	return req.ifr_ifindex;
-}
-
-
 static void
 device_promisc(int fd, const char *devname, int on)
 {
@@ -140,7 +120,7 @@ open_packet_socket(char* devname, int recv_buffer_size)
 	}
 
 	/* bind only to one interface */
-	ifindex = device_index(mon_fd, devname);
+	ifindex = if_nametoindex(devname);
 
 	memset(&sall, 0, sizeof(struct sockaddr_ll));
 	sall.sll_ifindex = ifindex;
