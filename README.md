@@ -45,7 +45,7 @@ If you have an old or proprietary WLAN driver which only knows the deprecated
 
 To experimentally build for Mac OSX or other Unix using libpcap use:
 
-	$ make PCAP=1 WEXT=0 LIBNL=0
+	$ make PCAP=1 LIBNL=0
 
 Please note that PCAP and OSX support is not well tested and some features, like
 getting or setting the channel are not implemented on OSX.
