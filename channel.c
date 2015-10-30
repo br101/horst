@@ -112,7 +112,6 @@ channel_init(void) {
 	/* get available channels */
 	ifctrl_iwget_freqlist(conf.if_phy, &channels);
 
-
 	printf("Got %d Bands, %d Channels:\n", channels.num_bands, channels.num_channels);
 	for (int i = 0; i < channels.num_channels && i < MAX_CHANNELS; i++)
 		printf("%-3d: %d\n", channels.chan[i].chan, channels.chan[i].freq);
@@ -169,21 +168,18 @@ channel_get_struct(int i) {
 }
 
 
-void
-channel_set(int i, int chan, int freq) {
-	if (i < channels.num_channels && i < MAX_CHANNELS) {
-		channels.chan[i].chan = chan;
-		channels.chan[i].freq = freq;
-	}
+bool
+channel_list_add(int chan, int freq) {
+	if (channels.num_channels >=  MAX_CHANNELS)
+		return false;
+
+	channels.chan[channels.num_channels].chan = chan;
+	channels.chan[channels.num_channels].freq = freq;
+	channels.num_channels++;
+	return true;
 }
 
 int
 channel_get_num_channels() {
 	return channels.num_channels;
-}
-
-void
-channel_set_num_channels(int i) {
-	if (i < MAX_CHANNELS)
-		channels.num_channels = i;
 }

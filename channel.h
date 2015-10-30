@@ -66,17 +66,14 @@ channel_get_current_chan();
 int
 channel_get_num_channels();
 
-void
-channel_set_num_channels(int i);
-
 bool
 channel_init(void);
 
 struct chan_freq*
 channel_get_struct(int idx);
 
-void
-channel_set(int idx, int chan, int freq);
+bool
+channel_list_add(int chan, int freq);
 
 long
 channel_get_remaining_dwell_time(void);

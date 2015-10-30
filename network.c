@@ -413,7 +413,6 @@ static int
 net_receive_chan_list(unsigned char *buffer, size_t len)
 {
 	struct net_chan_list *nc;
-	int i;
 
 	if (len < sizeof(struct net_chan_list))
 		return 0;
@@ -423,15 +422,8 @@ net_receive_chan_list(unsigned char *buffer, size_t len)
 	if (len < sizeof(struct net_chan_list) + sizeof(struct net_chan_freq)*(nc->num_channels - 1))
 		return 0;
 
-	if (nc->num_channels > MAX_CHANNELS) {
-		printlog("ERR: server sent too many channels, truncated");
-		channel_set_num_channels(MAX_CHANNELS);
-	} else {
-		channel_set_num_channels(nc->num_channels);
-	}
-
-	for (i = 0; i < channel_get_num_channels(); i++) {
-		channel_set(i, nc->channel[i].chan, le32toh(nc->channel[i].freq));
+	for (int i = 0; i < nc->num_channels; i++) {
+		channel_list_add(nc->channel[i].chan, le32toh(nc->channel[i].freq));
 		DEBUG("NET recv chan %d %d %d\n", i, nc->channel[i].chan, le32toh(nc->channel[i].freq));
 	}
 	init_spectrum();
