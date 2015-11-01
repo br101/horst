@@ -322,7 +322,7 @@ bool ifctrl_iwget_interface_info(const char *const interface)
 
 	ret = nl80211_send_recv(sock, msg, nl80211_get_interface_info_cb, NULL); /* frees msg */
 	if (!ret)
-		fprintf(stderr, "failed to get interface info");
+		fprintf(stderr, "failed to get interface info\n");
 	return ret;
 }
 
@@ -376,7 +376,7 @@ bool ifctrl_iwget_freqlist(int phy, struct chan_freq chan[MAX_CHANNELS])
 
 	ret = nl80211_send_recv(sock, msg, nl80211_get_freqlist_cb, chan); /* frees msg */
 	if (!ret)
-		fprintf(stderr, "failed to get freqlist");
+		fprintf(stderr, "failed to get freqlist\n");
 	return ret;
 
 nla_put_failure:
