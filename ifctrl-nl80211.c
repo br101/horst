@@ -159,16 +159,13 @@ static bool nl80211_send_recv(struct nl_sock *const sock, struct nl_msg *const m
 	int err;
 	struct nl_cb *cb;
 
-	err = nl_send_auto_complete(sock, msg);
-	nlmsg_free(msg);
-
-	if (err <= 0) {
-		nl_perror(err, "failed to send netlink message");
+	/* set up callback */
+	cb = nl_cb_alloc(NL_CB_DEFAULT);
+	if (!cb) {
+		fprintf(stderr, "failed to allocate netlink callback\n");
 		return false;
 	}
 
-	/* set up callback */
-	cb = nl_cb_alloc(NL_CB_DEFAULT);
 	if (cb_func != NULL)
 		nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, cb_func, cb_arg);
 	else
@@ -177,6 +174,14 @@ static bool nl80211_send_recv(struct nl_sock *const sock, struct nl_msg *const m
 	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, nl80211_ack_cb, &err);
 	nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, nl80211_finish_cb, &err);
 	nl_cb_err(cb, NL_CB_CUSTOM, nl80211_err_cb, &err);
+
+	err = nl_send_auto_complete(sock, msg);
+	nlmsg_free(msg);
+
+	if (err <= 0) {
+		nl_perror(err, "failed to send netlink message");
+		return false;
+	}
 
 	/*
 	 * wait for reply message *and* ACK, or error
@@ -322,7 +327,7 @@ bool ifctrl_iwget_interface_info(const char *const interface)
 
 	ret = nl80211_send_recv(sock, msg, nl80211_get_interface_info_cb, NULL); /* frees msg */
 	if (!ret)
-		fprintf(stderr, "failed to get interface info");
+		fprintf(stderr, "failed to get interface info\n");
 	return ret;
 }
 
@@ -376,7 +381,7 @@ bool ifctrl_iwget_freqlist(int phy, struct chan_freq chan[MAX_CHANNELS])
 
 	ret = nl80211_send_recv(sock, msg, nl80211_get_freqlist_cb, chan); /* frees msg */
 	if (!ret)
-		fprintf(stderr, "failed to get freqlist");
+		fprintf(stderr, "failed to get freqlist\n");
 	return ret;
 
 nla_put_failure:
