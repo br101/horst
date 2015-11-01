@@ -159,14 +159,6 @@ static bool nl80211_send_recv(struct nl_sock *const sock, struct nl_msg *const m
 	int err;
 	struct nl_cb *cb;
 
-	err = nl_send_auto_complete(sock, msg);
-	nlmsg_free(msg);
-
-	if (err <= 0) {
-		nl_perror(err, "failed to send netlink message");
-		return false;
-	}
-
 	/* set up callback */
 	cb = nl_cb_alloc(NL_CB_DEFAULT);
 	if (!cb) {
@@ -182,6 +174,14 @@ static bool nl80211_send_recv(struct nl_sock *const sock, struct nl_msg *const m
 	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, nl80211_ack_cb, &err);
 	nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, nl80211_finish_cb, &err);
 	nl_cb_err(cb, NL_CB_CUSTOM, nl80211_err_cb, &err);
+
+	err = nl_send_auto_complete(sock, msg);
+	nlmsg_free(msg);
+
+	if (err <= 0) {
+		nl_perror(err, "failed to send netlink message");
+		return false;
+	}
 
 	/*
 	 * wait for reply message *and* ACK, or error
