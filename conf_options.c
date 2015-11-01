@@ -248,11 +248,11 @@ static bool conf_filter_pkt(const char* value) {
 		conf.filter_pkt |= PKT_TYPE_UDP;
 	else if (strcmp(value, "TCP") == 0)
 		conf.filter_pkt |= PKT_TYPE_TCP;
-	else if (strcmp(optarg, "OLSR") == 0)
+	else if (strcmp(value, "OLSR") == 0)
 		conf.filter_pkt |= PKT_TYPE_OLSR;
-	else if (strcmp(optarg, "BATMAN") == 0)
+	else if (strcmp(value, "BATMAN") == 0)
 		conf.filter_pkt |= PKT_TYPE_BATMAN;
-	else if (strcmp(optarg, "MESHZ") == 0)
+	else if (strcmp(value, "MESHZ") == 0)
 		conf.filter_pkt |= PKT_TYPE_MESHZ;
 
 	for (t = 0; t < WLAN_NUM_TYPES; t++) {
