@@ -169,6 +169,11 @@ static bool nl80211_send_recv(struct nl_sock *const sock, struct nl_msg *const m
 
 	/* set up callback */
 	cb = nl_cb_alloc(NL_CB_DEFAULT);
+	if (!cb) {
+		fprintf(stderr, "failed to allocate netlink callback\n");
+		return false;
+	}
+
 	if (cb_func != NULL)
 		nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, cb_func, cb_arg);
 	else
