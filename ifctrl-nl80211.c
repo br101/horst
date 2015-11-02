@@ -347,6 +347,31 @@ static int nl80211_get_freqlist_cb(struct nl_msg *msg, void *arg)
 		nla_parse(bands, NL80211_BAND_ATTR_MAX,
 		          nla_data(band), nla_len(band), NULL);
 
+		list->band[b].max_chan_width = CHAN_WIDTH_20; /* default */
+
+		if (bands[NL80211_BAND_ATTR_HT_CAPA]) {
+			u_int16_t cap = nla_get_u16(bands[NL80211_BAND_ATTR_HT_CAPA]);
+			if (cap & WLAN_IE_HT_CAPAB_INFO_CHAN_WIDTH_40)
+				list->band[b].max_chan_width = CHAN_WIDTH_40;
+		}
+
+		if (bands[NL80211_BAND_ATTR_VHT_CAPA]) {
+			u_int32_t vht = nla_get_u32(bands[NL80211_BAND_ATTR_VHT_CAPA]);
+			switch (((vht & WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH) >> 2)) {
+				case WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH_80:
+					list->band[b].max_chan_width = CHAN_WIDTH_80;
+					break;
+				case WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH_160:
+					list->band[b].max_chan_width = CHAN_WIDTH_160;
+					break;
+				case WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH_BOTH:
+					list->band[b].max_chan_width = CHAN_WIDTH_8080;
+					break;
+				case 3:
+					printf("(reserved)\n");
+			}
+		}
+
 		nla_for_each_nested(freq, bands[NL80211_BAND_ATTR_FREQS], freqs_remain)
 		{
 			nla_parse(freqs, NL80211_FREQUENCY_ATTR_MAX,

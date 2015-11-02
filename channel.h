@@ -31,8 +31,17 @@ struct chan_freq {
 	unsigned int freq;
 };
 
+enum chan_width {
+	CHAN_WIDTH_20,
+	CHAN_WIDTH_40,
+	CHAN_WIDTH_80,
+	CHAN_WIDTH_160,
+	CHAN_WIDTH_8080,
+};
+
 struct band_info {
 	int num_channels;
+	enum chan_width max_chan_width;
 };
 
 struct channel_list {
