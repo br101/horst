@@ -32,6 +32,7 @@ struct chan_freq {
 };
 
 enum chan_width {
+	CHAN_WIDTH_UNSPEC,
 	CHAN_WIDTH_20,
 	CHAN_WIDTH_40,
 	CHAN_WIDTH_80,
@@ -52,7 +53,7 @@ struct channel_list {
 };
 
 bool
-channel_change(int idx);
+channel_change(int idx, enum chan_width width, bool ht40plus);
 
 bool
 channel_auto_change(void);
@@ -86,5 +87,8 @@ channel_list_add(int chan, int freq);
 
 long
 channel_get_remaining_dwell_time(void);
+
+const char*
+get_chan_width_string(enum chan_width w);
 
 #endif

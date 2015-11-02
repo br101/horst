@@ -283,15 +283,36 @@ nla_put_failure:
 	return false;
 }
 
-bool ifctrl_iwset_freq(const char *const interface, unsigned int freq)
+bool ifctrl_iwset_freq(const char *const interface, unsigned int freq,
+		       enum chan_width width,
+		       unsigned int center1)
 {
 	struct nl_msg *msg;
+	int nl_width = NL80211_CHAN_WIDTH_20;
 
-	if (!nl80211_msg_prepare(&msg, NL80211_CMD_SET_WIPHY, interface))
+	if (!nl80211_msg_prepare(&msg, NL80211_CMD_SET_CHANNEL, interface))
 		return false;
 
+	switch (width) {
+		case CHAN_WIDTH_UNSPEC:
+		case CHAN_WIDTH_20:
+			nl_width = NL80211_CHAN_WIDTH_20; break;
+		case CHAN_WIDTH_40:
+			nl_width = NL80211_CHAN_WIDTH_40; break;
+		case CHAN_WIDTH_80:
+			nl_width = NL80211_CHAN_WIDTH_80; break;
+		case CHAN_WIDTH_160:
+			nl_width = NL80211_CHAN_WIDTH_160; break;
+		case CHAN_WIDTH_8080:
+			nl_width = NL80211_CHAN_WIDTH_80P80; break;
+	}
+
 	NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_FREQ, freq);
-	NLA_PUT_U32(msg, NL80211_ATTR_WIPHY_CHANNEL_TYPE, NL80211_CHAN_NO_HT);
+	NLA_PUT_U32(msg, NL80211_ATTR_CHANNEL_WIDTH, nl_width);
+
+	if (center1)
+		NLA_PUT_U32(msg, NL80211_ATTR_CENTER_FREQ1, center1);
+
 	return nl80211_send(sock, msg); /* frees msg */
 
 nla_put_failure:

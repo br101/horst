@@ -320,7 +320,7 @@ net_receive_conf_chan(unsigned char *buffer, size_t len)
 	conf.channel_time = le32toh(nc->dwell_time);
 
 	if (cli_fd > -1 && nc->channel != conf.channel_idx) /* server */
-		channel_change(nc->channel);
+		channel_change(nc->channel, CHAN_WIDTH_40, true); // TODO
 	else { /* client */
 		conf.channel_idx = nc->channel;
 		update_spectrum_durations();

@@ -78,13 +78,30 @@ static bool conf_receive_buffer(const char* value) {
 }
 
 static bool conf_channel_set(const char* value) {
+	bool ht40plus = false;
+	enum chan_width width = CHAN_WIDTH_20;
+
+	char* pos = strchr(value, '+');
+	if (pos != NULL) {
+		width = CHAN_WIDTH_40;
+		ht40plus = true;
+		*pos = '\0';
+	} else if ((pos = strchr(value, '-')) != NULL) {
+		width = CHAN_WIDTH_40;
+		ht40plus = false;
+		*pos = '\0';
+	}
+
 	int n = atoi(value);
 	if (conf.channel_initialized)
-	    channel_change(channel_find_index_from_chan(n));
-	else
-	    /* We have not yet initialized the channel module, channel will be
-	     * changed in channel_init(). */
-	    conf.channel_num_initial = n;
+		channel_change(channel_find_index_from_chan(n), width, ht40plus);
+	else {
+		/* We have not yet initialized the channel module, channel will be
+		* changed in channel_init(). */
+		conf.channel_num_initial = n;
+		conf.channel_width = width;
+		conf.channel_ht40plus = ht40plus;
+	}
 	return true;
 }
 

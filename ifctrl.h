@@ -65,7 +65,8 @@ bool ifctrl_flags(const char *interface, bool up, bool promisc);
  */
 bool ifctrl_iwset_monitor(const char *interface);
 
-bool ifctrl_iwset_freq(const char *const interface, unsigned int freq);
+bool ifctrl_iwset_freq(const char *const interface, unsigned int freq,
+		       enum chan_width width, unsigned int center1);
 
 bool ifctrl_iwget_interface_info(const char *interface);
 

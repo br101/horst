@@ -290,6 +290,7 @@ struct config {
 	int			channel_time;
 	int			channel_max;
 	int			channel_num_initial;
+	enum chan_width		channel_width;
 	int			channel_idx;	/* index into channels array */
 	int			channel_scan_rounds;
 	int			display_interval;
@@ -309,6 +310,7 @@ struct config {
 	unsigned int		filter_off:1,
 				filter_badfcs:1,
 				do_change_channel:1,
+				channel_ht40plus,	/* channel is HT40+ */
 				allow_client:1,
 				allow_control:1,
 				debug:1,

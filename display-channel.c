@@ -27,21 +27,60 @@
 #include "network.h"
 
 
+#define COL_BAND2 23
+
 void
 update_channel_win(WINDOW *win)
 {
+	int l = 2, c = 2;
+
 	box(win, 0 , 0);
 	print_centered(win, 0, 39, " Channel Settings ");
 
-	mvwprintw(win, 2, 2, "a: [%c] Automatically change channel",
+	wattron(win, WHITE);
+	for (int b = 0; b < channel_get_num_bands(); b++) {
+		l = 2;
+		wattron(win, A_BOLD);
+		mvwprintw(win, l++, b ? COL_BAND2 : 2, "Band %d (%s)", b + 1,
+			  channel_get_band_width_string(b));
+		wattroff(win, A_BOLD);
+		for (int i = 0; (c = channel_get_idx_from_band_idx(b, i)) != -1; i++) {
+			if (c == conf.channel_idx)
+				wattron(win, CYAN);
+			else
+				wattron(win, WHITE);
+			mvwprintw(win, l++, b ? COL_BAND2 : 2, "%s", channel_get_string(c));
+		}
+	}
+
+	wattroff(win, WHITE);
+
+	l = 17;
+	wattron(win, A_BOLD);
+	mvwprintw(win, l++, 2, "s: [%c] Scan",
 		  CHECKED(conf.do_change_channel));
-	mvwprintw(win, 3, 2, "d: Channel dwell time: %d ms   ",
+	wattroff(win, A_BOLD);
+	mvwprintw(win, l++, 2, "d: Dwell: %d ms   ",
 		  conf.channel_time/1000);
-	mvwprintw(win, 4, 2, "u: Upper channel limit: %d  ", conf.channel_max);
+	mvwprintw(win, l++, 2, "u: Upper limit: %d  ", conf.channel_max);
 
-	mvwprintw(win, 6, 2, "m: Manually change channel: %d  ", channel_get_current_chan());
+	l++;
+	wattron(win, A_BOLD);
+	mvwprintw(win, l++, 2, "m: Set channel: %d  ", channel_get_current_chan());
+	wattroff(win, A_BOLD);
+	mvwprintw(win, l++, 2, "2: [%c] HT20",
+		CHECKED(conf.channel_width == CHAN_WIDTH_20));
+	mvwprintw(win, l++, 2, "4: [%c] HT40-",
+		CHECKED(conf.channel_width == CHAN_WIDTH_40 && !conf.channel_ht40plus));
+	mvwprintw(win, l++, 2, "5: [%c] HT40+",
+		CHECKED(conf.channel_width == CHAN_WIDTH_40 && conf.channel_ht40plus));
+	mvwprintw(win, l++, 2, "8: [%c] VHT80",
+		CHECKED(conf.channel_width == CHAN_WIDTH_80));
+	mvwprintw(win, l++, 2, "6: [%c] VHT160",
+		CHECKED(conf.channel_width == CHAN_WIDTH_160));
 
-	print_centered(win, 8, 39, "[ Press key or ENTER ]");
+	l++;
+	print_centered(win, l++, 39, "[ Press key or ENTER ]");
 
 	wrefresh(win);
 }
@@ -54,14 +93,14 @@ channel_input(WINDOW *win, int c)
 	int x;
 
 	switch (c) {
-	case 'a': case 'A':
+	case 's': case 'S':
 		conf.do_change_channel = conf.do_change_channel ? 0 : 1;
 		break;
 
 	case 'd': case 'D':
 		echo();
 		curs_set(1);
-		mvwgetnstr(win, 3, 25, buf, 6);
+		mvwgetnstr(win, 18, 12, buf, 6);
 		curs_set(0);
 		noecho();
 		sscanf(buf, "%d", &x);
@@ -71,7 +110,7 @@ channel_input(WINDOW *win, int c)
 	case 'u': case 'U':
 		echo();
 		curs_set(1);
-		mvwgetnstr(win, 4, 26, buf, 6);
+		mvwgetnstr(win, 19, 18, buf, 6);
 		curs_set(0);
 		noecho();
 		sscanf(buf, "%d", &x);
@@ -81,17 +120,42 @@ channel_input(WINDOW *win, int c)
 	case 'm': case 'M':
 		echo();
 		curs_set(1);
-		mvwgetnstr(win, 6, 30, buf, 3);
+		mvwgetnstr(win, 21, 18, buf, 3);
 		curs_set(0);
 		noecho();
 		sscanf(buf, "%d", &x);
-		x = channel_find_index_from_chan(x);
-		if (x >= 0) {
-			if (!conf.serveraddr[0] != '\0')
-				channel_change(x);
-			else
-				conf.channel_idx = x;
+		int i = channel_find_index_from_chan(x);
+		if (i >= 0) {
+			if (!conf.serveraddr[0] != '\0') {
+				if (!channel_change(i, conf.channel_width, conf.channel_ht40plus))
+					printlog("Channel %d %s%c is not available/allowed", x,
+						channel_get_width_string(conf.channel_width),
+						conf.channel_ht40plus ? '+' : '-');
+			} else
+				conf.channel_idx = i;
 		}
+		break;
+
+	case '2':
+		conf.channel_width = CHAN_WIDTH_20;
+		break;
+
+	case '4':
+		conf.channel_width = CHAN_WIDTH_40;
+		conf.channel_ht40plus = false;
+		break;
+
+	case '5':
+		conf.channel_width = CHAN_WIDTH_40;
+		conf.channel_ht40plus = true;
+		break;
+
+	case '8':
+		conf.channel_width = CHAN_WIDTH_80;
+		break;
+
+	case '6':
+		conf.channel_width = CHAN_WIDTH_160;
 		break;
 
 	default:
