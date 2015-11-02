@@ -291,6 +291,55 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 }
 
 
+void
+wlan_parse_information_elements(unsigned char *buf, int len, struct packet_info *p) {
+
+	while (len > 2) {
+		struct information_element* ie = (struct information_element*)buf;
+		//DEBUG("------ IE %d len %d t len %d\n", ie->id, ie->len, len);
+
+		switch (ie->id) {
+		case WLAN_IE_ID_SSID:
+			if (ie->len < WLAN_MAX_SSID_LEN-1) {
+				memcpy(p->wlan_essid, ie->var, ie->len);
+				p->wlan_essid[ie->len] = '\0';
+			} else {
+				memcpy(p->wlan_essid, ie->var, WLAN_MAX_SSID_LEN-1);
+				p->wlan_essid[WLAN_MAX_SSID_LEN-1] = '\0';
+			}
+			break;
+
+		case WLAN_IE_ID_DSSS_PARAM:
+			p->wlan_channel = *ie->var;
+			break;
+
+		case WLAN_IE_ID_RSN:
+			p->wlan_rsn = 1;
+			break;
+
+		case WLAN_IE_ID_VHT_CAPAB:
+		case WLAN_IE_ID_VHT_OPER:
+		case WLAN_IE_ID_VHT_OMN:
+			DEBUG("VHT\n");
+			p->wlan_vht = 1;
+			break;
+
+		case WLAN_IE_ID_VENDOR:
+			if (ie->len >= 4 &&
+			    ie->var[0] == 0x00 && ie->var[1] == 0x50 && ie->var[2] == 0xf2 && /* Microsoft OUI (00:50:F2) */
+			    ie->var[3] == 1) {	/* OUI Type 1 - WPA IE */
+				p->wlan_wpa=1;
+			}
+
+			break;
+		}
+
+		buf += (ie->len + 2);
+		len -= (ie->len + 2);
+	}
+}
+
+
 /* return rest of packet length (may be 0) or -1 on error */
 static int
 parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
