@@ -25,9 +25,8 @@
 #include "channel.h"
 
 
-static struct chan_freq channels[MAX_CHANNELS];
 static struct timeval last_channelchange;
-
+static struct channel_list channels;
 
 long
 channel_get_remaining_dwell_time(void)
@@ -46,8 +45,8 @@ channel_get_remaining_dwell_time(void)
 bool
 channel_change(int idx)
 {
-	if (!ifctrl_iwset_freq(conf.ifname, channels[idx].freq)) {
-		printlog("ERROR: could not set channel %d", channels[idx].chan);
+	if (!ifctrl_iwset_freq(conf.ifname, channels.chan[idx].freq)) {
+		printlog("ERROR: could not set channel %d", channels.chan[idx].chan);
 		return false;
 	}
 	conf.channel_idx = idx;
@@ -84,7 +83,7 @@ channel_auto_change(void)
 		start_idx = new_idx = conf.channel_idx;
 		do {
 			new_idx = new_idx + 1;
-			if (new_idx >= conf.num_channels ||
+			if (new_idx >= channels.num_channels ||
 			    new_idx >= MAX_CHANNELS ||
 			    (conf.channel_max &&
 			     channel_get_chan_from_idx(new_idx) > conf.channel_max))
@@ -111,7 +110,13 @@ channel_get_current_chan() {
 bool
 channel_init(void) {
 	/* get available channels */
-	ifctrl_iwget_freqlist(conf.if_phy, channels);
+	ifctrl_iwget_freqlist(conf.if_phy, &channels);
+
+
+	printf("Got %d Bands, %d Channels:\n", channels.num_bands, channels.num_channels);
+	for (int i = 0; i < channels.num_channels && i < MAX_CHANNELS; i++)
+		printf("%-3d: %d\n", channels.chan[i].chan, channels.chan[i].freq);
+
 	conf.channel_idx = channel_find_index_from_freq(conf.if_freq);
 
 	if (conf.channel_num_initial > 0) {
@@ -129,19 +134,19 @@ int
 channel_find_index_from_chan(int c)
 {
 	int i = -1;
-	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++)
-		if (channels[i].chan == c)
+	for (i = 0; i < channels.num_channels && i < MAX_CHANNELS; i++)
+		if (channels.chan[i].chan == c)
 			return i;
 	return -1;
 }
 
 
 int
-channel_find_index_from_freq(int f)
+channel_find_index_from_freq(unsigned int f)
 {
 	int i = -1;
-	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++)
-		if (channels[i].freq == f)
+	for (i = 0; i < channels.num_channels && i < MAX_CHANNELS; i++)
+		if (channels.chan[i].freq == f)
 			return i;
 	return -1;
 }
@@ -149,8 +154,8 @@ channel_find_index_from_freq(int f)
 
 int
 channel_get_chan_from_idx(int i) {
-	if (i >= 0 && i < conf.num_channels && i < MAX_CHANNELS)
-		return channels[i].chan;
+	if (i >= 0 && i < channels.num_channels && i < MAX_CHANNELS)
+		return channels.chan[i].chan;
 	else
 		return -1;
 }
@@ -158,16 +163,27 @@ channel_get_chan_from_idx(int i) {
 
 struct chan_freq*
 channel_get_struct(int i) {
-	if (i < conf.num_channels && i < MAX_CHANNELS)
-		return &channels[i];
+	if (i < channels.num_channels && i < MAX_CHANNELS)
+		return &channels.chan[i];
 	return NULL;
 }
 
 
 void
 channel_set(int i, int chan, int freq) {
-	if (i < conf.num_channels && i < MAX_CHANNELS) {
-		channels[i].chan = chan;
-		channels[i].freq = freq;
+	if (i < channels.num_channels && i < MAX_CHANNELS) {
+		channels.chan[i].chan = chan;
+		channels.chan[i].freq = freq;
 	}
+}
+
+int
+channel_get_num_channels() {
+	return channels.num_channels;
+}
+
+void
+channel_set_num_channels(int i) {
+	if (i < MAX_CHANNELS)
+		channels.num_channels = i;
 }

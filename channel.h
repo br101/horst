@@ -22,12 +22,24 @@
 
 #include <stdbool.h>
 
+#define MAX_BANDS		2
 #define MAX_CHANNELS		64
 
 /* channel to frequency mapping */
 struct chan_freq {
-	int			chan;
-	int			freq;
+	int chan;
+	unsigned int freq;
+};
+
+struct band_info {
+	int num_channels;
+};
+
+struct channel_list {
+	struct chan_freq chan[MAX_CHANNELS];
+	int num_channels;
+	struct band_info band[MAX_BANDS];
+	int num_bands;
 };
 
 bool
@@ -40,7 +52,7 @@ int
 channel_find_index_from_chan(int c);
 
 int
-channel_find_index_from_freq(int f);
+channel_find_index_from_freq(unsigned int f);
 
 void
 get_current_channel(int mon);
@@ -50,6 +62,12 @@ channel_get_chan_from_idx(int idx);
 
 int
 channel_get_current_chan();
+
+int
+channel_get_num_channels();
+
+void
+channel_set_num_channels(int i);
 
 bool
 channel_init(void);

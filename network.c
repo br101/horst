@@ -383,7 +383,8 @@ net_send_chan_list(int fd)
 	struct net_chan_list *nc;
 	int i;
 
-	buf = malloc(sizeof(struct net_chan_list) + sizeof(struct net_chan_freq)*(conf.num_channels - 1));
+	buf = malloc(sizeof(struct net_chan_list) +
+		sizeof(struct net_chan_freq)*(channel_get_num_channels() - 1));
 	if (buf == NULL)
 		return;
 
@@ -391,7 +392,7 @@ net_send_chan_list(int fd)
 	nc->proto.version = PROTO_VERSION;
 	nc->proto.type	= PROTO_CHAN_LIST;
 
-	for (i = 0; i < conf.num_channels && i < MAX_CHANNELS; i++) {
+	for (i = 0; i < channel_get_num_channels(); i++) {
 		struct chan_freq* cf = channel_get_struct(i);
 		if (cf != NULL) {
 			nc->channel[i].chan = cf->chan;
@@ -424,12 +425,12 @@ net_receive_chan_list(unsigned char *buffer, size_t len)
 
 	if (nc->num_channels > MAX_CHANNELS) {
 		printlog("ERR: server sent too many channels, truncated");
-		conf.num_channels = MAX_CHANNELS;
+		channel_set_num_channels(MAX_CHANNELS);
 	} else {
-		conf.num_channels = nc->num_channels;
+		channel_set_num_channels(nc->num_channels);
 	}
 
-	for (i = 0; i < conf.num_channels; i++) {
+	for (i = 0; i < channel_get_num_channels(); i++) {
 		channel_set(i, nc->channel[i].chan, le32toh(nc->channel[i].freq));
 		DEBUG("NET recv chan %d %d %d\n", i, nc->channel[i].chan, le32toh(nc->channel[i].freq));
 	}

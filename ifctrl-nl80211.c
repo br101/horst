@@ -333,14 +333,14 @@ bool ifctrl_iwget_interface_info(const char *const interface)
 
 static int nl80211_get_freqlist_cb(struct nl_msg *msg, void *arg)
 {
-	int bands_remain, freqs_remain, i = 0;
+	int bands_remain, freqs_remain, i = 0, b = 0;
 
 	struct nlattr **attr = nl80211_parse(msg);
 	struct nlattr *bands[NL80211_BAND_ATTR_MAX + 1];
 	struct nlattr *freqs[NL80211_FREQUENCY_ATTR_MAX + 1];
 	struct nlattr *band, *freq;
 
-	struct chan_freq* chan = arg;
+	struct channel_list* list = arg;
 
 	nla_for_each_nested(band, attr[NL80211_ATTR_WIPHY_BANDS], bands_remain)
 	{
@@ -356,20 +356,26 @@ static int nl80211_get_freqlist_cb(struct nl_msg *msg, void *arg)
 			    freqs[NL80211_FREQUENCY_ATTR_DISABLED])
 				continue;
 
-			chan[i].freq = nla_get_u32(freqs[NL80211_FREQUENCY_ATTR_FREQ]);
-			chan[i].chan = ieee80211_freq2channel(chan[i].freq);
+			list->chan[i].freq = nla_get_u32(freqs[NL80211_FREQUENCY_ATTR_FREQ]);
+			list->chan[i].chan = ieee80211_freq2channel(list->chan[i].freq);
 
 			if (++i >= MAX_CHANNELS)
-				return NL_SKIP;
+				goto end;
 		}
+
+		list->band[b].num_channels = b == 0 ? i : i - list->band[0].num_channels;
+
+		if (++b >= MAX_BANDS)
+			goto end;
 	}
 
-	conf.num_channels = i;
-
+end:
+	list->num_channels = i;
+	list->num_bands = b;
 	return NL_SKIP;
 }
 
-bool ifctrl_iwget_freqlist(int phy, struct chan_freq chan[MAX_CHANNELS])
+bool ifctrl_iwget_freqlist(int phy, struct channel_list* channels)
 {
 	struct nl_msg *msg;
 	bool ret;
@@ -379,7 +385,7 @@ bool ifctrl_iwget_freqlist(int phy, struct chan_freq chan[MAX_CHANNELS])
 
 	NLA_PUT_U32(msg, NL80211_ATTR_WIPHY, phy);
 
-	ret = nl80211_send_recv(sock, msg, nl80211_get_freqlist_cb, chan); /* frees msg */
+	ret = nl80211_send_recv(sock, msg, nl80211_get_freqlist_cb, channels); /* frees msg */
 	if (!ret)
 		fprintf(stderr, "failed to get freqlist\n");
 	return ret;

@@ -501,7 +501,7 @@ free_lists(void)
 	}
 
 	/* free channel nodes */
-	for (i = 0; i < conf.num_channels; i++) {
+	for (i = 0; i < channel_get_num_channels(); i++) {
 		list_for_each_safe(&spectrum[i].nodes, cn, cn2, chan_list) {
 			DEBUG("free chan_node %p\n", cn);
 			list_del(&cn->chan_list);
