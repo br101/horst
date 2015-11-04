@@ -438,11 +438,12 @@ config_get_getopt_string(char* buf, size_t maxlen, const char* add) {
 
 
 void print_usage(const char* name) {
-	printf("\nUsage: %s [-h] [-q] [-D] [-a] [-c file] [-i interface] [-t sec] [-d ms] [-V view] [-b bytes]\n"
+	printf("\nUsage: %s [-v] [-h] [-q] [-D] [-a] [-c file] [-i interface] [-t sec] [-d ms] [-V view] [-b bytes]\n"
 		"\t\t[-s] [-u] [-N] [-n IP] [-p port] [-o file] [-X[name]] [-x command]\n"
 		"\t\t[][-e MAC] [-f PKT_NAME] [-m MODE] [-B BSSID]\n\n"
 
 		"General Options: Description (default value)\n"
+		"  -v\t\tshow version\n"
 		"  -h\t\tHelp\n"
 		"  -q\t\tQuiet, no output\n"
 #if DO_DEBUG
@@ -492,7 +493,7 @@ config_parse_file_and_cmdline(int argc, char** argv)
 	char* conf_filename = CONFIG_FILE;
 	int c;
 
-	config_get_getopt_string(getopt_str, sizeof(getopt_str), "hc:x:");
+	config_get_getopt_string(getopt_str, sizeof(getopt_str), "hvc:x:");
 
 	/* first: apply default values */
 	config_apply_defaults();
@@ -507,6 +508,9 @@ config_parse_file_and_cmdline(int argc, char** argv)
 			printlog("Using config file '%s'", optarg);
 			conf_filename = optarg;
 			break;
+		case 'v':
+			printf("version %s - build date: %s %s\n", VERSION, __DATE__, __TIME__);
+			exit(0);
 		case 'h':
 		case '?':
 			print_usage(argv[0]);
