@@ -8,47 +8,48 @@
 horst \- Highly Optimized Radio Scanning Tool
 .SH SYNOPSIS
 .B horst
+.RB [\| \-v \|]
 .RB [\| \-h \|]
 .RB [\| \-q \|]
 .RB [\| \-D \|]
 .RB [\| \-a \|]
-.RB [\| \-c 
-.IR file \|] 
+.RB [\| \-c
+.IR file \|]
 .RB [\| \-C
-.IR channel \|] 
-.RB [\| \-i 
-.IR interface \|] 
+.IR channel \|]
+.RB [\| \-i
+.IR interface \|]
 .RB [\| \-t
-.IR sec \|] 
+.IR sec \|]
 .RB [\| \-V
-.IR view \|] 
+.IR view \|]
 .RB [\| \-d
-.IR ms \|] 
+.IR ms \|]
 .RB [\| \-b
 .IR bytes \|]
 .RB [\| \-M
 .IR file \|]
-.RB [\| \-s \|] 
+.RB [\| \-s \|]
 .RB [\| \-u \|]
-.RB [\| \-N \|] 
+.RB [\| \-N \|]
 .RB [\| \-n
-.IR IP \|] 
+.IR IP \|]
 .RB [\| \-p
 .IR port \|]
 .RB [\| \-o
-.IR file \|] 
+.IR file \|]
 .RB [\| \-X
 .IR name \|]
 .RB [\| \-x
 .IR command \|]
 .RB [\| \-e
-.IR mac \|] 
+.IR mac \|]
 .RB [\| \-f
-.IR pkt_name \|] 
+.IR pkt_name \|]
 .RB [\| \-m
-.IR mode \|] 
+.IR mode \|]
 .RB [\| \-B
-.IR BSSID \|] 
+.IR BSSID \|]
 
 .SH DESCRIPTION
 \fBhorst\fP is a small, lightweight IEEE802.11 wireless LAN analyzer
@@ -89,6 +90,9 @@ Can be controlled via a named pipe.
 See MONITOR MODE below for more information about the network interface setup.
 
 .SH OPTIONS
+.TP
+.BI \-v
+Show version.
 .TP
 .BI \-h
 Show summary of options.
@@ -540,7 +544,7 @@ iw wlan0 interface add mon0 type monitor
 or
 
 sudo iw wlan1 set type monitor
-sudo iw wlan1 set channel 6 
+sudo iw wlan1 set channel 6
 
 .fi
 
