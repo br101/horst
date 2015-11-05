@@ -250,14 +250,14 @@ void vht_streams_from_mcs_set(unsigned char* mcs, unsigned char* rx, unsigned ch
 const char* get_80211std(enum chan_width width, int chan) {
 	switch (width) {
 		case CHAN_WIDTH_UNSPEC:
-			return chan > 14 ? "A" : "BG";
+			return chan > 14 ? "a" : "bg";
 		case CHAN_WIDTH_20:
 		case CHAN_WIDTH_40:
-			return "N";
+			return "n";
 		case CHAN_WIDTH_80:
 		case CHAN_WIDTH_160:
 		case CHAN_WIDTH_8080:
-			return "AC";
+			return "ac";
 		default:
 			return "?";
 	}
