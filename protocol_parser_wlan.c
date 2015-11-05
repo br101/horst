@@ -323,6 +323,11 @@ wlan_parse_information_elements(unsigned char *buf, int len, struct packet_info 
 				p->wlan_chan_width = CHAN_WIDTH_40;
 			else
 				p->wlan_chan_width = CHAN_WIDTH_20;
+
+			if (ie->len >= 26) {
+				ht_streams_from_mcs_set(&ie->var[3], &p->wlan_rx_streams, &p->wlan_tx_streams);
+				DEBUG("STREAMS %dx%d\n", p->wlan_tx_streams, p->wlan_rx_streams);
+			}
 			break;
 
 		case WLAN_IE_ID_HT_OPER:
@@ -345,7 +350,11 @@ wlan_parse_information_elements(unsigned char *buf, int len, struct packet_info 
 
 		case WLAN_IE_ID_VHT_CAPAB:
 			DEBUG("VHT %d %x\n", ie->len, ie->var[0]);
-			p->wlan_chan_width = chan_width_from_vht_capab(ie->var[0]);
+			if (ie->len >= 12) {
+				p->wlan_chan_width = chan_width_from_vht_capab(ie->var[0]);
+				vht_streams_from_mcs_set(&ie->var[4], &p->wlan_rx_streams, &p->wlan_tx_streams);
+				DEBUG("VHT STREAMS %dx%d\n", p->wlan_tx_streams, p->wlan_rx_streams);
+			}
 			break;
 
 		case WLAN_IE_ID_VENDOR:

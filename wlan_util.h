@@ -54,6 +54,12 @@ mcs_index_to_rate(int mcs, int ht20, int lgi);
 enum chan_width
 chan_width_from_vht_capab(u_int32_t vht);
 
+void
+ht_streams_from_mcs_set(unsigned char* mcs, unsigned char* rx, unsigned char* tx);
+
+void
+vht_streams_from_mcs_set(unsigned char* mcs, unsigned char* rx, unsigned char* tx);
+
 const char* get_80211std(enum chan_width width, int chan);
 
 #endif

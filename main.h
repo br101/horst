@@ -120,6 +120,8 @@ struct packet_info {
 	unsigned int		wlan_mode;	/* AP, STA or IBSS */
 	unsigned char		wlan_channel;	/* channel from beacon, probe */
 	enum chan_width		wlan_chan_width;
+	unsigned char		wlan_tx_streams;
+	unsigned char		wlan_rx_streams;
 	unsigned char		wlan_qos_class;	/* for QDATA frames */
 	unsigned int		wlan_nav;	/* frame NAV duration */
 	unsigned int		wlan_seqno;	/* sequence number */
@@ -182,6 +184,9 @@ struct node_info {
 	struct essid_info*	essid;
 	struct node_info*	wlan_ap_node;
 	enum chan_width		wlan_chan_width;
+	unsigned char		wlan_tx_streams;
+	unsigned char		wlan_rx_streams;
+
 
 	unsigned int		wlan_wep:1,	/* WEP active? */
 				wlan_wpa:1,

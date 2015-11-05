@@ -196,6 +196,7 @@ mcs_index_to_rate(int mcs, int ht20, int lgi)
 	return 0;
 }
 
+
 enum chan_width chan_width_from_vht_capab(u_int32_t vht) {
 	switch (((vht & WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH) >> 2)) {
 		case WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH_80: return CHAN_WIDTH_80;
@@ -204,6 +205,47 @@ enum chan_width chan_width_from_vht_capab(u_int32_t vht) {
 		default: printf("(reserved)\n"); return CHAN_WIDTH_UNSPEC;
 	}
 }
+
+/* Note: mcs must be at least 13 bytes long! In theory its 16 byte */
+void ht_streams_from_mcs_set(unsigned char* mcs, unsigned char* rx, unsigned char* tx) {
+	int i;
+	for (i = 0; i < 4; i++) {
+		if (!mcs[i])
+			break;
+	}
+	*rx = i;
+
+	bool tx_mcs_defined = mcs[12] & 0x01;
+	bool tx_rx_mcs_not_equal = !!(mcs[12] & 0x02);
+	char tx_max_streams = !!((mcs[12] & 0x0c) >> 2);
+
+	if (tx_mcs_defined && !tx_rx_mcs_not_equal)
+		*tx = *rx;
+	else if (tx_mcs_defined && tx_rx_mcs_not_equal)
+		*tx = tx_max_streams;
+}
+
+
+/* Note: mcs must be at least 6 bytes long! In theory its 8 byte */
+void vht_streams_from_mcs_set(unsigned char* mcs, unsigned char* rx, unsigned char* tx) {
+	int i;
+	/* RX */
+	u_int16_t tmp = mcs[0] | (mcs[1] << 8);
+	for (i = 0; i < 8; i++) {
+		if (((tmp >> (i*2)) & 3) == 3)
+			break;
+	}
+	*rx = i;
+
+	/* TX */
+	tmp = mcs[4] | (mcs[5] << 8);
+	for (i = 0; i < 8; i++) {
+		if (((tmp >> (i*2)) & 3) == 3)
+			break;
+	}
+	*tx = i;
+}
+
 
 const char* get_80211std(enum chan_width width, int chan) {
 	switch (width) {

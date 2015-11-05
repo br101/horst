@@ -54,6 +54,11 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		n->bat_gw = 1;
 	if (p->wlan_ht40plus)
 		n->wlan_ht40plus = 1;
+	if (p->wlan_tx_streams)
+		n->wlan_tx_streams = p->wlan_tx_streams;
+	if (p->wlan_rx_streams)
+		n->wlan_rx_streams = p->wlan_rx_streams;
+
 	if (p->wlan_bssid[0] != 0xff &&
 	    !(p->wlan_bssid[0] == 0 && p->wlan_bssid[1] == 0 &&
 	      p->wlan_bssid[2] == 0 && p->wlan_bssid[3] == 0 &&
