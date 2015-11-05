@@ -326,7 +326,7 @@ struct config {
 	int			paused;
 	int			if_type;
 	int			if_phy;
-	int			if_freq;
+	unsigned int		if_freq;
 };
 
 extern struct config conf;

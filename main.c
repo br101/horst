@@ -707,6 +707,9 @@ main(int argc, char** argv)
 			err(1, "failed to bring interface '%s' up",
 			    conf.ifname);
 
+		/* get info again, as chan width is only available on UP interfaces */
+		ifctrl_iwget_interface_info(conf.ifname);
+
 		mon = open_packet_socket(conf.ifname, conf.recv_buffer_size);
 		if (mon <= 0)
 			err(1, "Couldn't open packet socket");

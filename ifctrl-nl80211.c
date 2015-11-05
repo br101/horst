@@ -329,6 +329,30 @@ static int nl80211_get_interface_info_cb(struct nl_msg *msg,
 	if (tb[NL80211_ATTR_WIPHY_FREQ])
 		conf.if_freq = nla_get_u32(tb[NL80211_ATTR_WIPHY_FREQ]);
 
+	if (tb[NL80211_ATTR_CHANNEL_WIDTH]) {
+		int nlw = nla_get_u32(tb[NL80211_ATTR_CHANNEL_WIDTH]);
+		switch (nlw) {
+			case NL80211_CHAN_WIDTH_20_NOHT:
+			case NL80211_CHAN_WIDTH_20:
+				conf.channel_width = CHAN_WIDTH_20; break;
+			case NL80211_CHAN_WIDTH_40:
+				conf.channel_width = CHAN_WIDTH_40; break;
+			case NL80211_CHAN_WIDTH_80:
+				conf.channel_width = CHAN_WIDTH_80; break;
+			case NL80211_CHAN_WIDTH_160:
+				conf.channel_width = CHAN_WIDTH_160; break;
+			case NL80211_CHAN_WIDTH_80P80:
+				conf.channel_width = CHAN_WIDTH_8080; break;
+			default:
+				conf.channel_width = CHAN_WIDTH_UNSPEC; break;
+		}
+	}
+
+	if (conf.channel_width == CHAN_WIDTH_40 && tb[NL80211_ATTR_CENTER_FREQ1]) {
+		unsigned int center1 = nla_get_u32(tb[NL80211_ATTR_CENTER_FREQ1]);
+		conf.channel_ht40plus = center1 > conf.if_freq;
+	}
+
 	if (tb[NL80211_ATTR_IFTYPE])
 		conf.if_type = nla_get_u32(tb[NL80211_ATTR_IFTYPE]);
 
