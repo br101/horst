@@ -204,12 +204,14 @@ static void
 update_mini_status(void)
 {
 	wattron(stdscr, BLACKONWHITE);
-	mvwprintw(stdscr, LINES-1, COLS-27, conf.paused ? "|=" : "|>");
+	mvwprintw(stdscr, LINES-1, COLS-31, conf.paused ? "|=" : "|>");
 	if (!conf.filter_off && (conf.do_macfilter || conf.filter_pkt != PKT_TYPE_ALL || conf.filter_mode != WLAN_MODE_ALL))
-		mvwprintw(stdscr, LINES-1, COLS-25, "|F");
+		mvwprintw(stdscr, LINES-1, COLS-29, "|F");
 	else
-		mvwprintw(stdscr, LINES-1, COLS-25, "| ");
-	mvwprintw(stdscr, LINES-1, COLS-23, "|Ch%03d", channel_get_current_chan());
+		mvwprintw(stdscr, LINES-1, COLS-29, "| ");
+	mvwprintw(stdscr, LINES-1, COLS-27, "|Ch%03d@%s", channel_get_current_chan(),
+		channel_get_width_string_short(conf.channel_width, conf.channel_ht40plus));
+
 	wattroff(stdscr, BLACKONWHITE);
 	wnoutrefresh(stdscr);
 }
@@ -299,11 +301,14 @@ show_conf_window(int key)
 	if (conf_win == NULL) {
 		if (key == 'f') {
 			conf_win = newwin(FILTER_WIN_HEIGHT, FILTER_WIN_WIDTH,
-					  LINES/2-13, COLS/2-28);
+					  LINES/2-FILTER_WIN_HEIGHT/2,
+					  COLS/2-FILTER_WIN_WIDTH/2);
 			update_filter_win(conf_win);
 		}
 		else if (key == 'c') {
-			conf_win = newwin(9, 39, LINES/2-6, COLS/2-20);
+			conf_win = newwin(CHANNEL_WIN_HEIGHT, CHANNEL_WIN_WIDTH,
+					LINES/2-CHANNEL_WIN_HEIGHT/2,
+					COLS/2-CHANNEL_WIN_WIDTH/2);
 			update_channel_win(conf_win);
 		}
 		scrollok(conf_win, FALSE);

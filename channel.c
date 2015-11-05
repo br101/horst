@@ -98,13 +98,13 @@ static int get_center_freq_vht(unsigned int freq, enum chan_width width) {
 			printlog("VHT80+80 not supported");
 			break;
 		default:
-			printlog("%s is not VHT", get_chan_width_string(width));
+			printlog("%s is not VHT", channel_get_width_string(width));
 	}
 	return center1;
 }
 
 
-const char* get_chan_width_string(enum chan_width w) {
+const char* channel_get_width_string(enum chan_width w) {
 	switch (w) {
 		case CHAN_WIDTH_UNSPEC: return "Unspecified";
 		case CHAN_WIDTH_20: return "HT20";
@@ -116,6 +116,17 @@ const char* get_chan_width_string(enum chan_width w) {
 	return "";
 }
 
+const char* channel_get_width_string_short(enum chan_width w, bool ht40p) {
+	switch (w) {
+		case CHAN_WIDTH_UNSPEC: return "UNS";
+		case CHAN_WIDTH_20: return "20";
+		case CHAN_WIDTH_40: return ht40p ? "40+" : "40-";
+		case CHAN_WIDTH_80: return "80";
+		case CHAN_WIDTH_160: return "160";
+		case CHAN_WIDTH_8080: return "80+80";
+	}
+	return "";
+}
 
 /* Note: ht40plus is only used for HT40 channel width, to distinguish between
  * HT40+ and HT40- */
@@ -138,7 +149,7 @@ channel_change(int idx, enum chan_width width, bool ht40plus)
 			center1 = get_center_freq_vht(channels.chan[idx].freq, width);
 			break;
 		default:
-			printlog("%s not implemented", get_chan_width_string(width));
+			printlog("%s not implemented", channel_get_width_string(width));
 			break;
 	}
 
@@ -150,7 +161,7 @@ channel_change(int idx, enum chan_width width, bool ht40plus)
 	if (!ifctrl_iwset_freq(conf.ifname, channels.chan[idx].freq, width, center1)) {
 		printlog("ERROR: Failed to set CH %d (%d MHz) %s%c center %d",
 			channels.chan[idx].chan, channels.chan[idx].freq,
-			get_chan_width_string(width),
+			channel_get_width_string(width),
 			center1 > channels.chan[idx].freq ? '+' : '-',
 			center1);
 		return false;
@@ -158,7 +169,7 @@ channel_change(int idx, enum chan_width width, bool ht40plus)
 
 	printlog("Set CH %d (%d MHz) %s%c center %d",
 		channels.chan[idx].chan, channels.chan[idx].freq,
-		get_chan_width_string(width),
+		channel_get_width_string(width),
 		center1 > channels.chan[idx].freq ? '+' : '-',
 		center1);
 
@@ -230,6 +241,14 @@ channel_get_current_chan() {
 	return channel_get_chan_from_idx(conf.channel_idx);
 }
 
+char* channel_get_string(int idx) {
+	static char buf[32];
+	struct chan_freq* c = &channels.chan[idx];
+	snprintf(buf, sizeof(buf), "%-3d: %d HT40%s%s", c->chan, c->freq,
+			get_center_freq_ht40(c->freq, true) ? "+" : "",
+			get_center_freq_ht40(c->freq, false) ? "-" : "");
+	return buf;
+}
 
 bool
 channel_init(void) {
@@ -237,12 +256,8 @@ channel_init(void) {
 	ifctrl_iwget_freqlist(conf.if_phy, &channels);
 
 	printf("Got %d Bands, %d Channels:\n", channels.num_bands, channels.num_channels);
-	for (int i = 0; i < channels.num_channels && i < MAX_CHANNELS; i++) {
-		struct chan_freq* c = &channels.chan[i];
-		printf("%-3d: %d HT40%s%s\n", c->chan, c->freq,
-			get_center_freq_ht40(c->freq, true) ? "+" : "",
-			get_center_freq_ht40(c->freq, false) ? "-" : "");
-	}
+	for (int i = 0; i < channels.num_channels && i < MAX_CHANNELS; i++)
+		printf("%s\n", channel_get_string(i));
 
 	conf.channel_idx = channel_find_index_from_freq(conf.if_freq);
 
@@ -311,4 +326,30 @@ channel_list_add(int chan, int freq) {
 int
 channel_get_num_channels() {
 	return channels.num_channels;
+}
+
+int
+channel_get_num_bands() {
+	return channels.num_bands;
+}
+
+int
+channel_get_idx_from_band_idx(int band, int idx) {
+	if (band < 0 || band >= channels.num_bands)
+		return -1;
+
+	if (idx < 0 || idx >= channels.band[band].num_channels)
+		return -1;
+
+	if (band > 0)
+		idx = idx + channels.band[0].num_channels;
+
+	return idx;
+}
+
+const char* channel_get_band_width_string(int b) {
+	if (b < 0 || b > channels.num_bands)
+		return NULL;
+
+	return channel_get_width_string(channels.band[b].max_chan_width);
 }

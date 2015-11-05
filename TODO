@@ -1,5 +1,9 @@
 TODO:
 -----
-
+* extend network protocol for new chan and filters
+* calculate available bandwidth for info bars (Usage%) based on channel width
 * Detect 802.11n and 802.11ac and respective channel widths (40, 80 160)
+
+Later:
+
 * Integrate 'iw survey dump' info (noise)

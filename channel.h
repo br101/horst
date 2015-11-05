@@ -88,7 +88,22 @@ channel_list_add(int chan, int freq);
 long
 channel_get_remaining_dwell_time(void);
 
+char*
+channel_get_string(int idx);
+
 const char*
-get_chan_width_string(enum chan_width w);
+channel_get_width_string(enum chan_width w);
+
+const char*
+channel_get_width_string_short(enum chan_width w, bool ht40p);
+
+const char*
+channel_get_band_width_string(int b);
+
+int
+channel_get_num_bands();
+
+int
+channel_get_idx_from_band_idx(int band, int idx);
 
 #endif

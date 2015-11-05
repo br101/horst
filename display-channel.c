@@ -32,27 +32,31 @@
 void
 update_channel_win(WINDOW *win)
 {
-	int l = 2, c = 2;
+	int l = 2, c, col;
 
 	box(win, 0 , 0);
 	print_centered(win, 0, 39, " Channel Settings ");
 
 	wattron(win, WHITE);
 	for (int b = 0; b < channel_get_num_bands(); b++) {
-		l = 2;
+		c = channel_get_idx_from_band_idx(b, 0);
+		col = channel_get_chan_from_idx(c) > 14 ? COL_BAND2 : 2;
 		wattron(win, A_BOLD);
-		mvwprintw(win, l++, b ? COL_BAND2 : 2, "Band %d (%s)", b + 1,
-			  channel_get_band_width_string(b));
+		mvwprintw(win, 2, col, "%s: (%s)",
+			col == 2 ? "2.4GHz" : "5GHz",
+			channel_get_band_width_string(b));
 		wattroff(win, A_BOLD);
+		l = 3;
 		for (int i = 0; (c = channel_get_idx_from_band_idx(b, i)) != -1; i++) {
 			if (c == conf.channel_idx)
 				wattron(win, CYAN);
 			else
 				wattron(win, WHITE);
-			mvwprintw(win, l++, b ? COL_BAND2 : 2, "%s", channel_get_string(c));
+			mvwprintw(win, l++,
+				col,
+				"%s", channel_get_string(c));
 		}
 	}
-
 	wattroff(win, WHITE);
 
 	l = 17;
@@ -79,9 +83,8 @@ update_channel_win(WINDOW *win)
 	mvwprintw(win, l++, 2, "6: [%c] VHT160",
 		CHECKED(conf.channel_width == CHAN_WIDTH_160));
 
-	l++;
-	print_centered(win, l++, 39, "[ Press key or ENTER ]");
-
+	print_centered(win, CHANNEL_WIN_HEIGHT-1, CHANNEL_WIN_WIDTH,
+		       "[ Press key or ENTER ]");
 	wrefresh(win);
 }
 
