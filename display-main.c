@@ -239,7 +239,7 @@ update_status_win(struct packet_info* p)
 #define COL_RATE	COL_SIG + 4
 #define COL_SOURCE	COL_RATE + 4
 #define COL_MODE	COL_SOURCE + 18
-#define COL_WIDTH	COL_MODE + 9
+#define COL_WIDTH	COL_MODE + 6
 #define COL_ENC		COL_WIDTH + 11
 #define COL_ESSID	COL_ENC + 6
 #define COL_INFO	COL_ESSID + 13
@@ -289,21 +289,21 @@ print_node_list_line(int line, struct node_info* n)
 			ssid = n->essid->essid;
 	}
 	if (n->wlan_mode & WLAN_MODE_IBSS) {
-		wprintw(list_win, " ADH");
+		wprintw(list_win, " AD");
 		if (n->essid != NULL)
 			ssid = n->essid->essid;
 	}
 	if (n->wlan_mode & WLAN_MODE_STA) {
-		wprintw(list_win, " STA");
+		wprintw(list_win, " ST");
 		if (n->wlan_ap_node != NULL && n->wlan_ap_node->essid != NULL)
 			ssid = n->wlan_ap_node->essid->essid;
 	}
 	if (n->wlan_mode & WLAN_MODE_PROBE) {
-		wprintw(list_win, " PRB");
+		wprintw(list_win, " PR");
 		ssid = p->wlan_essid;
 	}
 	if (n->wlan_mode & WLAN_MODE_4ADDR) {
-			wprintw(list_win, " WDS");
+			wprintw(list_win, " 4A");
 	}
 
 	if (n->wlan_rsn && n->wlan_wpa)
