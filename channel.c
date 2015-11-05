@@ -174,6 +174,8 @@ channel_change(int idx, enum chan_width width, bool ht40plus)
 		center1);
 
 	conf.channel_idx = idx;
+	conf.channel_width = width;
+	conf.channel_ht40plus = ht40plus;
 	last_channelchange = the_time;
 	return true;
 }
@@ -261,13 +263,14 @@ channel_init(void) {
 
 	conf.channel_idx = channel_find_index_from_freq(conf.if_freq);
 
-	if (conf.channel_num_initial > 0) {
-		int ini_idx = channel_find_index_from_chan(conf.channel_num_initial);
-		if (!channel_change(ini_idx, conf.channel_width, conf.channel_ht40plus))
+	if (conf.channel_init_num > 0) {
+		int ini_idx = channel_find_index_from_chan(conf.channel_init_num);
+		if (!channel_change(ini_idx, conf.channel_init_width, conf.channel_init_ht40plus))
 			return false;
 	} else {
-		conf.channel_num_initial = channel_get_chan_from_idx(conf.channel_idx);
+		conf.channel_init_num = channel_get_chan_from_idx(conf.channel_idx);
 	}
+
 	conf.channel_initialized = 1;
 	return true;
 }

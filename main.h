@@ -298,7 +298,8 @@ struct config {
 	int			node_timeout;
 	int			channel_time;
 	int			channel_max;
-	int			channel_num_initial;
+	int			channel_init_num;
+	enum chan_width		channel_init_width;
 	enum chan_width		channel_width;
 	int			channel_idx;	/* index into channels array */
 	int			channel_scan_rounds;
@@ -319,7 +320,8 @@ struct config {
 	unsigned int		filter_off:1,
 				filter_badfcs:1,
 				do_change_channel:1,
-				channel_ht40plus,	/* channel is HT40+ */
+				channel_ht40plus:1,	/* channel is HT40+ */
+				channel_init_ht40plus:1,
 				allow_client:1,
 				allow_control:1,
 				debug:1,
