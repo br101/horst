@@ -176,6 +176,7 @@ struct information_element {
 #define WLAN_IE_ID_DSSS_PARAM	3
 #define WLAN_IE_ID_HT_CAPAB	45
 #define WLAN_IE_ID_RSN		48
+#define WLAN_IE_ID_HT_OPER	61
 #define WLAN_IE_ID_VHT_CAPAB	191
 #define WLAN_IE_ID_VHT_OPER	192
 #define WLAN_IE_ID_VHT_OMN	199
@@ -184,6 +185,8 @@ struct information_element {
 /* HT capability info */
 // present in Beacon, Assoc Req/Resp, Reassoc Req/Resp, Probe Req/Resp, Mesh Peering Open/Close
 #define WLAN_IE_HT_CAPAB_INFO_CHAN_WIDTH_40	0x0002
+
+#define WLAN_IE_HT_OPER_INFO_CHAN_OFFSET	0x0003
 
 /* VHT capability info */
 #define WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH	0x0000000c

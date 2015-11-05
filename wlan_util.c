@@ -195,3 +195,28 @@ mcs_index_to_rate(int mcs, int ht20, int lgi)
 	}
 	return 0;
 }
+
+enum chan_width chan_width_from_vht_capab(u_int32_t vht) {
+	switch (((vht & WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH) >> 2)) {
+		case WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH_80: return CHAN_WIDTH_80;
+		case WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH_160: return CHAN_WIDTH_160;
+		case WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH_BOTH: return CHAN_WIDTH_8080;
+		default: printf("(reserved)\n"); return CHAN_WIDTH_UNSPEC;
+	}
+}
+
+const char* get_80211std(enum chan_width width, int chan) {
+	switch (width) {
+		case CHAN_WIDTH_UNSPEC:
+			return chan > 14 ? "A" : "BG";
+		case CHAN_WIDTH_20:
+		case CHAN_WIDTH_40:
+			return "N";
+		case CHAN_WIDTH_80:
+		case CHAN_WIDTH_160:
+		case CHAN_WIDTH_8080:
+			return "AC";
+		default:
+			return "?";
+	}
+}

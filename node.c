@@ -52,6 +52,8 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		n->olsr_count++;
 	if (p->bat_gw)
 		n->bat_gw = 1;
+	if (p->wlan_ht40plus)
+		n->wlan_ht40plus = 1;
 	if (p->wlan_bssid[0] != 0xff &&
 	    !(p->wlan_bssid[0] == 0 && p->wlan_bssid[1] == 0 &&
 	      p->wlan_bssid[2] == 0 && p->wlan_bssid[3] == 0 &&
@@ -117,6 +119,9 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 			n->wlan_retries_last = 0;
 		n->wlan_seqno = p->wlan_seqno;
 	}
+
+	if (p->wlan_chan_width > n->wlan_chan_width)
+		n->wlan_chan_width = p->wlan_chan_width;
 }
 
 

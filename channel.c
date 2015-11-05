@@ -106,7 +106,7 @@ static int get_center_freq_vht(unsigned int freq, enum chan_width width) {
 
 const char* channel_get_width_string(enum chan_width w) {
 	switch (w) {
-		case CHAN_WIDTH_UNSPEC: return "Unspecified";
+		case CHAN_WIDTH_UNSPEC: return "";
 		case CHAN_WIDTH_20: return "HT20";
 		case CHAN_WIDTH_40: return "HT40";
 		case CHAN_WIDTH_80: return "VHT80";
@@ -118,7 +118,7 @@ const char* channel_get_width_string(enum chan_width w) {
 
 const char* channel_get_width_string_short(enum chan_width w, bool ht40p) {
 	switch (w) {
-		case CHAN_WIDTH_UNSPEC: return "UNS";
+		case CHAN_WIDTH_UNSPEC: return "";
 		case CHAN_WIDTH_20: return "20";
 		case CHAN_WIDTH_40: return ht40p ? "40+" : "40-";
 		case CHAN_WIDTH_80: return "80";

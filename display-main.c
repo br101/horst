@@ -239,7 +239,8 @@ update_status_win(struct packet_info* p)
 #define COL_RATE	COL_SIG + 4
 #define COL_SOURCE	COL_RATE + 4
 #define COL_MODE	COL_SOURCE + 18
-#define COL_ENC		COL_MODE + 9
+#define COL_WIDTH	COL_MODE + 9
+#define COL_ENC		COL_WIDTH + 9
 #define COL_ESSID	COL_ENC + 6
 #define COL_INFO	COL_ESSID + 13
 
@@ -274,6 +275,11 @@ print_node_list_line(int line, struct node_info* n)
 	mvwprintw(list_win, line, COL_RATE, "%3d", p->phy_rate/10);
 	mvwprintw(list_win, line, COL_SOURCE, "%-17s", mac_name_lookup(p->wlan_src, 0));
 
+	mvwprintw(list_win, line, COL_WIDTH, "%-2s %s",
+		get_80211std(n->wlan_chan_width, n->wlan_channel),
+		channel_get_width_string_short(n->wlan_chan_width, n->wlan_ht40plus));
+
+	wmove(list_win, line, COL_MODE-1);
 	if (n->wlan_mode & WLAN_MODE_AP) {
 		wprintw(list_win, " AP");
 		if (n->essid != NULL)
@@ -345,6 +351,7 @@ update_node_list_win(void)
 	mvwprintw(list_win, 0, COL_RATE, "RAT");
 	mvwprintw(list_win, 0, COL_SOURCE, "TRANSMITTER");
 	mvwprintw(list_win, 0, COL_MODE, "MODE");
+	mvwprintw(list_win, 0, COL_WIDTH, "ST-BW");
 	mvwprintw(list_win, 0, COL_ENC, "ENCR");
 	mvwprintw(list_win, 0, COL_ESSID, "ESSID");
 	mvwprintw(list_win, 0, COL_INFO, "INFO");

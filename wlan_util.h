@@ -51,4 +51,9 @@ rate_index_to_rate(int idx);
 int
 mcs_index_to_rate(int mcs, int ht20, int lgi);
 
+enum chan_width
+chan_width_from_vht_capab(u_int32_t vht);
+
+const char* get_80211std(enum chan_width width, int chan);
+
 #endif

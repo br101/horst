@@ -119,6 +119,7 @@ struct packet_info {
 	unsigned int		wlan_bintval;	/* beacon interval */
 	unsigned int		wlan_mode;	/* AP, STA or IBSS */
 	unsigned char		wlan_channel;	/* channel from beacon, probe */
+	enum chan_width		wlan_chan_width;
 	unsigned char		wlan_qos_class;	/* for QDATA frames */
 	unsigned int		wlan_nav;	/* frame NAV duration */
 	unsigned int		wlan_seqno;	/* sequence number */
@@ -128,7 +129,7 @@ struct packet_info {
 				wlan_retry:1,
 				wlan_wpa:1,
 				wlan_rsn:1,
-				wlan_vht:1;
+				wlan_ht40plus:1;
 
 	/* batman-adv */
 	unsigned char		bat_version;
@@ -180,10 +181,13 @@ struct node_info {
 	unsigned int		wlan_seqno;
 	struct essid_info*	essid;
 	struct node_info*	wlan_ap_node;
+	enum chan_width		wlan_chan_width;
 
 	unsigned int		wlan_wep:1,	/* WEP active? */
 				wlan_wpa:1,
-				wlan_rsn:1;
+				wlan_rsn:1,
+				wlan_ht40plus:1;
+
 
 	/* batman */
 	unsigned char		bat_gw:1;

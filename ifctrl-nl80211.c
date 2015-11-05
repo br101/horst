@@ -35,6 +35,7 @@
 
 #include "ifctrl.h"
 #include "main.h"
+#include "wlan_util.h"
 #include "ieee80211_util.h"
 
 #ifndef NL80211_GENL_NAME
@@ -402,19 +403,7 @@ static int nl80211_get_freqlist_cb(struct nl_msg *msg, void *arg)
 
 		if (bands[NL80211_BAND_ATTR_VHT_CAPA]) {
 			u_int32_t vht = nla_get_u32(bands[NL80211_BAND_ATTR_VHT_CAPA]);
-			switch (((vht & WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH) >> 2)) {
-				case WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH_80:
-					list->band[b].max_chan_width = CHAN_WIDTH_80;
-					break;
-				case WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH_160:
-					list->band[b].max_chan_width = CHAN_WIDTH_160;
-					break;
-				case WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH_BOTH:
-					list->band[b].max_chan_width = CHAN_WIDTH_8080;
-					break;
-				case 3:
-					printf("(reserved)\n");
-			}
+			list->band[b].max_chan_width = chan_width_from_vht_capab(vht);
 		}
 
 		nla_for_each_nested(freq, bands[NL80211_BAND_ATTR_FREQS], freqs_remain)

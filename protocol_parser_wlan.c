@@ -317,11 +317,35 @@ wlan_parse_information_elements(unsigned char *buf, int len, struct packet_info 
 			p->wlan_rsn = 1;
 			break;
 
-		case WLAN_IE_ID_VHT_CAPAB:
+		case WLAN_IE_ID_HT_CAPAB:
+			DEBUG("HT %d %x\n", ie->len, ie->var[0]);
+			if (ie->var[0] & WLAN_IE_HT_CAPAB_INFO_CHAN_WIDTH_40)
+				p->wlan_chan_width = CHAN_WIDTH_40;
+			else
+				p->wlan_chan_width = CHAN_WIDTH_20;
+			break;
+
+		case WLAN_IE_ID_HT_OPER:
+			DEBUG("HT OPER %d %x\n", ie->len, ie->var[0]);
+			if (ie->len > 1) {
+				switch (ie->var[1] & WLAN_IE_HT_OPER_INFO_CHAN_OFFSET) {
+					case 0: p->wlan_chan_width = CHAN_WIDTH_20; break;
+					case 1: p->wlan_ht40plus = true; break;
+					case 3: p->wlan_ht40plus = false; break;
+					default: DEBUG("HT OPER wrong?"); break;
+				}
+			}
+			break;
+
 		case WLAN_IE_ID_VHT_OPER:
 		case WLAN_IE_ID_VHT_OMN:
-			DEBUG("VHT\n");
-			p->wlan_vht = 1;
+			DEBUG("VHT OPER %d %x\n", ie->len, ie->var[0]);
+			p->wlan_chan_width = CHAN_WIDTH_80; /* minimum, otherwise not AC */
+			break;
+
+		case WLAN_IE_ID_VHT_CAPAB:
+			DEBUG("VHT %d %x\n", ie->len, ie->var[0]);
+			p->wlan_chan_width = chan_width_from_vht_capab(ie->var[0]);
 			break;
 
 		case WLAN_IE_ID_VENDOR:
