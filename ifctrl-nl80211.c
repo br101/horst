@@ -401,9 +401,21 @@ static int nl80211_get_freqlist_cb(struct nl_msg *msg, void *arg)
 				list->band[b].max_chan_width = CHAN_WIDTH_40;
 		}
 
+		if (bands[NL80211_BAND_ATTR_HT_MCS_SET] &&
+		    nla_len(bands[NL80211_BAND_ATTR_HT_MCS_SET]) == 16) {
+			ht_streams_from_mcs_set(nla_data(bands[NL80211_BAND_ATTR_HT_MCS_SET]),
+						&list->band[b].streams_rx, &list->band[b].streams_tx);
+		}
+
 		if (bands[NL80211_BAND_ATTR_VHT_CAPA]) {
 			u_int32_t vht = nla_get_u32(bands[NL80211_BAND_ATTR_VHT_CAPA]);
 			list->band[b].max_chan_width = chan_width_from_vht_capab(vht);
+		}
+
+		if (bands[NL80211_BAND_ATTR_VHT_MCS_SET] &&
+		    nla_len(bands[NL80211_BAND_ATTR_VHT_MCS_SET]) == 8) {
+			vht_streams_from_mcs_set(nla_data(bands[NL80211_BAND_ATTR_VHT_MCS_SET]),
+						&list->band[b].streams_rx, &list->band[b].streams_tx);
 		}
 
 		nla_for_each_nested(freq, bands[NL80211_BAND_ATTR_FREQS], freqs_remain)

@@ -42,9 +42,12 @@ update_channel_win(WINDOW *win)
 		c = channel_get_idx_from_band_idx(b, 0);
 		col = channel_get_chan_from_idx(c) > 14 ? COL_BAND2 : 2;
 		wattron(win, A_BOLD);
-		mvwprintw(win, 2, col, "%s: (%s)",
+		mvwprintw(win, 2, col, "%s: %s",
 			col == 2 ? "2.4GHz" : "5GHz",
 			channel_get_band_width_string(b));
+		const struct band_info* bp = channel_get_band(b);
+		if (bp->streams_rx || bp->streams_tx)
+			wprintw(win, " %dx%d", bp->streams_rx, bp->streams_tx);
 		wattroff(win, A_BOLD);
 		l = 3;
 		for (int i = 0; (c = channel_get_idx_from_band_idx(b, i)) != -1; i++) {

@@ -43,6 +43,8 @@ enum chan_width {
 struct band_info {
 	int num_channels;
 	enum chan_width max_chan_width;
+	unsigned char streams_rx;
+	unsigned char streams_tx;
 };
 
 struct channel_list {
@@ -105,5 +107,7 @@ channel_get_num_bands();
 
 int
 channel_get_idx_from_band_idx(int band, int idx);
+
+const struct band_info* channel_get_band(int b);
 
 #endif

@@ -356,3 +356,9 @@ const char* channel_get_band_width_string(int b) {
 
 	return channel_get_width_string(channels.band[b].max_chan_width);
 }
+
+const struct band_info* channel_get_band(int b) {
+	if (b < 0 || b > channels.num_bands)
+		return NULL;
+	return &channels.band[b];
+}
