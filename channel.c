@@ -257,22 +257,34 @@ bool
 channel_init(void) {
 	/* get available channels */
 	ifctrl_iwget_freqlist(conf.if_phy, &channels);
+	conf.channel_initialized = 1;
 
 	printf("Got %d Bands, %d Channels:\n", channels.num_bands, channels.num_channels);
 	for (int i = 0; i < channels.num_channels && i < MAX_CHANNELS; i++)
 		printf("%s\n", channel_get_string(i));
 
-	conf.channel_idx = channel_find_index_from_freq(conf.if_freq);
-
 	if (conf.channel_set_num > 0) {
+		/* configured values */
 		int ini_idx = channel_find_index_from_chan(conf.channel_set_num);
 		if (!channel_change(ini_idx, conf.channel_set_width, conf.channel_set_ht40plus))
 			return false;
 	} else {
+		conf.channel_idx = channel_find_index_from_freq(conf.if_freq);
 		conf.channel_set_num = channel_get_chan_from_idx(conf.channel_idx);
-	}
+		if (conf.channel_idx < 0)
+			return true; // not failure
 
-	conf.channel_initialized = 1;
+		/* try to set max width */
+		struct band_info b = channel_get_band_from_idx(conf.channel_idx);
+		if (conf.channel_width != b.max_chan_width) {
+			printlog("Try to set max channel width %s",
+				channel_get_width_string(b.max_chan_width, -1));
+			// try both HT40+ and HT40- if necessary
+			if (!channel_change(conf.channel_idx, b.max_chan_width, true) &&
+			    !channel_change(conf.channel_idx, b.max_chan_width, false))
+				return false;
+		}
+	}
 	return true;
 }
 
