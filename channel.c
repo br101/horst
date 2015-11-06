@@ -98,18 +98,18 @@ static int get_center_freq_vht(unsigned int freq, enum chan_width width) {
 			printlog("VHT80+80 not supported");
 			break;
 		default:
-			printlog("%s is not VHT", channel_get_width_string(width));
+			printlog("%s is not VHT", channel_get_width_string(width, -1));
 	}
 	return center1;
 }
 
 
-const char* channel_get_width_string(enum chan_width w) {
+const char* channel_get_width_string(enum chan_width w, int ht40p) {
 	switch (w) {
-		case CHAN_WIDTH_UNSPEC: return "";
+		case CHAN_WIDTH_UNSPEC: return "?";
 		case CHAN_WIDTH_20_NOHT: return "20 (no HT)";
 		case CHAN_WIDTH_20: return "HT20";
-		case CHAN_WIDTH_40: return "HT40";
+		case CHAN_WIDTH_40: return ht40p < 0 ? "HT40" : ht40p ? "HT40+" : "HT40-";
 		case CHAN_WIDTH_80: return "VHT80";
 		case CHAN_WIDTH_160: return "VHT160";
 		case CHAN_WIDTH_8080: return "VHT80+80";
@@ -117,12 +117,12 @@ const char* channel_get_width_string(enum chan_width w) {
 	return "";
 }
 
-const char* channel_get_width_string_short(enum chan_width w, bool ht40p) {
+const char* channel_get_width_string_short(enum chan_width w, int ht40p) {
 	switch (w) {
-		case CHAN_WIDTH_UNSPEC: return "";
+		case CHAN_WIDTH_UNSPEC: return "?";
 		case CHAN_WIDTH_20_NOHT: return "20g";
 		case CHAN_WIDTH_20: return "20";
-		case CHAN_WIDTH_40: return ht40p ? "40+" : "40-";
+		case CHAN_WIDTH_40: return ht40p < 0 ? "40" : ht40p ? "40+" : "40-";
 		case CHAN_WIDTH_80: return "80";
 		case CHAN_WIDTH_160: return "160";
 		case CHAN_WIDTH_8080: return "80+80";
@@ -152,7 +152,7 @@ channel_change(int idx, enum chan_width width, bool ht40plus)
 			center1 = get_center_freq_vht(channels.chan[idx].freq, width);
 			break;
 		default:
-			printlog("%s not implemented", channel_get_width_string(width));
+			printlog("%s not implemented", channel_get_width_string(width, -1));
 			break;
 	}
 
@@ -162,18 +162,16 @@ channel_change(int idx, enum chan_width width, bool ht40plus)
 		return false;
 
 	if (!ifctrl_iwset_freq(conf.ifname, channels.chan[idx].freq, width, center1)) {
-		printlog("ERROR: Failed to set CH %d (%d MHz) %s%c center %d",
+		printlog("ERROR: Failed to set CH %d (%d MHz) %s center %d",
 			channels.chan[idx].chan, channels.chan[idx].freq,
-			channel_get_width_string(width),
-			center1 > channels.chan[idx].freq ? '+' : '-',
+			channel_get_width_string(width, ht40plus),
 			center1);
 		return false;
 	}
 
-	printlog("Set CH %d (%d MHz) %s%c center %d",
+	printlog("Set CH %d (%d MHz) %s center %d",
 		channels.chan[idx].chan, channels.chan[idx].freq,
-		channel_get_width_string(width),
-		center1 > channels.chan[idx].freq ? '+' : '-',
+		channel_get_width_string(width, ht40plus),
 		center1);
 
 	conf.channel_idx = idx;
@@ -357,7 +355,7 @@ const char* channel_get_band_width_string(int b) {
 	if (b < 0 || b > channels.num_bands)
 		return NULL;
 
-	return channel_get_width_string(channels.band[b].max_chan_width);
+	return channel_get_width_string(channels.band[b].max_chan_width, -1);
 }
 
 const struct band_info* channel_get_band(int b) {

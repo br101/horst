@@ -136,9 +136,9 @@ channel_input(WINDOW *win, int c)
 		if (i >= 0) {
 			if (!conf.serveraddr[0] != '\0') {
 				if (!channel_change(i, conf.channel_width, conf.channel_ht40plus))
-					printlog("Channel %d %s%c is not available/allowed", x,
-						channel_get_width_string(conf.channel_width),
-						conf.channel_ht40plus ? '+' : '-');
+					printlog("Channel %d %s is not available/allowed", x,
+						channel_get_width_string(conf.channel_width,
+									 conf.channel_ht40plus));
 			} else
 				conf.channel_idx = i;
 		}
