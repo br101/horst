@@ -33,6 +33,7 @@ struct chan_freq {
 
 enum chan_width {
 	CHAN_WIDTH_UNSPEC,
+	CHAN_WIDTH_20_NOHT,
 	CHAN_WIDTH_20,
 	CHAN_WIDTH_40,
 	CHAN_WIDTH_80,

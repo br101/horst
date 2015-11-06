@@ -79,7 +79,7 @@ static bool conf_receive_buffer(const char* value) {
 
 static bool conf_channel_set(const char* value) {
 	bool ht40plus = false;
-	enum chan_width width = CHAN_WIDTH_20;
+	enum chan_width width = CHAN_WIDTH_20_NOHT;
 
 	char* pos = strchr(value, '+');
 	if (pos != NULL) {

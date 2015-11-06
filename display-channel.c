@@ -75,6 +75,8 @@ update_channel_win(WINDOW *win)
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, 2, "m: Set channel: %d  ", channel_get_current_chan());
 	wattroff(win, A_BOLD);
+	mvwprintw(win, l++, 2, "1: [%c] 20 (no HT)",
+		CHECKED(conf.channel_width == CHAN_WIDTH_20_NOHT));
 	mvwprintw(win, l++, 2, "2: [%c] HT20",
 		CHECKED(conf.channel_width == CHAN_WIDTH_20));
 	mvwprintw(win, l++, 2, "4: [%c] HT40-",
@@ -140,6 +142,10 @@ channel_input(WINDOW *win, int c)
 			} else
 				conf.channel_idx = i;
 		}
+		break;
+
+	case '1':
+		conf.channel_width = CHAN_WIDTH_20_NOHT;
 		break;
 
 	case '2':

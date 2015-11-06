@@ -250,6 +250,7 @@ void vht_streams_from_mcs_set(unsigned char* mcs, unsigned char* rx, unsigned ch
 const char* get_80211std(enum chan_width width, int chan) {
 	switch (width) {
 		case CHAN_WIDTH_UNSPEC:
+		case CHAN_WIDTH_20_NOHT:
 			return chan > 14 ? "a" : "bg";
 		case CHAN_WIDTH_20:
 		case CHAN_WIDTH_40:

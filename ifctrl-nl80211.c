@@ -289,13 +289,15 @@ bool ifctrl_iwset_freq(const char *const interface, unsigned int freq,
 		       unsigned int center1)
 {
 	struct nl_msg *msg;
-	int nl_width = NL80211_CHAN_WIDTH_20;
+	int nl_width = NL80211_CHAN_WIDTH_20_NOHT;
 
 	if (!nl80211_msg_prepare(&msg, NL80211_CMD_SET_CHANNEL, interface))
 		return false;
 
 	switch (width) {
 		case CHAN_WIDTH_UNSPEC:
+		case CHAN_WIDTH_20_NOHT:
+			nl_width = NL80211_CHAN_WIDTH_20_NOHT; break;
 		case CHAN_WIDTH_20:
 			nl_width = NL80211_CHAN_WIDTH_20; break;
 		case CHAN_WIDTH_40:
@@ -334,6 +336,7 @@ static int nl80211_get_interface_info_cb(struct nl_msg *msg,
 		int nlw = nla_get_u32(tb[NL80211_ATTR_CHANNEL_WIDTH]);
 		switch (nlw) {
 			case NL80211_CHAN_WIDTH_20_NOHT:
+				conf.channel_width = CHAN_WIDTH_20_NOHT; break;
 			case NL80211_CHAN_WIDTH_20:
 				conf.channel_width = CHAN_WIDTH_20; break;
 			case NL80211_CHAN_WIDTH_40:
@@ -393,12 +396,14 @@ static int nl80211_get_freqlist_cb(struct nl_msg *msg, void *arg)
 		nla_parse(bands, NL80211_BAND_ATTR_MAX,
 		          nla_data(band), nla_len(band), NULL);
 
-		list->band[b].max_chan_width = CHAN_WIDTH_20; /* default */
+		list->band[b].max_chan_width = CHAN_WIDTH_20_NOHT; /* default */
 
 		if (bands[NL80211_BAND_ATTR_HT_CAPA]) {
 			u_int16_t cap = nla_get_u16(bands[NL80211_BAND_ATTR_HT_CAPA]);
 			if (cap & WLAN_IE_HT_CAPAB_INFO_CHAN_WIDTH_40)
 				list->band[b].max_chan_width = CHAN_WIDTH_40;
+			else
+				list->band[b].max_chan_width = CHAN_WIDTH_20;
 		}
 
 		if (bands[NL80211_BAND_ATTR_HT_MCS_SET] &&

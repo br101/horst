@@ -107,6 +107,7 @@ static int get_center_freq_vht(unsigned int freq, enum chan_width width) {
 const char* channel_get_width_string(enum chan_width w) {
 	switch (w) {
 		case CHAN_WIDTH_UNSPEC: return "";
+		case CHAN_WIDTH_20_NOHT: return "20 (no HT)";
 		case CHAN_WIDTH_20: return "HT20";
 		case CHAN_WIDTH_40: return "HT40";
 		case CHAN_WIDTH_80: return "VHT80";
@@ -119,6 +120,7 @@ const char* channel_get_width_string(enum chan_width w) {
 const char* channel_get_width_string_short(enum chan_width w, bool ht40p) {
 	switch (w) {
 		case CHAN_WIDTH_UNSPEC: return "";
+		case CHAN_WIDTH_20_NOHT: return "20g";
 		case CHAN_WIDTH_20: return "20";
 		case CHAN_WIDTH_40: return ht40p ? "40+" : "40-";
 		case CHAN_WIDTH_80: return "80";
@@ -139,6 +141,7 @@ channel_change(int idx, enum chan_width width, bool ht40plus)
 		width = channel_get_band_from_idx(idx).max_chan_width;
 
 	switch (width) {
+		case CHAN_WIDTH_20_NOHT:
 		case CHAN_WIDTH_20:
 			break;
 		case CHAN_WIDTH_40:
@@ -153,9 +156,9 @@ channel_change(int idx, enum chan_width width, bool ht40plus)
 			break;
 	}
 
-	/* only HT20 does not need additional center freq, otherwise we fail here
+	/* only 20 MHz channels don't need additional center freq, otherwise we fail here
 	 * quietly because the scanning code sometimes tries invalid HT40+/- channels */
-	if (width != CHAN_WIDTH_20 && center1 == 0)
+	if (center1 == 0 && !(width == CHAN_WIDTH_20_NOHT || width == CHAN_WIDTH_20))
 		return false;
 
 	if (!ifctrl_iwset_freq(conf.ifname, channels.chan[idx].freq, width, center1)) {
