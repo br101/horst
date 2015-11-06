@@ -760,7 +760,7 @@ main(int argc, char** argv)
 				if (!conf.quiet && !conf.debug)
 					update_display(NULL);
 
-				if (channel_get_chan_from_idx(conf.channel_idx) == conf.channel_init_num
+				if (channel_get_chan_from_idx(conf.channel_idx) == conf.channel_set_num
 				    && conf.channel_scan_rounds > 0)
 					--conf.channel_scan_rounds;
 			}

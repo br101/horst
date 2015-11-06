@@ -264,12 +264,12 @@ channel_init(void) {
 
 	conf.channel_idx = channel_find_index_from_freq(conf.if_freq);
 
-	if (conf.channel_init_num > 0) {
-		int ini_idx = channel_find_index_from_chan(conf.channel_init_num);
-		if (!channel_change(ini_idx, conf.channel_init_width, conf.channel_init_ht40plus))
+	if (conf.channel_set_num > 0) {
+		int ini_idx = channel_find_index_from_chan(conf.channel_set_num);
+		if (!channel_change(ini_idx, conf.channel_set_width, conf.channel_set_ht40plus))
 			return false;
 	} else {
-		conf.channel_init_num = channel_get_chan_from_idx(conf.channel_idx);
+		conf.channel_set_num = channel_get_chan_from_idx(conf.channel_idx);
 	}
 
 	conf.channel_initialized = 1;

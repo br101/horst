@@ -98,9 +98,9 @@ static bool conf_channel_set(const char* value) {
 	else {
 		/* We have not yet initialized the channel module, channel will be
 		* changed in channel_init(). */
-		conf.channel_init_num = n;
-		conf.channel_init_width = width;
-		conf.channel_init_ht40plus = ht40plus;
+		conf.channel_set_num = n;
+		conf.channel_set_width = width;
+		conf.channel_set_ht40plus = ht40plus;
 	}
 	return true;
 }

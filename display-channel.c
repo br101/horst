@@ -77,17 +77,17 @@ update_channel_win(WINDOW *win)
 	mvwprintw(win, l++, 2, "m: Set channel: %d  ", channel_get_current_chan());
 	wattroff(win, A_BOLD);
 	mvwprintw(win, l++, 2, "1: [%c] 20 (no HT)",
-		CHECKED(conf.channel_width == CHAN_WIDTH_20_NOHT));
+		CHECKED(conf.channel_set_width == CHAN_WIDTH_20_NOHT));
 	mvwprintw(win, l++, 2, "2: [%c] HT20",
-		CHECKED(conf.channel_width == CHAN_WIDTH_20));
+		CHECKED(conf.channel_set_width == CHAN_WIDTH_20));
 	mvwprintw(win, l++, 2, "4: [%c] HT40-",
-		CHECKED(conf.channel_width == CHAN_WIDTH_40 && !conf.channel_ht40plus));
+		CHECKED(conf.channel_set_width == CHAN_WIDTH_40 && !conf.channel_set_ht40plus));
 	mvwprintw(win, l++, 2, "5: [%c] HT40+",
-		CHECKED(conf.channel_width == CHAN_WIDTH_40 && conf.channel_ht40plus));
+		CHECKED(conf.channel_set_width == CHAN_WIDTH_40 && conf.channel_set_ht40plus));
 	mvwprintw(win, l++, 2, "8: [%c] VHT80",
-		CHECKED(conf.channel_width == CHAN_WIDTH_80));
+		CHECKED(conf.channel_set_width == CHAN_WIDTH_80));
 	mvwprintw(win, l++, 2, "6: [%c] VHT160",
-		CHECKED(conf.channel_width == CHAN_WIDTH_160));
+		CHECKED(conf.channel_set_width == CHAN_WIDTH_160));
 
 	print_centered(win, CHANNEL_WIN_HEIGHT-1, CHANNEL_WIN_WIDTH,
 		       "[ Press key or ENTER ]");
@@ -136,39 +136,39 @@ channel_input(WINDOW *win, int c)
 		int i = channel_find_index_from_chan(x);
 		if (i >= 0) {
 			if (!conf.serveraddr[0] != '\0') {
-				if (!channel_change(i, conf.channel_width, conf.channel_ht40plus))
+				if (!channel_change(i, conf.channel_set_width, conf.channel_set_ht40plus))
 					printlog("Channel %d %s is not available/allowed", x,
-						channel_get_width_string(conf.channel_width,
-									 conf.channel_ht40plus));
+						channel_get_width_string(conf.channel_set_width,
+									 conf.channel_set_ht40plus));
 			} else
 				conf.channel_idx = i;
 		}
 		break;
 
 	case '1':
-		conf.channel_width = CHAN_WIDTH_20_NOHT;
+		conf.channel_set_width = CHAN_WIDTH_20_NOHT;
 		break;
 
 	case '2':
-		conf.channel_width = CHAN_WIDTH_20;
+		conf.channel_set_width = CHAN_WIDTH_20;
 		break;
 
 	case '4':
-		conf.channel_width = CHAN_WIDTH_40;
-		conf.channel_ht40plus = false;
+		conf.channel_set_width = CHAN_WIDTH_40;
+		conf.channel_set_ht40plus = false;
 		break;
 
 	case '5':
-		conf.channel_width = CHAN_WIDTH_40;
-		conf.channel_ht40plus = true;
+		conf.channel_set_width = CHAN_WIDTH_40;
+		conf.channel_set_ht40plus = true;
 		break;
 
 	case '8':
-		conf.channel_width = CHAN_WIDTH_80;
+		conf.channel_set_width = CHAN_WIDTH_80;
 		break;
 
 	case '6':
-		conf.channel_width = CHAN_WIDTH_160;
+		conf.channel_set_width = CHAN_WIDTH_160;
 		break;
 
 	default:

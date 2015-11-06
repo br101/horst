@@ -298,8 +298,8 @@ struct config {
 	int			node_timeout;
 	int			channel_time;
 	int			channel_max;
-	int			channel_init_num;
-	enum chan_width		channel_init_width;
+	int			channel_set_num;	/* value we want to set */
+	enum chan_width		channel_set_width;	/* value we want to set */
 	enum chan_width		channel_width;
 	int			channel_idx;	/* index into channels array */
 	int			channel_scan_rounds;
@@ -321,7 +321,7 @@ struct config {
 				filter_badfcs:1,
 				do_change_channel:1,
 				channel_ht40plus:1,	/* channel is HT40+ */
-				channel_init_ht40plus:1,
+				channel_set_ht40plus:1,	/* value we want to set */
 				allow_client:1,
 				allow_control:1,
 				debug:1,
