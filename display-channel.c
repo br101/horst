@@ -32,20 +32,21 @@
 void
 update_channel_win(WINDOW *win)
 {
-	int l = 2, c, col;
+	int l = 2;
 
 	box(win, 0 , 0);
 	print_centered(win, 0, 39, " Channel Settings ");
 
 	wattron(win, WHITE);
 	for (int b = 0; b < channel_get_num_bands(); b++) {
-		c = channel_get_idx_from_band_idx(b, 0);
-		col = channel_get_chan_from_idx(c) > 14 ? COL_BAND2 : 2;
+		const struct band_info* bp = channel_get_band(b);
+		int c = channel_get_idx_from_band_idx(b, 0);
+		int col = channel_get_chan_from_idx(c) > 14 ? COL_BAND2 : 2;
 		wattron(win, A_BOLD);
 		mvwprintw(win, 2, col, "%s: %s",
 			col == 2 ? "2.4GHz" : "5GHz",
-			channel_get_band_width_string(b));
-		const struct band_info* bp = channel_get_band(b);
+			channel_get_width_string(bp->max_chan_width, -1));
+
 		if (bp->streams_rx || bp->streams_tx)
 			wprintw(win, " %dx%d", bp->streams_rx, bp->streams_tx);
 		wattroff(win, A_BOLD);

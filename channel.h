@@ -102,9 +102,6 @@ channel_get_width_string(enum chan_width w, int ht40p);
 const char*
 channel_get_width_string_short(enum chan_width w, int ht40p);
 
-const char*
-channel_get_band_width_string(int b);
-
 int
 channel_get_num_bands();
 

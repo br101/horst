@@ -351,13 +351,6 @@ channel_get_idx_from_band_idx(int band, int idx) {
 	return idx;
 }
 
-const char* channel_get_band_width_string(int b) {
-	if (b < 0 || b > channels.num_bands)
-		return NULL;
-
-	return channel_get_width_string(channels.band[b].max_chan_width, -1);
-}
-
 const struct band_info* channel_get_band(int b) {
 	if (b < 0 || b > channels.num_bands)
 		return NULL;
