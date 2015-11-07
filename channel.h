@@ -96,11 +96,11 @@ channel_get_string(int idx);
 
 /* Note: ht40p is used only for HT40 channels. If it should not be shown use -1 */
 const char*
-channel_get_width_string(enum chan_width w, int ht40p);
+channel_width_string(enum chan_width w, int ht40p);
 
 /* Note: ht40p is used only for HT40 channels. If it should not be shown use -1 */
 const char*
-channel_get_width_string_short(enum chan_width w, int ht40p);
+channel_width_string_short(enum chan_width w, int ht40p);
 
 int
 channel_get_num_bands();

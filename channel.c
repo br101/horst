@@ -98,13 +98,13 @@ static int get_center_freq_vht(unsigned int freq, enum chan_width width) {
 			printlog("VHT80+80 not supported");
 			break;
 		default:
-			printlog("%s is not VHT", channel_get_width_string(width, -1));
+			printlog("%s is not VHT", channel_width_string(width, -1));
 	}
 	return center1;
 }
 
 
-const char* channel_get_width_string(enum chan_width w, int ht40p) {
+const char* channel_width_string(enum chan_width w, int ht40p) {
 	switch (w) {
 		case CHAN_WIDTH_UNSPEC: return "?";
 		case CHAN_WIDTH_20_NOHT: return "20 (no HT)";
@@ -117,7 +117,7 @@ const char* channel_get_width_string(enum chan_width w, int ht40p) {
 	return "";
 }
 
-const char* channel_get_width_string_short(enum chan_width w, int ht40p) {
+const char* channel_width_string_short(enum chan_width w, int ht40p) {
 	switch (w) {
 		case CHAN_WIDTH_UNSPEC: return "?";
 		case CHAN_WIDTH_20_NOHT: return "20g";
@@ -152,7 +152,7 @@ channel_change(int idx, enum chan_width width, bool ht40plus)
 			center1 = get_center_freq_vht(channels.chan[idx].freq, width);
 			break;
 		default:
-			printlog("%s not implemented", channel_get_width_string(width, -1));
+			printlog("%s not implemented", channel_width_string(width, -1));
 			break;
 	}
 
@@ -164,14 +164,14 @@ channel_change(int idx, enum chan_width width, bool ht40plus)
 	if (!ifctrl_iwset_freq(conf.ifname, channels.chan[idx].freq, width, center1)) {
 		printlog("ERROR: Failed to set CH %d (%d MHz) %s center %d",
 			channels.chan[idx].chan, channels.chan[idx].freq,
-			channel_get_width_string(width, ht40plus),
+			channel_width_string(width, ht40plus),
 			center1);
 		return false;
 	}
 
 	printlog("Set CH %d (%d MHz) %s center %d",
 		channels.chan[idx].chan, channels.chan[idx].freq,
-		channel_get_width_string(width, ht40plus),
+		channel_width_string(width, ht40plus),
 		center1);
 
 	conf.channel_idx = idx;
@@ -278,7 +278,7 @@ channel_init(void) {
 		struct band_info b = channel_get_band_from_idx(conf.channel_idx);
 		if (conf.channel_width != b.max_chan_width) {
 			printlog("Try to set max channel width %s",
-				channel_get_width_string(b.max_chan_width, -1));
+				channel_width_string(b.max_chan_width, -1));
 			// try both HT40+ and HT40- if necessary
 			if (!channel_change(conf.channel_idx, b.max_chan_width, true) &&
 			    !channel_change(conf.channel_idx, b.max_chan_width, false))

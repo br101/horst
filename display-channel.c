@@ -45,7 +45,7 @@ update_channel_win(WINDOW *win)
 		wattron(win, A_BOLD);
 		mvwprintw(win, 2, col, "%s: %s",
 			col == 2 ? "2.4GHz" : "5GHz",
-			channel_get_width_string(bp->max_chan_width, -1));
+			channel_width_string(bp->max_chan_width, -1));
 
 		if (bp->streams_rx || bp->streams_tx)
 			wprintw(win, " %dx%d", bp->streams_rx, bp->streams_tx);
@@ -138,7 +138,7 @@ channel_input(WINDOW *win, int c)
 			if (!conf.serveraddr[0] != '\0') {
 				if (!channel_change(i, conf.channel_set_width, conf.channel_set_ht40plus))
 					printlog("Channel %d %s is not available/allowed", x,
-						channel_get_width_string(conf.channel_set_width,
+						channel_width_string(conf.channel_set_width,
 									 conf.channel_set_ht40plus));
 			} else
 				conf.channel_idx = i;
