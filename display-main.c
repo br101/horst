@@ -277,6 +277,8 @@ print_node_list_line(int line, struct node_info* n)
 
 	mvwprintw(list_win, line, COL_WIDTH, "%-2s %-3s",
 		get_80211std(n->wlan_chan_width, n->wlan_channel),
+		(n->wlan_chan_width == CHAN_WIDTH_UNSPEC ||
+		 n->wlan_chan_width == CHAN_WIDTH_20_NOHT) ? "20" :
 		channel_get_width_string_short(n->wlan_chan_width, n->wlan_ht40plus));
 
 	if (n->wlan_rx_streams)
