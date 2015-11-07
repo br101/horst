@@ -86,17 +86,12 @@ struct net_band {
 	unsigned char streams_tx;
 } __attribute__ ((packed));
 
-struct net_chan_freq {
-	unsigned char chan;
-	unsigned int freq;
-} __attribute__ ((packed));
-
 struct net_chan_list {
 	struct net_header	proto;
 
 	unsigned char num_bands;
 	struct net_band band[2];	// always send both
-	struct net_chan_freq channel[1];
+	unsigned int freq[1];
 } __attribute__ ((packed));
 
 
@@ -392,7 +387,7 @@ net_send_chan_list(int fd)
 	int i;
 
 	buf = malloc(sizeof(struct net_chan_list) +
-		sizeof(struct net_chan_freq)*(channel_get_num_channels() - 1));
+		     sizeof(unsigned int) * (channel_get_num_channels() - 1));
 	if (buf == NULL)
 		return;
 
@@ -410,17 +405,12 @@ net_send_chan_list(int fd)
 	}
 
 	for (i = 0; i < channel_get_num_channels(); i++) {
-		struct chan_freq* cf = channel_get_struct(i);
-		if (cf != NULL) {
-			nc->channel[i].chan = cf->chan;
-			nc->channel[i].freq = htole32(cf->freq);
-			DEBUG("NET send chan %d %d %d\n", i, cf->chan, cf->freq);
-		} else {
-			printlog("NET send chan ERR");
-		}
+		nc->freq[i] = htole32(channel_get_freq(i));
+		DEBUG("NET send freq %d %d\n", i, channel_get_freq(i));
 	}
 
-	net_write(fd, (unsigned char *)buf, sizeof(struct net_chan_list) + sizeof(struct net_chan_freq)*(i - 1));
+	net_write(fd, (unsigned char *)buf, sizeof(struct net_chan_list) +
+					    sizeof(unsigned int) * (i - 1));
 	free(buf);
 }
 
@@ -442,15 +432,15 @@ net_receive_chan_list(unsigned char *buffer, size_t len)
 		num_chans += nc->band[i].num_chans;
 	}
 
-	if (len < sizeof(struct net_chan_list) + sizeof(struct net_chan_freq)*(num_chans - 1))
+	if (len < sizeof(struct net_chan_list) + sizeof(unsigned int) * (num_chans - 1))
 		return 0;
 
 	for (int i = 0; i < num_chans; i++) {
-		channel_list_add(nc->channel[i].chan, le32toh(nc->channel[i].freq));
-		DEBUG("NET recv chan %d %d %d\n", i, nc->channel[i].chan, le32toh(nc->channel[i].freq));
+		channel_list_add(le32toh(nc->freq[i]));
+		DEBUG("NET recv freq %d %d\n", i, le32toh(nc->freq[i]));
 	}
 	init_spectrum();
-	return sizeof(struct net_chan_list) + sizeof(struct net_chan_freq)*(num_chans - 1);
+	return sizeof(struct net_chan_list) + sizeof(unsigned int) * (num_chans - 1);
 }
 
 

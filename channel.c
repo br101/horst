@@ -23,6 +23,7 @@
 #include "util.h"
 #include "ifctrl.h"
 #include "channel.h"
+#include "ieee80211_util.h"
 
 
 static struct timeval last_channelchange;
@@ -314,20 +315,21 @@ channel_get_chan_from_idx(int i) {
 }
 
 
-struct chan_freq*
-channel_get_struct(int i) {
-	if (i < channels.num_channels && i < MAX_CHANNELS)
-		return &channels.chan[i];
-	return NULL;
+int
+channel_get_freq(int idx) {
+	if (idx >= 0 && idx < channels.num_channels && idx < MAX_CHANNELS)
+		return channels.chan[idx].freq;
+	else
+		return -1;
 }
 
 
 bool
-channel_list_add(int chan, int freq) {
+channel_list_add(int freq) {
 	if (channels.num_channels >=  MAX_CHANNELS)
 		return false;
 
-	channels.chan[channels.num_channels].chan = chan;
+	channels.chan[channels.num_channels].chan = ieee80211_freq2channel(freq);
 	channels.chan[channels.num_channels].freq = freq;
 	channels.num_channels++;
 	return true;
