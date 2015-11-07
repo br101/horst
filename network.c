@@ -39,7 +39,7 @@ int srv_fd = -1;
 int cli_fd = -1;
 static int netmon_fd;
 
-#define PROTO_VERSION	2
+#define PROTO_VERSION	3
 
 
 enum pkt_type {
@@ -79,6 +79,13 @@ struct net_conf_filter {
 } __attribute__ ((packed));
 
 
+struct net_band {
+	unsigned char num_chans;
+	unsigned char max_width;
+	unsigned char streams_rx;
+	unsigned char streams_tx;
+} __attribute__ ((packed));
+
 struct net_chan_freq {
 	unsigned char chan;
 	unsigned int freq;
@@ -87,7 +94,8 @@ struct net_chan_freq {
 struct net_chan_list {
 	struct net_header	proto;
 
-	unsigned char num_channels;
+	unsigned char num_bands;
+	struct net_band band[2];	// always send both
 	struct net_chan_freq channel[1];
 } __attribute__ ((packed));
 
@@ -392,6 +400,15 @@ net_send_chan_list(int fd)
 	nc->proto.version = PROTO_VERSION;
 	nc->proto.type	= PROTO_CHAN_LIST;
 
+	nc->num_bands = channel_get_num_bands();
+	for (i = 0; i < nc->num_bands; i++) {
+		const struct band_info* bp = channel_get_band(i);
+		nc->band[i].num_chans = bp->num_channels;
+		nc->band[i].max_width = bp->max_chan_width;
+		nc->band[i].streams_rx = bp->streams_rx;
+		nc->band[i].streams_tx = bp->streams_tx;
+	}
+
 	for (i = 0; i < channel_get_num_channels(); i++) {
 		struct chan_freq* cf = channel_get_struct(i);
 		if (cf != NULL) {
@@ -402,7 +419,6 @@ net_send_chan_list(int fd)
 			printlog("NET send chan ERR");
 		}
 	}
-	nc->num_channels = i;
 
 	net_write(fd, (unsigned char *)buf, sizeof(struct net_chan_list) + sizeof(struct net_chan_freq)*(i - 1));
 	free(buf);
@@ -413,21 +429,28 @@ static int
 net_receive_chan_list(unsigned char *buffer, size_t len)
 {
 	struct net_chan_list *nc;
+	int num_chans = 0;
 
 	if (len < sizeof(struct net_chan_list))
 		return 0;
 
 	nc = (struct net_chan_list *)buffer;
 
-	if (len < sizeof(struct net_chan_list) + sizeof(struct net_chan_freq)*(nc->num_channels - 1))
+	for (int i = 0; i < nc->num_bands; i++) {
+		channel_band_add(nc->band[i].num_chans, nc->band[i].max_width,
+				 nc->band[i].streams_rx, nc->band[i].streams_tx);
+		num_chans += nc->band[i].num_chans;
+	}
+
+	if (len < sizeof(struct net_chan_list) + sizeof(struct net_chan_freq)*(num_chans - 1))
 		return 0;
 
-	for (int i = 0; i < nc->num_channels; i++) {
+	for (int i = 0; i < num_chans; i++) {
 		channel_list_add(nc->channel[i].chan, le32toh(nc->channel[i].freq));
 		DEBUG("NET recv chan %d %d %d\n", i, nc->channel[i].chan, le32toh(nc->channel[i].freq));
 	}
 	init_spectrum();
-	return sizeof(struct net_chan_list) + sizeof(struct net_chan_freq)*(nc->num_channels - 1);
+	return sizeof(struct net_chan_list) + sizeof(struct net_chan_freq)*(num_chans - 1);
 }
 
 

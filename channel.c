@@ -362,3 +362,17 @@ const struct band_info* channel_get_band(int b) {
 		return NULL;
 	return &channels.band[b];
 }
+
+bool
+channel_band_add(int num_channels, enum chan_width max_chan_width,
+		unsigned char streams_rx, unsigned char streams_tx) {
+	if (channels.num_bands >= MAX_BANDS)
+		return false;
+
+	channels.band[channels.num_bands].num_channels = num_channels;
+	channels.band[channels.num_bands].max_chan_width = max_chan_width;
+	channels.band[channels.num_bands].streams_rx = streams_rx;
+	channels.band[channels.num_bands].streams_tx = streams_tx;
+	channels.num_bands++;
+	return true;
+}
