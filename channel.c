@@ -238,12 +238,6 @@ channel_auto_change(void)
 	return ret;
 }
 
-
-int
-channel_get_current_chan() {
-	return channel_get_chan_from_idx(conf.channel_idx);
-}
-
 char* channel_get_string(int idx) {
 	static char buf[32];
 	struct chan_freq* c = &channels.chan[idx];

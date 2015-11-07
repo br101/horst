@@ -67,14 +67,8 @@ channel_find_index_from_chan(int c);
 int
 channel_find_index_from_freq(unsigned int f);
 
-void
-get_current_channel(int mon);
-
 int
 channel_get_chan_from_idx(int idx);
-
-int
-channel_get_current_chan();
 
 int
 channel_get_num_channels();
