@@ -364,9 +364,9 @@ update_node_list_win(void)
 	/* reuse bottom line for information on other win */
 	mvwprintw(list_win, win_split - 1, 0, "Cha-Sig");
 	wprintw(list_win, "-RAT-TRANSMITTER");
-	mvwprintw(list_win, win_split - 1, 29, "(BSSID)");
-	mvwprintw(list_win, win_split - 1, 49, "TYPE");
-	mvwprintw(list_win, win_split - 1, 56, "INFO");
+	mvwprintw(list_win, win_split - 1, 30, "(BSSID)");
+	mvwprintw(list_win, win_split - 1, 50, "TYPE");
+	mvwprintw(list_win, win_split - 1, 57, "INFO");
 	mvwprintw(list_win, win_split - 1, COLS-10, "LiveStatus");
 
 	if (sortfunc)
