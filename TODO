@@ -1,6 +1,6 @@
 TODO:
 -----
-* extend network protocol for new chan and filters
+* fix set chan width & ht40+- over network
 * calculate available bandwidth for info bars (Usage%) based on channel width
 
 Later:
