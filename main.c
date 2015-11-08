@@ -327,7 +327,7 @@ fixup_packet_channel(struct packet_info* p) {
 	/* wlan_channel is only known for beacons and probe response,
 	 * otherwise we set it from the physical channel */
 	if (p->wlan_channel == 0 && p->pkt_chan_idx >= 0)
-		p->wlan_channel = channel_get_chan_from_idx(p->pkt_chan_idx);
+		p->wlan_channel = channel_get_chan(p->pkt_chan_idx);
 
 	/* if current channel is unknown (this is a mac80211 bug), guess it from
 	 * the packet */
@@ -760,7 +760,7 @@ main(int argc, char** argv)
 				if (!conf.quiet && !conf.debug)
 					update_display(NULL);
 
-				if (channel_get_chan_from_idx(conf.channel_idx) == conf.channel_set_num
+				if (channel_get_chan(conf.channel_idx) == conf.channel_set_num
 				    && conf.channel_scan_rounds > 0)
 					--conf.channel_scan_rounds;
 			}

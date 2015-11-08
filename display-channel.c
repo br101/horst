@@ -41,7 +41,7 @@ update_channel_win(WINDOW *win)
 	for (int b = 0; b < channel_get_num_bands(); b++) {
 		const struct band_info* bp = channel_get_band(b);
 		int c = channel_get_idx_from_band_idx(b, 0);
-		int col = channel_get_chan_from_idx(c) > 14 ? COL_BAND2 : 2;
+		int col = channel_get_chan(c) > 14 ? COL_BAND2 : 2;
 		wattron(win, A_BOLD);
 		mvwprintw(win, 2, col, "%s: %s",
 			col == 2 ? "2.4GHz" : "5GHz",
@@ -75,7 +75,7 @@ update_channel_win(WINDOW *win)
 	l++;
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, 2, "m: Set channel: %d  ",
-		channel_get_chan_from_idx(conf.channel_idx));
+		channel_get_chan(conf.channel_idx));
 	wattroff(win, A_BOLD);
 	mvwprintw(win, l++, 2, "1: [%c] 20 (no HT)",
 		CHECKED(conf.channel_set_width == CHAN_WIDTH_20_NOHT));

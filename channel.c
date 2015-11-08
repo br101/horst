@@ -225,7 +225,7 @@ channel_auto_change(void)
 			if (new_idx >= channels.num_channels ||
 			    new_idx >= MAX_CHANNELS ||
 			    (conf.channel_max &&
-			     channel_get_chan_from_idx(new_idx) > conf.channel_max))
+			     channel_get_chan(new_idx) > conf.channel_max))
 				new_idx = 0;
 
 			ret = channel_change(new_idx, max_width, conf.channel_ht40plus);
@@ -265,7 +265,7 @@ channel_init(void) {
 			return false;
 	} else {
 		conf.channel_idx = channel_find_index_from_freq(conf.if_freq);
-		conf.channel_set_num = channel_get_chan_from_idx(conf.channel_idx);
+		conf.channel_set_num = channel_get_chan(conf.channel_idx);
 		if (conf.channel_idx < 0)
 			return true; // not failure
 
@@ -307,7 +307,7 @@ channel_find_index_from_freq(unsigned int f)
 
 
 int
-channel_get_chan_from_idx(int i) {
+channel_get_chan(int i) {
 	if (i >= 0 && i < channels.num_channels && i < MAX_CHANNELS)
 		return channels.chan[i].chan;
 	else

@@ -68,7 +68,7 @@ int
 channel_find_index_from_freq(unsigned int f);
 
 int
-channel_get_chan_from_idx(int idx);
+channel_get_chan(int idx);
 
 int
 channel_get_freq(int idx);

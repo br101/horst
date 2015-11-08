@@ -67,7 +67,7 @@ update_spectrum_win(WINDOW *win)
 
 	for (i = 0; i < channel_get_num_channels() && SPEC_POS_X + CH_SPACE*i+4 < COLS; i++) {
 		mvwprintw(win, SPEC_HEIGHT + 2, SPEC_POS_X + CH_SPACE*i,
-			  "%02d", channel_get_chan_from_idx(i));
+			  "%02d", channel_get_chan(i));
 		wattron(win, GREEN);
 		mvwprintw(win,  SPEC_HEIGHT + 3, SPEC_POS_X + CH_SPACE*i, "%d",
 			  spectrum[i].signal);
