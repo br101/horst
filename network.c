@@ -77,9 +77,13 @@ struct net_conf_filter {
 	unsigned char	filtermac[MAX_FILTERMAC][MAC_LEN];
 	char		filtermac_enabled[MAX_FILTERMAC];
 	unsigned char	filterbssid[MAC_LEN];
+	u_int16_t	filter_stype[WLAN_NUM_TYPES];
 	int		filter_pkt;
 	int		filter_mode;
-	unsigned char	filter_off;
+
+#define NET_FILTER_OFF		0x01
+#define NET_FILTER_BADFCS	0x02
+	unsigned char	filter_flags;
 } __attribute__ ((packed));
 
 
@@ -359,10 +363,19 @@ net_send_conf_filter(int fd)
 		memcpy(nc.filtermac[i], conf.filtermac[i], MAC_LEN);
 		nc.filtermac_enabled[i] = conf.filtermac_enabled[i];
 	}
+
+	for (i = 0; i < WLAN_NUM_TYPES; i++) {
+		nc.filter_stype[i] = htons(conf.filter_stype[i]);
+	}
+
 	memcpy(nc.filterbssid, conf.filterbssid, MAC_LEN);
 	nc.filter_pkt = htole32(conf.filter_pkt);
 	nc.filter_mode = htole32(conf.filter_mode);
-	nc.filter_off = conf.filter_off;
+	nc.filter_flags = 0;
+	if (conf.filter_off)
+		nc.filter_flags |= NET_FILTER_OFF;
+	if (conf.filter_badfcs)
+		nc.filter_flags |= NET_FILTER_BADFCS;
 
 	net_write(fd, (unsigned char *)&nc, sizeof(nc));
 }
@@ -383,10 +396,16 @@ net_receive_conf_filter(unsigned char *buffer, size_t len)
 		memcpy(conf.filtermac[i], nc->filtermac[i], MAC_LEN);
 		conf.filtermac_enabled[i] = nc->filtermac_enabled[i];
 	}
+
+	for (i = 0; i < WLAN_NUM_TYPES; i++) {
+		conf.filter_stype[i] = ntohs(nc->filter_stype[i]);
+	}
+
 	memcpy(conf.filterbssid, nc->filterbssid, MAC_LEN);
 	conf.filter_pkt = le32toh(nc->filter_pkt);
 	conf.filter_mode = le32toh(nc->filter_mode);
-	conf.filter_off = nc->filter_off;
+	conf.filter_off = !!(nc->filter_flags & NET_FILTER_OFF);
+	conf.filter_badfcs = !!(nc->filter_flags & NET_FILTER_BADFCS);
 
 	return sizeof(struct net_conf_filter);
 }
