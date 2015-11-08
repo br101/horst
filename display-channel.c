@@ -176,6 +176,7 @@ channel_input(WINDOW *win, int c)
 		return false; /* didn't handle input */
 	}
 
+	// TODO: net client has not set channel_width and ht40p yet:
 	net_send_channel_config();
 
 	update_channel_win(win);

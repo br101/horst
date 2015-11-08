@@ -62,6 +62,10 @@ struct net_conf_chan {
 	unsigned char do_change;
 	unsigned char upper;
 	char channel;
+
+#define NET_WIDTH_HT40PLUS	0x80
+	unsigned char width_ht40p;	// use upper bit for HT40+-
+
 	int dwell_time;
 
 } __attribute__ ((packed));
@@ -303,6 +307,10 @@ net_send_conf_chan(int fd)
 	nc.do_change = conf.do_change_channel;
 	nc.upper = conf.channel_max;
 	nc.channel = conf.channel_idx;
+	nc.width_ht40p = conf.channel_width;
+	if (conf.channel_ht40plus)
+			nc.width_ht40p |= NET_WIDTH_HT40PLUS;
+
 	nc.dwell_time = htole32(conf.channel_time);
 
 	net_write(fd, (unsigned char *)&nc, sizeof(nc));
@@ -322,10 +330,15 @@ net_receive_conf_chan(unsigned char *buffer, size_t len)
 	conf.channel_max = nc->upper;
 	conf.channel_time = le32toh(nc->dwell_time);
 
+	enum chan_width width = nc->width_ht40p & ~NET_WIDTH_HT40PLUS;
+	bool ht40p = nc->width_ht40p & NET_WIDTH_HT40PLUS;
+
 	if (cli_fd > -1 && nc->channel != conf.channel_idx) /* server */
-		channel_change(nc->channel, CHAN_WIDTH_40, true); // TODO
+		channel_change(nc->channel, width, ht40p);
 	else { /* client */
 		conf.channel_idx = nc->channel;
+		conf.channel_width = width;
+		conf.channel_ht40plus = ht40p;
 		update_spectrum_durations();
 	}
 
