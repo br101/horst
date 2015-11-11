@@ -23,7 +23,6 @@
 #include <net/if.h>
 #include <string.h>
 #include <sys/socket.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 #include <netlink/attr.h>
@@ -398,7 +397,7 @@ static int nl80211_get_freqlist_cb(struct nl_msg *msg, void *arg)
 		list->band[b].max_chan_width = CHAN_WIDTH_20_NOHT; /* default */
 
 		if (bands[NL80211_BAND_ATTR_HT_CAPA]) {
-			u_int16_t cap = nla_get_u16(bands[NL80211_BAND_ATTR_HT_CAPA]);
+			uint16_t cap = nla_get_u16(bands[NL80211_BAND_ATTR_HT_CAPA]);
 			if (cap & WLAN_IE_HT_CAPAB_INFO_CHAN_WIDTH_40)
 				list->band[b].max_chan_width = CHAN_WIDTH_40;
 			else
@@ -412,7 +411,7 @@ static int nl80211_get_freqlist_cb(struct nl_msg *msg, void *arg)
 		}
 
 		if (bands[NL80211_BAND_ATTR_VHT_CAPA]) {
-			u_int32_t vht = nla_get_u32(bands[NL80211_BAND_ATTR_VHT_CAPA]);
+			uint32_t vht = nla_get_u32(bands[NL80211_BAND_ATTR_VHT_CAPA]);
 			list->band[b].max_chan_width = chan_width_from_vht_capab(vht);
 		}
 

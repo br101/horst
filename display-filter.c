@@ -129,9 +129,9 @@ filter_input(WINDOW *win, int c)
 	int i, t;
 
 	switch (c) {
-	case 'm': TOGGLE_BITSET(conf.filter_stype[WLAN_FRAME_TYPE_MGMT], 0xffff, u_int16_t); break;
-	case 'c': TOGGLE_BITSET(conf.filter_stype[WLAN_FRAME_TYPE_CTRL], 0xffff, u_int16_t); break;
-	case 'd': TOGGLE_BITSET(conf.filter_stype[WLAN_FRAME_TYPE_DATA], 0xffff, u_int16_t); break;
+	case 'm': TOGGLE_BITSET(conf.filter_stype[WLAN_FRAME_TYPE_MGMT], 0xffff, uint16_t); break;
+	case 'c': TOGGLE_BITSET(conf.filter_stype[WLAN_FRAME_TYPE_CTRL], 0xffff, uint16_t); break;
+	case 'd': TOGGLE_BITSET(conf.filter_stype[WLAN_FRAME_TYPE_DATA], 0xffff, uint16_t); break;
 
 	case 'r': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ARP); break;
 	case 'M': TOGGLE_BIT(conf.filter_pkt, PKT_TYPE_ICMP); break;

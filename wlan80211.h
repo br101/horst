@@ -20,26 +20,26 @@
 #ifndef _WLAN_HEADER_H_
 #define _WLAN_HEADER_H_
 
-#include <sys/types.h>
+#include <stdint.h>
 
 struct wlan_frame {
-	u_int16_t	fc;
-	u_int16_t	duration;
-	u_int8_t	addr1[6];
-	u_int8_t	addr2[6];
-	u_int8_t	addr3[6];
-	u_int16_t	seq;
+	uint16_t	fc;
+	uint16_t	duration;
+	uint8_t		addr1[6];
+	uint8_t		addr2[6];
+	uint8_t		addr3[6];
+	uint16_t	seq;
 	union {
-		u_int16_t	qos;
-		u_int8_t	addr4[6];
+		uint16_t		qos;
+		uint8_t			addr4[6];
 		struct {
-			u_int16_t	qos;
-			u_int32_t	ht;
+			uint16_t	qos;
+			uint32_t	ht;
 		} __attribute__ ((packed)) ht;
 		struct {
-			u_int8_t	addr4[6];
-			u_int16_t	qos;
-			u_int32_t	ht;
+			uint8_t		addr4[6];
+			uint16_t	qos;
+			uint32_t	ht;
 		} __attribute__ ((packed)) addr4_qos_ht;
 	} u;
 } __attribute__ ((packed));
@@ -139,9 +139,9 @@ struct wlan_frame {
 
 /* beacon + probe response */
 struct wlan_frame_beacon {
-	u_int64_t	tsf;
-	u_int16_t	bintval;
-	u_int16_t	capab;
+	uint64_t	tsf;
+	uint16_t	bintval;
+	uint16_t	capab;
 	unsigned char	ie[0];
 } __attribute__ ((packed));
 
@@ -166,8 +166,8 @@ struct wlan_frame_beacon {
 
 /*** information elements ***/
 struct information_element {
-	u_int8_t	id;
-	u_int8_t	len;
+	uint8_t		id;
+	uint8_t		len;
 	unsigned char	var[0];
 };
 

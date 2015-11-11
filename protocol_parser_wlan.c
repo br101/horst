@@ -379,10 +379,10 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 {
 	struct wlan_frame* wh;
 	int hdrlen;
-	u_int8_t* ra = NULL;
-	u_int8_t* ta = NULL;
-	u_int8_t* bssid = NULL;
-	u_int16_t fc, cap_i;
+	uint8_t* ra = NULL;
+	uint8_t* ta = NULL;
+	uint8_t* bssid = NULL;
+	uint16_t fc, cap_i;
 
 	if (len < 10) /* minimum frame size (CTS/ACK) */
 		return -1;
@@ -415,7 +415,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 			p->wlan_mode = WLAN_MODE_4ADDR;
 			hdrlen += 6;
 			if (WLAN_FRAME_IS_QOS(fc)) {
-				u_int16_t qos = le16toh(wh->u.addr4_qos_ht.qos);
+				uint16_t qos = le16toh(wh->u.addr4_qos_ht.qos);
 				DEBUG("4ADDR A-MSDU %x\n", qos & WLAN_FRAME_QOS_AMSDU_PRESENT);
 				if (qos & WLAN_FRAME_QOS_AMSDU_PRESENT)
 					bssid = wh->addr3;

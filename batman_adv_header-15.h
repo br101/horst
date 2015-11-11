@@ -18,9 +18,11 @@
 #ifndef _NET_BATMAN_ADV_PACKET_H_
 #define _NET_BATMAN_ADV_PACKET_H_
 
+#include <stdint.h>
+
 #define BIT(_x) (1<_x)
-typedef u_int16_t __be16;
-typedef u_int32_t __be32;
+typedef uint16_t __be16;
+typedef uint32_t __be32;
 #define ETH_ALEN 6
 #define __BIG_ENDIAN_BITFIELD /* todo */
 

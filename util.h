@@ -128,7 +128,7 @@ kilo_mega_ize(unsigned int val);
  * TOGGLE_BITSET() - toggle set of bits as a whole
  * @_x: an integer variable
  * @_s: an integer variable interpreted as a bitset
- * @_t: type (e.g. u_int16_t)
+ * @_t: type (e.g. uint16_t)
  * If any of the bits are set, all bits will be unset. Otherwise, if
  * none of the bits are set, all bits will be set.
  */

@@ -23,7 +23,7 @@
 struct pkt_name {
 	const char c;
 	const char* name;
-	const u_int16_t fc;
+	const uint16_t fc;
 	const char* desc;
 };
 
@@ -34,13 +34,13 @@ struct pkt_name {
 struct pkt_name stype_names[WLAN_NUM_TYPES][WLAN_NUM_STYPES];
 
 struct pkt_name
-get_packet_struct(u_int16_t type);
+get_packet_struct(uint16_t type);
 
 char
-get_packet_type_char(u_int16_t type);
+get_packet_type_char(uint16_t type);
 
 const char*
-get_packet_type_name(u_int16_t type);
+get_packet_type_name(uint16_t type);
 
 int
 rate_to_index(int rate);
@@ -52,7 +52,7 @@ int
 mcs_index_to_rate(int mcs, int ht20, int lgi);
 
 enum chan_width
-chan_width_from_vht_capab(u_int32_t vht);
+chan_width_from_vht_capab(uint32_t vht);
 
 void
 ht_streams_from_mcs_set(unsigned char* mcs, unsigned char* rx, unsigned char* tx);

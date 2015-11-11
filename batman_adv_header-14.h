@@ -22,6 +22,8 @@
 #ifndef _NET_BATMAN_ADV_PACKET_H_
 #define _NET_BATMAN_ADV_PACKET_H_
 
+#include <stdint.h>
+
 #define ETH_ALEN 6
 #define ETH_P_BATMAN  0x4305	/* unofficial/not registered Ethertype */
 

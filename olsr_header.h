@@ -44,12 +44,11 @@
 #ifndef _OLSR_HEADER_H_
 #define _OLSR_HEADER_H_
 
-#include <sys/types.h>
 #include <netinet/in.h>
 
-typedef u_int8_t olsr_u8_t;
-typedef u_int16_t olsr_u16_t;
-typedef u_int32_t olsr_u32_t;
+typedef uint8_t olsr_u8_t;
+typedef uint16_t olsr_u16_t;
+typedef uint32_t olsr_u32_t;
 
 /* from olsr olsr_protocol.h */
 

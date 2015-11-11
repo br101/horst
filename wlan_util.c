@@ -82,7 +82,7 @@ static struct pkt_name unknow = { '?', "UNKNOW", 0, "Unknown" };
 static struct pkt_name badfcs = { '*', "BADFCS", 0, "Bad FCS" };
 
 struct pkt_name
-get_packet_struct(u_int16_t type) {
+get_packet_struct(uint16_t type) {
 	int t = WLAN_FRAME_TYPE(type);
 
 	if (type == 1) /* special case for bad FCS */
@@ -97,14 +97,14 @@ get_packet_struct(u_int16_t type) {
 
 
 char
-get_packet_type_char(u_int16_t type)
+get_packet_type_char(uint16_t type)
 {
 	return get_packet_struct(type).c;
 }
 
 
 const char*
-get_packet_type_name(u_int16_t type)
+get_packet_type_name(uint16_t type)
 {
 	return get_packet_struct(type).name;
 }
@@ -197,7 +197,7 @@ mcs_index_to_rate(int mcs, int ht20, int lgi)
 }
 
 
-enum chan_width chan_width_from_vht_capab(u_int32_t vht) {
+enum chan_width chan_width_from_vht_capab(uint32_t vht) {
 	switch (((vht & WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH) >> 2)) {
 		case WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH_80: return CHAN_WIDTH_80;
 		case WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH_160: return CHAN_WIDTH_160;
@@ -230,7 +230,7 @@ void ht_streams_from_mcs_set(unsigned char* mcs, unsigned char* rx, unsigned cha
 void vht_streams_from_mcs_set(unsigned char* mcs, unsigned char* rx, unsigned char* tx) {
 	int i;
 	/* RX */
-	u_int16_t tmp = mcs[0] | (mcs[1] << 8);
+	uint16_t tmp = mcs[0] | (mcs[1] << 8);
 	for (i = 0; i < 8; i++) {
 		if (((tmp >> (i*2)) & 3) == 3)
 			break;

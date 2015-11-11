@@ -77,7 +77,7 @@ struct net_conf_filter {
 	unsigned char	filtermac[MAX_FILTERMAC][MAC_LEN];
 	char		filtermac_enabled[MAX_FILTERMAC];
 	unsigned char	filterbssid[MAC_LEN];
-	u_int16_t	filter_stype[WLAN_NUM_TYPES];
+	uint16_t	filter_stype[WLAN_NUM_TYPES];
 	int		filter_pkt;
 	int		filter_mode;
 
@@ -128,7 +128,7 @@ struct net_packet_info {
 	unsigned char		wlan_dst[MAC_LEN];
 	unsigned char		wlan_bssid[MAC_LEN];
 	char			wlan_essid[WLAN_MAX_SSID_LEN];
-	u_int64_t		wlan_tsf;	/* timestamp from beacon */
+	uint64_t		wlan_tsf;	/* timestamp from beacon */
 	unsigned int		wlan_bintval;	/* beacon interval */
 	unsigned int		wlan_mode;	/* AP, STA or IBSS */
 	unsigned char		wlan_channel;	/* channel from beacon, probe */

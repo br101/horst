@@ -32,7 +32,7 @@
 #ifndef _PRISM_HEADER_H_
 #define _PRISM_HEADER_H_
 
-#include <sys/types.h>
+#include <stdint.h>
 
 enum {
 	DIDmsg_lnxind_wlansniffrm		= 0x00000044,
@@ -56,17 +56,17 @@ enum {
 };
 
 typedef struct {
-        u_int32_t did;
-        u_int16_t status;
-        u_int16_t len;
-        u_int32_t data;
+        uint32_t did;
+        uint16_t status;
+        uint16_t len;
+        uint32_t data;
 } p80211item_uint32_t;
 
 typedef struct {
-        u_int32_t msgcode;
-        u_int32_t msglen;
+        uint32_t msgcode;
+        uint32_t msglen;
 #define WLAN_DEVNAMELEN_MAX 16
-        u_int8_t devname[WLAN_DEVNAMELEN_MAX];
+        uint8_t devname[WLAN_DEVNAMELEN_MAX];
         p80211item_uint32_t hosttime;
         p80211item_uint32_t mactime;
         p80211item_uint32_t channel;
