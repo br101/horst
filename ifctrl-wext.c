@@ -150,8 +150,8 @@ bool ifctrl_iwget_interface_info(const char *interface) {
 }
 
 bool ifctrl_iwget_freqlist(__attribute__((unused)) int phy, struct chan_freq* chan) {
-	conf.num_channels = wext_get_channels(mon, conf.ifname, chan);
-	if (conf.num_channels)
+	int num_channels = wext_get_channels(mon, conf.ifname, chan);
+	if (num_channels)
 		return true;
 	return false;
 }

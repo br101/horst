@@ -1,6 +1,12 @@
 cmake_minimum_required (VERSION 2.6)
 project (horst)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/modules")
+
+IF (CMAKE_COMPILER_IS_GNUCC)
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99 -Wall -Wextra")
+ENDIF (CMAKE_COMPILER_IS_GNUCC)
+
 include_directories ("${PROJECT_SOURCE_DIR}")
 
 set(SOURCES
@@ -19,8 +25,6 @@ set(SOURCES
     display.c
     essid.c
     ieee80211_util.c
-    #ifctrl-ioctl.c
-    #ifctrl-wext.c
     listsort.c
     main.c
     network.c
@@ -63,22 +67,28 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         set(PCAP 0)
     endif()
 
-    if (${WEXT} eq 1)
+    if (${WEXT} EQUAL 1)
         list(APPEND SOURCES ifctrl-wext.c)
-    elseif (${LIBNL} MATCHES "tiny")
-        list(APPEND SOURCES ifctrl-nl80211.c)
-        list(APPEND DEPENDS -lnl-tiny)
     else()
+        find_package(Libnl)
+        include_directories( ${LIBNL_INCLUDE_DIR} )
         list(APPEND SOURCES ifctrl-nl80211.c)
-        list(APPEND DEPENDS -lnl-3 -lnl-genl-3)
+        if (${LIBNL} MATCHES "tiny")
+            list(APPEND DEPENDS -lnl-tiny)
+        else()
+            list(APPEND DEPENDS -lnl-3 -lnl-genl-3)
+        endif()
     endif()
 
-    if (${PCAP} eq 0)
+    if (${PCAP} EQUAL 0)
         list(APPEND SOURCES capture.c)
     else()
+        add_definitions(-DPCAP)
         list(APPEND SOURCES capture-pcap.c)
         list(APPEND DEPENDS -lpcap)
     endif()
+
+    list(APPEND SOURCES ifctrl-ioctl.c)
 endif()
 
 add_executable(horst ${SOURCES})
