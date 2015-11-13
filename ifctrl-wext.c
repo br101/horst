@@ -69,11 +69,13 @@ wext_get_freq(int fd, const char* devname)
 
 int
 wext_get_channels(int fd, const char* devname,
-		  struct chan_freq channels[MAX_CHANNELS])
+		  struct channel_list* channels)
 {
 	struct iwreq iwr;
 	struct iw_range range;
 	int i;
+	int band0cnt = 0;
+	int band1cnt = 0;
 
 	memset(&iwr, 0, sizeof(iwr));
 	memset(&range, 0, sizeof(range));
@@ -89,23 +91,31 @@ wext_get_channels(int fd, const char* devname,
 		return 0;
 	}
 
-	if(range.we_version_compiled < 16) {
+	if (range.we_version_compiled < 16) {
 		printlog("ERROR: wext version %d too old to get channels",
 			 range.we_version_compiled);
 		return 0;
 	}
 
-	for(i = 0; i < range.num_frequency && i < MAX_CHANNELS; i++) {
+	for (i = 0; i < range.num_frequency && i < MAX_CHANNELS; i++) {
 		DEBUG("  Channel %.2d: %dMHz\n", range.freq[i].i, range.freq[i].m);
-		channels[i].chan = range.freq[i].i;
+		channels->chan[i].chan = range.freq[i].i;
 		/* different drivers return different frequencies
 		 * (e.g. ipw2200 vs mac80211) try to fix them up here */
 		if (range.freq[i].m > 100000000)
-			channels[i].freq = range.freq[i].m / 100000;
+			channels->chan[i].freq = range.freq[i].m / 100000;
 		else
-			channels[i].freq = range.freq[i].m;
+			channels->chan[i].freq = range.freq[i].m;
+		if (channels->chan[i].freq <= 2500)
+			band0cnt++;
+		else
+			band1cnt++;
 	}
-	return range.num_frequency;
+	channels->num_channels = i;
+	channels->num_bands = band1cnt > 0 ? 2 : 1;
+	channels->band[0].num_channels = band0cnt;
+	channels->band[1].num_channels = band1cnt;
+	return i;
 }
 
 
@@ -136,7 +146,11 @@ bool ifctrl_iwset_monitor(__attribute__((unused)) const char *interface) {
 	return false;
 }
 
-bool ifctrl_iwset_freq(const char *interface, unsigned int freq) {
+
+bool ifctrl_iwset_freq(const char *const interface,
+		       unsigned int freq,
+		       __attribute__((unused)) enum chan_width width,
+		       __attribute__((unused)) unsigned int center1) {
 	if (wext_set_freq(mon, interface, freq))
 		return true;
 	return false;
@@ -149,9 +163,8 @@ bool ifctrl_iwget_interface_info(const char *interface) {
 	return true;
 }
 
-bool ifctrl_iwget_freqlist(__attribute__((unused)) int phy, struct chan_freq* chan) {
-	conf.num_channels = wext_get_channels(mon, conf.ifname, chan);
-	if (conf.num_channels)
+bool ifctrl_iwget_freqlist(__attribute__((unused)) int phy, struct channel_list* channels) {
+	if (wext_get_channels(mon, conf.ifname, channels))
 		return true;
 	return false;
 }
