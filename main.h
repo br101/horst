@@ -22,7 +22,7 @@
 
 #include <stdlib.h>
 #include <sys/time.h>
-#include <net/if.h>
+//#include <net/if.h>
 
 #include "ccan/list/list.h"
 #include "average.h"
@@ -31,6 +31,8 @@
 
 #define VERSION "5.0-pre"
 #define CONFIG_FILE "/etc/horst.conf"
+
+#define IF_NAMESIZE     16
 
 #ifndef DO_DEBUG
 #define DO_DEBUG 0
