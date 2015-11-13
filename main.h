@@ -22,7 +22,6 @@
 
 #include <stdlib.h>
 #include <sys/time.h>
-#include <net/if.h>
 
 #include "ccan/list/list.h"
 #include "average.h"
@@ -41,6 +40,10 @@
 #else
 #define DEBUG(...)
 #endif
+
+/* #include <net/if.h> conflicts with <linux/if.h> in ifctrl-wext and there does
+ * not seem to be a better solution that to just define IF_NAMESIZE ourselves */
+#define IF_NAMESIZE	16
 
 #define MAC_LEN			6
 #define MAX_CONF_VALUE_STRLEN	200
