@@ -7,6 +7,11 @@ GNU Public License (GPL) V2
 https://github.com/br101/horst
 
 
+## Download
+* Stable (Version 4.2): https://github.com/br101/horst/tarball/version-4.2
+* Development (MASTER): https://github.com/br101/horst/tarball/master
+
+
 ## Overview
 
 `horst` is a small, lightweight IEEE802.11 WLAN analyzer with a text interface. 
