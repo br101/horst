@@ -4,3 +4,4 @@ horst
 .cproject
 .objdeps.mk
 .project
+*.kdev4
