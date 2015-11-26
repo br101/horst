@@ -1,8 +1,0 @@
-TODO:
------
-* fix set chan width & ht40+- over network
-* calculate available bandwidth for info bars (Usage%) based on channel width
-
-Later:
-
-* Integrate 'iw survey dump' info (noise)
