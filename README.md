@@ -4,12 +4,13 @@ or "Horsts OLSR Radio Scanning Tool"
 Copyright (C) 2005-2015 Bruno Randolf (br1@einfach.org) and licensed under the 
 GNU Public License (GPL) V2
 
-https://github.com/br101/horst
 
+## Links
 
-## Download
-* Stable (Version 4.2): https://github.com/br101/horst/tarball/version-4.2
-* Development (MASTER): https://github.com/br101/horst/tarball/master
+* Main page: https://github.com/br101/horst
+* Issue tracker: https://github.com/br101/horst/issues
+* Download Stable (Version 4.2): https://github.com/br101/horst/tarball/version-4.2
+* Download Development (MASTER): https://github.com/br101/horst/tarball/master
 
 
 ## Overview
@@ -111,9 +112,8 @@ read it in the source code locally with:
 	man -l horst.conf.5
 
 Please contact me if you have any problems or questions. New feature ideas, 
-patches and feedback are always welcome. Please create GitHub issues for 
-problem 
-reports and support. 
+patches and feedback are always welcome. Please create GitHub issues at 
+https://github.com/br101/horst/issues for problem reports and support. 
 
 
 ## Background and history
