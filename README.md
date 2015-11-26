@@ -9,7 +9,7 @@ GNU Public License (GPL) V2
 
 * Main page: https://github.com/br101/horst
 * Issue tracker: https://github.com/br101/horst/issues
-* Download Stable (Version 4.2): https://github.com/br101/horst/tarball/version-4.2
+* Download Stable (Version 4.2): https://github.com/br101/horst/archive/version-4.2.tar.gz
 * Download Development (MASTER): https://github.com/br101/horst/tarball/master
 
 
