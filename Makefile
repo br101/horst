@@ -21,6 +21,13 @@ DEBUG=1
 PCAP=0
 WEXT=0
 LIBNL=3.0
+OSX=0
+
+ifeq ($(OSX),1)
+    PCAP=1
+    WEXT=0
+    LIBNL=0
+endif
 
 NAME=horst
 OBJS=						   \
@@ -66,7 +73,11 @@ ifeq ($(WEXT),1)
   OBJS += ifctrl-wext.o
 else
   ifeq ($(LIBNL),0)
-    OBJS += ifctrl-dummy.o
+    ifeq ($(OSX),0)
+        OBJS += ifctrl-dummy.o
+    else
+        LIBS+=-framework CoreWLAN -framework CoreData -framework Foundation
+    endif
   else
     OBJS += ifctrl-nl80211.o
     CFLAGS += $(shell pkg-config --cflags libnl-$(LIBNL))
@@ -83,10 +94,17 @@ endif
 all: $(NAME)
 
 .objdeps.mk: $(OBJS:%.o=%.c)
-	gcc -MM $^ >$@
+	gcc -MM -I. $^ >$@
+
+ifeq ($(OSX),1)
+	gcc -MM -I. ifctrl-osx.m >>$@
+endif
 
 -include .objdeps.mk
 
+ifeq ($(OSX),1)
+	OBJS += ifctrl-osx.o
+endif
 $(NAME): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
