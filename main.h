@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
+#undef LIST_HEAD 
 #include "ccan/list/list.h"
 #include "average.h"
 #include "channel.h"
