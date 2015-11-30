@@ -23,12 +23,6 @@ WEXT=0
 LIBNL=3.0
 OSX=0
 
-ifeq ($(OSX),1)
-    PCAP=1
-    WEXT=0
-    LIBNL=0
-endif
-
 NAME=horst
 OBJS=						   \
 	average.o				   \
@@ -60,6 +54,14 @@ OBJS=						   \
 LIBS=-lncurses -lm
 CFLAGS+=-std=gnu99 -Wall -Wextra -g -I.
 
+ifeq ($(OSX),1)
+    PCAP=1
+    WEXT=0
+    LIBNL=0
+    OBJS+=ifctrl-osx.o
+    LIBS+=-framework CoreWLAN -framework CoreData -framework Foundation
+endif
+
 ifeq ($(DEBUG),1)
   CFLAGS+=-DDO_DEBUG
 endif
@@ -75,8 +77,6 @@ else
   ifeq ($(LIBNL),0)
     ifeq ($(OSX),0)
         OBJS += ifctrl-dummy.o
-    else
-        LIBS+=-framework CoreWLAN -framework CoreData -framework Foundation
     endif
   else
     OBJS += ifctrl-nl80211.o
@@ -95,17 +95,14 @@ all: $(NAME)
 
 .objdeps.mk: $(OBJS:%.o=%.c)
 	gcc -MM -I. $^ >$@
-
 ifeq ($(OSX),1)
 	gcc -MM -I. ifctrl-osx.m >>$@
 endif
 
 -include .objdeps.mk
 
-ifeq ($(OSX),1)
-	OBJS += ifctrl-osx.o
-endif
 $(NAME): $(OBJS)
+	echo $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
 $(OBJS): .buildflags
