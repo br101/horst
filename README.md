@@ -60,12 +60,22 @@ If you have an old or proprietary WLAN driver which only knows the deprecated
 
 	make WEXT=1
 
-To experimentally build for Mac OSX or other Unix using libpcap use:
+To experimentally build using libpcap (note that libpcap on Linux is not
+necessary and not recommended) use:
+
+	make PCAP=1
+
+If you build on another Unix which is not Linux, you probably need to disable
+libnl:
+
+	make PCAP=1 LIBNL=0
+
+To build for Mac OSX:
 
 	make OSX=1
 
-Please note that PCAP and OSX support is not well tested and some features, like
-getting or setting the channel are not implemented on OSX.
+Please note that PCAP and OSX support is not so well tested and some features
+may be missing.
 
 
 ## Usage notes

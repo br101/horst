@@ -182,13 +182,12 @@ int ieee80211_freq2channel(int freq)
 
 int ieee80211_channel2freq(int channel)
 {
-    if (channel == 14) {
-        return 2484;
-    } else if (channel < 14) {
-        return 5 * channel + 2407;
-    } else if (channel >= 182 && channel <= 196) {
-        return 5 * channel + 4000;
-    } else {
-        return 5 * channel + 5000;
-    }
+	if (channel == 14)
+		return 2484;
+	else if (channel < 14)
+		return 5 * channel + 2407;
+	else if (channel >= 182 && channel <= 196)
+		return 5 * channel + 4000;
+	else
+		return 5 * channel + 5000;
 }
