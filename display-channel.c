@@ -74,8 +74,7 @@ update_channel_win(WINDOW *win)
 
 	l++;
 	wattron(win, A_BOLD);
-	mvwprintw(win, l++, 2, "m: Set channel: %d  ",
-		channel_get_chan(conf.channel_idx));
+	mvwprintw(win, l++, 2, "m: Set channel: %d  ", conf.channel_set_num);
 	wattroff(win, A_BOLD);
 	mvwprintw(win, l++, 2, "1: [%c] 20 (no HT)",
 		CHECKED(conf.channel_set_width == CHAN_WIDTH_20_NOHT));
@@ -91,7 +90,7 @@ update_channel_win(WINDOW *win)
 		CHECKED(conf.channel_set_width == CHAN_WIDTH_160));
 
 	print_centered(win, CHANNEL_WIN_HEIGHT-1, CHANNEL_WIN_WIDTH,
-		       "[ Press key or ENTER ]");
+		       "[ Press keys and ENTER to apply ]");
 	wrefresh(win);
 }
 
@@ -101,6 +100,7 @@ channel_input(WINDOW *win, int c)
 {
 	char buf[6];
 	int x;
+	int new_idx = -1;
 
 	switch (c) {
 	case 's': case 'S':
@@ -134,20 +134,7 @@ channel_input(WINDOW *win, int c)
 		curs_set(0);
 		noecho();
 		sscanf(buf, "%d", &x);
-		int i = channel_find_index_from_chan(x);
-		if (i >= 0) {
-			if (!conf.serveraddr[0] != '\0') {
-				if (!channel_change(i, conf.channel_set_width, conf.channel_set_ht40plus)) {
-					printlog("Channel %d %s is not available/allowed", x,
-						channel_width_string(conf.channel_set_width,
-								     conf.channel_set_ht40plus));
-					/* reset UI */
-					conf.channel_set_width = conf.channel_width;
-					conf.channel_set_ht40plus = conf.channel_ht40plus;
-				}
-			} else
-				conf.channel_idx = i;
-		}
+		conf.channel_set_num = x;
 		break;
 
 	case '1':
@@ -176,12 +163,38 @@ channel_input(WINDOW *win, int c)
 		conf.channel_set_width = CHAN_WIDTH_160;
 		break;
 
+	case '\r': case KEY_ENTER: /* used to close win, too */
+		new_idx = channel_find_index_from_chan(conf.channel_set_num);
+		if ((new_idx >= 0 && new_idx != conf.channel_idx) ||
+		    conf.channel_set_width != conf.channel_width ||
+		    conf.channel_set_ht40plus != conf.channel_ht40plus) {
+			/* some setting changed */
+			if (!conf.serveraddr[0] != '\0') {
+				/* server */
+				if (!channel_change(new_idx, conf.channel_set_width, conf.channel_set_ht40plus)) {
+					printlog("Channel %d %s is not available/allowed", conf.channel_set_num,
+						 channel_width_string(conf.channel_set_width,
+								      conf.channel_set_ht40plus));
+					/* reset UI */
+					conf.channel_set_width = conf.channel_width;
+					conf.channel_set_ht40plus = conf.channel_ht40plus;
+				} else {
+					net_send_channel_config();
+				}
+			} else {
+				/* client */
+				conf.channel_idx = new_idx;
+				conf.channel_width = conf.channel_set_width;
+				conf.channel_ht40plus = conf.channel_set_ht40plus;
+				printlog("Sending channel config to server");
+				net_send_channel_config();
+			}
+		}
+		return false;
+
 	default:
 		return false; /* didn't handle input */
 	}
-
-	// TODO: net client has not set channel_width and ht40p yet:
-	net_send_channel_config();
 
 	update_channel_win(win);
 	return true;

@@ -335,17 +335,30 @@ net_receive_conf_chan(unsigned char *buffer, size_t len)
 	conf.channel_time = le32toh(nc->dwell_time);
 
 	enum chan_width width = nc->width_ht40p & ~NET_WIDTH_HT40PLUS;
-	bool ht40p = nc->width_ht40p & NET_WIDTH_HT40PLUS;
+	bool ht40p = !!(nc->width_ht40p & NET_WIDTH_HT40PLUS);
 
-	if (cli_fd > -1 && nc->channel != conf.channel_idx) /* server */
-		channel_change(nc->channel, width, ht40p);
-	else { /* client */
-		conf.channel_idx = nc->channel;
-		conf.channel_width = width;
-		conf.channel_ht40plus = ht40p;
-		conf.channel_set_width = width;
-		conf.channel_set_ht40plus = ht40p;
-		update_spectrum_durations();
+	if (nc->channel != conf.channel_idx ||
+	    width != conf.channel_width ||
+	    ht40p != conf.channel_ht40plus) { /* something changed */
+		if (cli_fd > -1) { /* server */
+			if (!channel_change(nc->channel, width, ht40p)) {
+				printlog("Net Channel %d %s is not available/allowed",
+					channel_get_chan(nc->channel),
+					channel_width_string(width, ht40p));
+				net_send_channel_config();
+			} else {
+				/* success: update UI */
+				conf.channel_set_num = channel_get_chan(nc->channel);
+				conf.channel_set_width = width;
+				conf.channel_set_ht40plus = ht40p;
+			}
+		} else { /* client */
+			conf.channel_idx = nc->channel;
+			conf.channel_width = conf.channel_set_width = width;
+			conf.channel_ht40plus = conf.channel_set_ht40plus = ht40p;
+			conf.channel_set_num = channel_get_chan(nc->channel);
+			update_spectrum_durations();
+		}
 	}
 
 	return sizeof(struct net_conf_chan);
