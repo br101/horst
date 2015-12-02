@@ -31,6 +31,7 @@
 #include "util.h"
 #include "channel.h"
 #include "network.h"
+#include "display.h"
 
 
 extern struct config conf;
@@ -351,6 +352,7 @@ net_receive_conf_chan(unsigned char *buffer, size_t len)
 				conf.channel_set_num = channel_get_chan(nc->channel);
 				conf.channel_set_width = width;
 				conf.channel_set_ht40plus = ht40p;
+				update_display(NULL);
 			}
 		} else { /* client */
 			conf.channel_idx = nc->channel;
@@ -358,6 +360,7 @@ net_receive_conf_chan(unsigned char *buffer, size_t len)
 			conf.channel_ht40plus = conf.channel_set_ht40plus = ht40p;
 			conf.channel_set_num = channel_get_chan(nc->channel);
 			update_spectrum_durations();
+			update_display(NULL);
 		}
 	}
 
