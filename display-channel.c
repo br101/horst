@@ -137,10 +137,14 @@ channel_input(WINDOW *win, int c)
 		int i = channel_find_index_from_chan(x);
 		if (i >= 0) {
 			if (!conf.serveraddr[0] != '\0') {
-				if (!channel_change(i, conf.channel_set_width, conf.channel_set_ht40plus))
+				if (!channel_change(i, conf.channel_set_width, conf.channel_set_ht40plus)) {
 					printlog("Channel %d %s is not available/allowed", x,
 						channel_width_string(conf.channel_set_width,
-									 conf.channel_set_ht40plus));
+								     conf.channel_set_ht40plus));
+					/* reset UI */
+					conf.channel_set_width = conf.channel_width;
+					conf.channel_set_ht40plus = conf.channel_ht40plus;
+				}
 			} else
 				conf.channel_idx = i;
 		}

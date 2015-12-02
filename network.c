@@ -343,6 +343,8 @@ net_receive_conf_chan(unsigned char *buffer, size_t len)
 		conf.channel_idx = nc->channel;
 		conf.channel_width = width;
 		conf.channel_ht40plus = ht40p;
+		conf.channel_set_width = width;
+		conf.channel_set_ht40plus = ht40p;
 		update_spectrum_durations();
 	}
 

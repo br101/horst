@@ -283,6 +283,9 @@ channel_init(void) {
 			if (!channel_change(conf.channel_idx, b.max_chan_width, true) &&
 			    !channel_change(conf.channel_idx, b.max_chan_width, false))
 				return false;
+		} else {
+			conf.channel_set_width = conf.channel_width;
+			conf.channel_set_ht40plus = conf.channel_ht40plus;
 		}
 	}
 	return true;
