@@ -95,6 +95,9 @@ all: $(NAME)
 
 .objdeps.mk: $(OBJS:%.o=%.c)
 	gcc -MM -I. $^ >$@
+ifeq ($(OSX),1)
+	gcc -MM -I. ifctrl-osx.m >>$@
+endif
 
 -include .objdeps.mk
 
