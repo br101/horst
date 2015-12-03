@@ -58,7 +58,6 @@ ifeq ($(OSX),1)
     PCAP=1
     WEXT=0
     LIBNL=0
-    OBJS+=ifctrl-osx.o
     LIBS+=-framework CoreWLAN -framework CoreData -framework Foundation
 endif
 
@@ -101,8 +100,11 @@ endif
 
 -include .objdeps.mk
 
+ifeq ($(OSX),1)
+	OBJS += ifctrl-osx.o
+endif
+
 $(NAME): $(OBJS)
-	echo $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
 $(OBJS): .buildflags
