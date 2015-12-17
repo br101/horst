@@ -43,7 +43,7 @@
 #define FILTER_WIN_HEIGHT	35
 
 #define CHANNEL_WIN_WIDTH	41
-#define CHANNEL_WIN_HEIGHT	30
+#define CHANNEL_WIN_HEIGHT	31
 
 struct packet_info;
 struct node_info;

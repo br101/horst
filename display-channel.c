@@ -63,7 +63,7 @@ update_channel_win(WINDOW *win)
 	}
 	wattroff(win, WHITE);
 
-	l = 17;
+	l = 18;
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, 2, "s: [%c] Scan",
 		  CHECKED(conf.do_change_channel));
