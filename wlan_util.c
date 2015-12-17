@@ -217,7 +217,7 @@ void ht_streams_from_mcs_set(unsigned char* mcs, unsigned char* rx, unsigned cha
 
 	bool tx_mcs_defined = mcs[12] & 0x01;
 	bool tx_rx_mcs_not_equal = !!(mcs[12] & 0x02);
-	char tx_max_streams = !!((mcs[12] & 0x0c) >> 2);
+	char tx_max_streams = ((mcs[12] & 0x0c) >> 2) + 1;
 
 	if (tx_mcs_defined && !tx_rx_mcs_not_equal)
 		*tx = *rx;
