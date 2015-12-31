@@ -110,7 +110,7 @@ channel_input(WINDOW *win, int c)
 	case 'd': case 'D':
 		echo();
 		curs_set(1);
-		mvwgetnstr(win, 18, 12, buf, 6);
+		mvwgetnstr(win, 19, 12, buf, 6);
 		curs_set(0);
 		noecho();
 		sscanf(buf, "%d", &x);
@@ -120,7 +120,7 @@ channel_input(WINDOW *win, int c)
 	case 'u': case 'U':
 		echo();
 		curs_set(1);
-		mvwgetnstr(win, 19, 18, buf, 6);
+		mvwgetnstr(win, 20, 18, buf, 6);
 		curs_set(0);
 		noecho();
 		sscanf(buf, "%d", &x);
@@ -130,7 +130,7 @@ channel_input(WINDOW *win, int c)
 	case 'm': case 'M':
 		echo();
 		curs_set(1);
-		mvwgetnstr(win, 21, 18, buf, 3);
+		mvwgetnstr(win, 22, 18, buf, 3);
 		curs_set(0);
 		noecho();
 		sscanf(buf, "%d", &x);
