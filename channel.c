@@ -170,10 +170,11 @@ channel_change(int idx, enum chan_width width, bool ht40plus)
 		return false;
 	}
 
-	printlog("Set CH %d (%d MHz) %s center %d",
+	printlog("Set CH %d (%d MHz) %s center %d after %ldms",
 		channels.chan[idx].chan, channels.chan[idx].freq,
 		channel_width_string(width, ht40plus),
-		center1);
+		 center1, (the_time.tv_sec - last_channelchange.tv_sec) * 1000
+		 + (the_time.tv_usec - last_channelchange.tv_usec) / 1000);
 
 	conf.channel_idx = idx;
 	conf.channel_width = width;
