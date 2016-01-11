@@ -434,7 +434,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 
 		p->wlan_nav = le16toh(wh->duration);
 		DEBUG("DATA NAV %d\n", p->wlan_nav);
-		p->wlan_seqno = le16toh(wh->seq);
+		p->wlan_seqno = (le16toh(wh->seq) & WLAN_FRAME_SEQ_MASK) >> 4;
 		DEBUG("DATA SEQ %d\n", p->wlan_seqno);
 
 		DEBUG("A1 %s\n", ether_sprintf(wh->addr1));
@@ -476,7 +476,7 @@ parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 		ra = wh->addr1;
 		ta = wh->addr2;
 		bssid = wh->addr3;
-		p->wlan_seqno = le16toh(wh->seq);
+		p->wlan_seqno = (le16toh(wh->seq) & WLAN_FRAME_SEQ_MASK) >> 4;
 		DEBUG("MGMT SEQ %d\n", p->wlan_seqno);
 
 		if (fc & WLAN_FRAME_FC_RETRY)
