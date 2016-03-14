@@ -83,41 +83,8 @@
 #endif
 #endif
 
-void
-dump_packet(const unsigned char* buf, int len);
-
-const char*
-ether_sprintf(const unsigned char *mac);
-
-const char*
-ether_sprintf_short(const unsigned char *mac);
-
-const char*
-ip_sprintf(const unsigned int ip);
-
-const char*
-ip_sprintf_short(const unsigned int ip);
-
-void
-convert_string_to_mac(const char* string, unsigned char* mac);
-
-int
-normalize(float val, int max_val, int max);
-
-static inline int normalize_db(int val, int max)
-{
-	if (val <= 30)
-		return 0;
-	else if (val >= 100)
-		return max;
-	else
-		return normalize(val - 30, 70, max);
-}
-
-const char*
-kilo_mega_ize(unsigned int val);
-
 #define MAC_NOT_EMPTY(_mac) (_mac[0] || _mac[1] || _mac[2] || _mac[3] || _mac[4] || _mac[5])
+
 #define MAC_EMPTY(_mac) (!_mac[0] && !_mac[1] && !_mac[2] && !_mac[3] && !_mac[4] && !_mac[5])
 
 #define BIT(nr) (1 << (nr))
@@ -133,24 +100,42 @@ kilo_mega_ize(unsigned int val);
  * none of the bits are set, all bits will be set.
  */
 #define TOGGLE_BITSET(_x, _s, _type) do {	\
-	if ((_x) & (_s))		\
+		if ((_x) & (_s))		\
 		(_x) &= (_type)~(_s);		\
-	else				\
-		(_x) |= (_s);		\
-	} while(0)
+		else				\
+			(_x) |= (_s);		\
+		} while(0)
 
 #define max(_x, _y) ((_x) > (_y) ? (_x) : (_y))
+
 #define min(_x, _y) ((_x) < (_y) ? (_x) : (_y))
 
 #define DIV_ROUND_UP(n,d) (((n) + (d) - 1) / (d))
+
+void dump_packet(const unsigned char* buf, int len);
+const char* ether_sprintf(const unsigned char *mac);
+const char* ether_sprintf_short(const unsigned char *mac);
+const char* ip_sprintf(const unsigned int ip);
+const char* ip_sprintf_short(const unsigned int ip);
+void convert_string_to_mac(const char* string, unsigned char* mac);
+int normalize(float val, int max_val, int max);
+const char* kilo_mega_ize(unsigned int val);
+int ilog2(int x);
+
+static inline int normalize_db(int val, int max)
+{
+	if (val <= 30)
+		return 0;
+	else if (val >= 100)
+		return max;
+	else
+		return normalize(val - 30, 70, max);
+}
 
 static inline __attribute__((const))
 int is_power_of_2(unsigned long n)
 {
 	return (n != 0 && ((n & (n - 1)) == 0));
 }
-
-int
-ilog2(int x);
 
 #endif

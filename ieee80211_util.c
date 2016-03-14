@@ -23,7 +23,6 @@
 #include "main.h"
 #include "util.h"
 
-
 /* from mac80211/ieee80211_i.c, slightly modified */
 
 /**
@@ -33,8 +32,7 @@
  *
  * Check if a given rate is an Extended Rate PHY (ERP) rate.
  */
-static inline bool
-ieee80211_is_erp_rate(int phymode, int rate)
+static inline bool ieee80211_is_erp_rate(int phymode, int rate)
 {
 	if (phymode & PHY_FLAG_G) {
 		if (rate != 10 && rate != 20 &&
@@ -47,8 +45,7 @@ ieee80211_is_erp_rate(int phymode, int rate)
 	return false;
 }
 
-static int
-get_cw_time(int cw_min, int cw_max, int retries, int slottime)
+static int get_cw_time(int cw_min, int cw_max, int retries, int slottime)
 {
 	int cw = pow(2, (cw_min + retries)) - 1;
 	cw_max = pow(2, cw_max) - 1;
@@ -67,8 +64,7 @@ static const unsigned char ac_to_cwmin[4] = {	4,	4,	3,	2};
 static const unsigned int ac_to_cwmax[4] = {	10,	10,	4,	3};
 
 /* from mac80211/util.c, modified */
-int
-ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
+int ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamble,
 			 int shortslot, int type, char qos_class, int retries)
 {
 	int dur;

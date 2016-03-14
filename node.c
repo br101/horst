@@ -26,12 +26,9 @@
 #include "wlan80211.h"
 #include "essid.h"
 
-
 static struct timeval last_nodetimeout;
 
-
-static void
-copy_nodeinfo(struct node_info* n, struct packet_info* p)
+static void copy_nodeinfo(struct node_info* n, struct packet_info* p)
 {
 	struct node_info* ap;
 
@@ -129,9 +126,7 @@ copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		n->wlan_chan_width = p->wlan_chan_width;
 }
 
-
-struct node_info*
-node_update(struct packet_info* p)
+struct node_info* node_update(struct packet_info* p)
 {
 	struct node_info* n;
 
@@ -167,8 +162,7 @@ node_update(struct packet_info* p)
 	return n;
 }
 
-void
-timeout_nodes(void)
+void timeout_nodes(void)
 {
 	struct node_info *n, *m, *n2, *m2;
 	struct chan_node *cn, *cn2;

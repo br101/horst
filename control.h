@@ -24,16 +24,9 @@
 
 extern int ctlpipe;
 
-void
-control_init_pipe();
-
-void
-control_send_command(const char* cmd);
-
-void
-control_receive_command();
-
-void
-control_finish(void);
+void control_init_pipe();
+void control_send_command(const char* cmd);
+void control_receive_command();
+void control_finish(void);
 
 #endif

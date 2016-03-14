@@ -33,8 +33,7 @@
 #define SECOND_ROW 19
 #define THIRD_ROW 23
 
-void
-update_filter_win(WINDOW *win)
+void update_filter_win(WINDOW *win)
 {
 	int l, i, t, col = 2;
 
@@ -122,8 +121,7 @@ update_filter_win(WINDOW *win)
 	wrefresh(win);
 }
 
-bool
-filter_input(WINDOW *win, int c)
+bool filter_input(WINDOW *win, int c)
 {
 	char buf[18];
 	int i, t;

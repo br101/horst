@@ -33,33 +33,15 @@ struct pkt_name {
  */
 struct pkt_name stype_names[WLAN_NUM_TYPES][WLAN_NUM_STYPES];
 
-struct pkt_name
-get_packet_struct(uint16_t type);
-
-char
-get_packet_type_char(uint16_t type);
-
-const char*
-get_packet_type_name(uint16_t type);
-
-int
-rate_to_index(int rate);
-
-int
-rate_index_to_rate(int idx);
-
-int
-mcs_index_to_rate(int mcs, int ht20, int lgi);
-
-enum chan_width
-chan_width_from_vht_capab(uint32_t vht);
-
-void
-ht_streams_from_mcs_set(unsigned char* mcs, unsigned char* rx, unsigned char* tx);
-
-void
-vht_streams_from_mcs_set(unsigned char* mcs, unsigned char* rx, unsigned char* tx);
-
+struct pkt_name get_packet_struct(uint16_t type);
+char get_packet_type_char(uint16_t type);
+const char* get_packet_type_name(uint16_t type);
+int rate_to_index(int rate);
+int rate_index_to_rate(int idx);
+int mcs_index_to_rate(int mcs, int ht20, int lgi);
+enum chan_width chan_width_from_vht_capab(uint32_t vht);
+void ht_streams_from_mcs_set(unsigned char* mcs, unsigned char* rx, unsigned char* tx);
+void vht_streams_from_mcs_set(unsigned char* mcs, unsigned char* rx, unsigned char* tx);
 const char* get_80211std(enum chan_width width, int chan);
 
 #endif

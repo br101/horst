@@ -29,8 +29,7 @@
 static struct timeval last_channelchange;
 static struct channel_list channels;
 
-long
-channel_get_remaining_dwell_time(void)
+long channel_get_remaining_dwell_time(void)
 {
 	if (!conf.do_change_channel)
 		return LONG_MAX;
@@ -43,14 +42,15 @@ channel_get_remaining_dwell_time(void)
 }
 
 
-static struct band_info
-channel_get_band_from_idx(int idx) {
+static struct band_info channel_get_band_from_idx(int idx)
+{
 	int b = idx - channels.band[0].num_channels < 0 ? 0 : 1;
 	return channels.band[b];
 }
 
 
-static int get_center_freq_ht40(unsigned int freq, bool upper) {
+static int get_center_freq_ht40(unsigned int freq, bool upper)
+{
 	unsigned int center = 0;
 	/*
 	 * For HT40 we have a channel offset of 20 MHz, and the
@@ -65,7 +65,8 @@ static int get_center_freq_ht40(unsigned int freq, bool upper) {
 }
 
 
-static int get_center_freq_vht(unsigned int freq, enum chan_width width) {
+static int get_center_freq_vht(unsigned int freq, enum chan_width width)
+{
 	unsigned int center1 = 0;
 	switch(width) {
 		case CHAN_WIDTH_80:
@@ -105,7 +106,8 @@ static int get_center_freq_vht(unsigned int freq, enum chan_width width) {
 }
 
 
-const char* channel_width_string(enum chan_width w, int ht40p) {
+const char* channel_width_string(enum chan_width w, int ht40p)
+{
 	switch (w) {
 		case CHAN_WIDTH_UNSPEC: return "?";
 		case CHAN_WIDTH_20_NOHT: return "20 (no HT)";
@@ -118,7 +120,8 @@ const char* channel_width_string(enum chan_width w, int ht40p) {
 	return "";
 }
 
-const char* channel_width_string_short(enum chan_width w, int ht40p) {
+const char* channel_width_string_short(enum chan_width w, int ht40p)
+{
 	switch (w) {
 		case CHAN_WIDTH_UNSPEC: return "?";
 		case CHAN_WIDTH_20_NOHT: return "20g";
@@ -133,8 +136,7 @@ const char* channel_width_string_short(enum chan_width w, int ht40p) {
 
 /* Note: ht40plus is only used for HT40 channel width, to distinguish between
  * HT40+ and HT40- */
-bool
-channel_change(int idx, enum chan_width width, bool ht40plus)
+bool channel_change(int idx, enum chan_width width, bool ht40plus)
 {
 	unsigned int center1 = 0;
 
@@ -183,9 +185,7 @@ channel_change(int idx, enum chan_width width, bool ht40plus)
 	return true;
 }
 
-
-bool
-channel_auto_change(void)
+bool channel_auto_change(void)
 {
 	int new_idx;
 	bool ret = true;
@@ -245,7 +245,8 @@ channel_auto_change(void)
 	return ret;
 }
 
-char* channel_get_string(int idx) {
+char* channel_get_string(int idx)
+{
 	static char buf[32];
 	struct chan_freq* c = &channels.chan[idx];
 	snprintf(buf, sizeof(buf), "%-3d: %d HT40%s%s", c->chan, c->freq,
@@ -254,8 +255,8 @@ char* channel_get_string(int idx) {
 	return buf;
 }
 
-bool
-channel_init(void) {
+bool channel_init(void)
+{
 	/* get available channels */
 	ifctrl_iwget_freqlist(conf.if_phy, &channels);
 	conf.channel_initialized = 1;
@@ -292,9 +293,7 @@ channel_init(void) {
 	return true;
 }
 
-
-int
-channel_find_index_from_chan(int c)
+int channel_find_index_from_chan(int c)
 {
 	int i = -1;
 	for (i = 0; i < channels.num_channels && i < MAX_CHANNELS; i++)
@@ -303,9 +302,7 @@ channel_find_index_from_chan(int c)
 	return -1;
 }
 
-
-int
-channel_find_index_from_freq(unsigned int f)
+int channel_find_index_from_freq(unsigned int f)
 {
 	int i = -1;
 	for (i = 0; i < channels.num_channels && i < MAX_CHANNELS; i++)
@@ -314,27 +311,24 @@ channel_find_index_from_freq(unsigned int f)
 	return -1;
 }
 
-
-int
-channel_get_chan(int i) {
+int channel_get_chan(int i)
+{
 	if (i >= 0 && i < channels.num_channels && i < MAX_CHANNELS)
 		return channels.chan[i].chan;
 	else
 		return -1;
 }
 
-
-int
-channel_get_freq(int idx) {
+int channel_get_freq(int idx)
+{
 	if (idx >= 0 && idx < channels.num_channels && idx < MAX_CHANNELS)
 		return channels.chan[idx].freq;
 	else
 		return -1;
 }
 
-
-bool
-channel_list_add(int freq) {
+bool channel_list_add(int freq)
+{
 	if (channels.num_channels >=  MAX_CHANNELS)
 		return false;
 
@@ -344,18 +338,18 @@ channel_list_add(int freq) {
 	return true;
 }
 
-int
-channel_get_num_channels() {
+int channel_get_num_channels()
+{
 	return channels.num_channels;
 }
 
-int
-channel_get_num_bands() {
+int channel_get_num_bands()
+{
 	return channels.num_bands;
 }
 
-int
-channel_get_idx_from_band_idx(int band, int idx) {
+int channel_get_idx_from_band_idx(int band, int idx)
+{
 	if (band < 0 || band >= channels.num_bands)
 		return -1;
 
@@ -368,15 +362,16 @@ channel_get_idx_from_band_idx(int band, int idx) {
 	return idx;
 }
 
-const struct band_info* channel_get_band(int b) {
+const struct band_info* channel_get_band(int b)
+{
 	if (b < 0 || b > channels.num_bands)
 		return NULL;
 	return &channels.band[b];
 }
 
-bool
-channel_band_add(int num_channels, enum chan_width max_chan_width,
-		unsigned char streams_rx, unsigned char streams_tx) {
+bool channel_band_add(int num_channels, enum chan_width max_chan_width,
+		      unsigned char streams_rx, unsigned char streams_tx)
+{
 	if (channels.num_bands >= MAX_BANDS)
 		return false;
 

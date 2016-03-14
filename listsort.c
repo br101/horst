@@ -62,9 +62,8 @@
  * list element itself (as common in the linux linked list implementation).
  * If the first element moves, head is adjusted accordingly.
  */
-void
-listsort(struct list_node *head,
-	int(*cmp)(const struct list_node*, const struct list_node*))
+void listsort(struct list_node *head,
+	      int(*cmp)(const struct list_node*, const struct list_node*))
 {
 	struct list_node *list, *p, *q, *e, *tail, *oldhead;
 	int insize, nmerges, psize, qsize, i;
@@ -151,7 +150,6 @@ listsort(struct list_node *head,
 		insize *= 2;
 	}
 }
-
 
 #if 0
 /*

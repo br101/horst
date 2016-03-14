@@ -44,7 +44,6 @@
 #include "conf_options.h"
 #include "ifctrl.h"
 
-
 struct list_head nodes;
 struct essid_meta_info essids;
 struct history hist;
@@ -89,7 +88,6 @@ static fd_set excpt_fds;
 
 static volatile sig_atomic_t is_sigint_caught;
 
-
 void __attribute__ ((format (printf, 1, 2)))
 printlog(const char *fmt, ...)
 {
@@ -109,9 +107,7 @@ printlog(const char *fmt, ...)
 	}
 }
 
-
-static void
-update_history(struct packet_info* p)
+static void update_history(struct packet_info* p)
 {
 	if (p->phy_signal == 0)
 		return;
@@ -126,9 +122,7 @@ update_history(struct packet_info* p)
 		hist.index = 0;
 }
 
-
-static void
-update_statistics(struct packet_info* p)
+static void update_statistics(struct packet_info* p)
 {
 	int type = (p->phy_flags & PHY_FLAG_BADFCS) ? 1 : p->wlan_type;
 
@@ -155,9 +149,7 @@ update_statistics(struct packet_info* p)
 	}
 }
 
-
-static void
-update_spectrum(struct packet_info* p, struct node_info* n)
+static void update_spectrum(struct packet_info* p, struct node_info* n)
 {
 	struct channel_info* chan;
 	struct chan_node* cn;
@@ -201,9 +193,7 @@ update_spectrum(struct packet_info* p, struct node_info* n)
 	cn->packets++;
 }
 
-
-void
-update_spectrum_durations(void)
+void update_spectrum_durations(void)
 {
 	/* also if channel was not changed, keep stats only for every channel_time.
 	 * display code uses durations_last to get a more stable view */
@@ -216,9 +206,7 @@ update_spectrum_durations(void)
 	}
 }
 
-
-static void
-write_to_file(struct packet_info* p)
+static void write_to_file(struct packet_info* p)
 {
 	char buf[40];
 	int i;
@@ -244,10 +232,8 @@ write_to_file(struct packet_info* p)
 	fflush(DF);
 }
 
-
 /* return true if packet is filtered */
-static bool
-filter_packet(struct packet_info* p)
+static bool filter_packet(struct packet_info* p)
 {
 	int i;
 
@@ -307,9 +293,8 @@ filter_packet(struct packet_info* p)
 	return false;
 }
 
-
-void
-fixup_packet_channel(struct packet_info* p) {
+void fixup_packet_channel(struct packet_info* p)
+{
 	int i = -1;
 
 	/* get channel index for packet */
@@ -335,9 +320,7 @@ fixup_packet_channel(struct packet_info* p) {
 		conf.channel_idx = p->pkt_chan_idx;
 }
 
-
-void
-handle_packet(struct packet_info* p)
+void handle_packet(struct packet_info* p)
 {
 	struct node_info* n = NULL;
 
@@ -386,9 +369,7 @@ handle_packet(struct packet_info* p)
 		update_display(p);
 }
 
-
-static void
-local_receive_packet(int fd, unsigned char* buffer, size_t bufsize)
+static void local_receive_packet(int fd, unsigned char* buffer, size_t bufsize)
 {
 	int len;
 	struct packet_info p;
@@ -413,9 +394,7 @@ local_receive_packet(int fd, unsigned char* buffer, size_t bufsize)
 	handle_packet(&p);
 }
 
-
-static void
-receive_any(const sigset_t *const waitmask)
+static void receive_any(const sigset_t *const waitmask)
 {
 	int ret, mfd;
 	long usecs;
@@ -477,9 +456,7 @@ receive_any(const sigset_t *const waitmask)
 		control_receive_command();
 }
 
-
-void
-free_lists(void)
+void free_lists(void)
 {
 	int i;
 	struct essid_info *e, *f;
@@ -511,9 +488,7 @@ free_lists(void)
 	}
 }
 
-
-static void
-exit_handler(void)
+static void exit_handler(void)
 {
 	free_lists();
 
@@ -543,9 +518,7 @@ exit_handler(void)
 	ifctrl_finish();
 }
 
-
-static void
-sigint_handler(__attribute__((unused)) int sig)
+static void sigint_handler(__attribute__((unused)) int sig)
 {
 	/* Only set an atomic flag here to keep processing in the interrupt
 	 * context as minimal as possible (at least all unsafe functions are
@@ -553,16 +526,12 @@ sigint_handler(__attribute__((unused)) int sig)
 	is_sigint_caught = 1;
 }
 
-
-static void
-sigpipe_handler(__attribute__((unused)) int sig)
+static void sigpipe_handler(__attribute__((unused)) int sig)
 {
 	/* ignore signal here - we will handle it after write failed */
 }
 
-
-void
-init_spectrum(void)
+void init_spectrum(void)
 {
 	int i;
 
@@ -573,8 +542,8 @@ init_spectrum(void)
 	}
 }
 
-static void
-mac_name_file_read(const char* filename) {
+static void mac_name_file_read(const char* filename)
+{
 	FILE* fp;
 	char line[255];
 	char macs[18];
@@ -610,8 +579,8 @@ mac_name_file_read(const char* filename) {
 	}
 }
 
-
-const char* mac_name_lookup(const unsigned char* mac, int shorten_mac) {
+const char* mac_name_lookup(const unsigned char* mac, int shorten_mac)
+{
 	int i;
 	if (conf.mac_name_lookup) {
 		for (i = 0; i < node_names.count; i++) {
@@ -640,8 +609,7 @@ static void generate_mon_ifname(char *const buf, const size_t buf_size)
 	}
 }
 
-int
-main(int argc, char** argv)
+int main(int argc, char** argv)
 {
 	sigset_t workmask;
 	sigset_t waitmask;
@@ -769,14 +737,11 @@ main(int argc, char** argv)
 	return 0;
 }
 
-
-void
-main_pause(int pause)
+void main_pause(int pause)
 {
 	conf.paused = pause;
 	printlog(conf.paused ? "- PAUSED -" : "- RESUME -");
 }
-
 
 void main_reset()
 {
@@ -793,9 +758,7 @@ void main_reset()
 	gettimeofday(&stats.stats_time, NULL);
 }
 
-
-void
-dumpfile_open(const char* name)
+void dumpfile_open(const char* name)
 {
 	if (DF != NULL) {
 		fclose(DF);

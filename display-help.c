@@ -25,9 +25,7 @@
 #include "main.h"
 #include "wlan_util.h"
 
-
-void
-update_help_win(WINDOW *win)
+void update_help_win(WINDOW *win)
 {
 	int i, t, col, l;
 

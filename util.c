@@ -22,9 +22,7 @@
 
 #include "util.h"
 
-
-int
-normalize(float oval, int max_val, int max) {
+int normalize(float oval, int max_val, int max) {
 	int val;
 	val= (oval / max_val) * max;
 	if (val > max) /* cap if still bigger */
@@ -36,10 +34,8 @@ normalize(float oval, int max_val, int max) {
 	return val;
 }
 
-
 #if DO_DEBUG
-void
-dump_packet(const unsigned char* buf, int len)
+void dump_packet(const unsigned char* buf, int len)
 {
 	int i;
 	for (i = 0; i < len; i++) {
@@ -61,9 +57,7 @@ dump_packet(__attribute__((unused)) const unsigned char* buf,
 }
 #endif
 
-
-const char*
-ether_sprintf(const unsigned char *mac)
+const char* ether_sprintf(const unsigned char *mac)
 {
 	static char etherbuf[18];
 	snprintf(etherbuf, sizeof(etherbuf), "%02x:%02x:%02x:%02x:%02x:%02x",
@@ -71,9 +65,7 @@ ether_sprintf(const unsigned char *mac)
 	return etherbuf;
 }
 
-
-const char*
-ether_sprintf_short(const unsigned char *mac)
+const char* ether_sprintf_short(const unsigned char *mac)
 {
 	static char etherbuf[5];
 	snprintf(etherbuf, sizeof(etherbuf), "%02x%02x",
@@ -81,9 +73,7 @@ ether_sprintf_short(const unsigned char *mac)
 	return etherbuf;
 }
 
-
-const char*
-ip_sprintf(const unsigned int ip)
+const char* ip_sprintf(const unsigned int ip)
 {
 	static char ipbuf[18];
 	unsigned char* cip = (unsigned char*)&ip;
@@ -92,9 +82,7 @@ ip_sprintf(const unsigned int ip)
 	return ipbuf;
 }
 
-
-const char*
-ip_sprintf_short(const unsigned int ip)
+const char* ip_sprintf_short(const unsigned int ip)
 {
 	static char ipbuf[5];
 	unsigned char* cip = (unsigned char*)&ip;
@@ -102,9 +90,7 @@ ip_sprintf_short(const unsigned int ip)
 	return ipbuf;
 }
 
-
-void
-convert_string_to_mac(const char* string, unsigned char* mac)
+void convert_string_to_mac(const char* string, unsigned char* mac)
 {
 	int c;
 	for(c = 0; c < 6 && string; c++) {
@@ -118,9 +104,7 @@ convert_string_to_mac(const char* string, unsigned char* mac)
 	}
 }
 
-
-const char*
-kilo_mega_ize(unsigned int val) {
+const char* kilo_mega_ize(unsigned int val) {
 	static char buf[20];
 	char c = 0;
 	int rest;
@@ -141,10 +125,9 @@ kilo_mega_ize(unsigned int val) {
 	return buf;
 }
 
-
 /* simple ilog2 implementation */
-int
-ilog2(int x) {
+int ilog2(int x)
+{
 	int n;
 	for (n = 0; !(x & 1); n++)
 		x = x >> 1;

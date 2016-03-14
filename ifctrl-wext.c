@@ -29,8 +29,7 @@
 
 extern int mon; /* monitoring socket */
 
-bool
-wext_set_freq(int fd, const char* devname, int freq)
+bool wext_set_freq(int fd, const char* devname, int freq)
 {
 	struct iwreq iwr;
 
@@ -48,9 +47,7 @@ wext_set_freq(int fd, const char* devname, int freq)
 	return true;
 }
 
-
-int
-wext_get_freq(int fd, const char* devname)
+int wext_get_freq(int fd, const char* devname)
 {
 	struct iwreq iwr;
 
@@ -66,10 +63,8 @@ wext_get_freq(int fd, const char* devname)
 	return iwr.u.freq.m;
 }
 
-
-int
-wext_get_channels(int fd, const char* devname,
-		  struct channel_list* channels)
+int wext_get_channels(int fd, const char* devname,
+		      struct channel_list* channels)
 {
 	struct iwreq iwr;
 	struct iw_range range;
@@ -118,30 +113,34 @@ wext_get_channels(int fd, const char* devname,
 	return i;
 }
 
-
 /*
  * ifctrl.h implementation
  */
 
-bool ifctrl_init() {
+bool ifctrl_init()
+{
 	return true;
 };
 
-void ifctrl_finish() {
+void ifctrl_finish()
+{
 };
 
 bool ifctrl_iwadd_monitor(__attribute__((unused)) const char *interface,
-			 __attribute__((unused)) const char *monitor_interface) {
+			 __attribute__((unused)) const char *monitor_interface)
+{
 	printlog("add monitor: not supported with WEXT");
 	return false;
 }
 
-bool ifctrl_iwdel(__attribute__((unused)) const char *interface) {
+bool ifctrl_iwdel(__attribute__((unused)) const char *interface)
+{
 	printlog("del: not supported with WEXT");
 	return false;
 }
 
-bool ifctrl_iwset_monitor(__attribute__((unused)) const char *interface) {
+bool ifctrl_iwset_monitor(__attribute__((unused)) const char *interface)
+{
 	printlog("set monitor: not supported with WEXT");
 	return false;
 }
@@ -150,25 +149,29 @@ bool ifctrl_iwset_monitor(__attribute__((unused)) const char *interface) {
 bool ifctrl_iwset_freq(const char *const interface,
 		       unsigned int freq,
 		       __attribute__((unused)) enum chan_width width,
-		       __attribute__((unused)) unsigned int center1) {
+		       __attribute__((unused)) unsigned int center1)
+{
 	if (wext_set_freq(mon, interface, freq))
 		return true;
 	return false;
 }
 
-bool ifctrl_iwget_interface_info(const char *interface) {
+bool ifctrl_iwget_interface_info(const char *interface)
+{
 	conf.if_freq = wext_get_freq(mon, interface);
 	if (conf.if_freq == 0)
 		return false;
 	return true;
 }
 
-bool ifctrl_iwget_freqlist(__attribute__((unused)) int phy, struct channel_list* channels) {
+bool ifctrl_iwget_freqlist(__attribute__((unused)) int phy, struct channel_list* channels)
+{
 	if (wext_get_channels(mon, conf.ifname, channels))
 		return true;
 	return false;
 }
 
-bool ifctrl_is_monitor() {
+bool ifctrl_is_monitor()
+{
 	return true; /* assume yes */
 }

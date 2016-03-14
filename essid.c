@@ -25,9 +25,7 @@
 #include "wlan80211.h"
 #include "essid.h"
 
-
-static void
-update_essid_split_status(struct essid_info* e)
+static void update_essid_split_status(struct essid_info* e)
 {
 	struct node_info* n;
 	unsigned char* last_bssid = NULL;
@@ -70,9 +68,7 @@ update_essid_split_status(struct essid_info* e)
 	}
 }
 
-
-void
-remove_node_from_essid(struct node_info* n)
+void remove_node_from_essid(struct node_info* n)
 {
 	DEBUG("SPLIT   remove node from old essid\n");
 	list_del(&n->essid_nodes);
@@ -89,9 +85,7 @@ remove_node_from_essid(struct node_info* n)
 	n->essid = NULL;
 }
 
-
-void
-update_essids(struct packet_info* p, struct node_info* n)
+void update_essids(struct packet_info* p, struct node_info* n)
 {
 	struct essid_info* e;
 

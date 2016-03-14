@@ -81,8 +81,8 @@ struct pkt_name stype_names[WLAN_NUM_TYPES][WLAN_NUM_STYPES] = {
 static struct pkt_name unknow = { '?', "UNKNOW", 0, "Unknown" };
 static struct pkt_name badfcs = { '*', "BADFCS", 0, "Bad FCS" };
 
-struct pkt_name
-get_packet_struct(uint16_t type) {
+struct pkt_name get_packet_struct(uint16_t type)
+{
 	int t = WLAN_FRAME_TYPE(type);
 
 	if (type == 1) /* special case for bad FCS */
@@ -95,24 +95,18 @@ get_packet_struct(uint16_t type) {
 	return unknow;
 }
 
-
-char
-get_packet_type_char(uint16_t type)
+char get_packet_type_char(uint16_t type)
 {
 	return get_packet_struct(type).c;
 }
 
-
-const char*
-get_packet_type_name(uint16_t type)
+const char* get_packet_type_name(uint16_t type)
 {
 	return get_packet_struct(type).name;
 }
 
-
 /* rate in 100kbps */
-int
-rate_to_index(int rate)
+int rate_to_index(int rate)
 {
 	switch (rate) {
 		case 540: return 12;
@@ -131,10 +125,8 @@ rate_to_index(int rate)
 	}
 }
 
-
 /* return rate in 100kbps */
-int
-rate_index_to_rate(int idx)
+int rate_index_to_rate(int idx)
 {
 	switch (idx) {
 		case 12: return 540;
@@ -153,10 +145,8 @@ rate_index_to_rate(int idx)
 	}
 }
 
-
 /* return rate in 100kbps */
-int
-mcs_index_to_rate(int mcs, int ht20, int lgi)
+int mcs_index_to_rate(int mcs, int ht20, int lgi)
 {
 	/* MCS Index, http://en.wikipedia.org/wiki/IEEE_802.11n-2009#Data_rates */
 	switch (mcs) {
@@ -196,8 +186,8 @@ mcs_index_to_rate(int mcs, int ht20, int lgi)
 	return 0;
 }
 
-
-enum chan_width chan_width_from_vht_capab(uint32_t vht) {
+enum chan_width chan_width_from_vht_capab(uint32_t vht)
+{
 	switch (((vht & WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH) >> 2)) {
 		case WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH_80: return CHAN_WIDTH_80;
 		case WLAN_IE_VHT_CAPAB_INFO_CHAN_WIDTH_160: return CHAN_WIDTH_160;
@@ -207,7 +197,8 @@ enum chan_width chan_width_from_vht_capab(uint32_t vht) {
 }
 
 /* Note: mcs must be at least 13 bytes long! In theory its 16 byte */
-void ht_streams_from_mcs_set(unsigned char* mcs, unsigned char* rx, unsigned char* tx) {
+void ht_streams_from_mcs_set(unsigned char* mcs, unsigned char* rx, unsigned char* tx)
+{
 	int i;
 	for (i = 0; i < 4; i++) {
 		if (!mcs[i])
@@ -225,9 +216,9 @@ void ht_streams_from_mcs_set(unsigned char* mcs, unsigned char* rx, unsigned cha
 		*tx = tx_max_streams;
 }
 
-
 /* Note: mcs must be at least 6 bytes long! In theory its 8 byte */
-void vht_streams_from_mcs_set(unsigned char* mcs, unsigned char* rx, unsigned char* tx) {
+void vht_streams_from_mcs_set(unsigned char* mcs, unsigned char* rx, unsigned char* tx)
+{
 	int i;
 	/* RX */
 	uint16_t tmp = mcs[0] | (mcs[1] << 8);
@@ -246,8 +237,8 @@ void vht_streams_from_mcs_set(unsigned char* mcs, unsigned char* rx, unsigned ch
 	*tx = i;
 }
 
-
-const char* get_80211std(enum chan_width width, int chan) {
+const char* get_80211std(enum chan_width width, int chan)
+{
 	switch (width) {
 		case CHAN_WIDTH_UNSPEC:
 		case CHAN_WIDTH_20_NOHT:

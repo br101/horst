@@ -31,7 +31,7 @@
 #include "main.h"
 #include "util.h"
 
-extern int parse_packet_wlan(unsigned char** buf, int len, struct packet_info* p);
+extern int wlan_parse_packet(unsigned char** buf, int len, struct packet_info* p);
 static int parse_llc(unsigned char** buf, int len, struct packet_info* p);
 static int parse_ip_header(unsigned char** buf, int len, struct packet_info* p);
 static int parse_udp_header(unsigned char** buf, int len, struct packet_info* p);
@@ -40,12 +40,10 @@ static int parse_batman_packet(unsigned char** buf, int len, struct packet_info*
 static int parse_batman_adv_packet(unsigned char** buf, int len, struct packet_info* p);
 static int parse_meshcruzer_packet(unsigned char** buf, int len, struct packet_info* p, int port);
 
-
 /* return true if we parsed enough = min ieee header */
-bool
-parse_packet(unsigned char* buf, int len, struct packet_info* p)
+bool parse_packet(unsigned char* buf, int len, struct packet_info* p)
 {
-	len = parse_packet_wlan(&buf, len, p);
+	len = wlan_parse_packet(&buf, len, p);
 	if (len == 0)
 		return true;
 	else if (len < 0)
@@ -66,9 +64,7 @@ parse_packet(unsigned char* buf, int len, struct packet_info* p)
 	return true;
 }
 
-
-static int
-parse_llc(unsigned char ** buf, int len, struct packet_info* p)
+static int parse_llc(unsigned char ** buf, int len, struct packet_info* p)
 {
 	DEBUG("* parse LLC\n");
 
@@ -101,9 +97,7 @@ parse_llc(unsigned char ** buf, int len, struct packet_info* p)
 	}
 }
 
-
-static int
-parse_batman_adv_packet(unsigned char** buf, int len, struct packet_info* p) {
+static int parse_batman_adv_packet(unsigned char** buf, int len, struct packet_info* p) {
 	struct batman_ogm_packet *bp;
 	//batadv_ogm_packet
 	bp = (struct batman_ogm_packet*)*buf;
@@ -144,9 +138,7 @@ parse_batman_adv_packet(unsigned char** buf, int len, struct packet_info* p) {
 	return 0;
 }
 
-
-static int
-parse_ip_header(unsigned char** buf, int len, struct packet_info* p)
+static int parse_ip_header(unsigned char** buf, int len, struct packet_info* p)
 {
 	struct ip* ih;
 
@@ -176,9 +168,7 @@ parse_ip_header(unsigned char** buf, int len, struct packet_info* p)
 	return len - ih->ip_hl * 4;
 }
 
-
-static int
-parse_udp_header(unsigned char** buf, int len, struct packet_info* p)
+static int parse_udp_header(unsigned char** buf, int len, struct packet_info* p)
 {
 	struct udphdr* uh;
 
@@ -206,9 +196,7 @@ parse_udp_header(unsigned char** buf, int len, struct packet_info* p)
 	return 0;
 }
 
-
-static int
-parse_olsr_packet(unsigned char** buf, int len, struct packet_info* p)
+static int parse_olsr_packet(unsigned char** buf, int len, struct packet_info* p)
 {
 	struct olsr* oh;
 	int number, msgtype;
@@ -276,25 +264,19 @@ parse_olsr_packet(unsigned char** buf, int len, struct packet_info* p)
 	return 0;
 }
 
-
-static int
-parse_batman_packet(__attribute__((unused)) unsigned char** buf,
+static int parse_batman_packet(__attribute__((unused)) unsigned char** buf,
 		    __attribute__((unused)) int len,
 		    __attribute__((unused)) struct packet_info* p)
 {
 	p->pkt_types |= PKT_TYPE_BATMAN;
-
 	return 0;
 }
 
-
-static int
-parse_meshcruzer_packet(__attribute__((unused)) unsigned char** buf,
+static int parse_meshcruzer_packet(__attribute__((unused)) unsigned char** buf,
 			__attribute__((unused)) int len,
 			__attribute__((unused)) struct packet_info* p,
 			__attribute__((unused)) int port)
 {
 	p->pkt_types |= PKT_TYPE_MESHZ;
-
 	return 0;
 }

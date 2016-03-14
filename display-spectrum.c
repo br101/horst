@@ -32,8 +32,7 @@
 
 static unsigned int show_nodes;
 
-void
-update_spectrum_win(WINDOW *win)
+void update_spectrum_win(WINDOW *win)
 {
 	int i, sig, siga, use, usen, usean, nnodes;
 	struct chan_node *cn;
@@ -142,9 +141,7 @@ update_spectrum_win(WINDOW *win)
 	wnoutrefresh(win);
 }
 
-
-bool
-spectrum_input(WINDOW *win, int c)
+bool spectrum_input(WINDOW *win, int c)
 {
 	switch (c) {
 	case 'n': case 'N':

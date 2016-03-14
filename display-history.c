@@ -30,9 +30,7 @@
 #define TYPE_POS SIGN_POS+1
 #define RATE_POS LINES-2
 
-
-void
-update_history_win(WINDOW *win)
+void update_history_win(WINDOW *win)
 {
 	int i;
 	int col = COLS-2;
@@ -85,8 +83,7 @@ update_history_win(WINDOW *win)
 
 	i = hist.index - 1;
 
-	while (col > 4 && hist.signal[i] != 0)
-	{
+	while (col > 4 && hist.signal[i] != 0) {
 		sig = normalize_db(-hist.signal[i], SIGN_POS - 1);
 
 		wattron(win, ALLGREEN);

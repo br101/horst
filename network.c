@@ -33,7 +33,6 @@
 #include "network.h"
 #include "display.h"
 
-
 extern struct config conf;
 
 int srv_fd = -1;
@@ -42,7 +41,6 @@ static int netmon_fd;
 
 #define PROTO_VERSION	3
 
-
 enum pkt_type {
 	PROTO_PKT_INFO		= 0,
 	PROTO_CHAN_LIST		= 1,
@@ -50,12 +48,10 @@ enum pkt_type {
 	PROTO_CONF_FILTER	= 3,
 };
 
-
 struct net_header {
 	unsigned char version;
 	unsigned char type;
 } __attribute__ ((packed));
-
 
 struct net_conf_chan {
 	struct net_header	proto;
@@ -70,7 +66,6 @@ struct net_conf_chan {
 	int dwell_time;
 
 } __attribute__ ((packed));
-
 
 struct net_conf_filter {
 	struct net_header	proto;
@@ -87,7 +82,6 @@ struct net_conf_filter {
 	unsigned char	filter_flags;
 } __attribute__ ((packed));
 
-
 struct net_band {
 	unsigned char num_chans;
 	unsigned char max_width;
@@ -102,7 +96,6 @@ struct net_chan_list {
 	struct net_band band[2];	// always send both
 	unsigned int freq[1];
 } __attribute__ ((packed));
-
 
 #define PKT_INFO_VERSION	2
 
@@ -162,9 +155,7 @@ struct net_packet_info {
 	unsigned char		bat_pkt_type;
 } __attribute__ ((packed));
 
-
-static bool
-net_write(int fd, unsigned char* buf, size_t len)
+static bool net_write(int fd, unsigned char* buf, size_t len)
 {
 	int ret;
 	ret = write(fd, buf, len);
@@ -183,9 +174,7 @@ net_write(int fd, unsigned char* buf, size_t len)
 	return true;
 }
 
-
-void
-net_send_packet(struct packet_info *p)
+void net_send_packet(struct packet_info *p)
 {
 	struct net_packet_info np;
 
@@ -242,9 +231,7 @@ net_send_packet(struct packet_info *p)
 	net_write(cli_fd, (unsigned char *)&np, sizeof(np));
 }
 
-
-static int
-net_receive_packet(unsigned char *buffer, size_t len)
+static int net_receive_packet(unsigned char *buffer, size_t len)
 {
 	struct net_packet_info *np;
 	struct packet_info p;
@@ -310,9 +297,7 @@ net_receive_packet(unsigned char *buffer, size_t len)
 	return sizeof(struct net_packet_info);
 }
 
-
-static void
-net_send_conf_chan(int fd)
+static void net_send_conf_chan(int fd)
 {
 	struct net_conf_chan nc;
 
@@ -330,9 +315,7 @@ net_send_conf_chan(int fd)
 	net_write(fd, (unsigned char *)&nc, sizeof(nc));
 }
 
-
-static int
-net_receive_conf_chan(unsigned char *buffer, size_t len)
+static int net_receive_conf_chan(unsigned char *buffer, size_t len)
 {
 	struct net_conf_chan *nc;
 
@@ -376,9 +359,7 @@ net_receive_conf_chan(unsigned char *buffer, size_t len)
 	return sizeof(struct net_conf_chan);
 }
 
-
-static void
-net_send_conf_filter(int fd)
+static void net_send_conf_filter(int fd)
 {
 	struct net_conf_filter nc;
 	int i;
@@ -407,9 +388,7 @@ net_send_conf_filter(int fd)
 	net_write(fd, (unsigned char *)&nc, sizeof(nc));
 }
 
-
-static int
-net_receive_conf_filter(unsigned char *buffer, size_t len)
+static int net_receive_conf_filter(unsigned char *buffer, size_t len)
 {
 	struct net_conf_filter *nc;
 	int i;
@@ -437,9 +416,7 @@ net_receive_conf_filter(unsigned char *buffer, size_t len)
 	return sizeof(struct net_conf_filter);
 }
 
-
-static void
-net_send_chan_list(int fd)
+static void net_send_chan_list(int fd)
 {
 	char* buf;
 	struct net_chan_list *nc;
@@ -473,9 +450,7 @@ net_send_chan_list(int fd)
 	free(buf);
 }
 
-
-static int
-net_receive_chan_list(unsigned char *buffer, size_t len)
+static int net_receive_chan_list(unsigned char *buffer, size_t len)
 {
 	struct net_chan_list *nc;
 	int num_chans = 0;
@@ -502,9 +477,7 @@ net_receive_chan_list(unsigned char *buffer, size_t len)
 	return sizeof(struct net_chan_list) + sizeof(unsigned int) * (num_chans - 1);
 }
 
-
-static int
-try_receive_packet(unsigned char* buf, size_t len)
+static int try_receive_packet(unsigned char* buf, size_t len)
 {
 	struct net_header *nh = (struct net_header *)buf;
 
@@ -534,9 +507,7 @@ try_receive_packet(unsigned char* buf, size_t len)
 	return len; /* the number of bytes we have consumed */
 }
 
-
-int
-net_receive(int fd, unsigned char* buffer, size_t* buflen, size_t maxlen)
+int net_receive(int fd, unsigned char* buffer, size_t* buflen, size_t maxlen)
 {
 	int len, consumed = 0;
 
@@ -559,9 +530,7 @@ net_receive(int fd, unsigned char* buffer, size_t* buflen, size_t maxlen)
 	return consumed;
 }
 
-
-void
-net_handle_server_conn(void)
+void net_handle_server_conn(void)
 {
 	struct sockaddr_in cin;
 	socklen_t cinlen;
@@ -582,9 +551,7 @@ net_handle_server_conn(void)
 	srv_fd = -1;
 }
 
-
-void
-net_init_server_socket(int rport)
+void net_init_server_socket(int rport)
 {
 	struct sockaddr_in sock_in;
 	int reuse = 1;
@@ -609,9 +576,7 @@ net_init_server_socket(int rport)
 		err(1, "listen");
 }
 
-
-int
-net_open_client_socket(char* serveraddr, int rport)
+int net_open_client_socket(char* serveraddr, int rport)
 {
 	struct addrinfo saddr;
 	struct addrinfo *result, *rp;
@@ -660,9 +625,8 @@ net_open_client_socket(char* serveraddr, int rport)
 	return netmon_fd;
 }
 
-
-void
-net_finish(void) {
+void net_finish(void)
+{
 	if (srv_fd != -1)
 		close(srv_fd);
 
@@ -673,9 +637,7 @@ net_finish(void) {
 		close(netmon_fd);
 }
 
-
-void
-net_send_channel_config(void)
+void net_send_channel_config(void)
 {
 	if (conf.serveraddr[0] != '\0')
 		net_send_conf_chan(netmon_fd);
@@ -683,9 +645,7 @@ net_send_channel_config(void)
 		net_send_conf_chan(cli_fd);
 }
 
-
-void
-net_send_filter_config(void)
+void net_send_filter_config(void)
 {
 	if (conf.serveraddr[0] != '\0')
 		net_send_conf_filter(netmon_fd);

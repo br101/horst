@@ -35,16 +35,13 @@
 
 int ctlpipe = -1;
 
-void
-control_init_pipe(void)
+void control_init_pipe(void)
 {
 	mkfifo(conf.control_pipe, 0666);
 	ctlpipe = open(conf.control_pipe, O_RDWR|O_NONBLOCK);
 }
 
-
-void
-control_send_command(const char* cmd)
+void control_send_command(const char* cmd)
 {
 	int len = strlen(cmd);
 	char new[len + 2];
@@ -80,9 +77,7 @@ control_send_command(const char* cmd)
 	close(ctlpipe);
 }
 
-
-static void
-parse_command(char* in) {
+static void parse_command(char* in) {
 	char* cmd;
 	char* val;
 
@@ -107,9 +102,8 @@ parse_command(char* in) {
 	}
 }
 
-
-void
-control_receive_command(void) {
+void control_receive_command(void)
+{
 	char buf[MAX_CMD];
 	char *pos = buf;
 	char *end;
@@ -127,9 +121,7 @@ control_receive_command(void) {
 	}
 }
 
-
-void
-control_finish(void)
+void control_finish(void)
 {
 	if (ctlpipe == -1)
 		return;

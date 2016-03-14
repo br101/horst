@@ -34,10 +34,8 @@ static int parse_prism_header(unsigned char** buf, int len, struct packet_info* 
 static int parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p);
 static int parse_80211_header(unsigned char** buf, int len, struct packet_info* p);
 
-
 /* return rest of packet length (may be 0) or negative value on error */
-int
-parse_packet_wlan(unsigned char** buf, int len, struct packet_info* p)
+int wlan_parse_packet(unsigned char** buf, int len, struct packet_info* p)
 {
 	if (conf.arphrd == ARPHRD_IEEE80211_PRISM) {
 		len = parse_prism_header(buf, len, p);
@@ -56,10 +54,8 @@ parse_packet_wlan(unsigned char** buf, int len, struct packet_info* p)
 	return parse_80211_header(buf, len, p);
 }
 
-
 /* return packet length or -1 on error */
-static int
-parse_prism_header(unsigned char** buf, int len, struct packet_info* p)
+static int parse_prism_header(unsigned char** buf, int len, struct packet_info* p)
 {
 	wlan_ng_prism2_header* ph;
 
@@ -117,9 +113,7 @@ parse_prism_header(unsigned char** buf, int len, struct packet_info* p)
 	return len - sizeof(wlan_ng_prism2_header);
 }
 
-
-static void
-get_radiotap_info(struct ieee80211_radiotap_iterator *iter, struct packet_info* p)
+static void get_radiotap_info(struct ieee80211_radiotap_iterator *iter, struct packet_info* p)
 {
 	uint16_t x;
 	signed char c;
@@ -236,10 +230,8 @@ get_radiotap_info(struct ieee80211_radiotap_iterator *iter, struct packet_info* 
 	}
 }
 
-
 /* return length of packet, 0 for bad FCS, -1 on error */
-static int
-parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
+static int parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 {
 	struct ieee80211_radiotap_header* rh;
 	struct ieee80211_radiotap_iterator iter;
@@ -290,10 +282,8 @@ parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
 	}
 }
 
-
-void
-wlan_parse_information_elements(unsigned char *buf, int len, struct packet_info *p) {
-
+void wlan_parse_information_elements(unsigned char *buf, int len, struct packet_info *p)
+{
 	while (len > 2) {
 		struct information_element* ie = (struct information_element*)buf;
 		//DEBUG("------ IE %d len %d t len %d\n", ie->id, ie->len, len);
@@ -372,10 +362,8 @@ wlan_parse_information_elements(unsigned char *buf, int len, struct packet_info 
 	}
 }
 
-
 /* return rest of packet length (may be 0) or -1 on error */
-static int
-parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
+static int parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
 {
 	struct wlan_frame* wh;
 	int hdrlen;

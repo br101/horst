@@ -32,7 +32,6 @@
 #include "listsort.h"
 #include "channel.h"
 
-
 static WINDOW *sort_win = NULL;
 static WINDOW *dump_win = NULL;
 static WINDOW *list_win = NULL;
@@ -49,11 +48,9 @@ static int stat_height;
 static struct ewma usen_avg;
 static struct ewma bpsn_avg;
 
-
 /******************* UTIL *******************/
 
-void
-print_dump_win(const char *str, int refresh)
+void print_dump_win(const char *str, int refresh)
 {
 	wattron(dump_win, RED);
 	wprintw(dump_win, str);
@@ -64,11 +61,9 @@ print_dump_win(const char *str, int refresh)
 		wnoutrefresh(dump_win);
 }
 
-
 /******************* SORTING *******************/
 
-static int
-compare_nodes_signal(const struct list_node *p1, const struct list_node *p2)
+static int compare_nodes_signal(const struct list_node *p1, const struct list_node *p2)
 {
 	struct node_info* n1 = list_entry(p1, struct node_info, list);
 	struct node_info* n2 = list_entry(p2, struct node_info, list);
@@ -81,9 +76,7 @@ compare_nodes_signal(const struct list_node *p1, const struct list_node *p2)
 		return 1;
 }
 
-
-static int
-compare_nodes_time(const struct list_node *p1, const struct list_node *p2)
+static int compare_nodes_time(const struct list_node *p1, const struct list_node *p2)
 {
 	struct node_info* n1 = list_entry(p1, struct node_info, list);
 	struct node_info* n2 = list_entry(p2, struct node_info, list);
@@ -96,9 +89,7 @@ compare_nodes_time(const struct list_node *p1, const struct list_node *p2)
 		return 1;
 }
 
-
-static int
-compare_nodes_channel(const struct list_node *p1, const struct list_node *p2)
+static int compare_nodes_channel(const struct list_node *p1, const struct list_node *p2)
 {
 	struct node_info* n1 = list_entry(p1, struct node_info, list);
 	struct node_info* n2 = list_entry(p2, struct node_info, list);
@@ -111,9 +102,7 @@ compare_nodes_channel(const struct list_node *p1, const struct list_node *p2)
 		return -1;
 }
 
-
-static int
-compare_nodes_bssid(const struct list_node *p1, const struct list_node *p2)
+static int compare_nodes_bssid(const struct list_node *p1, const struct list_node *p2)
 {
 	struct node_info* n1 = list_entry(p1, struct node_info, list);
 	struct node_info* n2 = list_entry(p2, struct node_info, list);
@@ -121,9 +110,7 @@ compare_nodes_bssid(const struct list_node *p1, const struct list_node *p2)
 	return -memcmp(n1->wlan_bssid, n2->wlan_bssid, MAC_LEN);
 }
 
-
-static bool
-sort_input(int c)
+static bool sort_input(int c)
 {
 	switch (c) {
 	case 'n': case 'N': sortfunc = NULL; break;
@@ -150,9 +137,7 @@ sort_input(int c)
 	return false;
 }
 
-
-static void
-show_sort_win(void)
+static void show_sort_win(void)
 {
 	if (sort_win == NULL) {
 		sort_win = newwin(1, COLS-2, win_split - 2, 1);
@@ -163,14 +148,12 @@ show_sort_win(void)
 	}
 }
 
-
 /******************* WINDOWS *******************/
 
 #define STAT_WIDTH 11
 #define STAT_START 4
 
-static void
-update_status_win(struct packet_info* p)
+static void update_status_win(struct packet_info* p)
 {
 	int sig, siga, bps, dps, pps, rps, bpsn, usen;
 	float use, rpsp = 0.0;
@@ -232,7 +215,6 @@ update_status_win(struct packet_info* p)
 	wnoutrefresh(stat_win);
 }
 
-
 #define COL_PKT		3
 #define COL_CHAN	COL_PKT + 7
 #define COL_SIG		COL_CHAN + 4
@@ -246,8 +228,7 @@ update_status_win(struct packet_info* p)
 
 static char spin[4] = {'/', '-', '\\', '|'};
 
-static void
-print_node_list_line(int line, struct node_info* n)
+static void print_node_list_line(int line, struct node_info* n)
 {
 	struct packet_info* p = &n->last_pkt;
 	char* ssid = NULL;
@@ -340,9 +321,7 @@ print_node_list_line(int line, struct node_info* n)
 	wattroff(list_win, RED);
 }
 
-
-static void
-update_node_list_win(void)
+static void update_node_list_win(void)
 {
 	struct node_info* n;
 	int line = 0;
@@ -393,9 +372,7 @@ update_node_list_win(void)
 	wnoutrefresh(list_win);
 }
 
-
-void
-update_dump_win(struct packet_info* p)
+void update_dump_win(struct packet_info* p)
 {
 	if (!p) {
 		redrawwin(dump_win);
@@ -516,9 +493,7 @@ update_dump_win(struct packet_info* p)
 	wattroff(dump_win, A_BOLD);
 }
 
-
-void
-update_main_win(struct packet_info *p)
+void update_main_win(struct packet_info *p)
 {
 	update_node_list_win();
 	update_status_win(p);
@@ -530,9 +505,7 @@ update_main_win(struct packet_info *p)
 	}
 }
 
-
-bool
-main_input(int key)
+bool main_input(int key)
 {
 	if (sort_win != NULL)
 		return sort_input(key);
@@ -545,9 +518,7 @@ main_input(int key)
 	return false;
 }
 
-
-void
-init_display_main(void)
+void init_display_main(void)
 {
 	win_split = LINES / 2 + 1;
 	stat_height = LINES - win_split - 1;
@@ -565,9 +536,7 @@ init_display_main(void)
 	ewma_init(&bpsn_avg, 1024, 8);
 }
 
-
-void
-resize_display_main(void)
+void resize_display_main(void)
 {
 	win_split = LINES / 2 + 1;
 	stat_height = LINES - win_split - 1;
@@ -578,9 +547,8 @@ resize_display_main(void)
 	mvwin(stat_win, win_split, COLS - STAT_WIDTH);
 }
 
-
-void
-clear_display_main(void) {
+void clear_display_main(void)
+{
 	werase(dump_win);
 	werase(stat_win);
 }

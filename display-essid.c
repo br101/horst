@@ -25,9 +25,7 @@
 #include "main.h"
 #include "util.h"
 
-
-void
-update_essid_win(WINDOW *win)
+void update_essid_win(WINDOW *win)
 {
 	int i;
 	int line = 1;

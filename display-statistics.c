@@ -34,9 +34,7 @@
 #define STAT_AIR_POS (STAT_BP_POS + 6)
 #define STAT_AIRG_POS (STAT_AIR_POS + 6)
 
-
-void
-update_statistics_win(WINDOW *win)
+void update_statistics_win(WINDOW *win)
 {
 	int i;
 	int line;

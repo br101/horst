@@ -37,8 +37,7 @@
 /*
  *  Get the hardware type of the given interface as ARPHRD_xxx constant.
  */
-int
-device_get_hwinfo(int fd, char* ifname, unsigned char* mac)
+int device_get_hwinfo(int fd, char* ifname, unsigned char* mac)
 {
 	struct ifreq ifr;
 
@@ -54,9 +53,7 @@ device_get_hwinfo(int fd, char* ifname, unsigned char* mac)
 	return ifr.ifr_hwaddr.sa_family;
 }
 
-
-static void
-set_receive_buffer(int fd, int sockbufsize)
+static void set_receive_buffer(int fd, int sockbufsize)
 {
 	int ret;
 
@@ -79,9 +76,7 @@ set_receive_buffer(int fd, int sockbufsize)
 #endif
 }
 
-
-int
-open_packet_socket(char* devname, int recv_buffer_size)
+int open_packet_socket(char* devname, int recv_buffer_size)
 {
 	int ret;
 	int mon_fd;
@@ -112,16 +107,12 @@ open_packet_socket(char* devname, int recv_buffer_size)
 	return mon_fd;
 }
 
-
-inline int
-recv_packet(int fd, unsigned char* buffer, size_t bufsize)
+inline int recv_packet(int fd, unsigned char* buffer, size_t bufsize)
 {
 	return recv(fd, buffer, bufsize, MSG_DONTWAIT);
 }
 
-
-void
-close_packet_socket(int fd)
+void close_packet_socket(int fd)
 {
 	if (fd > 0)
 		close(fd);

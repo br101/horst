@@ -48,44 +48,22 @@
 struct packet_info;
 struct node_info;
 
-void
-get_per_second(unsigned long bytes, unsigned long duration,
-	       unsigned long packets, unsigned long retries,
-	       int *bps, int *dps, int *pps, int *rps);
-
+void get_per_second(unsigned long bytes, unsigned long duration,
+		    unsigned long packets, unsigned long retries,
+		    int *bps, int *dps, int *pps, int *rps);
 void __attribute__ ((format (printf, 4, 5)))
 print_centered(WINDOW* win, int line, int cols, const char *fmt, ...);
-
-int
-get_packet_type_color(int type);
-
-void
-signal_average_bar(WINDOW *win, int sig, int siga, int y, int x,
-		   int height, int width);
-
-void
-general_average_bar(WINDOW *win, int val, int avg, int y, int x,
-		    int width, short color, short color_avg);
-
-void
-update_display(struct packet_info* pkg);
-
-void
-update_display_clock(void);
-
-void
-display_log(const char *string);
-
-void
-handle_user_input(void);
-
-void
-init_display(void);
-
-void
-finish_display(void);
-
-void
-display_clear(void);
+int get_packet_type_color(int type);
+void signal_average_bar(WINDOW *win, int sig, int siga, int y, int x,
+			int height, int width);
+void general_average_bar(WINDOW *win, int val, int avg, int y, int x,
+			 int width, short color, short color_avg);
+void update_display(struct packet_info* pkg);
+void update_display_clock(void);
+void display_log(const char *string);
+void handle_user_input(void);
+void init_display(void);
+void finish_display(void);
+void display_clear(void);
 
 #endif

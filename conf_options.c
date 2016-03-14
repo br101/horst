@@ -293,7 +293,6 @@ static bool conf_mac_names(const char* value) {
 	return true;
 }
 
-
 static struct conf_option conf_options[] = {
 	/* C , NAME        VALUE REQUIRED, DEFAULT	CALLBACK */
 	{ 'q', "quiet",			0, NULL,	conf_quiet },		// NOT dynamic
@@ -323,7 +322,6 @@ static struct conf_option conf_options[] = {
 	{ 'M', "mac_names",		2, NULL,	conf_mac_names },
 };
 
-
 /*
  * More possible config options:
  *
@@ -340,8 +338,8 @@ static struct conf_option conf_options[] = {
  * In the second case 'c' is 0 and name is set
  * Value may be null in all cases
  */
-bool
-config_handle_option(int c, const char* name, const char* value) {
+bool config_handle_option(int c, const char* name, const char* value)
+{
 	unsigned int i;
 	char* end;
 
@@ -372,9 +370,8 @@ config_handle_option(int c, const char* name, const char* value) {
 	return false;
 }
 
-
-static void
-config_read_file(const char* filename) {
+static void config_read_file(const char* filename)
+{
 	FILE* fp ;
 	char line[255];
 	char name[MAX_CONF_NAME_STRLEN + 1];
@@ -411,8 +408,8 @@ config_read_file(const char* filename) {
 	fclose(fp);
 }
 
-static void
-config_apply_defaults(void) {
+static void config_apply_defaults(void)
+{
 	unsigned int i;
 	for (i=0; i < sizeof(conf_options)/sizeof(struct conf_option); i++) {
 		if (conf_options[i].default_value != NULL) {
@@ -421,9 +418,8 @@ config_apply_defaults(void) {
 	}
 }
 
-
-static char*
-config_get_getopt_string(char* buf, size_t maxlen, const char* add) {
+static char* config_get_getopt_string(char* buf, size_t maxlen, const char* add)
+{
 	unsigned int pos = 0;
 	unsigned int i;
 	maxlen = maxlen - 1; // we use it as string index
@@ -453,8 +449,8 @@ config_get_getopt_string(char* buf, size_t maxlen, const char* add) {
 	return buf;
 }
 
-
-void print_usage(const char* name) {
+void print_usage(const char* name)
+{
 	printf("\nUsage: %s [-v] [-h] [-q] [-D] [-a] [-c file] [-i interface] [-t sec] [-d ms] [-V view] [-b bytes]\n"
 		"\t\t[-s] [-u] [-N] [-n IP] [-p port] [-o file] [-X[name]] [-x command]\n"
 		"\t\t[][-e MAC] [-f PKT_NAME] [-m MODE] [-B BSSID]\n\n"
@@ -502,9 +498,7 @@ void print_usage(const char* name) {
 		name);
 }
 
-
-void
-config_parse_file_and_cmdline(int argc, char** argv)
+void config_parse_file_and_cmdline(int argc, char** argv)
 {
 	char getopt_str[(sizeof(conf_options)/sizeof(struct conf_option))*2 + 10];
 	char* conf_filename = CONFIG_FILE;

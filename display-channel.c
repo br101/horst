@@ -26,11 +26,9 @@
 #include "channel.h"
 #include "network.h"
 
-
 #define COL_BAND2 23
 
-void
-update_channel_win(WINDOW *win)
+void update_channel_win(WINDOW *win)
 {
 	int l = 2;
 
@@ -94,9 +92,7 @@ update_channel_win(WINDOW *win)
 	wrefresh(win);
 }
 
-
-bool
-channel_input(WINDOW *win, int c)
+bool channel_input(WINDOW *win, int c)
 {
 	char buf[6];
 	int x;

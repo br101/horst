@@ -27,28 +27,13 @@ struct packet_info;
 extern int srv_fd;
 extern int cli_fd;
 
-void
-net_init_server_socket(int rport);
-
-void
-net_handle_server_conn(void);
-
-void
-net_send_packet(struct packet_info *pkt);
-
-void
-net_send_channel_config(void);
-
-void
-net_send_filter_config(void);
-
-int
-net_receive(int fd, unsigned char* buffer, size_t* buflen, size_t maxlen);
-
-int
-net_open_client_socket(char* server, int rport);
-
-void
-net_finish(void);
+void net_init_server_socket(int rport);
+void net_handle_server_conn(void);
+void net_send_packet(struct packet_info *pkt);
+void net_send_channel_config(void);
+void net_send_filter_config(void);
+int net_receive(int fd, unsigned char* buffer, size_t* buflen, size_t maxlen);
+int net_open_client_socket(char* server, int rport);
+void net_finish(void);
 
 #endif

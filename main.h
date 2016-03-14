@@ -79,7 +79,6 @@
 #define WLAN_MODE_4ADDR		BIT(4)
 #define WLAN_MODE_UNKNOWN	BIT(5)
 
-
 #define WLAN_MODE_ALL		(WLAN_MODE_AP | WLAN_MODE_IBSS | WLAN_MODE_STA | WLAN_MODE_PROBE | WLAN_MODE_4ADDR | WLAN_MODE_UNKNOWN)
 
 #define PHY_FLAG_SHORTPRE	BIT(0)
@@ -88,7 +87,6 @@
 #define PHY_FLAG_B		BIT(3)
 #define PHY_FLAG_G		BIT(4)
 #define PHY_FLAG_MODE_MASK	BIT(5)
-
 
 #ifndef ARPHRD_IEEE80211_RADIOTAP
 #define ARPHRD_IEEE80211_RADIOTAP 803    /* IEEE 802.11 + radiotap header */
@@ -348,31 +346,15 @@ extern struct config conf;
 
 extern struct timeval the_time;
 
-void
-free_lists(void);
-
-void
-init_spectrum(void);
-
-void
-update_spectrum_durations(void);
-
-void
-handle_packet(struct packet_info* p);
-
+void free_lists(void);
+void init_spectrum(void);
+void update_spectrum_durations(void);
+void handle_packet(struct packet_info* p);
 void __attribute__ ((format (printf, 1, 2)))
 printlog(const char *fmt, ...);
-
-void
-main_pause(int pause);
-
-void
-main_reset(void);
-
-void
-dumpfile_open(const char* name);
-
-const char*
-mac_name_lookup(const unsigned char* mac, int shorten_mac);
+void main_pause(int pause);
+void main_reset(void);
+void dumpfile_open(const char* name);
+const char* mac_name_lookup(const unsigned char* mac, int shorten_mac);
 
 #endif

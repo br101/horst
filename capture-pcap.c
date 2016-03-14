@@ -26,10 +26,8 @@
 #include "capture.h"
 #include "util.h"
 
-
 void __attribute__ ((format (printf, 1, 2)))
 printlog(const char *fmt, ...);
-
 
 #define PCAP_TIMEOUT 200
 
@@ -37,9 +35,7 @@ static unsigned char* pcap_buffer;
 static size_t pcap_bufsize;
 static pcap_t *pcap_fp = NULL;
 
-
-static void
-handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes)
+static void handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes)
 {
 	*((int *)user) = h->len;
 	if (pcap_bufsize < h->len) {
@@ -50,9 +46,7 @@ handler(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes)
 	memmove(pcap_buffer, bytes, *((int *)user));
 }
 
-
-int
-open_packet_socket(char* devname, __attribute__((unused)) int recv_buffer_size)
+int open_packet_socket(char* devname, __attribute__((unused)) int recv_buffer_size)
 {
 	char error[PCAP_ERRBUF_SIZE];
 	int ret;
@@ -81,11 +75,9 @@ open_packet_socket(char* devname, __attribute__((unused)) int recv_buffer_size)
 	return pcap_fileno(pcap_fp);
 }
 
-
-int
-device_get_hwinfo(__attribute__((unused)) int fd,
-		  __attribute__((unused)) char* ifname,
-		  __attribute__((unused)) unsigned char* mac)
+int device_get_hwinfo(__attribute__((unused)) int fd,
+		      __attribute__((unused)) char* ifname,
+		      __attribute__((unused)) unsigned char* mac)
 {
 	if (pcap_fp != NULL) {
 		switch (pcap_datalink(pcap_fp)) {
@@ -101,10 +93,8 @@ device_get_hwinfo(__attribute__((unused)) int fd,
 	return -1;
 }
 
-
-int
-recv_packet(__attribute__((unused)) int fd,
-	    unsigned char* buffer, size_t bufsize)
+int recv_packet(__attribute__((unused)) int fd,
+		unsigned char* buffer, size_t bufsize)
 {
 	int ret = 0;
 	pcap_buffer = buffer;
@@ -115,8 +105,7 @@ recv_packet(__attribute__((unused)) int fd,
 }
 
 
-void
-close_packet_socket(__attribute__((unused)) int fd)
+void close_packet_socket(__attribute__((unused)) int fd)
 {
 	if (pcap_fp != NULL)
 		pcap_close(pcap_fp);

@@ -32,7 +32,6 @@
 #include "wlan80211.h"
 #include "channel.h"
 
-
 static WINDOW *conf_win = NULL;
 static WINDOW *show_win = NULL;
 static int conf_win_current;
@@ -68,8 +67,7 @@ bool spectrum_input(WINDOW *win, int c);
 
 /******************* HELPERS *******************/
 
-void
-get_per_second(unsigned long bytes, unsigned long duration,
+void get_per_second(unsigned long bytes, unsigned long duration,
 	       unsigned long packets, unsigned long retries,
 	       int *bps, int *dps, int *pps, int *rps)
 {
@@ -98,7 +96,6 @@ get_per_second(unsigned long bytes, unsigned long duration,
 	*rps = last_rps;
 }
 
-
 void __attribute__ ((format (printf, 4, 5)))
 print_centered(WINDOW* win, int line, int cols, const char *fmt, ...)
 {
@@ -117,9 +114,7 @@ print_centered(WINDOW* win, int line, int cols, const char *fmt, ...)
 	free(buf);
 }
 
-
-int
-get_packet_type_color(int type)
+int get_packet_type_color(int type)
 {
 	if (type == 1) /* special case for bad FCS */
 		return RED;
@@ -131,10 +126,7 @@ get_packet_type_color(int type)
 	return YELLOW;
 }
 
-
-void
-signal_average_bar(WINDOW *win, int val, int avg, int y, int x, int height,
-		   int width)
+void signal_average_bar(WINDOW *win, int val, int avg, int y, int x, int height, int width)
 {
 	int i;
 	if (avg <= val) {
@@ -158,10 +150,8 @@ signal_average_bar(WINDOW *win, int val, int avg, int y, int x, int height,
 	wattroff(win, ALLGREEN);
 }
 
-
-void
-general_average_bar(WINDOW *win, int val, int avg, int y, int x,
-		    int width, short color, short color_avg)
+void general_average_bar(WINDOW *win, int val, int avg, int y, int x,
+			 int width, short color, short color_avg)
 {
 	int i;
 	if (avg >= val) {
@@ -185,11 +175,9 @@ general_average_bar(WINDOW *win, int val, int avg, int y, int x,
 	wattroff(win, color_avg);
 }
 
-
 /******************* STATUS *******************/
 
-static void
-update_clock(time_t* sec)
+static void update_clock(time_t* sec)
 {
 	static char buf[9];
 	strftime(buf, 9, "%H:%M:%S", localtime(sec));
@@ -199,9 +187,7 @@ update_clock(time_t* sec)
 	wnoutrefresh(stdscr);
 }
 
-
-static void
-update_mini_status(void)
+static void update_mini_status(void)
 {
 	wattron(stdscr, BLACKONWHITE);
 	mvwprintw(stdscr, LINES-1, COLS-31, conf.paused ? "|=" : "|>");
@@ -217,9 +203,7 @@ update_mini_status(void)
 	wnoutrefresh(stdscr);
 }
 
-
-static void
-update_menu(void)
+static void update_menu(void)
 {
 	wattron(stdscr, BLACKONWHITE);
 	mvwhline(stdscr, LINES-1, 0, ' ', COLS);
@@ -250,11 +234,9 @@ update_menu(void)
 	update_clock(&the_time.tv_sec);
 }
 
-
 /******************* WINDOW MANAGEMENT / UPDATE *******************/
 
-static void
-update_show_win(void)
+static void update_show_win(void)
 {
 	if (show_win_current == 'e')
 		update_essid_win(show_win);
@@ -268,9 +250,7 @@ update_show_win(void)
 		update_help_win(show_win);
 }
 
-
-static void
-show_window(int which)
+static void show_window(int which)
 {
 	if (show_win != NULL && show_win_current == which) {
 		delwin(show_win);
@@ -288,9 +268,7 @@ show_window(int which)
 	update_menu();
 }
 
-
-static void
-show_conf_window(int key)
+static void show_conf_window(int key)
 {
 	if (conf_win != NULL &&
 	    (conf_win_current == key || key == '\r' || key == KEY_ENTER || key == 27)) {
@@ -317,9 +295,7 @@ show_conf_window(int key)
 	}
 }
 
-
-void
-update_display_clock(void)
+void update_display_clock(void)
 {
 	/* helper to update just the clock every second */
 	if (the_time.tv_sec > last_time.tv_sec) {
@@ -328,16 +304,12 @@ update_display_clock(void)
 	}
 }
 
-
-void
-display_log(const char *string)
+void display_log(const char *string)
 {
 	print_dump_win(string, show_win == NULL);
 }
 
-
-void
-update_display(struct packet_info* pkt)
+void update_display(struct packet_info* pkt)
 {
 	/*
 	 * update only in specific intervals to save CPU time
@@ -378,11 +350,9 @@ update_display(struct packet_info* pkt)
 	doupdate();
 }
 
-
 /******************* RESIZE *******************/
 
-static void
-resize_display_all(void)
+static void resize_display_all(void)
 {
 	struct winsize winsz;
 
@@ -407,17 +377,13 @@ resize_display_all(void)
 	}
 }
 
-
-static void
-window_change_handler(__attribute__((unused)) int sig) {
+static void window_change_handler(__attribute__((unused)) int sig) {
 	display_resize_needed = 1;
 }
 
-
 /******************* INPUT *******************/
 
-void
-handle_user_input(void)
+void handle_user_input(void)
 {
 	int key;
 
@@ -477,11 +443,9 @@ handle_user_input(void)
 	update_display(NULL);
 }
 
-
 /******************* INIT *******************/
 
-void
-init_display(void)
+void init_display(void)
 {
 	initscr();
 	start_color();	/* Start the color functionality */
@@ -527,16 +491,12 @@ init_display(void)
 	conf.display_initialized = 1;
 }
 
-
-void
-finish_display(void)
+void finish_display(void)
 {
 	endwin();
 }
 
-
-void
-display_clear(void)
+void display_clear(void)
 {
 	clear_display_main();
 }

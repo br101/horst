@@ -80,7 +80,8 @@ out:
 	return false;
 }
 
-static void nl80211_finish() {
+static void nl80211_finish()
+{
 	nl_socket_free(sock);
 	genl_family_put(family);
 	nl_cache_free(cache);
@@ -469,6 +470,7 @@ nla_put_failure:
 	return false;
 }
 
-bool ifctrl_is_monitor() {
+bool ifctrl_is_monitor()
+{
 	return conf.if_type == NL80211_IFTYPE_MONITOR;
 }
