@@ -47,7 +47,7 @@ OBJS=						   \
 	network.o				   \
 	node.o					   \
 	protocol_parser.o			   \
-	protocol_parser_wlan.o			   \
+	wlan_parser.o				   \
 	radiotap/radiotap.o			   \
 	util.o					   \
 	wlan_util.o

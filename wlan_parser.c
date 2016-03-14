@@ -30,30 +30,6 @@
 #include "main.h"
 #include "util.h"
 
-static int parse_prism_header(unsigned char** buf, int len, struct packet_info* p);
-static int parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p);
-static int parse_80211_header(unsigned char** buf, int len, struct packet_info* p);
-
-/* return rest of packet length (may be 0) or negative value on error */
-int wlan_parse_packet(unsigned char** buf, int len, struct packet_info* p)
-{
-	if (conf.arphrd == ARPHRD_IEEE80211_PRISM) {
-		len = parse_prism_header(buf, len, p);
-		if (len <= 0)
-			return -1;
-	}
-	else if (conf.arphrd == ARPHRD_IEEE80211_RADIOTAP) {
-		len = parse_radiotap_header(buf, len, p);
-		if (len <= 0) {/* 0: Bad FCS, allow packet but stop parsing */
-			DEBUG("A");
-			return len;
-		}
-	}
-
-	DEBUG("before parse 80211 len: %d\n", len);
-	return parse_80211_header(buf, len, p);
-}
-
 /* return packet length or -1 on error */
 static int parse_prism_header(unsigned char** buf, int len, struct packet_info* p)
 {
@@ -588,4 +564,24 @@ static int parse_80211_header(unsigned char** buf, int len, struct packet_info* 
 		return len - hdrlen;
 	}
 	return 0;
+}
+
+/* return rest of packet length (may be 0) or negative value on error */
+int wlan_parse_packet(unsigned char** buf, int len, struct packet_info* p)
+{
+	if (conf.arphrd == ARPHRD_IEEE80211_PRISM) {
+		len = parse_prism_header(buf, len, p);
+		if (len <= 0)
+			return -1;
+	}
+	else if (conf.arphrd == ARPHRD_IEEE80211_RADIOTAP) {
+		len = parse_radiotap_header(buf, len, p);
+		if (len <= 0) {/* 0: Bad FCS, allow packet but stop parsing */
+			DEBUG("A");
+			return len;
+		}
+	}
+
+	DEBUG("before parse 80211 len: %d\n", len);
+	return parse_80211_header(buf, len, p);
 }
