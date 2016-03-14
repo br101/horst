@@ -30,8 +30,8 @@
 #include "main.h"
 #include "util.h"
 
-/* return packet length or -1 on error */
-static int parse_prism_header(unsigned char** buf, int len, struct packet_info* p)
+/* return consumed length or -1 on error */
+static int parse_prism_header(unsigned char* buf, int len, struct packet_info* p)
 {
 	wlan_ng_prism2_header* ph;
 
@@ -40,7 +40,7 @@ static int parse_prism_header(unsigned char** buf, int len, struct packet_info* 
 	if (len > 0 && (size_t)len < sizeof(wlan_ng_prism2_header))
 		return -1;
 
-	ph = (wlan_ng_prism2_header*)*buf;
+	ph = (wlan_ng_prism2_header*)buf;
 
 	/*
 	 * different drivers report S/N and rssi values differently
@@ -85,8 +85,7 @@ static int parse_prism_header(unsigned char** buf, int len, struct packet_info* 
 	DEBUG("rate: %d\n", ph->rate.data);
 	DEBUG("rssi: %d\n", ph->rssi.data);
 
-	*buf = *buf + sizeof(wlan_ng_prism2_header);
-	return len - sizeof(wlan_ng_prism2_header);
+	return sizeof(wlan_ng_prism2_header);
 }
 
 static void get_radiotap_info(struct ieee80211_radiotap_iterator *iter, struct packet_info* p)
@@ -206,14 +205,17 @@ static void get_radiotap_info(struct ieee80211_radiotap_iterator *iter, struct p
 	}
 }
 
-/* return length of packet, 0 for bad FCS, -1 on error */
-static int parse_radiotap_header(unsigned char** buf, int len, struct packet_info* p)
+/* return consumed length, 0 for bad FCS, -1 on error */
+static int parse_radiotap_header(unsigned char* buf, size_t len, struct packet_info* p)
 {
 	struct ieee80211_radiotap_header* rh;
 	struct ieee80211_radiotap_iterator iter;
 	int err, rt_len;
 
-	rh = (struct ieee80211_radiotap_header*)*buf;
+	if (len < sizeof(struct ieee80211_radiotap_header))
+		return -1;
+
+	rh = (struct ieee80211_radiotap_header*)buf;
 	rt_len = le16toh(rh->it_len);
 
 	err = ieee80211_radiotap_iterator_init(&iter, rh, rt_len, NULL);
@@ -253,12 +255,11 @@ static int parse_radiotap_header(unsigned char** buf, int len, struct packet_inf
 		DEBUG("=== bad FCS, stop ===\n");
 		return 0;
 	} else {
-		*buf = *buf + rt_len;
-		return len - rt_len;
+		return rt_len;
 	}
 }
 
-void wlan_parse_information_elements(unsigned char *buf, int len, struct packet_info *p)
+void wlan_parse_information_elements(unsigned char *buf, size_t len, struct packet_info *p)
 {
 	while (len > 2) {
 		struct information_element* ie = (struct information_element*)buf;
@@ -338,11 +339,11 @@ void wlan_parse_information_elements(unsigned char *buf, int len, struct packet_
 	}
 }
 
-/* return rest of packet length (may be 0) or -1 on error */
-static int parse_80211_header(unsigned char** buf, int len, struct packet_info* p)
+/* return consumed length, 0 for stop parsing, or -1 on error */
+static int parse_80211_header(unsigned char* buf, size_t len, struct packet_info* p)
 {
 	struct wlan_frame* wh;
-	int hdrlen;
+	size_t hdrlen;
 	uint8_t* ra = NULL;
 	uint8_t* ta = NULL;
 	uint8_t* bssid = NULL;
@@ -353,7 +354,7 @@ static int parse_80211_header(unsigned char** buf, int len, struct packet_info* 
 
 	p->wlan_mode = WLAN_MODE_UNKNOWN;
 
-	wh = (struct wlan_frame*)*buf;
+	wh = (struct wlan_frame*)buf;
 
 	fc = le16toh(wh->fc);
 	p->wlan_type = (fc & WLAN_FRAME_FC_MASK);
@@ -503,7 +504,7 @@ static int parse_80211_header(unsigned char** buf, int len, struct packet_info* 
 		case WLAN_FRAME_BEACON:
 		case WLAN_FRAME_PROBE_RESP:
 			;
-			struct wlan_frame_beacon* bc = (struct wlan_frame_beacon*)(*buf + hdrlen);
+			struct wlan_frame_beacon* bc = (struct wlan_frame_beacon*)(buf + hdrlen);
 			p->wlan_tsf = le64toh(bc->tsf);
 			p->wlan_bintval = le16toh(bc->bintval);
 			//DEBUG("TSF %u\n BINTVAL %u", p->wlan_tsf, p->wlan_bintval);
@@ -522,7 +523,7 @@ static int parse_80211_header(unsigned char** buf, int len, struct packet_info* 
 			break;
 
 		case WLAN_FRAME_PROBE_REQ:
-			wlan_parse_information_elements((*buf + hdrlen),
+			wlan_parse_information_elements(buf + hdrlen,
 				len - hdrlen - 4 /* FCS */, p);
 			p->wlan_mode = WLAN_MODE_PROBE;
 			break;
@@ -560,28 +561,25 @@ static int parse_80211_header(unsigned char** buf, int len, struct packet_info* 
 
 	/* only data frames contain more info, otherwise stop parsing */
 	if (WLAN_FRAME_IS_DATA(p->wlan_type) && p->wlan_wep != 1) {
-		*buf = *buf + hdrlen;
-		return len - hdrlen;
+		return hdrlen;
 	}
 	return 0;
 }
 
 /* return rest of packet length (may be 0) or negative value on error */
-int wlan_parse_packet(unsigned char** buf, int len, struct packet_info* p)
+int wlan_parse_packet(unsigned char* buf, size_t len, struct packet_info* p)
 {
+	int ret;
 	if (conf.arphrd == ARPHRD_IEEE80211_PRISM) {
-		len = parse_prism_header(buf, len, p);
-		if (len <= 0)
+		ret = parse_prism_header(buf, len, p);
+		if (ret <= 0)
 			return -1;
-	}
-	else if (conf.arphrd == ARPHRD_IEEE80211_RADIOTAP) {
-		len = parse_radiotap_header(buf, len, p);
-		if (len <= 0) {/* 0: Bad FCS, allow packet but stop parsing */
-			DEBUG("A");
-			return len;
-		}
+	} else if (conf.arphrd == ARPHRD_IEEE80211_RADIOTAP) {
+		ret = parse_radiotap_header(buf, len, p);
+		if (ret <= 0) /* 0: Bad FCS, allow packet but stop parsing */
+			return 0;
 	}
 
-	DEBUG("before parse 80211 len: %d\n", len);
-	return parse_80211_header(buf, len, p);
+	DEBUG("before parse 80211 len: %zd\n", len - ret);
+	return parse_80211_header(buf + ret, len - ret, p);
 }

@@ -31,40 +31,40 @@
 #include "main.h"
 #include "util.h"
 
-extern int wlan_parse_packet(unsigned char** buf, int len, struct packet_info* p);
-static int parse_llc(unsigned char** buf, int len, struct packet_info* p);
-static int parse_ip_header(unsigned char** buf, int len, struct packet_info* p);
-static int parse_udp_header(unsigned char** buf, int len, struct packet_info* p);
-static int parse_olsr_packet(unsigned char** buf, int len, struct packet_info* p);
-static int parse_batman_packet(unsigned char** buf, int len, struct packet_info* p);
-static int parse_batman_adv_packet(unsigned char** buf, int len, struct packet_info* p);
-static int parse_meshcruzer_packet(unsigned char** buf, int len, struct packet_info* p, int port);
+extern int wlan_parse_packet(unsigned char* buf, size_t len, struct packet_info* p);
+static int parse_llc(unsigned char* buf, size_t len, struct packet_info* p);
+static int parse_ip_header(unsigned char* buf, size_t len, struct packet_info* p);
+static int parse_udp_header(unsigned char* buf, size_t len, struct packet_info* p);
+static int parse_olsr_packet(unsigned char* buf, size_t len, struct packet_info* p);
+static int parse_batman_packet(unsigned char* buf, size_t len, struct packet_info* p);
+static int parse_batman_adv_packet(unsigned char* buf, size_t len, struct packet_info* p);
+static int parse_meshcruzer_packet(unsigned char* buf, size_t len, struct packet_info* p, int port);
 
 /* return true if we parsed enough = min ieee header */
-bool parse_packet(unsigned char* buf, int len, struct packet_info* p)
+bool parse_packet(unsigned char* buf, size_t len, struct packet_info* p)
 {
-	len = wlan_parse_packet(&buf, len, p);
-	if (len == 0)
+	int ret = wlan_parse_packet(buf, len, p);
+	if (ret == 0)
 		return true;
-	else if (len < 0)
+	else if (ret < 0)
 		return false;
 
-	len = parse_llc(&buf, len, p);
-	if (len <= 0)
+	len -= ret; buf += ret;
+	ret = parse_llc(buf, len, p);
+	if (ret <= 0)
 		return true;
 
-	len = parse_ip_header(&buf, len, p);
-	if (len <= 0)
+	len -= ret; buf += ret;
+	ret = parse_ip_header(buf, len, p);
+	if (ret <= 0)
 		return true;
 
-	len = parse_udp_header(&buf, len, p);
-	if (len <= 0)
-		return true;
-
+	len -= ret; buf += ret;
+	parse_udp_header(buf, len, p);
 	return true;
 }
 
-static int parse_llc(unsigned char ** buf, int len, struct packet_info* p)
+static int parse_llc(unsigned char* buf, size_t len, struct packet_info* p)
 {
 	DEBUG("* parse LLC\n");
 
@@ -72,41 +72,41 @@ static int parse_llc(unsigned char ** buf, int len, struct packet_info* p)
 		return -1;
 
 	/* check type in LLC header */
-	*buf = *buf + 6;
+	buf = buf + 6;
 
-	if (ntohs(*((uint16_t*)*buf)) == 0x4305) {
+	if (ntohs(*((uint16_t*)buf)) == 0x4305) {
 		DEBUG("BATMAN-ADV\n");
-		(*buf)++; (*buf)++;
+		buf++; buf++;
 		return parse_batman_adv_packet(buf, len - 8, p);
 	}
 	else {
-		if (**buf != 0x08)
+		if (*buf != 0x08)
 			return -1;
-		(*buf)++;
-		if (**buf == 0x06) { /* ARP */
+		buf++;
+		if (*buf == 0x06) { /* ARP */
 			p->pkt_types |= PKT_TYPE_ARP;
 			return 0;
 		}
-		if (**buf != 0x00)  /* not IP */
+		if (*buf != 0x00)  /* not IP */
 			return -1;
-		(*buf)++;
+		buf++;
 
-		DEBUG("* parse LLC left %d\n", len - 8);
-
-		return len - 8;
+		DEBUG("* parse LLC left %zd\n", len - 8);
+		return 8;
 	}
 }
 
-static int parse_batman_adv_packet(unsigned char** buf, int len, struct packet_info* p) {
+static int parse_batman_adv_packet(unsigned char* buf, size_t len, struct packet_info* p)
+{
 	struct batman_ogm_packet *bp;
 	//batadv_ogm_packet
-	bp = (struct batman_ogm_packet*)*buf;
+	bp = (struct batman_ogm_packet*)buf;
 
 	p->pkt_types |= PKT_TYPE_BATMAN;
 	p->bat_version = bp->version;
 	p->bat_packet_type = bp->packet_type;
 
-	DEBUG("parse bat len %d type %d vers %d\n", len, bp->packet_type, bp->version);
+	DEBUG("parse bat len %zd type %d vers %d\n", len, bp->packet_type, bp->version);
 
 	/* version 14 */
 	if (bp->version == 14) {
@@ -122,8 +122,7 @@ static int parse_batman_adv_packet(unsigned char** buf, int len, struct packet_i
 			break;
 		case BAT_UNICAST:
 			DEBUG("UNI %zu\n", sizeof(struct unicast_packet));
-			*buf = *buf + sizeof(struct unicast_packet) + 14;
-			return len - sizeof(struct unicast_packet) - 14;
+			return sizeof(struct unicast_packet) + 14;
 		case BAT_BCAST:
 			DEBUG("BCAST\n");
 			break;
@@ -134,20 +133,19 @@ static int parse_batman_adv_packet(unsigned char** buf, int len, struct packet_i
 			break;
 		}
 	}
-
 	return 0;
 }
 
-static int parse_ip_header(unsigned char** buf, int len, struct packet_info* p)
+static int parse_ip_header(unsigned char* buf, size_t len, struct packet_info* p)
 {
 	struct ip* ih;
 
 	DEBUG("* parse IP\n");
 
-	if (len > 0 && (size_t)len < sizeof(struct ip))
+	if (len < sizeof(struct ip))
 		return -1;
 
-	ih = (struct ip*)*buf;
+	ih = (struct ip*)buf;
 
 	DEBUG("*** IP SRC: %s\n", ip_sprintf(ih->ip_src.s_addr));
 	DEBUG("*** IP DST: %s\n", ip_sprintf(ih->ip_dst.s_addr));
@@ -157,31 +155,28 @@ static int parse_ip_header(unsigned char** buf, int len, struct packet_info* p)
 
 	DEBUG("IP proto: %d\n", ih->ip_p);
 	switch (ih->ip_p) {
-	case IPPROTO_UDP: p->pkt_types |= PKT_TYPE_UDP; break;
-	/* all others set the type and return. no more parsing */
-	case IPPROTO_ICMP: p->pkt_types |= PKT_TYPE_ICMP; return 0;
-	case IPPROTO_TCP: p->pkt_types |= PKT_TYPE_TCP; return 0;
+		case IPPROTO_UDP: p->pkt_types |= PKT_TYPE_UDP; break;
+		/* all others set the type and return. no more parsing */
+		case IPPROTO_ICMP: p->pkt_types |= PKT_TYPE_ICMP; return 0;
+		case IPPROTO_TCP: p->pkt_types |= PKT_TYPE_TCP; return 0;
 	}
 
-
-	*buf = *buf + ih->ip_hl * 4;
-	return len - ih->ip_hl * 4;
+	return ih->ip_hl * 4;
 }
 
-static int parse_udp_header(unsigned char** buf, int len, struct packet_info* p)
+static int parse_udp_header(unsigned char* buf, size_t len, struct packet_info* p)
 {
 	struct udphdr* uh;
 
-	if (len > 0 && (size_t)len < sizeof(struct udphdr))
+	if (len < sizeof(struct udphdr))
 		return -1;
 
-	uh = (struct udphdr*)*buf;
+	uh = (struct udphdr*)buf;
 
 	DEBUG("UPD dest port: %d\n", ntohs(uh->uh_dport));
-
 	p->tcpudp_port = ntohs(uh->uh_dport);
 
-	*buf = *buf + 8;
+	buf = buf + 8;
 	len = len - 8;
 
 	if (p->tcpudp_port == 698) /* OLSR */
@@ -196,15 +191,15 @@ static int parse_udp_header(unsigned char** buf, int len, struct packet_info* p)
 	return 0;
 }
 
-static int parse_olsr_packet(unsigned char** buf, int len, struct packet_info* p)
+static int parse_olsr_packet(unsigned char* buf, size_t len, struct packet_info* p)
 {
 	struct olsr* oh;
 	int number, msgtype;
 
-	if (len > 0 && (size_t)len < sizeof(struct olsr))
+	if (len < sizeof(struct olsr))
 		return -1;
 
-	oh = (struct olsr*)*buf;
+	oh = (struct olsr*)buf;
 
 	// TODO: more than one olsr messages can be in one packet
 	msgtype = oh->olsr_msg[0].olsr_msgtype;
@@ -264,18 +259,18 @@ static int parse_olsr_packet(unsigned char** buf, int len, struct packet_info* p
 	return 0;
 }
 
-static int parse_batman_packet(__attribute__((unused)) unsigned char** buf,
-		    __attribute__((unused)) int len,
-		    __attribute__((unused)) struct packet_info* p)
+static int parse_batman_packet(__attribute__((unused)) unsigned char* buf,
+			       __attribute__((unused)) size_t len,
+			       __attribute__((unused)) struct packet_info* p)
 {
 	p->pkt_types |= PKT_TYPE_BATMAN;
 	return 0;
 }
 
-static int parse_meshcruzer_packet(__attribute__((unused)) unsigned char** buf,
-			__attribute__((unused)) int len,
-			__attribute__((unused)) struct packet_info* p,
-			__attribute__((unused)) int port)
+static int parse_meshcruzer_packet(__attribute__((unused)) unsigned char* buf,
+				   __attribute__((unused)) size_t len,
+				   __attribute__((unused)) struct packet_info* p,
+				   __attribute__((unused)) int port)
 {
 	p->pkt_types |= PKT_TYPE_MESHZ;
 	return 0;
