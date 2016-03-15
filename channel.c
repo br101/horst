@@ -24,6 +24,7 @@
 #include "ifctrl.h"
 #include "channel.h"
 #include "ieee80211_util.h"
+#include "wlan_util.h"
 
 
 static struct timeval last_channelchange;
@@ -181,6 +182,7 @@ bool channel_change(int idx, enum chan_width width, bool ht40plus)
 	conf.channel_idx = idx;
 	conf.channel_width = width;
 	conf.channel_ht40plus = ht40plus;
+	conf.max_phy_rate = get_phy_thruput(width, channel_get_band_from_idx(idx).streams_rx);
 	last_channelchange = the_time;
 	return true;
 }
@@ -288,6 +290,7 @@ bool channel_init(void)
 		} else {
 			conf.channel_set_width = conf.channel_width;
 			conf.channel_set_ht40plus = conf.channel_ht40plus;
+			conf.max_phy_rate = get_phy_thruput(conf.channel_width, b.streams_rx);
 		}
 	}
 	return true;

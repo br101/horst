@@ -169,7 +169,7 @@ static void update_status_win(struct packet_info* p)
 	get_per_second(stats.bytes, stats.duration, stats.packets, stats.retries,
 		       &bps, &dps, &pps, &rps);
 	bps *= 8;
-	bpsn = normalize(bps, 32000000, max_stat_bar); //theoretical: 54000000
+	bpsn = normalize(bps, conf.max_phy_rate * 100000 / 3 * 2, max_stat_bar);
 
 	use = dps * 1.0 / 10000; /* usec, in percent */
 	usen = normalize(use, 100, max_stat_bar);

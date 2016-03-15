@@ -340,6 +340,7 @@ struct config {
 	int			if_type;
 	int			if_phy;
 	unsigned int		if_freq;
+	unsigned int		max_phy_rate;
 };
 
 extern struct config conf;

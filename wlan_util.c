@@ -146,7 +146,7 @@ int rate_index_to_rate(int idx)
 }
 
 /* return rate in 100kbps */
-int mcs_index_to_rate(int mcs, int ht20, int lgi)
+int mcs_index_to_rate(int mcs, bool ht20, bool lgi)
 {
 	/* MCS Index, http://en.wikipedia.org/wiki/IEEE_802.11n-2009#Data_rates */
 	switch (mcs) {
@@ -184,6 +184,62 @@ int mcs_index_to_rate(int mcs, int ht20, int lgi)
 		case 31: return ht20 ? (lgi ? 2600 : 2888) : (lgi ? 5400 : 6000);
 	}
 	return 0;
+}
+
+/* return rate in 100kbps
+ *
+ * Formula from http://equicom.hu/uploads/file/fluke/pros/how_fast_80211ac_poster.PDF
+ * may not be 100% exact, but good enough
+ */
+int vht_mcs_index_to_rate(enum chan_width width, int streams, int mcs, bool sgi)
+{
+	int wf;
+	float mf;
+
+	switch (width) {
+		case CHAN_WIDTH_UNSPEC:
+		case CHAN_WIDTH_20_NOHT:
+			return -1; /* not supported */
+		case CHAN_WIDTH_20:
+			wf = 52; break;
+		case CHAN_WIDTH_40:
+			wf = 108; break;
+		case CHAN_WIDTH_80:
+			wf = 234; break;
+		case CHAN_WIDTH_160:
+		case CHAN_WIDTH_8080:
+			wf = 468; break;
+	}
+
+	switch (mcs) {
+		case 0:	mf = 0.5; break;
+		case 1:	mf = 1.0; break;
+		case 2:	mf = 1.5; break;
+		case 3:	mf = 2.0; break;
+		case 4:	mf = 3.0; break;
+		case 5:	mf = 4.0; break;
+		case 6:	mf = 4.5; break;
+		case 7:	mf = 5.0; break;
+		case 8:	mf = 6.0; break;
+		case 9:	mf = 6.67; break;
+		default: return -1; /* not supported */
+	}
+
+	/* special unsupported cases */
+	if (width == CHAN_WIDTH_20 && mcs == 9 && streams != 3)
+		return -1;
+	if (width == CHAN_WIDTH_80 && mcs == 6 && streams == 3)
+		return -1;
+	if (width == CHAN_WIDTH_160 && mcs == 9 && streams == 3)
+		return -1;
+	if (width < CHAN_WIDTH_80 && streams > 4)
+		return -1;
+	if (width == CHAN_WIDTH_80 && mcs == 9 && streams == 6)
+		return -1;
+	if (width == CHAN_WIDTH_80 && mcs == 6 && streams == 7)
+		return -1;
+
+	return 10.0 /* kpbs */ * streams * wf * mf / (sgi ? 3.6 : 4.0);
 }
 
 enum chan_width chan_width_from_vht_capab(uint32_t vht)
@@ -253,4 +309,23 @@ const char* get_80211std(enum chan_width width, int chan)
 		default:
 			return "?";
 	}
+}
+
+/* in 100kbps or -1 when unsupported */
+int get_phy_thruput(enum chan_width width, unsigned char streams_rx)
+{
+	switch (width) {
+		case CHAN_WIDTH_UNSPEC:
+		case CHAN_WIDTH_20_NOHT:
+			return 540;
+		case CHAN_WIDTH_20:
+			return mcs_index_to_rate(streams_rx * 8 - 1, true, false);
+		case CHAN_WIDTH_40:
+			return mcs_index_to_rate(streams_rx * 8 - 1, false, false);
+		case CHAN_WIDTH_80:
+		case CHAN_WIDTH_160:
+		case CHAN_WIDTH_8080:
+			return vht_mcs_index_to_rate(width, streams_rx, 9, true);
+	}
+	return 0;
 }
