@@ -693,6 +693,8 @@ int main(int argc, char** argv)
 			err(1, "failed to change the initial channel number");
 	}
 
+	printf("Max PHY rate: %d Mbps\n", conf.max_phy_rate/10);
+
 	if (!conf.quiet && !conf.debug)
 		init_display();
 

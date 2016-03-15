@@ -267,16 +267,28 @@ bool channel_init(void)
 	for (int i = 0; i < channels.num_channels && i < MAX_CHANNELS; i++)
 		printf("%s\n", channel_get_string(i));
 
+	if (channels.num_bands <= 0 || channels.num_channels <= 0)
+		return false;
+
 	if (conf.channel_set_num > 0) {
 		/* configured values */
+		printf("Setting configured channel %d\n", conf.channel_set_num);
 		int ini_idx = channel_find_index_from_chan(conf.channel_set_num);
 		if (!channel_change(ini_idx, conf.channel_set_width, conf.channel_set_ht40plus))
 			return false;
 	} else {
+		if (conf.if_freq <= 0) {
+			/* this happens when we have not been able to change
+			 * the original interface to monitor mode and we added
+			 * an additional monitor (horstX) interface */
+			printf("Could not get current channel of interface\n");
+			conf.max_phy_rate = get_phy_thruput(channels.band[0].max_chan_width,
+							    channels.band[0].streams_rx);
+			return true; // not failure
+
+		}
 		conf.channel_idx = channel_find_index_from_freq(conf.if_freq);
 		conf.channel_set_num = channel_get_chan(conf.channel_idx);
-		if (conf.channel_idx < 0)
-			return true; // not failure
 
 		/* try to set max width */
 		struct band_info b = channel_get_band_from_idx(conf.channel_idx);
