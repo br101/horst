@@ -259,11 +259,12 @@ static int parse_radiotap_header(unsigned char* buf, size_t len, struct packet_i
 	}
 }
 
-void wlan_parse_information_elements(unsigned char *buf, size_t len, struct packet_info *p)
+void wlan_parse_information_elements(unsigned char* buf, size_t bufLen, struct packet_info *p)
 {
+	int len = bufLen;
 	while (len > 2) {
 		struct information_element* ie = (struct information_element*)buf;
-		//DEBUG("------ IE %d len %d t len %d\n", ie->id, ie->len, len);
+		DEBUG("------ IE %d len %d t len %d\n", ie->id, ie->len, len);
 
 		switch (ie->id) {
 		case WLAN_IE_ID_SSID:
@@ -334,8 +335,8 @@ void wlan_parse_information_elements(unsigned char *buf, size_t len, struct pack
 			break;
 		}
 
-		buf += (ie->len + 2);
-		len -= (ie->len + 2);
+		buf += ie->len + 2;
+		len -= ie->len + 2;
 	}
 }
 
