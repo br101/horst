@@ -26,7 +26,7 @@
 #include "wlan80211.h"
 #include "essid.h"
 
-static struct timeval last_nodetimeout;
+static struct timespec last_nodetimeout;
 
 static void copy_nodeinfo(struct node_info* n, struct packet_info* p)
 {

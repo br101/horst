@@ -53,7 +53,7 @@ struct node_names_info node_names;
 
 struct config conf;
 
-struct timeval the_time;
+struct timespec the_time;
 
 int mon; /* monitoring socket */
 
@@ -214,7 +214,7 @@ static void write_to_file(struct packet_info* p)
 
 	//timestamp, e.g. 2015-05-16 15:05:44.338806 +0300
 	i = strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", ltm);
-	i += snprintf(buf + i, sizeof(buf) - i, ".%06ld", (long)(the_time.tv_usec));
+	i += snprintf(buf + i, sizeof(buf) - i, ".%06ld", (long)(the_time.tv_nsec / 1000));
 	i += strftime(buf + i, sizeof(buf) - i, " %z", ltm);
 	fprintf(DF, "%s, ", buf);
 
@@ -634,8 +634,8 @@ int main(int argc, char** argv)
 
 	atexit(exit_handler);
 
-	gettimeofday(&stats.stats_time, NULL);
-	gettimeofday(&the_time, NULL);
+	clock_gettime(CLOCK_MONOTONIC, &stats.stats_time);
+	clock_gettime(CLOCK_MONOTONIC, &the_time);
 
 	conf.channel_idx = -1;
 
@@ -720,7 +720,7 @@ int main(int argc, char** argv)
 		if (is_sigint_caught)
 			exit(1);
 
-		gettimeofday(&the_time, NULL);
+		clock_gettime(CLOCK_MONOTONIC, &the_time);
 		timeout_nodes();
 
 		if (conf.serveraddr[0] == '\0') { /* server */
@@ -757,7 +757,7 @@ void main_reset()
 	memset(&stats, 0, sizeof(stats));
 	memset(&spectrum, 0, sizeof(spectrum));
 	init_spectrum();
-	gettimeofday(&stats.stats_time, NULL);
+	clock_gettime(CLOCK_MONOTONIC, &stats.stats_time);
 }
 
 void dumpfile_open(const char* name)

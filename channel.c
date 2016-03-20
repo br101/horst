@@ -27,7 +27,7 @@
 #include "wlan_util.h"
 
 
-static struct timeval last_channelchange;
+static struct timespec last_channelchange;
 static struct channel_list channels;
 
 long channel_get_remaining_dwell_time(void)
@@ -37,9 +37,9 @@ long channel_get_remaining_dwell_time(void)
 
 	return conf.channel_time
 		- the_time.tv_sec * 1000000
-		- the_time.tv_usec
+		- the_time.tv_nsec / 1000
 		+ last_channelchange.tv_sec * 1000000
-		+ last_channelchange.tv_usec;
+		+ last_channelchange.tv_nsec / 1000;
 }
 
 
@@ -177,7 +177,7 @@ bool channel_change(int idx, enum chan_width width, bool ht40plus)
 		channels.chan[idx].chan, channels.chan[idx].freq,
 		channel_width_string(width, ht40plus),
 		 center1, (the_time.tv_sec - last_channelchange.tv_sec) * 1000
-		 + (the_time.tv_usec - last_channelchange.tv_usec) / 1000);
+		 + (the_time.tv_nsec - last_channelchange.tv_nsec) / 1000000);
 
 	conf.channel_idx = idx;
 	conf.channel_width = width;

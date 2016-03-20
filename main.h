@@ -21,7 +21,7 @@
 #define _MAIN_H_
 
 #include <stdlib.h>
-#include <sys/time.h>
+#include <time.h>
 
 #undef LIST_HEAD 
 #include "ccan/list/list.h"
@@ -252,7 +252,7 @@ struct statistics {
 
 	unsigned long		filtered_packets;
 
-	struct timeval		stats_time;
+	struct timespec		stats_time;
 };
 
 extern struct statistics stats;
@@ -345,7 +345,7 @@ struct config {
 
 extern struct config conf;
 
-extern struct timeval the_time;
+extern struct timespec the_time;
 
 void free_lists(void);
 void init_spectrum(void);

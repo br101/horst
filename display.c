@@ -37,7 +37,7 @@ static WINDOW *show_win = NULL;
 static int conf_win_current;
 static int show_win_current;
 
-static struct timeval last_time;
+static struct timespec last_time;
 
 static int display_resize_needed = 0;
 
@@ -71,14 +71,14 @@ void get_per_second(unsigned long bytes, unsigned long duration,
 	       unsigned long packets, unsigned long retries,
 	       int *bps, int *dps, int *pps, int *rps)
 {
-	static struct timeval last;
+	static struct timespec last;
 	static unsigned long last_bytes, last_dur, last_pkts, last_retr;
 	static int last_bps, last_dps, last_pps, last_rps;
 	float timediff;
 
 	/* reacalculate only every second or more */
-	timediff = (the_time.tv_sec + the_time.tv_usec/1000000.0) -
-		   (last.tv_sec + last.tv_usec/1000000.0);
+	timediff = (the_time.tv_sec + the_time.tv_nsec/1000000000.0) -
+		   (last.tv_sec + last.tv_nsec/1000000000.0);
 	if (timediff >= 1.0) {
 		last_dps = (1.0*(duration - last_dur)) / timediff;
 		last_bps = (1.0*(bytes - last_bytes)) / timediff;
@@ -317,7 +317,7 @@ void update_display(struct packet_info* pkt)
 	 */
 	if (pkt != NULL &&
 	    the_time.tv_sec == last_time.tv_sec &&
-	    (the_time.tv_usec - last_time.tv_usec) < conf.display_interval ) {
+	    (the_time.tv_nsec - last_time.tv_nsec) / 1000 < conf.display_interval ) {
 		/* just add the line to dump win so we don't loose it */
 		update_dump_win(pkt);
 		return;
