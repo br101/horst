@@ -397,7 +397,7 @@ static void local_receive_packet(int fd, unsigned char* buffer, size_t bufsize)
 static void receive_any(const sigset_t *const waitmask)
 {
 	int ret, mfd;
-	long usecs;
+	uint32_t usecs = UINT32_MAX;
 	struct timespec ts;
 
 	FD_ZERO(&read_fds);
@@ -413,7 +413,7 @@ static void receive_any(const sigset_t *const waitmask)
 	if (ctlpipe != -1)
 		FD_SET(ctlpipe, &read_fds);
 
-	usecs = max(0, min(channel_get_remaining_dwell_time(), 1000000));
+	usecs = min(channel_get_remaining_dwell_time(), 1000000);
 	ts.tv_sec = usecs / 1000000;
 	ts.tv_nsec = usecs % 1000000 * 1000;
 	mfd = max(mon, srv_fd);

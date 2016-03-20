@@ -21,6 +21,7 @@
 #define _CHANNEL_H_
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #define MAX_BANDS		2
 #define MAX_CHANNELS		64
@@ -64,7 +65,7 @@ int channel_get_freq(int idx);
 int channel_get_num_channels();
 bool channel_init(void);
 bool channel_list_add(int freq);
-long channel_get_remaining_dwell_time(void);
+uint32_t channel_get_remaining_dwell_time(void);
 char* channel_get_string(int idx);
 /* Note: ht40p is used only for HT40 channels. If it should not be shown use -1 */
 const char* channel_width_string(enum chan_width w, int ht40p);

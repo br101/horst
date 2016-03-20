@@ -30,16 +30,21 @@
 static struct timespec last_channelchange;
 static struct channel_list channels;
 
-long channel_get_remaining_dwell_time(void)
+uint32_t channel_get_remaining_dwell_time(void)
 {
 	if (!conf.do_change_channel)
-		return LONG_MAX;
+		return UINT32_MAX;
 
-	return conf.channel_time
-		- the_time.tv_sec * 1000000
-		- the_time.tv_nsec / 1000
-		+ last_channelchange.tv_sec * 1000000
-		+ last_channelchange.tv_nsec / 1000;
+	int64_t ret = (int64_t)conf.channel_time
+		- (the_time.tv_sec -  last_channelchange.tv_sec) * 1000000
+		- (the_time.tv_nsec - last_channelchange.tv_nsec) / 1000;
+
+	if (ret < 0)
+		return 0;
+	else if (ret > UINT32_MAX)
+		return UINT32_MAX;
+	else
+		return ret;
 }
 
 
