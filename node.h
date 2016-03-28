@@ -21,6 +21,6 @@
 #define _NODE_H_
 
 struct node_info* node_update(struct packet_info* p);
-void timeout_nodes(void);
+void node_timeout(void);
 
 #endif

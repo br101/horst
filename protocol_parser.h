@@ -20,6 +20,9 @@
 #ifndef _PROTOCOL_PARSER_H_
 #define _PROTOCOL_PARSER_H_
 
+#include <stdbool.h>
+#include <stddef.h>
+
 struct packet_info;
 
 bool parse_packet(unsigned char* buf, size_t len, struct packet_info* p);

@@ -66,4 +66,27 @@ void init_display(void);
 void finish_display(void);
 void display_clear(void);
 
+/* main windows are special */
+void init_display_main(void);
+void clear_display_main(void);
+void update_main_win(struct packet_info *pkt);
+void update_dump_win(struct packet_info* pkt);
+bool main_input(int c);
+void print_dump_win(const char *str, int refresh);
+void resize_display_main(void);
+
+/* smaller config windows */
+void update_filter_win(WINDOW *win);
+void update_channel_win(WINDOW *win);
+bool filter_input(WINDOW *win, int c);
+bool channel_input(WINDOW *win, int c);
+
+/* "standard" windows */
+void update_spectrum_win(WINDOW *win);
+void update_statistics_win(WINDOW *win);
+void update_essid_win(WINDOW *win);
+void update_history_win(WINDOW *win);
+void update_help_win(WINDOW *win);
+bool spectrum_input(WINDOW *win, int c);
+
 #endif

@@ -23,6 +23,6 @@
 #include <stdbool.h>
 
 void config_parse_file_and_cmdline(int argc, char** argv);
-bool config_handle_option(char c, const char* name, const char* value);
+bool config_handle_option(int c, const char* name, const char* value);
 
 #endif

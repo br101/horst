@@ -26,6 +26,7 @@
 #include "util.h"
 #include "wlan_util.h"
 #include "control.h"
+#include "conf_options.h"
 
 struct conf_option {
 	int		option;
@@ -449,7 +450,7 @@ static char* config_get_getopt_string(char* buf, size_t maxlen, const char* add)
 	return buf;
 }
 
-void print_usage(const char* name)
+static void print_usage(const char* name)
 {
 	printf("\nUsage: %s [-v] [-h] [-q] [-D] [-a] [-c file] [-i interface] [-t sec] [-d ms] [-V view] [-b bytes]\n"
 		"\t\t[-s] [-u] [-N] [-n IP] [-p port] [-o file] [-X[name]] [-x command]\n"

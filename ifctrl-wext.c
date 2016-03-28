@@ -29,7 +29,7 @@
 
 extern int mon; /* monitoring socket */
 
-bool wext_set_freq(int fd, const char* devname, int freq)
+static bool wext_set_freq(int fd, const char* devname, int freq)
 {
 	struct iwreq iwr;
 
@@ -47,7 +47,7 @@ bool wext_set_freq(int fd, const char* devname, int freq)
 	return true;
 }
 
-int wext_get_freq(int fd, const char* devname)
+static int wext_get_freq(int fd, const char* devname)
 {
 	struct iwreq iwr;
 
@@ -63,7 +63,7 @@ int wext_get_freq(int fd, const char* devname)
 	return iwr.u.freq.m;
 }
 
-int wext_get_channels(int fd, const char* devname,
+static int wext_get_channels(int fd, const char* devname,
 		      struct channel_list* channels)
 {
 	struct iwreq iwr;
@@ -117,12 +117,12 @@ int wext_get_channels(int fd, const char* devname,
  * ifctrl.h implementation
  */
 
-bool ifctrl_init()
+bool ifctrl_init(void)
 {
 	return true;
 };
 
-void ifctrl_finish()
+void ifctrl_finish(void)
 {
 };
 
@@ -171,7 +171,7 @@ bool ifctrl_iwget_freqlist(__attribute__((unused)) int phy, struct channel_list*
 	return false;
 }
 
-bool ifctrl_is_monitor()
+bool ifctrl_is_monitor(void)
 {
 	return true; /* assume yes */
 }

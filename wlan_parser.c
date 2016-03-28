@@ -259,7 +259,7 @@ static int parse_radiotap_header(unsigned char* buf, size_t len, struct packet_i
 	}
 }
 
-void wlan_parse_information_elements(unsigned char* buf, size_t bufLen, struct packet_info *p)
+static void wlan_parse_information_elements(unsigned char* buf, size_t bufLen, struct packet_info *p)
 {
 	int len = bufLen;
 	while (len > 2) {

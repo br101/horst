@@ -358,12 +358,12 @@ bool channel_list_add(int freq)
 	return true;
 }
 
-int channel_get_num_channels()
+int channel_get_num_channels(void)
 {
 	return channels.num_channels;
 }
 
-int channel_get_num_bands()
+int channel_get_num_bands(void)
 {
 	return channels.num_bands;
 }

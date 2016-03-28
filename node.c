@@ -162,7 +162,7 @@ struct node_info* node_update(struct packet_info* p)
 	return n;
 }
 
-void timeout_nodes(void)
+void node_timeout(void)
 {
 	struct node_info *n, *m, *n2, *m2;
 	struct chan_node *cn, *cn2;

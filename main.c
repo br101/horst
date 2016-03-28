@@ -293,7 +293,7 @@ static bool filter_packet(struct packet_info* p)
 	return false;
 }
 
-void fixup_packet_channel(struct packet_info* p)
+static void fixup_packet_channel(struct packet_info* p)
 {
 	int i = -1;
 
@@ -721,7 +721,7 @@ int main(int argc, char** argv)
 			exit(1);
 
 		clock_gettime(CLOCK_MONOTONIC, &the_time);
-		timeout_nodes();
+		node_timeout();
 
 		if (conf.serveraddr[0] == '\0') { /* server */
 			if (!conf.paused && channel_auto_change()) {
@@ -745,7 +745,7 @@ void main_pause(int pause)
 	printlog(conf.paused ? "- PAUSED -" : "- RESUME -");
 }
 
-void main_reset()
+void main_reset(void)
 {
 	if (!conf.quiet && !conf.debug)
 		display_clear();

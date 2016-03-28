@@ -20,12 +20,12 @@
 #include "ifctrl.h"
 #include "main.h"
 
-bool ifctrl_init()
+bool ifctrl_init(void)
 {
 	return true;
 };
 
-void ifctrl_finish()
+void ifctrl_finish(void)
 {
 };
 
@@ -70,7 +70,7 @@ bool ifctrl_iwget_freqlist(__attribute__((unused)) int phy,
 	return false;
 };
 
-bool ifctrl_is_monitor()
+bool ifctrl_is_monitor(void)
 {
 	return true;
 };

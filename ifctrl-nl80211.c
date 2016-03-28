@@ -44,7 +44,7 @@ static struct nl_sock *sock = NULL;
 static struct nl_cache *cache = NULL;
 static struct genl_family *family = NULL;
 
-static bool nl80211_init()
+static bool nl80211_init(void)
 {
 	int err;
 
@@ -80,7 +80,7 @@ out:
 	return false;
 }
 
-static void nl80211_finish()
+static void nl80211_finish(void)
 {
 	nl_socket_free(sock);
 	genl_family_put(family);
@@ -228,12 +228,12 @@ static struct nlattr** nl80211_parse(struct nl_msg *msg)
  * ifctrl interface
  */
 
-bool ifctrl_init()
+bool ifctrl_init(void)
 {
 	return nl80211_init();
 }
 
-void ifctrl_finish()
+void ifctrl_finish(void)
 {
 	nl80211_finish();
 }
@@ -470,7 +470,7 @@ nla_put_failure:
 	return false;
 }
 
-bool ifctrl_is_monitor()
+bool ifctrl_is_monitor(void)
 {
 	return conf.if_type == NL80211_IFTYPE_MONITOR;
 }
