@@ -579,6 +579,13 @@ int wlan_parse_packet(unsigned char* buf, size_t len, struct packet_info* p)
 		ret = parse_radiotap_header(buf, len, p);
 		if (ret <= 0) /* 0: Bad FCS, allow packet but stop parsing */
 			return 0;
+	} else {
+		return -1;
+	}
+
+	if ((size_t)ret >= len) {
+		DEBUG("impossible radiotap len");
+		return -1;
 	}
 
 	DEBUG("before parse 80211 len: %zd\n", len - ret);
