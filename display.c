@@ -41,8 +41,6 @@ static struct timespec last_time;
 
 static int display_resize_needed = 0;
 
-static void resize_display_all(void);
-
 /******************* HELPERS *******************/
 
 void get_per_second(unsigned long bytes, unsigned long duration,
@@ -151,6 +149,37 @@ void general_average_bar(WINDOW *win, int val, int avg, int y, int x,
 	}
 	wattroff(win, A_BOLD);
 	wattroff(win, color_avg);
+}
+
+/******************* RESIZE *******************/
+
+static void resize_display_all(void)
+{
+	struct winsize winsz;
+
+	/* get new window size */
+	winsz.ws_col = winsz.ws_row = 0;
+	ioctl(0, TIOCGWINSZ, &winsz);	/* ioctl on STDIN */
+	if (winsz.ws_col && winsz.ws_row)
+		resizeterm(winsz.ws_row, winsz.ws_col);
+	COLS = winsz.ws_col;
+	LINES = winsz.ws_row;
+
+	resize_display_main();
+
+	if (show_win)
+		wresize(show_win, LINES-1, COLS);
+
+	if (conf_win) {
+		if (conf_win_current == 'f')
+			mvwin(conf_win, LINES/2-12, COLS/2-28);
+		else if (conf_win_current == 'c')
+			mvwin(conf_win, LINES/2-5, COLS/2-20);
+	}
+}
+
+static void window_change_handler(__attribute__((unused)) int sig) {
+	display_resize_needed = 1;
 }
 
 /******************* STATUS *******************/
@@ -326,37 +355,6 @@ void update_display(struct packet_info* pkt)
 
 	/* only one redraw */
 	doupdate();
-}
-
-/******************* RESIZE *******************/
-
-static void resize_display_all(void)
-{
-	struct winsize winsz;
-
-	/* get new window size */
-	winsz.ws_col = winsz.ws_row = 0;
-	ioctl(0, TIOCGWINSZ, &winsz);	/* ioctl on STDIN */
-	if (winsz.ws_col && winsz.ws_row)
-		resizeterm(winsz.ws_row, winsz.ws_col);
-	COLS = winsz.ws_col;
-	LINES = winsz.ws_row;
-
-	resize_display_main();
-
-	if (show_win)
-		wresize(show_win, LINES-1, COLS);
-
-	if (conf_win) {
-		if (conf_win_current == 'f')
-			mvwin(conf_win, LINES/2-12, COLS/2-28);
-		else if (conf_win_current == 'c')
-			mvwin(conf_win, LINES/2-5, COLS/2-20);
-	}
-}
-
-static void window_change_handler(__attribute__((unused)) int sig) {
-	display_resize_needed = 1;
 }
 
 /******************* INPUT *******************/
