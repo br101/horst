@@ -1,14 +1,15 @@
 # HORST - Highly Optimized Radio Scanning Tool
 or "Horsts OLSR Radio Scanning Tool"
 
-Copyright (C) 2005-2016 Bruno Randolf (br1@einfach.org) and licensed under the GNU Public License (GPL) V2
+Copyright (C) 2005-2016 Bruno Randolf (br1@einfach.org) and licensed under the 
+GNU Public License (GPL) V2
 
 
 ## Links
 
 * Main page: https://github.com/br101/horst
 * Issue tracker: https://github.com/br101/horst/issues
-* Download Stable (Version 4.2): https://github.com/br101/horst/archive/version-4.2.tar.gz
+* Download Stable (Version 5.0): https://github.com/br101/horst/archive/version-5.0.tar.gz
 * Download Development (MASTER): https://github.com/br101/horst/tarball/master
 
 
@@ -39,7 +40,7 @@ problems.
 * Automatically adds and removes monitor interface
 
 `horst` is a Linux program and can be used on any wireless LAN interface which 
-supports monitor mode. The latest stable version is 4.2 from Oct 1 2014.
+supports monitor mode. The latest stable version is 5.0 from June 30 2016.
 
 
 ## Building
