@@ -1,8 +1,7 @@
 # HORST - Highly Optimized Radio Scanning Tool
 or "Horsts OLSR Radio Scanning Tool"
 
-Copyright (C) 2005-2015 Bruno Randolf (br1@einfach.org) and licensed under the 
-GNU Public License (GPL) V2
+Copyright (C) 2005-2016 Bruno Randolf (br1@einfach.org) and licensed under the GNU Public License (GPL) V2
 
 
 ## Links
