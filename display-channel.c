@@ -165,7 +165,7 @@ bool channel_input(WINDOW *win, int c)
 		    conf.channel_set_width != conf.channel_width ||
 		    conf.channel_set_ht40plus != conf.channel_ht40plus) {
 			/* some setting changed */
-			if (!conf.serveraddr[0] != '\0') {
+			if (conf.serveraddr[0] == '\0') {
 				/* server */
 				if (!channel_change(new_idx, conf.channel_set_width, conf.channel_set_ht40plus)) {
 					printlog("Channel %d %s is not available/allowed", conf.channel_set_num,

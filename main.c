@@ -325,7 +325,7 @@ void handle_packet(struct packet_info* p)
 	struct node_info* n = NULL;
 
 	/* filter on server side only */
-	if (!conf.serveraddr[0] != '\0' && filter_packet(p)) {
+	if (conf.serveraddr[0] == '\0' && filter_packet(p)) {
 		if (!conf.quiet && !conf.paused && !conf.debug)
 			update_display_clock();
 		return;
@@ -492,7 +492,7 @@ static void exit_handler(void)
 {
 	free_lists();
 
-	if (!conf.serveraddr[0] != '\0') {
+	if (conf.serveraddr[0] == '\0') {
 		close_packet_socket(mon);
 	}
 
