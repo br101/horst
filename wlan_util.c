@@ -209,6 +209,8 @@ int vht_mcs_index_to_rate(enum chan_width width, int streams, int mcs, bool sgi)
 		case CHAN_WIDTH_160:
 		case CHAN_WIDTH_8080:
 			wf = 468; break;
+		default:
+			return -1; /* not supported */
 	}
 
 	switch (mcs) {
