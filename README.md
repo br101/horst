@@ -40,7 +40,7 @@ problems.
 * Automatically adds and removes monitor interface
 
 `horst` is a Linux program and can be used on any wireless LAN interface which 
-supports monitor mode. The latest stable version is 5.0 from June 30 2016.
+supports monitor mode. The latest stable version is 5.0 from July 01 2016.
 
 
 ## Building
