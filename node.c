@@ -33,7 +33,7 @@ static void copy_nodeinfo(struct node_info* n, struct packet_info* p)
 	struct node_info* ap;
 
 	memcpy(n->wlan_src, p->wlan_src, MAC_LEN);
-	memcpy(&(n->last_pkt), p, sizeof(struct packet_info));
+	memcpy(&n->last_pkt, p, sizeof(struct packet_info));
 	// update timestamp
 	n->last_seen = time(NULL);
 	n->pkt_count++;
