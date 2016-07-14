@@ -175,6 +175,7 @@ struct node_info {
 	int			phy_sig_count;
 
 	/* wlan mac */
+	unsigned char		wlan_src[MAC_LEN];	/* Sender MAC address (ID) */
 	unsigned char		wlan_bssid[MAC_LEN];
 	unsigned int		wlan_channel;	/* channel from beacon, probe frames */
 	unsigned int		wlan_mode;	/* AP, STA or IBSS */

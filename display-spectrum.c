@@ -107,7 +107,7 @@ void update_spectrum_win(WINDOW *win)
 					id = ip_sprintf_short(cn->node->ip_src);
 				}
 				else
-					id = mac_name_lookup(cn->node->last_pkt.wlan_src, 1);
+					id = mac_name_lookup(cn->node->wlan_src, 1);
 				mvwprintw(win, SPEC_POS_Y + sig,
 					SPEC_POS_X + CH_SPACE*i + 1, "%s", id);
 				if (cn->node->ip_src)

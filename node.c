@@ -32,6 +32,7 @@ static void copy_nodeinfo(struct node_info* n, struct packet_info* p)
 {
 	struct node_info* ap;
 
+	memcpy(n->wlan_src, p->wlan_src, MAC_LEN);
 	memcpy(&(n->last_pkt), p, sizeof(struct packet_info));
 	// update timestamp
 	n->last_seen = time(NULL);
@@ -65,7 +66,7 @@ static void copy_nodeinfo(struct node_info* n, struct packet_info* p)
 		if ((n->wlan_mode & WLAN_MODE_STA) && n->wlan_ap_node == NULL) {
 			/* find AP node for this BSSID */
 			list_for_each(&nodes, ap, list) {
-				if (memcmp(p->wlan_bssid, ap->last_pkt.wlan_src, MAC_LEN) == 0) {
+				if (memcmp(p->wlan_bssid, ap->wlan_src, MAC_LEN) == 0) {
 					DEBUG("AP node found %p\n", ap);
 					DEBUG("AP node ESSID %s\n",
 					      ap->essid != NULL ? ap->essid->essid : "unknown");
@@ -140,7 +141,7 @@ struct node_info* node_update(struct packet_info* p)
 
 	/* find node by wlan source address */
 	list_for_each(&nodes, n, list) {
-		if (memcmp(p->wlan_src, n->last_pkt.wlan_src, MAC_LEN) == 0) {
+		if (memcmp(p->wlan_src, n->wlan_src, MAC_LEN) == 0) {
 			DEBUG("node found %p\n", n);
 			break;
 		}

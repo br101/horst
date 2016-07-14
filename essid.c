@@ -42,7 +42,7 @@ static void update_essid_split_status(struct essid_info* e)
 	/* check for split */
 	list_for_each(&e->nodes, n, essid_nodes) {
 		DEBUG("SPLIT      node %p src %s",
-			n, ether_sprintf(n->last_pkt.wlan_src));
+			n, ether_sprintf(n->wlan_src));
 		DEBUG(" bssid %s\n", ether_sprintf(n->wlan_bssid));
 
 		if (n->wlan_mode & WLAN_MODE_AP)
@@ -98,7 +98,7 @@ void update_essids(struct packet_info* p, struct node_info* n)
 		return;
 
 	DEBUG("SPLIT check ibss '%s' node %s ", p->wlan_essid,
-		ether_sprintf(p->wlan_src));
+		ether_sprintf(n->wlan_src));
 	DEBUG("bssid %s\n", ether_sprintf(p->wlan_bssid));
 
 	/* find essid if already recorded */
@@ -128,7 +128,7 @@ void update_essids(struct packet_info* p, struct node_info* n)
 	/* new node */
 	if (n->essid == NULL) {
 		DEBUG("SPLIT   node not found, adding new %s\n",
-			ether_sprintf(p->wlan_src));
+			ether_sprintf(n->wlan_src));
 		list_add_tail(&e->nodes, &n->essid_nodes);
 		e->num_nodes++;
 		n->essid = e;

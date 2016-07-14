@@ -465,7 +465,7 @@ void free_lists(void)
 
 	/* free node list */
 	list_for_each_safe(&nodes, ni, mi, list) {
-		DEBUG("free node %s\n", ether_sprintf(ni->last_pkt.wlan_src));
+		DEBUG("free node %s\n", ether_sprintf(ni->wlan_src));
 		list_del(&ni->list);
 		free(ni);
 	}

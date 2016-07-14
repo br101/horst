@@ -254,7 +254,7 @@ static void print_node_list_line(int line, struct node_info* n)
 
 	mvwprintw(list_win, line, COL_SIG, "%3d", -ewma_read(&n->phy_sig_avg));
 	mvwprintw(list_win, line, COL_RATE, "%3d", p->phy_rate/10);
-	mvwprintw(list_win, line, COL_SOURCE, "%-17s", mac_name_lookup(p->wlan_src, 0));
+	mvwprintw(list_win, line, COL_SOURCE, "%-17s", mac_name_lookup(n->wlan_src, 0));
 
 	mvwprintw(list_win, line, COL_WIDTH, "%-2s %-3s",
 		get_80211std(n->wlan_chan_width, n->wlan_channel),

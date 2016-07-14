@@ -65,7 +65,7 @@ void update_essid_win(WINDOW *win)
 				wattroff(win, A_BOLD);
 			mvwprintw(win, line, 3, "%2d. %s %-17s", i++,
 				(n->wlan_mode & WLAN_MODE_AP) ? "AP  " : "IBSS",
-				mac_name_lookup(n->last_pkt.wlan_src, 0));
+				mac_name_lookup(n->wlan_src, 0));
 			wprintw(win, " (%s)", ether_sprintf(n->wlan_bssid));
 			wprintw(win, " %016llx", n->wlan_tsf);
 			wprintw(win, " (%d)", n->wlan_bintval);
