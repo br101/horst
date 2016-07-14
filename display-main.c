@@ -230,7 +230,6 @@ static char spin[4] = {'/', '-', '\\', '|'};
 
 static void print_node_list_line(int line, struct node_info* n)
 {
-	struct packet_info* p = &n->last_pkt;
 	char* ssid = NULL;
 
 	if (n->pkt_types & PKT_TYPE_OLSR)
@@ -253,7 +252,7 @@ static void print_node_list_line(int line, struct node_info* n)
 		mvwprintw(list_win, line, COL_CHAN, "%3d", n->wlan_channel );
 
 	mvwprintw(list_win, line, COL_SIG, "%3d", -ewma_read(&n->phy_sig_avg));
-	mvwprintw(list_win, line, COL_RATE, "%3d", p->phy_rate/10);
+	mvwprintw(list_win, line, COL_RATE, "%3d", n->last_pkt.phy_rate/10);
 	mvwprintw(list_win, line, COL_SOURCE, "%-17s", mac_name_lookup(n->wlan_src, 0));
 
 	mvwprintw(list_win, line, COL_WIDTH, "%-2s %-3s",
@@ -283,7 +282,7 @@ static void print_node_list_line(int line, struct node_info* n)
 	}
 	if (n->wlan_mode & WLAN_MODE_PROBE) {
 		wprintw(list_win, " PR");
-		ssid = p->wlan_essid;
+		ssid = n->last_pkt.wlan_essid;
 	}
 	if (n->wlan_mode & WLAN_MODE_4ADDR) {
 			wprintw(list_win, " 4A");
