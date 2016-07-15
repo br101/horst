@@ -18,10 +18,6 @@
 
 # build options
 DEBUG=1
-PCAP=0
-WEXT=0
-LIBNL=3.0
-OSX=0
 
 NAME=horst
 OBJS=						   \
@@ -37,7 +33,6 @@ OBJS=						   \
 	display-statistics.o			   \
 	display.o				   \
 	essid.o					   \
-	ifctrl-ioctl.o			   	   \
 	listsort.o				   \
 	main.o					   \
 	network.o				   \
@@ -47,38 +42,8 @@ LIBS=-lncurses -lm -luwifi
 CFLAGS+=-std=gnu99 -Wall -Wextra -g -I. -I../uwifi -I../uwifi/util -I../uwifi/core -I../uwifi/linux
 LDFLAGS+=-L../uwifi/
 
-ifeq ($(OSX),1)
-    PCAP=1
-    WEXT=0
-    LIBNL=0
-    LIBS+=-framework CoreWLAN -framework CoreData -framework Foundation
-endif
-
 ifeq ($(DEBUG),1)
   CFLAGS+=-DDO_DEBUG
-endif
-
-ifeq ($(PCAP),1)
-  CFLAGS+=-DPCAP
-  LIBS+=-lpcap
-endif
-
-ifeq ($(WEXT),1)
-  OBJS += ifctrl-wext.o
-else
-  ifeq ($(LIBNL),0)
-    ifeq ($(OSX),0)
-        OBJS += ifctrl-dummy.o
-    endif
-  else
-    OBJS += ifctrl-nl80211.o
-    CFLAGS += $(shell pkg-config --cflags libnl-$(LIBNL))
-    ifeq ($(LIBNL),tiny)
-      LIBS+=-lnl-tiny
-    else
-      LIBS+=-lnl-3 -lnl-genl-3
-    endif
-  endif
 endif
 
 .PHONY: all check clean force
@@ -87,15 +52,8 @@ all: $(NAME)
 
 .objdeps.mk: $(OBJS:%.o=%.c)
 	gcc -MM -I. -I../uwifi -I../uwifi/util -I../uwifi/core -I../uwifi/linux $^ >$@
-ifeq ($(OSX),1)
-	gcc -MM -I. ifctrl-osx.m >>$@
-endif
 
 -include .objdeps.mk
-
-ifeq ($(OSX),1)
-	OBJS += ifctrl-osx.o
-endif
 
 $(NAME): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
