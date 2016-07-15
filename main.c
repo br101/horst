@@ -43,6 +43,7 @@
 #include "essid.h"
 #include "conf_options.h"
 #include "ifctrl.h"
+#include "raw_parser.h"
 
 struct list_head nodes;
 struct essid_meta_info essids;

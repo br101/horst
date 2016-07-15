@@ -24,6 +24,7 @@
 #include "util.h"
 #include "wlan80211.h"
 #include "essid.h"
+#include "node.h"
 
 static void update_essid_split_status(struct essid_info* e)
 {

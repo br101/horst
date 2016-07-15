@@ -25,9 +25,6 @@ OSX=0
 
 NAME=horst
 OBJS=						   \
-	average.o				   \
-	capture$(if $(filter 1,$(PCAP)),-pcap).o   \
-	channel.o				   \
 	conf_options.o				   \
 	control.o				   \
 	display-channel.o			   \
@@ -40,19 +37,15 @@ OBJS=						   \
 	display-statistics.o			   \
 	display.o				   \
 	essid.o					   \
-	ieee80211_util.o			   \
 	ifctrl-ioctl.o			   	   \
 	listsort.o				   \
 	main.o					   \
 	network.o				   \
-	node.o					   \
-	protocol_parser.o			   \
-	wlan_parser.o				   \
-	radiotap/radiotap.o			   \
-	util.o					   \
-	wlan_util.o
-LIBS=-lncurses -lm
-CFLAGS+=-std=gnu99 -Wall -Wextra -g -I.
+	protocol_parser.o
+
+LIBS=-lncurses -lm -luwifi
+CFLAGS+=-std=gnu99 -Wall -Wextra -g -I. -I../uwifi -I../uwifi/util -I../uwifi/core -I../uwifi/linux
+LDFLAGS+=-L../uwifi/
 
 ifeq ($(OSX),1)
     PCAP=1
@@ -93,7 +86,7 @@ endif
 all: $(NAME)
 
 .objdeps.mk: $(OBJS:%.o=%.c)
-	gcc -MM -I. $^ >$@
+	gcc -MM -I. -I../uwifi -I../uwifi/util -I../uwifi/core -I../uwifi/linux $^ >$@
 ifeq ($(OSX),1)
 	gcc -MM -I. ifctrl-osx.m >>$@
 endif

@@ -31,6 +31,7 @@
 #include "batman_adv_header-14.h"
 #include "listsort.h"
 #include "channel.h"
+#include "node.h"
 
 static WINDOW *sort_win = NULL;
 static WINDOW *dump_win = NULL;
