@@ -64,7 +64,7 @@ check:
 	sparse $(CFLAGS) *.[ch]
 
 clean:
-	-rm -f *.o radiotap/*.o *~
+	-rm -f *.o *~
 	-rm -f $(NAME)
 	-rm -f .buildflags
 	-rm -f .objdeps.mk
