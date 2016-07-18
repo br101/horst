@@ -36,7 +36,8 @@ OBJS=						   \
 	listsort.o				   \
 	main.o					   \
 	network.o				   \
-	protocol_parser.o
+	protocol_parser.o			   \
+	util.o
 
 LIBS=-lncurses -lm -luwifi
 CFLAGS+=-std=gnu99 -Wall -Wextra -g -I. -I../uwifi -I../uwifi/util -I../uwifi/core -I../uwifi/linux
