@@ -31,7 +31,7 @@
 #include "core/wlan_parser.h"
 #include "core/conf.h"
 #include "core/phy_info.h"
-#include "core/platform.h"
+#include "linux/platform.h"
 
 #define VERSION "6.0-pre"
 #define CONFIG_FILE "/etc/horst.conf"
