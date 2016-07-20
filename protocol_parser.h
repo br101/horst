@@ -23,7 +23,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-struct packet_info;
+#include <wlan_parser.h>
 
 bool parse_packet(unsigned char* buf, size_t len, struct packet_info* p);
 

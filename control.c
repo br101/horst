@@ -25,7 +25,6 @@
 #include <err.h>
 
 #include "main.h"
-#include "channel.h"
 #include "control.h"
 #include "conf_options.h"
 

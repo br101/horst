@@ -27,9 +27,10 @@
 #include <errno.h>
 #include <err.h>
 
+#include <util.h>
+#include <channel.h>
+
 #include "main.h"
-#include "util.h"
-#include "channel.h"
 #include "network.h"
 #include "display.h"
 

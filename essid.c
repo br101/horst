@@ -20,11 +20,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <wlan80211.h>
+#include <node.h>
+
 #include "main.h"
 #include "util.h"
-#include "wlan80211.h"
 #include "essid.h"
-#include "node.h"
+
 
 static void update_essid_split_status(struct essid_info* e)
 {

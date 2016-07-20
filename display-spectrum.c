@@ -21,10 +21,11 @@
 
 #include <stdlib.h>
 
+#include <util.h>
+#include <node.h>
+
 #include "display.h"
 #include "main.h"
-#include "util.h"
-#include "node.h"
 
 #define CH_SPACE	6
 #define SPEC_POS_Y	1

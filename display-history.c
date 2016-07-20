@@ -21,10 +21,11 @@
 
 #include <stdlib.h>
 
+#include <util.h>
+#include <wlan_util.h>
+
 #include "display.h"
 #include "main.h"
-#include "util.h"
-#include "wlan_util.h"
 
 #define SIGN_POS LINES-17
 #define TYPE_POS SIGN_POS+1

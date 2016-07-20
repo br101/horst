@@ -24,14 +24,13 @@
 #include <time.h>
 
 #undef LIST_HEAD 
-#include "ccan/list/list.h"
-#include "util/average.h"
-#include "core/channel.h"
-#include "core/wlan80211.h"
-#include "core/wlan_parser.h"
-#include "core/conf.h"
-#include "core/phy_info.h"
-#include "linux/platform.h"
+#include <ccan/list/list.h>
+#include <average.h>
+#include <channel.h>
+#include <wlan80211.h>
+#include <wlan_parser.h>
+#include <conf.h>
+#include <platform.h>
 
 #define VERSION "6.0-pre"
 #define CONFIG_FILE "/etc/horst.conf"

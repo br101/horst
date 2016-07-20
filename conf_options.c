@@ -24,7 +24,7 @@
 
 #include "main.h"
 #include "util.h"
-#include "util/util.h"
+#include "hutil.h"
 #include "wlan_util.h"
 #include "control.h"
 #include "conf_options.h"

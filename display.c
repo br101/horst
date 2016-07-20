@@ -26,11 +26,12 @@
 #include <signal.h>
 #include <sys/ioctl.h>
 
+#include <wlan80211.h>
+#include <channel.h>
+
 #include "util.h"
 #include "display.h"
 #include "main.h"
-#include "wlan80211.h"
-#include "channel.h"
 
 static WINDOW *conf_win = NULL;
 static WINDOW *show_win = NULL;

@@ -21,11 +21,12 @@
 
 #include <stdlib.h>
 
+#include <wlan_util.h>
+#include <wlan80211.h>
+
 #include "display.h"
 #include "main.h"
-#include "util.h"
-#include "wlan_util.h"
-#include "wlan80211.h"
+#include "hutil.h"
 #include "network.h"
 
 #define MAC_COL 2

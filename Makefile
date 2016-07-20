@@ -38,10 +38,11 @@ OBJS=						   \
 	network.o				   \
 	protocol_parser.o			   \
 	ieee80211_duration.o			   \
-	util.o
+	hutil.o
 
 LIBS=-lncurses -lm -luwifi
-CFLAGS+=-std=gnu99 -Wall -Wextra -g -I. -I../uwifi -I../uwifi/util -I../uwifi/core -I../uwifi/linux
+INCLUDES=-I. -I../uwifi -I../uwifi/util -I../uwifi/core -I../uwifi/linux
+CFLAGS+=-std=gnu99 -Wall -Wextra -g $(INCLUDES)
 LDFLAGS+=-L../uwifi/
 
 ifeq ($(DEBUG),1)
@@ -53,7 +54,7 @@ endif
 all: $(NAME)
 
 .objdeps.mk: $(OBJS:%.o=%.c)
-	gcc -MM -I. -I../uwifi -I../uwifi/util -I../uwifi/core -I../uwifi/linux $^ >$@
+	gcc -MM $(INCLUDES) $^ >$@
 
 -include .objdeps.mk
 

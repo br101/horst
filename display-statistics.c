@@ -21,10 +21,12 @@
 
 #include <stdlib.h>
 
+#include <wlan_util.h>
+
 #include "display.h"
 #include "main.h"
-#include "util.h"
-#include "wlan_util.h"
+#include "hutil.h"
+
 
 #define STAT_PACK_POS 9
 #define STAT_BYTE_POS (STAT_PACK_POS + 9)

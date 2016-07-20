@@ -29,20 +29,22 @@
 #include <sys/socket.h>
 #include <net/if.h>
 
+#include <capture.h>
+#include <protocol_parser.h>
+#include <util.h>
+#include <wlan_util.h>
+#include <channel.h>
+#include <node.h>
+#include <ifctrl.h>
+#include <raw_parser.h>
+
 #include "main.h"
-#include "util.h"
-#include "capture.h"
-#include "protocol_parser.h"
+#include "hutil.h"
 #include "network.h"
 #include "display.h"
-#include "wlan_util.h"
 #include "control.h"
-#include "channel.h"
-#include "node.h"
 #include "essid.h"
 #include "conf_options.h"
-#include "ifctrl.h"
-#include "raw_parser.h"
 #include "ieee80211_duration.h"
 
 struct list_head nodes;

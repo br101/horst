@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "util.h"
+#include "hutil.h"
 
 void convert_string_to_mac(const char* string, unsigned char* mac)
 {

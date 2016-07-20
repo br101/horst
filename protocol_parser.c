@@ -25,11 +25,13 @@
 #define __FAVOR_BSD
 #include <netinet/udp.h>
 
+#include <wlan_parser.h>
+#include <util.h>
+
 #include "olsr_header.h"
 #include "batman_header.h"
 #include "batman_adv_header-14.h"
 #include "main.h"
-#include "util.h"
 
 extern int wlan_parse_packet(unsigned char* buf, size_t len, struct packet_info* p);
 static int parse_llc(unsigned char* buf, size_t len, struct packet_info* p);

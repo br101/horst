@@ -22,16 +22,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <wlan80211.h>
+#include <wlan_util.h>
+#include <channel.h>
+#include <node.h>
+
 #include "display.h"
 #include "main.h"
-#include "util.h"
-#include "wlan80211.h"
-#include "wlan_util.h"
+#include "hutil.h"
 #include "olsr_header.h"
 #include "batman_adv_header-14.h"
 #include "listsort.h"
-#include "channel.h"
-#include "node.h"
 
 static WINDOW *sort_win = NULL;
 static WINDOW *dump_win = NULL;
