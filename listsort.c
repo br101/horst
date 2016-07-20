@@ -43,7 +43,7 @@
  * SOFTWARE.
  */
 
-#include "ccan/list/list.h"
+#include <ccan/list/list.h>
 #include "listsort.h"
 
 /*

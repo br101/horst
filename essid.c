@@ -22,9 +22,9 @@
 
 #include <wlan80211.h>
 #include <node.h>
+#include <util.h>
 
 #include "main.h"
-#include "util.h"
 #include "essid.h"
 
 

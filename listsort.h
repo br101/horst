@@ -20,7 +20,7 @@
 #ifndef _LISTSORT_H
 #define _LISTSORT_H
 
-struct list_head;
+struct list_node;
 
 void listsort(struct list_node *list,
 	      int(*cmp)(const struct list_node*, const struct list_node*));

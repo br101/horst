@@ -28,8 +28,8 @@
 
 #include <wlan80211.h>
 #include <channel.h>
+#include <util.h>
 
-#include "util.h"
 #include "display.h"
 #include "main.h"
 

@@ -22,10 +22,11 @@
 #include <getopt.h>
 #include <err.h>
 
+#include <util.h>
+#include <wlan_util.h>
+
 #include "main.h"
-#include "util.h"
 #include "hutil.h"
-#include "wlan_util.h"
 #include "control.h"
 #include "conf_options.h"
 
