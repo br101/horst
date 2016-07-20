@@ -21,7 +21,7 @@
 
 #include <stdlib.h>
 
-#include <node.h>
+#include <uwifi/node.h>
 
 #include "display.h"
 #include "main.h"

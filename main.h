@@ -25,12 +25,12 @@
 
 #undef LIST_HEAD 
 #include <ccan/list/list.h>
-#include <average.h>
-#include <channel.h>
-#include <wlan80211.h>
-#include <wlan_parser.h>
-#include <conf.h>
-#include <platform.h>
+#include <uwifi/average.h>
+#include <uwifi/channel.h>
+#include <uwifi/wlan80211.h>
+#include <uwifi/wlan_parser.h>
+#include <uwifi/conf.h>
+#include <uwifi/platform.h>
 
 #define VERSION "6.0-pre"
 #define CONFIG_FILE "/etc/horst.conf"

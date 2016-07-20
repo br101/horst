@@ -29,14 +29,13 @@
 #include <sys/socket.h>
 #include <net/if.h>
 
-#include <capture.h>
-#include <protocol_parser.h>
-#include <util.h>
-#include <wlan_util.h>
-#include <channel.h>
-#include <node.h>
-#include <ifctrl.h>
-#include <raw_parser.h>
+#include <uwifi/capture.h>
+#include <uwifi/util.h>
+#include <uwifi/wlan_util.h>
+#include <uwifi/channel.h>
+#include <uwifi/node.h>
+#include <uwifi/ifctrl.h>
+#include <uwifi/raw_parser.h>
 
 #include "main.h"
 #include "hutil.h"
@@ -46,6 +45,7 @@
 #include "essid.h"
 #include "conf_options.h"
 #include "ieee80211_duration.h"
+#include "protocol_parser.h"
 
 struct list_head nodes;
 struct essid_meta_info essids;

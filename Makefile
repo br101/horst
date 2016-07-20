@@ -41,9 +41,8 @@ OBJS=						   \
 	hutil.o
 
 LIBS=-lncurses -lm -luwifi
-INCLUDES=-I. -I../uwifi -I../uwifi/util -I../uwifi/core -I../uwifi/linux
+INCLUDES=-I.
 CFLAGS+=-std=gnu99 -Wall -Wextra -g $(INCLUDES)
-LDFLAGS+=-L../uwifi/
 
 ifeq ($(DEBUG),1)
   CFLAGS+=-DDO_DEBUG

@@ -25,8 +25,8 @@
 #define __FAVOR_BSD
 #include <netinet/udp.h>
 
-#include <wlan_parser.h>
-#include <util.h>
+#include <uwifi/wlan_parser.h>
+#include <uwifi/util.h>
 
 #include "olsr_header.h"
 #include "batman_header.h"

@@ -27,8 +27,8 @@
 #include <errno.h>
 #include <err.h>
 
-#include <util.h>
-#include <channel.h>
+#include <uwifi/util.h>
+#include <uwifi/channel.h>
 
 #include "main.h"
 #include "network.h"

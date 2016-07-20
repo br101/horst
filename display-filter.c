@@ -21,8 +21,8 @@
 
 #include <stdlib.h>
 
-#include <wlan_util.h>
-#include <wlan80211.h>
+#include <uwifi/wlan_util.h>
+#include <uwifi/wlan80211.h>
 
 #include "display.h"
 #include "main.h"

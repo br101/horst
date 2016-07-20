@@ -26,9 +26,9 @@
 #include <signal.h>
 #include <sys/ioctl.h>
 
-#include <wlan80211.h>
-#include <channel.h>
-#include <util.h>
+#include <uwifi/wlan80211.h>
+#include <uwifi/channel.h>
+#include <uwifi/util.h>
 
 #include "display.h"
 #include "main.h"

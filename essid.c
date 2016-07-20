@@ -20,9 +20,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <wlan80211.h>
-#include <node.h>
-#include <util.h>
+#include <uwifi/wlan80211.h>
+#include <uwifi/node.h>
+#include <uwifi/util.h>
 
 #include "main.h"
 #include "essid.h"

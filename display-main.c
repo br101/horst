@@ -22,10 +22,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <wlan80211.h>
-#include <wlan_util.h>
-#include <channel.h>
-#include <node.h>
+#include <uwifi/wlan80211.h>
+#include <uwifi/wlan_util.h>
+#include <uwifi/channel.h>
+#include <uwifi/node.h>
 
 #include "display.h"
 #include "main.h"
