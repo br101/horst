@@ -36,7 +36,6 @@
 #include "network.h"
 #include "display.h"
 #include "wlan_util.h"
-#include "ieee80211_util.h"
 #include "control.h"
 #include "channel.h"
 #include "node.h"
@@ -44,6 +43,7 @@
 #include "conf_options.h"
 #include "ifctrl.h"
 #include "raw_parser.h"
+#include "ieee80211_duration.h"
 
 struct list_head nodes;
 struct essid_meta_info essids;

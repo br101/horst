@@ -37,6 +37,7 @@ OBJS=						   \
 	main.o					   \
 	network.o				   \
 	protocol_parser.o			   \
+	ieee80211_duration.o			   \
 	util.o
 
 LIBS=-lncurses -lm -luwifi
