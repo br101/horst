@@ -349,7 +349,7 @@ void handle_packet(struct packet_info* p)
 	if (!(p->phy_flags & PHY_FLAG_BADFCS)) {
 		DEBUG("handle %s\n", get_packet_type_name(p->wlan_type));
 
-		n = node_update(p);
+		n = node_update(p, &nodes);
 
 		if (n)
 			p->wlan_retries = n->wlan_retries_last;
@@ -724,7 +724,7 @@ int main(int argc, char** argv)
 			exit(1);
 
 		clock_gettime(CLOCK_MONOTONIC, &the_time);
-		node_timeout();
+		node_timeout(&nodes);
 
 		if (conf.serveraddr[0] == '\0') { /* server */
 			if (!conf.paused && channel_auto_change()) {

@@ -155,6 +155,8 @@ extern struct node_names_info node_names;
 
 extern struct timespec the_time;
 
+extern struct list_head nodes;
+
 void free_lists(void);
 void init_spectrum(void);
 void update_spectrum_durations(void);
