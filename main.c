@@ -200,12 +200,12 @@ void update_spectrum_durations(void)
 {
 	/* also if channel was not changed, keep stats only for every channel_time.
 	 * display code uses durations_last to get a more stable view */
-	if (conf.channel_idx >= 0) {
-		spectrum[conf.channel_idx].durations_last =
-				spectrum[conf.channel_idx].durations;
-		spectrum[conf.channel_idx].durations = 0;
-		ewma_add(&spectrum[conf.channel_idx].durations_avg,
-			 spectrum[conf.channel_idx].durations_last);
+	if (conf.intf.channel_idx >= 0) {
+		spectrum[conf.intf.channel_idx].durations_last =
+				spectrum[conf.intf.channel_idx].durations;
+		spectrum[conf.intf.channel_idx].durations = 0;
+		ewma_add(&spectrum[conf.intf.channel_idx].durations_avg,
+			 spectrum[conf.intf.channel_idx].durations_last);
 	}
 }
 
@@ -302,25 +302,25 @@ static void fixup_packet_channel(struct packet_info* p)
 
 	/* get channel index for packet */
 	if (p->phy_freq) {
-		i = channel_find_index_from_freq(p->phy_freq);
+		i = channel_find_index_from_freq(&conf.intf.channels, p->phy_freq);
 	}
 
 	/* if not found from pkt, best guess from config but it might be
 	 * unknown (-1) too */
 	if (i < 0)
-		p->pkt_chan_idx = conf.channel_idx;
+		p->pkt_chan_idx = conf.intf.channel_idx;
 	else
 		p->pkt_chan_idx = i;
 
 	/* wlan_channel is only known for beacons and probe response,
 	 * otherwise we set it from the physical channel */
 	if (p->wlan_channel == 0 && p->pkt_chan_idx >= 0)
-		p->wlan_channel = channel_get_chan(p->pkt_chan_idx);
+		p->wlan_channel = channel_get_chan(&conf.intf.channels, p->pkt_chan_idx);
 
 	/* if current channel is unknown (this is a mac80211 bug), guess it from
 	 * the packet */
-	if (conf.channel_idx < 0 && p->pkt_chan_idx >= 0)
-		conf.channel_idx = p->pkt_chan_idx;
+	if (conf.intf.channel_idx < 0 && p->pkt_chan_idx >= 0)
+		conf.intf.channel_idx = p->pkt_chan_idx;
 }
 
 void handle_packet(struct packet_info* p)
@@ -416,7 +416,7 @@ static void receive_any(const sigset_t *const waitmask)
 	if (ctlpipe != -1)
 		FD_SET(ctlpipe, &read_fds);
 
-	usecs = min(channel_get_remaining_dwell_time(), 1000000);
+	usecs = min(channel_get_remaining_dwell_time(&conf.intf), 1000000);
 	ts.tv_sec = usecs / 1000000;
 	ts.tv_nsec = usecs % 1000000 * 1000;
 	mfd = max(mon, srv_fd);
@@ -481,7 +481,7 @@ void free_lists(void)
 	}
 
 	/* free channel nodes */
-	for (i = 0; i < channel_get_num_channels(); i++) {
+	for (i = 0; i < channel_get_num_channels(&conf.intf.channels); i++) {
 		list_for_each_safe(&spectrum[i].nodes, cn, cn2, chan_list) {
 			DEBUG("free chan_node %p\n", cn);
 			list_del(&cn->chan_list);
@@ -499,10 +499,10 @@ static void exit_handler(void)
 		close_packet_socket(mon);
 	}
 
-	ifctrl_flags(conf.ifname, false, false);
+	ifctrl_flags(conf.intf.ifname, false, false);
 
 	if (conf.monitor_added)
-		ifctrl_iwdel(conf.ifname);
+		ifctrl_iwdel(conf.intf.ifname);
 
 	if (DF != NULL) {
 		fclose(DF);
@@ -640,7 +640,7 @@ int main(int argc, char** argv)
 	clock_gettime(CLOCK_MONOTONIC, &stats.stats_time);
 	clock_gettime(CLOCK_MONOTONIC, &the_time);
 
-	conf.channel_idx = -1;
+	conf.intf.channel_idx = -1;
 
 	if (conf.mac_name_lookup)
 		mac_name_file_read(conf.mac_name_file);
@@ -654,49 +654,49 @@ int main(int argc, char** argv)
 		mon = net_open_client_socket(conf.serveraddr, conf.port);
 	else {
 		ifctrl_init();
-		ifctrl_iwget_interface_info(conf.ifname);
+		ifctrl_iwget_interface_info(conf.intf.ifname);
 
 		/* if the interface is not already in monitor mode, try to set
 		 * it to monitor or create an additional virtual monitor interface */
 		if (conf.add_monitor || (!ifctrl_is_monitor() &&
-					 !ifctrl_iwset_monitor(conf.ifname))) {
+					 !ifctrl_iwset_monitor(conf.intf.ifname))) {
 			char mon_ifname[IF_NAMESIZE];
 			generate_mon_ifname(mon_ifname, IF_NAMESIZE);
-			if (!ifctrl_iwadd_monitor(conf.ifname, mon_ifname))
+			if (!ifctrl_iwadd_monitor(conf.intf.ifname, mon_ifname))
 				err(1, "failed to add virtual monitor interface");
 
 			printlog("INFO: A virtual interface '%s' will be used "
-				 "instead of '%s'.", mon_ifname, conf.ifname);
+				 "instead of '%s'.", mon_ifname, conf.intf.ifname);
 
-			strncpy(conf.ifname, mon_ifname, IF_NAMESIZE);
+			strncpy(conf.intf.ifname, mon_ifname, IF_NAMESIZE);
 			conf.monitor_added = 1;
 			/* Now we have a new monitor interface, proceed
 			 * normally. The interface will be deleted at exit. */
 		}
 
-		if (!ifctrl_flags(conf.ifname, true, true))
+		if (!ifctrl_flags(conf.intf.ifname, true, true))
 			err(1, "failed to bring interface '%s' up",
-			    conf.ifname);
+			    conf.intf.ifname);
 
 		/* get info again, as chan width is only available on UP interfaces */
-		ifctrl_iwget_interface_info(conf.ifname);
+		ifctrl_iwget_interface_info(conf.intf.ifname);
 
-		mon = open_packet_socket(conf.ifname, conf.recv_buffer_size);
+		mon = open_packet_socket(conf.intf.ifname, conf.recv_buffer_size);
 		if (mon <= 0)
 			err(1, "Couldn't open packet socket");
-		conf.arphrd = device_get_hwinfo(mon, conf.ifname,
+		conf.arphrd = device_get_hwinfo(mon, conf.intf.ifname,
 						conf.my_mac_addr);
 
 		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
 		    conf.arphrd != ARPHRD_IEEE80211_RADIOTAP)
 			err(1, "interface '%s' is not in monitor mode",
-			    conf.ifname);
+			    conf.intf.ifname);
 
-		if (!channel_init() && conf.quiet)
+		if (!channel_init(&conf.intf) && conf.quiet)
 			err(1, "failed to change the initial channel number");
 	}
 
-	printf("Max PHY rate: %d Mbps\n", conf.max_phy_rate/10);
+	printf("Max PHY rate: %d Mbps\n", conf.intf.max_phy_rate/10);
 
 	if (!conf.quiet && !conf.debug)
 		init_display();
@@ -716,7 +716,7 @@ int main(int argc, char** argv)
 	    sigprocmask(SIG_BLOCK, &workmask, &waitmask) == -1)
 		err(1, "failed to block signals: %m");
 
-	while (!conf.do_change_channel || conf.channel_scan_rounds != 0)
+	while (!conf.intf.channel_scan || conf.intf.channel_scan_rounds != 0)
 	{
 		receive_any(&waitmask);
 
@@ -727,15 +727,15 @@ int main(int argc, char** argv)
 		node_timeout(&nodes);
 
 		if (conf.serveraddr[0] == '\0') { /* server */
-			if (!conf.paused && channel_auto_change()) {
+			if (!conf.paused && channel_auto_change(&conf.intf)) {
 				net_send_channel_config();
 				update_spectrum_durations();
 				if (!conf.quiet && !conf.debug)
 					update_display(NULL);
 
-				if (channel_get_chan(conf.channel_idx) == conf.channel_set_num
-				    && conf.channel_scan_rounds > 0)
-					--conf.channel_scan_rounds;
+				if (channel_get_chan(&conf.intf.channels, conf.intf.channel_idx) == conf.intf.channel_set_num
+				    && conf.intf.channel_scan_rounds > 0)
+					--conf.intf.channel_scan_rounds;
 			}
 		}
 	}

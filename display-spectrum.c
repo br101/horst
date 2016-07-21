@@ -66,9 +66,9 @@ void update_spectrum_win(WINDOW *win)
 	}
 	wattroff(win, GREEN);
 
-	for (i = 0; i < channel_get_num_channels() && SPEC_POS_X + CH_SPACE*i+4 < COLS; i++) {
+	for (i = 0; i < channel_get_num_channels(&conf.intf.channels) && SPEC_POS_X + CH_SPACE*i+4 < COLS; i++) {
 		mvwprintw(win, SPEC_HEIGHT + 2, SPEC_POS_X + CH_SPACE*i,
-			  "%02d", channel_get_chan(i));
+			  "%02d", channel_get_chan(&conf.intf.channels, i));
 		wattron(win, GREEN);
 		mvwprintw(win,  SPEC_HEIGHT + 3, SPEC_POS_X + CH_SPACE*i, "%d",
 			  spectrum[i].signal);
@@ -91,7 +91,7 @@ void update_spectrum_win(WINDOW *win)
 		}
 
 		/* usage in percent */
-		use = (spectrum[i].durations_last * 100.0) / conf.channel_time;
+		use = (spectrum[i].durations_last * 100.0) / conf.intf.channel_time;
 		wattron(win, YELLOW);
 		mvwprintw(win, SPEC_HEIGHT + 5, SPEC_POS_X + CH_SPACE*i, "%d", use);
 		wattroff(win, YELLOW);
@@ -130,7 +130,7 @@ void update_spectrum_win(WINDOW *win)
 			usen = normalize(use, 100, SPEC_HEIGHT);
 
 			use = (ewma_read(&spectrum[i].durations_avg) * 100.0)
-				/ conf.channel_time;
+				/ conf.intf.channel_time;
 			usean = normalize(use, 100, SPEC_HEIGHT);
 
 			general_average_bar(win, usen, usean,

@@ -35,10 +35,10 @@ void update_channel_win(WINDOW *win)
 	print_centered(win, 0, 39, " Channel Settings ");
 
 	wattron(win, WHITE);
-	for (int b = 0; b < channel_get_num_bands(); b++) {
-		const struct band_info* bp = channel_get_band(b);
-		int c = channel_get_idx_from_band_idx(b, 0);
-		int col = channel_get_chan(c) > 14 ? COL_BAND2 : 2;
+	for (int b = 0; b < channel_get_num_bands(&conf.intf.channels); b++) {
+		const struct band_info* bp = channel_get_band(&conf.intf.channels, b);
+		int c = channel_get_idx_from_band_idx(&conf.intf.channels, b, 0);
+		int col = channel_get_chan(&conf.intf.channels, c) > 14 ? COL_BAND2 : 2;
 		wattron(win, A_BOLD);
 		mvwprintw(win, 2, col, "%s: %s",
 			col == 2 ? "2.4GHz" : "5GHz",
@@ -48,14 +48,14 @@ void update_channel_win(WINDOW *win)
 			wprintw(win, " %dx%d", bp->streams_rx, bp->streams_tx);
 		wattroff(win, A_BOLD);
 		l = 3;
-		for (int i = 0; (c = channel_get_idx_from_band_idx(b, i)) != -1; i++) {
-			if (c == conf.channel_idx)
+		for (int i = 0; (c = channel_get_idx_from_band_idx(&conf.intf.channels, b, i)) != -1; i++) {
+			if (c == conf.intf.channel_idx)
 				wattron(win, CYAN);
 			else
 				wattron(win, WHITE);
 			mvwprintw(win, l++,
 				col,
-				"%s", channel_get_string(c));
+				"%s", channel_get_string(&conf.intf.channels, c));
 		}
 	}
 	wattroff(win, WHITE);
@@ -63,28 +63,28 @@ void update_channel_win(WINDOW *win)
 	l = 18;
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, 2, "s: [%c] Scan",
-		  CHECKED(conf.do_change_channel));
+		  CHECKED(conf.intf.channel_scan));
 	wattroff(win, A_BOLD);
 	mvwprintw(win, l++, 2, "d: Dwell: %d ms   ",
-		  conf.channel_time/1000);
-	mvwprintw(win, l++, 2, "u: Upper limit: %d  ", conf.channel_max);
+		  conf.intf.channel_time/1000);
+	mvwprintw(win, l++, 2, "u: Upper limit: %d  ", conf.intf.channel_max);
 
 	l++;
 	wattron(win, A_BOLD);
-	mvwprintw(win, l++, 2, "m: Set channel: %d  ", conf.channel_set_num);
+	mvwprintw(win, l++, 2, "m: Set channel: %d  ", conf.intf.channel_set_num);
 	wattroff(win, A_BOLD);
 	mvwprintw(win, l++, 2, "1: [%c] 20 (no HT)",
-		CHECKED(conf.channel_set_width == CHAN_WIDTH_20_NOHT));
+		CHECKED(conf.intf.channel_set_width == CHAN_WIDTH_20_NOHT));
 	mvwprintw(win, l++, 2, "2: [%c] HT20",
-		CHECKED(conf.channel_set_width == CHAN_WIDTH_20));
+		CHECKED(conf.intf.channel_set_width == CHAN_WIDTH_20));
 	mvwprintw(win, l++, 2, "4: [%c] HT40-",
-		CHECKED(conf.channel_set_width == CHAN_WIDTH_40 && !conf.channel_set_ht40plus));
+		CHECKED(conf.intf.channel_set_width == CHAN_WIDTH_40 && !conf.intf.channel_set_ht40plus));
 	mvwprintw(win, l++, 2, "5: [%c] HT40+",
-		CHECKED(conf.channel_set_width == CHAN_WIDTH_40 && conf.channel_set_ht40plus));
+		CHECKED(conf.intf.channel_set_width == CHAN_WIDTH_40 && conf.intf.channel_set_ht40plus));
 	mvwprintw(win, l++, 2, "8: [%c] VHT80",
-		CHECKED(conf.channel_set_width == CHAN_WIDTH_80));
+		CHECKED(conf.intf.channel_set_width == CHAN_WIDTH_80));
 	mvwprintw(win, l++, 2, "6: [%c] VHT160",
-		CHECKED(conf.channel_set_width == CHAN_WIDTH_160));
+		CHECKED(conf.intf.channel_set_width == CHAN_WIDTH_160));
 
 	print_centered(win, CHANNEL_WIN_HEIGHT-1, CHANNEL_WIN_WIDTH,
 		       "[ Press keys and ENTER to apply ]");
@@ -99,7 +99,7 @@ bool channel_input(WINDOW *win, int c)
 
 	switch (c) {
 	case 's': case 'S':
-		conf.do_change_channel = conf.do_change_channel ? 0 : 1;
+		conf.intf.channel_scan = conf.intf.channel_scan ? 0 : 1;
 		break;
 
 	case 'd': case 'D':
@@ -109,7 +109,7 @@ bool channel_input(WINDOW *win, int c)
 		curs_set(0);
 		noecho();
 		sscanf(buf, "%d", &x);
-		conf.channel_time = x*1000;
+		conf.intf.channel_time = x*1000;
 		break;
 
 	case 'u': case 'U':
@@ -119,7 +119,7 @@ bool channel_input(WINDOW *win, int c)
 		curs_set(0);
 		noecho();
 		sscanf(buf, "%d", &x);
-		conf.channel_max = x;
+		conf.intf.channel_max = x;
 		break;
 
 	case 'm': case 'M':
@@ -129,58 +129,58 @@ bool channel_input(WINDOW *win, int c)
 		curs_set(0);
 		noecho();
 		sscanf(buf, "%d", &x);
-		conf.channel_set_num = x;
+		conf.intf.channel_set_num = x;
 		break;
 
 	case '1':
-		conf.channel_set_width = CHAN_WIDTH_20_NOHT;
+		conf.intf.channel_set_width = CHAN_WIDTH_20_NOHT;
 		break;
 
 	case '2':
-		conf.channel_set_width = CHAN_WIDTH_20;
+		conf.intf.channel_set_width = CHAN_WIDTH_20;
 		break;
 
 	case '4':
-		conf.channel_set_width = CHAN_WIDTH_40;
-		conf.channel_set_ht40plus = false;
+		conf.intf.channel_set_width = CHAN_WIDTH_40;
+		conf.intf.channel_set_ht40plus = false;
 		break;
 
 	case '5':
-		conf.channel_set_width = CHAN_WIDTH_40;
-		conf.channel_set_ht40plus = true;
+		conf.intf.channel_set_width = CHAN_WIDTH_40;
+		conf.intf.channel_set_ht40plus = true;
 		break;
 
 	case '8':
-		conf.channel_set_width = CHAN_WIDTH_80;
+		conf.intf.channel_set_width = CHAN_WIDTH_80;
 		break;
 
 	case '6':
-		conf.channel_set_width = CHAN_WIDTH_160;
+		conf.intf.channel_set_width = CHAN_WIDTH_160;
 		break;
 
 	case '\r': case KEY_ENTER: /* used to close win, too */
-		new_idx = channel_find_index_from_chan(conf.channel_set_num);
-		if ((new_idx >= 0 && new_idx != conf.channel_idx) ||
-		    conf.channel_set_width != conf.channel_width ||
-		    conf.channel_set_ht40plus != conf.channel_ht40plus) {
+		new_idx = channel_find_index_from_chan(&conf.intf.channels, conf.intf.channel_set_num);
+		if ((new_idx >= 0 && new_idx != conf.intf.channel_idx) ||
+		    conf.intf.channel_set_width != conf.intf.channel_width ||
+		    conf.intf.channel_set_ht40plus != conf.intf.channel_ht40plus) {
 			/* some setting changed */
 			if (conf.serveraddr[0] == '\0') {
 				/* server */
-				if (!channel_change(new_idx, conf.channel_set_width, conf.channel_set_ht40plus)) {
-					printlog("Channel %d %s is not available/allowed", conf.channel_set_num,
-						 channel_width_string(conf.channel_set_width,
-								      conf.channel_set_ht40plus));
+				if (!channel_change(&conf.intf, new_idx, conf.intf.channel_set_width, conf.intf.channel_set_ht40plus)) {
+					printlog("Channel %d %s is not available/allowed", conf.intf.channel_set_num,
+						 channel_width_string(conf.intf.channel_set_width,
+								      conf.intf.channel_set_ht40plus));
 					/* reset UI */
-					conf.channel_set_width = conf.channel_width;
-					conf.channel_set_ht40plus = conf.channel_ht40plus;
+					conf.intf.channel_set_width = conf.intf.channel_width;
+					conf.intf.channel_set_ht40plus = conf.intf.channel_ht40plus;
 				} else {
 					net_send_channel_config();
 				}
 			} else {
 				/* client */
-				conf.channel_idx = new_idx;
-				conf.channel_width = conf.channel_set_width;
-				conf.channel_ht40plus = conf.channel_set_ht40plus;
+				conf.intf.channel_idx = new_idx;
+				conf.intf.channel_width = conf.intf.channel_set_width;
+				conf.intf.channel_ht40plus = conf.intf.channel_set_ht40plus;
 				printlog("Sending channel config to server");
 				net_send_channel_config();
 			}

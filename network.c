@@ -304,14 +304,14 @@ static void net_send_conf_chan(int fd)
 
 	nc.proto.version = PROTO_VERSION;
 	nc.proto.type	= PROTO_CONF_CHAN;
-	nc.do_change = conf.do_change_channel;
-	nc.upper = conf.channel_max;
-	nc.channel = conf.channel_idx;
-	nc.width_ht40p = conf.channel_width;
-	if (conf.channel_ht40plus)
+	nc.do_change = conf.intf.channel_scan;
+	nc.upper = conf.intf.channel_max;
+	nc.channel = conf.intf.channel_idx;
+	nc.width_ht40p = conf.intf.channel_width;
+	if (conf.intf.channel_ht40plus)
 			nc.width_ht40p |= NET_WIDTH_HT40PLUS;
 
-	nc.dwell_time = htole32(conf.channel_time);
+	nc.dwell_time = htole32(conf.intf.channel_time);
 
 	net_write(fd, (unsigned char *)&nc, sizeof(nc));
 }
@@ -324,34 +324,34 @@ static int net_receive_conf_chan(unsigned char *buffer, size_t len)
 		return 0;
 
 	nc = (struct net_conf_chan *)buffer;
-	conf.do_change_channel = nc->do_change;
-	conf.channel_max = nc->upper;
-	conf.channel_time = le32toh(nc->dwell_time);
+	conf.intf.channel_scan = nc->do_change;
+	conf.intf.channel_max = nc->upper;
+	conf.intf.channel_time = le32toh(nc->dwell_time);
 
 	enum chan_width width = nc->width_ht40p & ~NET_WIDTH_HT40PLUS;
 	bool ht40p = !!(nc->width_ht40p & NET_WIDTH_HT40PLUS);
 
-	if (nc->channel != conf.channel_idx ||
-	    width != conf.channel_width ||
-	    ht40p != conf.channel_ht40plus) { /* something changed */
+	if (nc->channel != conf.intf.channel_idx ||
+	    width != conf.intf.channel_width ||
+	    ht40p != conf.intf.channel_ht40plus) { /* something changed */
 		if (cli_fd > -1) { /* server */
-			if (!channel_change(nc->channel, width, ht40p)) {
+			if (!channel_change(&conf.intf, nc->channel, width, ht40p)) {
 				printlog("Net Channel %d %s is not available/allowed",
-					channel_get_chan(nc->channel),
+					channel_get_chan(&conf.intf.channels, nc->channel),
 					channel_width_string(width, ht40p));
 				net_send_channel_config();
 			} else {
 				/* success: update UI */
-				conf.channel_set_num = channel_get_chan(nc->channel);
-				conf.channel_set_width = width;
-				conf.channel_set_ht40plus = ht40p;
+				conf.intf.channel_set_num = channel_get_chan(&conf.intf.channels, nc->channel);
+				conf.intf.channel_set_width = width;
+				conf.intf.channel_set_ht40plus = ht40p;
 				update_display(NULL);
 			}
 		} else { /* client */
-			conf.channel_idx = nc->channel;
-			conf.channel_width = conf.channel_set_width = width;
-			conf.channel_ht40plus = conf.channel_set_ht40plus = ht40p;
-			conf.channel_set_num = channel_get_chan(nc->channel);
+			conf.intf.channel_idx = nc->channel;
+			conf.intf.channel_width = conf.intf.channel_set_width = width;
+			conf.intf.channel_ht40plus = conf.intf.channel_set_ht40plus = ht40p;
+			conf.intf.channel_set_num = channel_get_chan(&conf.intf.channels, nc->channel);
 			update_spectrum_durations();
 			update_display(NULL);
 		}
@@ -424,7 +424,7 @@ static void net_send_chan_list(int fd)
 	int i;
 
 	buf = malloc(sizeof(struct net_chan_list) +
-		     sizeof(unsigned int) * (channel_get_num_channels() - 1));
+		     sizeof(unsigned int) * (channel_get_num_channels(&conf.intf.channels) - 1));
 	if (buf == NULL)
 		return;
 
@@ -432,18 +432,18 @@ static void net_send_chan_list(int fd)
 	nc->proto.version = PROTO_VERSION;
 	nc->proto.type	= PROTO_CHAN_LIST;
 
-	nc->num_bands = channel_get_num_bands();
+	nc->num_bands = channel_get_num_bands(&conf.intf.channels);
 	for (i = 0; i < nc->num_bands; i++) {
-		const struct band_info* bp = channel_get_band(i);
+		const struct band_info* bp = channel_get_band(&conf.intf.channels, i);
 		nc->band[i].num_chans = bp->num_channels;
 		nc->band[i].max_width = bp->max_chan_width;
 		nc->band[i].streams_rx = bp->streams_rx;
 		nc->band[i].streams_tx = bp->streams_tx;
 	}
 
-	for (i = 0; i < channel_get_num_channels(); i++) {
-		nc->freq[i] = htole32(channel_get_freq(i));
-		DEBUG("NET send freq %d %d\n", i, channel_get_freq(i));
+	for (i = 0; i < channel_get_num_channels(&conf.intf.channels); i++) {
+		nc->freq[i] = htole32(channel_get_freq(&conf.intf.channels, i));
+		DEBUG("NET send freq %d %d\n", i, channel_get_freq(&conf.intf.channels, i));
 	}
 
 	net_write(fd, (unsigned char *)buf, sizeof(struct net_chan_list) +
@@ -462,7 +462,7 @@ static int net_receive_chan_list(unsigned char *buffer, size_t len)
 	nc = (struct net_chan_list *)buffer;
 
 	for (int i = 0; i < nc->num_bands; i++) {
-		channel_band_add(nc->band[i].num_chans, nc->band[i].max_width,
+		channel_band_add(&conf.intf.channels, nc->band[i].num_chans, nc->band[i].max_width,
 				 nc->band[i].streams_rx, nc->band[i].streams_tx);
 		num_chans += nc->band[i].num_chans;
 	}
@@ -471,7 +471,7 @@ static int net_receive_chan_list(unsigned char *buffer, size_t len)
 		return 0;
 
 	for (int i = 0; i < num_chans; i++) {
-		channel_list_add(le32toh(nc->freq[i]));
+		channel_list_add(&conf.intf.channels, le32toh(nc->freq[i]));
 		DEBUG("NET recv freq %d %d\n", i, le32toh(nc->freq[i]));
 	}
 	init_spectrum();

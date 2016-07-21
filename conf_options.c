@@ -51,8 +51,8 @@ static bool conf_debug(__attribute__((unused)) const char* value) {
 #endif
 
 static bool conf_interface(const char* value) {
-	strncpy(conf.ifname, value, IF_NAMESIZE);
-	conf.ifname[IF_NAMESIZE] = '\0';
+	strncpy(conf.intf.ifname, value, IF_NAMESIZE);
+	conf.intf.ifname[IF_NAMESIZE] = '\0';
 	return true;
 }
 
@@ -96,23 +96,23 @@ static bool conf_channel_set(const char* value) {
 	}
 
 	int n = atoi(value);
-	if (conf.channel_initialized)
-		channel_change(channel_find_index_from_chan(n), width, ht40plus);
+	if (conf.intf.channel_initialized)
+		channel_change(&conf.intf, channel_find_index_from_chan(&conf.intf.channels, n), width, ht40plus);
 	else {
 		/* We have not yet initialized the channel module, channel will be
 		* changed in channel_init(). */
-		conf.channel_set_num = n;
-		conf.channel_set_width = width;
-		conf.channel_set_ht40plus = ht40plus;
+		conf.intf.channel_set_num = n;
+		conf.intf.channel_set_width = width;
+		conf.intf.channel_set_ht40plus = ht40plus;
 	}
 	return true;
 }
 
 static bool conf_channel_scan(const char* value) {
 	if (value != NULL && strcmp(value, "0") == 0)
-		conf.do_change_channel = 0;
+		conf.intf.channel_scan = 0;
 	else {
-		conf.do_change_channel = 1;
+		conf.intf.channel_scan = 1;
 		conf.display_view = 's'; // show spectrum view
 	}
 	return true;
@@ -126,17 +126,17 @@ static bool conf_channel_scan(const char* value) {
  * out of scan rounds, it quits.
  */
 static bool conf_channel_scan_rounds(const char* value) {
-	conf.channel_scan_rounds = atoi(value);
+	conf.intf.channel_scan_rounds = atoi(value);
 	return true;
 }
 
 static bool conf_channel_dwell(const char* value) {
-	conf.channel_time = atoi(value) * 1000;
+	conf.intf.channel_time = atoi(value) * 1000;
 	return true;
 }
 
 static bool conf_channel_upper(const char* value) {
-	conf.channel_max = atoi(value);
+	conf.intf.channel_max = atoi(value);
 	return true;
 }
 
