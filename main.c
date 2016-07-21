@@ -654,7 +654,7 @@ int main(int argc, char** argv)
 		mon = net_open_client_socket(conf.serveraddr, conf.port);
 	else {
 		ifctrl_init();
-		ifctrl_iwget_interface_info(conf.intf.ifname);
+		ifctrl_iwget_interface_info(&conf.intf);
 
 		/* if the interface is not already in monitor mode, try to set
 		 * it to monitor or create an additional virtual monitor interface */
@@ -679,16 +679,16 @@ int main(int argc, char** argv)
 			    conf.intf.ifname);
 
 		/* get info again, as chan width is only available on UP interfaces */
-		ifctrl_iwget_interface_info(conf.intf.ifname);
+		ifctrl_iwget_interface_info(&conf.intf);
 
 		mon = open_packet_socket(conf.intf.ifname, conf.recv_buffer_size);
 		if (mon <= 0)
 			err(1, "Couldn't open packet socket");
-		conf.arphrd = device_get_hwinfo(mon, conf.intf.ifname,
+		conf.intf.arphdr = device_get_hwinfo(mon, conf.intf.ifname,
 						conf.my_mac_addr);
 
-		if (conf.arphrd != ARPHRD_IEEE80211_PRISM &&
-		    conf.arphrd != ARPHRD_IEEE80211_RADIOTAP)
+		if (conf.intf.arphdr != ARPHRD_IEEE80211_PRISM &&
+		    conf.intf.arphdr != ARPHRD_IEEE80211_RADIOTAP)
 			err(1, "interface '%s' is not in monitor mode",
 			    conf.intf.ifname);
 
@@ -724,7 +724,7 @@ int main(int argc, char** argv)
 			exit(1);
 
 		clock_gettime(CLOCK_MONOTONIC, &the_time);
-		node_timeout(&nodes);
+		node_timeout(&nodes, conf.node_timeout);
 
 		if (conf.serveraddr[0] == '\0') { /* server */
 			if (!conf.paused && channel_auto_change(&conf.intf)) {
