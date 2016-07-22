@@ -67,7 +67,7 @@
 #define MAX_FILTERMAC		9
 
 struct config {
-	struct wlan_interface	intf;
+	struct uwifi_interface	intf;
 	int			port;
 	int			quiet;
 	int			display_interval;
