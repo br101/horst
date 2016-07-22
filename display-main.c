@@ -67,8 +67,8 @@ void print_dump_win(const char *str, int refresh)
 
 static int compare_nodes_signal(const struct list_node *p1, const struct list_node *p2)
 {
-	struct node_info* n1 = list_entry(p1, struct node_info, list);
-	struct node_info* n2 = list_entry(p2, struct node_info, list);
+	struct uwifi_node* n1 = list_entry(p1, struct uwifi_node, list);
+	struct uwifi_node* n2 = list_entry(p2, struct uwifi_node, list);
 
 	if (n1->last_pkt.phy_signal > n2->last_pkt.phy_signal)
 		return -1;
@@ -80,8 +80,8 @@ static int compare_nodes_signal(const struct list_node *p1, const struct list_no
 
 static int compare_nodes_time(const struct list_node *p1, const struct list_node *p2)
 {
-	struct node_info* n1 = list_entry(p1, struct node_info, list);
-	struct node_info* n2 = list_entry(p2, struct node_info, list);
+	struct uwifi_node* n1 = list_entry(p1, struct uwifi_node, list);
+	struct uwifi_node* n2 = list_entry(p2, struct uwifi_node, list);
 
 	if (n1->last_seen > n2->last_seen)
 		return -1;
@@ -93,8 +93,8 @@ static int compare_nodes_time(const struct list_node *p1, const struct list_node
 
 static int compare_nodes_channel(const struct list_node *p1, const struct list_node *p2)
 {
-	struct node_info* n1 = list_entry(p1, struct node_info, list);
-	struct node_info* n2 = list_entry(p2, struct node_info, list);
+	struct uwifi_node* n1 = list_entry(p1, struct uwifi_node, list);
+	struct uwifi_node* n2 = list_entry(p2, struct uwifi_node, list);
 
 	if (n1->wlan_channel < n2->wlan_channel)
 		return 1;
@@ -106,8 +106,8 @@ static int compare_nodes_channel(const struct list_node *p1, const struct list_n
 
 static int compare_nodes_bssid(const struct list_node *p1, const struct list_node *p2)
 {
-	struct node_info* n1 = list_entry(p1, struct node_info, list);
-	struct node_info* n2 = list_entry(p2, struct node_info, list);
+	struct uwifi_node* n1 = list_entry(p1, struct uwifi_node, list);
+	struct uwifi_node* n2 = list_entry(p2, struct uwifi_node, list);
 
 	return -memcmp(n1->wlan_bssid, n2->wlan_bssid, MAC_LEN);
 }
@@ -230,7 +230,7 @@ static void update_status_win(struct packet_info* p)
 
 static char spin[4] = {'/', '-', '\\', '|'};
 
-static void print_node_list_line(int line, struct node_info* n)
+static void print_node_list_line(int line, struct uwifi_node* n)
 {
 	char* ssid = NULL;
 
@@ -324,7 +324,7 @@ static void print_node_list_line(int line, struct node_info* n)
 
 static void update_node_list_win(void)
 {
-	struct node_info* n;
+	struct uwifi_node* n;
 	int line = 0;
 
 	werase(list_win);

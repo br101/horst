@@ -152,7 +152,7 @@ static void update_statistics(struct packet_info* p)
 	}
 }
 
-static void update_spectrum(struct packet_info* p, struct node_info* n)
+static void update_spectrum(struct packet_info* p, struct uwifi_node* n)
 {
 	struct channel_info* chan;
 	struct chan_node* cn;
@@ -298,7 +298,7 @@ static bool filter_packet(struct packet_info* p)
 
 void handle_packet(struct packet_info* p)
 {
-	struct node_info* n = NULL;
+	struct uwifi_node* n = NULL;
 
 	/* filter on server side only */
 	if (conf.serveraddr[0] == '\0' && filter_packet(p)) {
@@ -322,7 +322,7 @@ void handle_packet(struct packet_info* p)
 	if (!(p->phy_flags & PHY_FLAG_BADFCS)) {
 		DEBUG("handle %s\n", get_packet_type_name(p->wlan_type));
 
-		n = node_update(p, &nodes);
+		n = uwifi_node_update(p, &nodes);
 
 		p->pkt_duration = ieee80211_frame_duration(
 				p->phy_flags & PHY_FLAG_MODE_MASK,
@@ -437,7 +437,7 @@ void free_lists(void)
 	struct essid_info *e, *f;
 	struct chan_node *cn, *cn2;
 
-	nodes_free(&nodes);
+	uwifi_nodes_free(&nodes);
 
 	/* free essids */
 	list_for_each_safe(&essids.list, e, f, list) {
@@ -692,7 +692,7 @@ int main(int argc, char** argv)
 			exit(1);
 
 		clock_gettime(CLOCK_MONOTONIC, &the_time);
-		node_timeout(&nodes, conf.node_timeout);
+		uwifi_nodes_timeout(&nodes, conf.node_timeout);
 
 		if (conf.serveraddr[0] == '\0') { /* server */
 			if (!conf.paused && channel_auto_change(&conf.intf)) {

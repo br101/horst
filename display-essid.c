@@ -31,7 +31,7 @@ void update_essid_win(WINDOW *win)
 	int i;
 	int line = 1;
 	struct essid_info* e;
-	struct node_info* n;
+	struct uwifi_node* n;
 
 	werase(win);
 	wattron(win, WHITE);

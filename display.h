@@ -46,7 +46,7 @@
 #define CHANNEL_WIN_HEIGHT	31
 
 struct packet_info;
-struct node_info;
+struct uwifi_node;
 
 void get_per_second(unsigned long bytes, unsigned long duration,
 		    unsigned long packets, unsigned long retries,

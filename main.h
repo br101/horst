@@ -167,7 +167,7 @@ extern struct channel_info spectrum[MAX_CHANNELS];
 /* helper for keeping lists of nodes for each channel
  * (a node can be on more than one channel) */
 struct chan_node {
-	struct node_info*	node;
+	struct uwifi_node*	node;
 	struct channel_info*	chan;
 	struct list_node	chan_list;	/* list for nodes per channel */
 	struct list_node	node_list;	/* list for channels per node */
