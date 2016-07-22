@@ -389,7 +389,7 @@ static void receive_any(const sigset_t *const waitmask)
 	if (ctlpipe != -1)
 		FD_SET(ctlpipe, &read_fds);
 
-	usecs = min(channel_get_remaining_dwell_time(&conf.intf), 1000000);
+	usecs = min(uwifi_channel_get_remaining_dwell_time(&conf.intf), 1000000);
 	ts.tv_sec = usecs / 1000000;
 	ts.tv_nsec = usecs % 1000000 * 1000;
 	mfd = max(mon, srv_fd);
@@ -447,7 +447,7 @@ void free_lists(void)
 	}
 
 	/* free channel nodes */
-	for (int i = 0; i < channel_get_num_channels(&conf.intf.channels); i++) {
+	for (int i = 0; i < uwifi_channel_get_num_channels(&conf.intf.channels); i++) {
 		list_for_each_safe(&spectrum[i].nodes, cn, cn2, chan_list) {
 			DEBUG("free chan_node %p\n", cn);
 			list_del(&cn->chan_list);
@@ -660,7 +660,7 @@ int main(int argc, char** argv)
 		if (conf.recv_buffer_size)
 			set_receive_buffer(mon, conf.recv_buffer_size);
 
-		if (!channel_init(&conf.intf) && conf.quiet)
+		if (!uwifi_channel_init(&conf.intf) && conf.quiet)
 			err(1, "failed to change the initial channel number");
 	}
 
@@ -695,13 +695,13 @@ int main(int argc, char** argv)
 		uwifi_nodes_timeout(&nodes, conf.node_timeout);
 
 		if (conf.serveraddr[0] == '\0') { /* server */
-			if (!conf.paused && channel_auto_change(&conf.intf)) {
+			if (!conf.paused && uwifi_channel_auto_change(&conf.intf)) {
 				net_send_channel_config();
 				update_spectrum_durations();
 				if (!conf.quiet && !conf.debug)
 					update_display(NULL);
 
-				if (channel_get_chan(&conf.intf.channels, conf.intf.channel_idx) == conf.intf.channel_set_num
+				if (uwifi_channel_get_chan(&conf.intf.channels, conf.intf.channel_idx) == conf.intf.channel_set_num
 				    && conf.intf.channel_scan_rounds > 0)
 					--conf.intf.channel_scan_rounds;
 			}

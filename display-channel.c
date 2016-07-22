@@ -35,27 +35,27 @@ void update_channel_win(WINDOW *win)
 	print_centered(win, 0, 39, " Channel Settings ");
 
 	wattron(win, WHITE);
-	for (int b = 0; b < channel_get_num_bands(&conf.intf.channels); b++) {
-		const struct band_info* bp = channel_get_band(&conf.intf.channels, b);
-		int c = channel_get_idx_from_band_idx(&conf.intf.channels, b, 0);
-		int col = channel_get_chan(&conf.intf.channels, c) > 14 ? COL_BAND2 : 2;
+	for (int b = 0; b < uwifi_channel_get_num_bands(&conf.intf.channels); b++) {
+		const struct uwifi_band* bp = uwifi_channel_get_band(&conf.intf.channels, b);
+		int c = uwifi_channel_idx_from_band_idx(&conf.intf.channels, b, 0);
+		int col = uwifi_channel_get_chan(&conf.intf.channels, c) > 14 ? COL_BAND2 : 2;
 		wattron(win, A_BOLD);
 		mvwprintw(win, 2, col, "%s: %s",
 			col == 2 ? "2.4GHz" : "5GHz",
-			channel_width_string(bp->max_chan_width, -1));
+			uwifi_channel_width_string(bp->max_chan_width, -1));
 
 		if (bp->streams_rx || bp->streams_tx)
 			wprintw(win, " %dx%d", bp->streams_rx, bp->streams_tx);
 		wattroff(win, A_BOLD);
 		l = 3;
-		for (int i = 0; (c = channel_get_idx_from_band_idx(&conf.intf.channels, b, i)) != -1; i++) {
+		for (int i = 0; (c = uwifi_channel_idx_from_band_idx(&conf.intf.channels, b, i)) != -1; i++) {
 			if (c == conf.intf.channel_idx)
 				wattron(win, CYAN);
 			else
 				wattron(win, WHITE);
 			mvwprintw(win, l++,
 				col,
-				"%s", channel_get_string(&conf.intf.channels, c));
+				"%s", uwifi_channel_get_string(&conf.intf.channels, c));
 		}
 	}
 	wattroff(win, WHITE);
@@ -159,16 +159,16 @@ bool channel_input(WINDOW *win, int c)
 		break;
 
 	case '\r': case KEY_ENTER: /* used to close win, too */
-		new_idx = channel_find_index_from_chan(&conf.intf.channels, conf.intf.channel_set_num);
+		new_idx = uwifi_channel_idx_from_chan(&conf.intf.channels, conf.intf.channel_set_num);
 		if ((new_idx >= 0 && new_idx != conf.intf.channel_idx) ||
 		    conf.intf.channel_set_width != conf.intf.channel_width ||
 		    conf.intf.channel_set_ht40plus != conf.intf.channel_ht40plus) {
 			/* some setting changed */
 			if (conf.serveraddr[0] == '\0') {
 				/* server */
-				if (!channel_change(&conf.intf, new_idx, conf.intf.channel_set_width, conf.intf.channel_set_ht40plus)) {
+				if (!uwifi_channel_change(&conf.intf, new_idx, conf.intf.channel_set_width, conf.intf.channel_set_ht40plus)) {
 					printlog("Channel %d %s is not available/allowed", conf.intf.channel_set_num,
-						 channel_width_string(conf.intf.channel_set_width,
+						 uwifi_channel_width_string(conf.intf.channel_set_width,
 								      conf.intf.channel_set_ht40plus));
 					/* reset UI */
 					conf.intf.channel_set_width = conf.intf.channel_width;

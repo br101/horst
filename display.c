@@ -204,8 +204,8 @@ static void update_mini_status(void)
 	else
 		mvwprintw(stdscr, LINES-1, COLS-29, "| ");
 	mvwprintw(stdscr, LINES-1, COLS-27, "|Ch%03d@%s",
-		channel_get_chan(&conf.intf.channels, conf.intf.channel_idx),
-		channel_width_string_short(conf.intf.channel_width, conf.intf.channel_ht40plus));
+		uwifi_channel_get_chan(&conf.intf.channels, conf.intf.channel_idx),
+		uwifi_channel_width_string_short(conf.intf.channel_width, conf.intf.channel_ht40plus));
 
 	wattroff(stdscr, BLACKONWHITE);
 	wnoutrefresh(stdscr);

@@ -66,9 +66,9 @@ void update_spectrum_win(WINDOW *win)
 	}
 	wattroff(win, GREEN);
 
-	for (i = 0; i < channel_get_num_channels(&conf.intf.channels) && SPEC_POS_X + CH_SPACE*i+4 < COLS; i++) {
+	for (i = 0; i < uwifi_channel_get_num_channels(&conf.intf.channels) && SPEC_POS_X + CH_SPACE*i+4 < COLS; i++) {
 		mvwprintw(win, SPEC_HEIGHT + 2, SPEC_POS_X + CH_SPACE*i,
-			  "%02d", channel_get_chan(&conf.intf.channels, i));
+			  "%02d", uwifi_channel_get_chan(&conf.intf.channels, i));
 		wattron(win, GREEN);
 		mvwprintw(win,  SPEC_HEIGHT + 3, SPEC_POS_X + CH_SPACE*i, "%d",
 			  spectrum[i].signal);

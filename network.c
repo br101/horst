@@ -328,21 +328,21 @@ static int net_receive_conf_chan(unsigned char *buffer, size_t len)
 	conf.intf.channel_max = nc->upper;
 	conf.intf.channel_time = le32toh(nc->dwell_time);
 
-	enum chan_width width = nc->width_ht40p & ~NET_WIDTH_HT40PLUS;
+	enum uwifi_chan_width width = nc->width_ht40p & ~NET_WIDTH_HT40PLUS;
 	bool ht40p = !!(nc->width_ht40p & NET_WIDTH_HT40PLUS);
 
 	if (nc->channel != conf.intf.channel_idx ||
 	    width != conf.intf.channel_width ||
 	    ht40p != conf.intf.channel_ht40plus) { /* something changed */
 		if (cli_fd > -1) { /* server */
-			if (!channel_change(&conf.intf, nc->channel, width, ht40p)) {
+			if (!uwifi_channel_change(&conf.intf, nc->channel, width, ht40p)) {
 				printlog("Net Channel %d %s is not available/allowed",
-					channel_get_chan(&conf.intf.channels, nc->channel),
-					channel_width_string(width, ht40p));
+					uwifi_channel_get_chan(&conf.intf.channels, nc->channel),
+					uwifi_channel_width_string(width, ht40p));
 				net_send_channel_config();
 			} else {
 				/* success: update UI */
-				conf.intf.channel_set_num = channel_get_chan(&conf.intf.channels, nc->channel);
+				conf.intf.channel_set_num = uwifi_channel_get_chan(&conf.intf.channels, nc->channel);
 				conf.intf.channel_set_width = width;
 				conf.intf.channel_set_ht40plus = ht40p;
 				update_display(NULL);
@@ -351,7 +351,7 @@ static int net_receive_conf_chan(unsigned char *buffer, size_t len)
 			conf.intf.channel_idx = nc->channel;
 			conf.intf.channel_width = conf.intf.channel_set_width = width;
 			conf.intf.channel_ht40plus = conf.intf.channel_set_ht40plus = ht40p;
-			conf.intf.channel_set_num = channel_get_chan(&conf.intf.channels, nc->channel);
+			conf.intf.channel_set_num = uwifi_channel_get_chan(&conf.intf.channels, nc->channel);
 			update_spectrum_durations();
 			update_display(NULL);
 		}
@@ -424,7 +424,7 @@ static void net_send_chan_list(int fd)
 	int i;
 
 	buf = malloc(sizeof(struct net_chan_list) +
-		     sizeof(unsigned int) * (channel_get_num_channels(&conf.intf.channels) - 1));
+		     sizeof(unsigned int) * (uwifi_channel_get_num_channels(&conf.intf.channels) - 1));
 	if (buf == NULL)
 		return;
 
@@ -432,17 +432,17 @@ static void net_send_chan_list(int fd)
 	nc->proto.version = PROTO_VERSION;
 	nc->proto.type	= PROTO_CHAN_LIST;
 
-	nc->num_bands = channel_get_num_bands(&conf.intf.channels);
+	nc->num_bands = uwifi_channel_get_num_bands(&conf.intf.channels);
 	for (i = 0; i < nc->num_bands; i++) {
-		const struct band_info* bp = channel_get_band(&conf.intf.channels, i);
+		const struct uwifi_band* bp = uwifi_channel_get_band(&conf.intf.channels, i);
 		nc->band[i].num_chans = bp->num_channels;
 		nc->band[i].max_width = bp->max_chan_width;
 		nc->band[i].streams_rx = bp->streams_rx;
 		nc->band[i].streams_tx = bp->streams_tx;
 	}
 
-	for (i = 0; i < channel_get_num_channels(&conf.intf.channels); i++) {
-		nc->freq[i] = htole32(channel_get_freq(&conf.intf.channels, i));
+	for (i = 0; i < uwifi_channel_get_num_channels(&conf.intf.channels); i++) {
+		nc->freq[i] = htole32(uwifi_channel_get_freq(&conf.intf.channels, i));
 		DEBUG("NET send freq %d %d\n", i, channel_get_freq(&conf.intf.channels, i));
 	}
 
@@ -462,7 +462,7 @@ static int net_receive_chan_list(unsigned char *buffer, size_t len)
 	nc = (struct net_chan_list *)buffer;
 
 	for (int i = 0; i < nc->num_bands; i++) {
-		channel_band_add(&conf.intf.channels, nc->band[i].num_chans, nc->band[i].max_width,
+		uwifi_channel_band_add(&conf.intf.channels, nc->band[i].num_chans, nc->band[i].max_width,
 				 nc->band[i].streams_rx, nc->band[i].streams_tx);
 		num_chans += nc->band[i].num_chans;
 	}
@@ -471,7 +471,7 @@ static int net_receive_chan_list(unsigned char *buffer, size_t len)
 		return 0;
 
 	for (int i = 0; i < num_chans; i++) {
-		channel_list_add(&conf.intf.channels, le32toh(nc->freq[i]));
+		uwifi_channel_list_add(&conf.intf.channels, le32toh(nc->freq[i]));
 		DEBUG("NET recv freq %d %d\n", i, le32toh(nc->freq[i]));
 	}
 	init_spectrum();

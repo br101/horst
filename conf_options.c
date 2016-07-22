@@ -82,7 +82,7 @@ static bool conf_receive_buffer(const char* value) {
 
 static bool conf_channel_set(const char* value) {
 	bool ht40plus = false;
-	enum chan_width width = CHAN_WIDTH_20_NOHT;
+	enum uwifi_chan_width width = CHAN_WIDTH_20_NOHT;
 
 	char* pos = strchr(value, '+');
 	if (pos != NULL) {
@@ -97,7 +97,7 @@ static bool conf_channel_set(const char* value) {
 
 	int n = atoi(value);
 	if (conf.intf.channel_initialized)
-		channel_change(&conf.intf, channel_find_index_from_chan(&conf.intf.channels, n), width, ht40plus);
+		uwifi_channel_change(&conf.intf, uwifi_channel_idx_from_chan(&conf.intf.channels, n), width, ht40plus);
 	else {
 		/* We have not yet initialized the channel module, channel will be
 		* changed in channel_init(). */
