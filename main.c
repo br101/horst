@@ -307,7 +307,7 @@ void handle_packet(struct uwifi_packet* p)
 		return;
 	}
 
-	fixup_packet_channel(p, &conf.intf);
+	uwifi_fixup_packet_channel(p, &conf.intf);
 
 	if (cli_fd != -1)
 		net_send_packet(p);

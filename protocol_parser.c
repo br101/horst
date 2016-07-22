@@ -44,7 +44,7 @@ static int parse_meshcruzer_packet(unsigned char* buf, size_t len, struct uwifi_
 /* return true if we parsed enough = min ieee header */
 bool parse_packet(unsigned char* buf, size_t len, struct uwifi_packet* p)
 {
-	int ret = wlan_parse_packet(buf, len, p, conf.intf.arphdr);
+	int ret = uwifi_parse_raw(buf, len, p, conf.intf.arphdr);
 	if (ret == 0)
 		return true;
 	else if (ret < 0)
