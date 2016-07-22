@@ -175,7 +175,7 @@ static bool net_write(int fd, unsigned char* buf, size_t len)
 	return true;
 }
 
-void net_send_packet(struct packet_info *p)
+void net_send_packet(struct uwifi_packet *p)
 {
 	struct net_packet_info np;
 
@@ -235,7 +235,7 @@ void net_send_packet(struct packet_info *p)
 static int net_receive_packet(unsigned char *buffer, size_t len)
 {
 	struct net_packet_info *np;
-	struct packet_info p;
+	struct uwifi_packet p;
 
 	if (len < sizeof(struct net_packet_info))
 		return 0;

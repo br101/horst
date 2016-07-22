@@ -22,14 +22,14 @@
 
 #include <stddef.h>
 
-struct packet_info;
+struct uwifi_packet;
 
 extern int srv_fd;
 extern int cli_fd;
 
 void net_init_server_socket(int rport);
 void net_handle_server_conn(void);
-void net_send_packet(struct packet_info *pkt);
+void net_send_packet(struct uwifi_packet *pkt);
 void net_send_channel_config(void);
 void net_send_filter_config(void);
 int net_receive(int fd, unsigned char* buffer, size_t* buflen, size_t maxlen);

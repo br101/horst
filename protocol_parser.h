@@ -25,6 +25,6 @@
 
 #include <uwifi/wlan_parser.h>
 
-bool parse_packet(unsigned char* buf, size_t len, struct packet_info* p);
+bool parse_packet(unsigned char* buf, size_t len, struct uwifi_packet* p);
 
 #endif

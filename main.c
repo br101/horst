@@ -110,7 +110,7 @@ printlog(const char *fmt, ...)
 	}
 }
 
-static void update_history(struct packet_info* p)
+static void update_history(struct uwifi_packet* p)
 {
 	if (p->phy_signal == 0)
 		return;
@@ -125,7 +125,7 @@ static void update_history(struct packet_info* p)
 		hist.index = 0;
 }
 
-static void update_statistics(struct packet_info* p)
+static void update_statistics(struct uwifi_packet* p)
 {
 	int type = (p->phy_flags & PHY_FLAG_BADFCS) ? 1 : p->wlan_type;
 
@@ -152,7 +152,7 @@ static void update_statistics(struct packet_info* p)
 	}
 }
 
-static void update_spectrum(struct packet_info* p, struct uwifi_node* n)
+static void update_spectrum(struct uwifi_packet* p, struct uwifi_node* n)
 {
 	struct channel_info* chan;
 	struct chan_node* cn;
@@ -209,7 +209,7 @@ void update_spectrum_durations(void)
 	}
 }
 
-static void write_to_file(struct packet_info* p)
+static void write_to_file(struct uwifi_packet* p)
 {
 	char buf[40];
 	int i;
@@ -236,7 +236,7 @@ static void write_to_file(struct packet_info* p)
 }
 
 /* return true if packet is filtered */
-static bool filter_packet(struct packet_info* p)
+static bool filter_packet(struct uwifi_packet* p)
 {
 	int i;
 
@@ -296,7 +296,7 @@ static bool filter_packet(struct packet_info* p)
 	return false;
 }
 
-void handle_packet(struct packet_info* p)
+void handle_packet(struct uwifi_packet* p)
 {
 	struct uwifi_node* n = NULL;
 
@@ -344,7 +344,7 @@ void handle_packet(struct packet_info* p)
 
 static void local_receive_packet(int fd, unsigned char* buffer, size_t bufsize)
 {
-	struct packet_info p;
+	struct uwifi_packet p;
 
 	DEBUG("\n===============================================================================\n");
 

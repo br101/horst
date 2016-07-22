@@ -317,7 +317,7 @@ void display_log(const char *string)
 	print_dump_win(string, show_win == NULL);
 }
 
-void update_display(struct packet_info* pkt)
+void update_display(struct uwifi_packet* pkt)
 {
 	/*
 	 * update only in specific intervals to save CPU time

@@ -155,7 +155,7 @@ static void show_sort_win(void)
 #define STAT_WIDTH 11
 #define STAT_START 4
 
-static void update_status_win(struct packet_info* p)
+static void update_status_win(struct uwifi_packet* p)
 {
 	int sig, siga, bps, dps, pps, rps, bpsn, usen;
 	float use, rpsp = 0.0;
@@ -373,7 +373,7 @@ static void update_node_list_win(void)
 	wnoutrefresh(list_win);
 }
 
-void update_dump_win(struct packet_info* p)
+void update_dump_win(struct uwifi_packet* p)
 {
 	if (!p) {
 		redrawwin(dump_win);
@@ -494,7 +494,7 @@ void update_dump_win(struct packet_info* p)
 	wattroff(dump_win, A_BOLD);
 }
 
-void update_main_win(struct packet_info *p)
+void update_main_win(struct uwifi_packet *p)
 {
 	update_node_list_win();
 	update_status_win(p);

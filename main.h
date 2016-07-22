@@ -193,7 +193,7 @@ extern struct list_head nodes;
 void free_lists(void);
 void init_spectrum(void);
 void update_spectrum_durations(void);
-void handle_packet(struct packet_info* p);
+void handle_packet(struct uwifi_packet* p);
 void main_pause(int pause);
 void main_reset(void);
 void dumpfile_open(const char* name);

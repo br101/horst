@@ -21,6 +21,6 @@
 #define _ESSID_H_
 
 void remove_node_from_essid(struct uwifi_node* n);
-void update_essids(struct packet_info* p, struct uwifi_node* n);
+void update_essids(struct uwifi_packet* p, struct uwifi_node* n);
 
 #endif
