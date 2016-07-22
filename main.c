@@ -654,7 +654,7 @@ int main(int argc, char** argv)
 		/* get info again, as chan width is only available on UP interfaces */
 		ifctrl_iwget_interface_info(&conf.intf);
 
-		mon = open_packet_socket(conf.intf.ifname, conf.recv_buffer_size);
+		mon = open_packet_socket(conf.intf.ifname);
 		if (mon <= 0)
 			err(1, "Couldn't open packet socket");
 		conf.intf.arphdr = device_get_hwinfo(mon, conf.intf.ifname);
@@ -663,6 +663,9 @@ int main(int argc, char** argv)
 		    conf.intf.arphdr != ARPHRD_IEEE80211_RADIOTAP)
 			err(1, "interface '%s' is not in monitor mode",
 			    conf.intf.ifname);
+
+		if (conf.recv_buffer_size)
+			set_receive_buffer(mon, conf.recv_buffer_size);
 
 		if (!channel_init(&conf.intf) && conf.quiet)
 			err(1, "failed to change the initial channel number");
