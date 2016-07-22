@@ -62,6 +62,10 @@
 
 #define DEFAULT_MAC_NAME_FILE	"/tmp/dhcp.leases"
 
+#define MAX_CONF_VALUE_STRLEN	200
+#define MAX_CONF_NAME_STRLEN	32
+#define MAX_FILTERMAC		9
+
 struct config {
 	struct wlan_interface	intf;
 	int			port;
