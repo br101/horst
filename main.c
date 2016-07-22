@@ -324,9 +324,6 @@ void handle_packet(struct packet_info* p)
 
 		n = node_update(p, &nodes);
 
-		if (n)
-			p->wlan_retries = n->wlan_retries_last;
-
 		p->pkt_duration = ieee80211_frame_duration(
 				p->phy_flags & PHY_FLAG_MODE_MASK,
 				p->wlan_len, p->phy_rate,
