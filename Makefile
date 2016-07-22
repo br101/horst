@@ -16,29 +16,29 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-# build options
-DEBUG=1
-
 NAME=horst
-OBJS=						   \
-	conf_options.o				   \
-	control.o				   \
-	display-channel.o			   \
-	display-essid.o				   \
-	display-filter.o			   \
-	display-help.o				   \
-	display-history.o			   \
-	display-main.o				   \
-	display-spectrum.o			   \
-	display-statistics.o			   \
-	display.o				   \
-	essid.o					   \
-	listsort.o				   \
-	main.o					   \
-	network.o				   \
-	protocol_parser.o			   \
-	ieee80211_duration.o			   \
-	hutil.o
+
+# build options
+DEBUG=0
+
+OBJS=	conf_options.o				\
+	control.o				\
+	display-channel.o			\
+	display-essid.o				\
+	display-filter.o			\
+	display-help.o				\
+	display-history.o			\
+	display-main.o				\
+	display-spectrum.o			\
+	display-statistics.o			\
+	display.o				\
+	essid.o					\
+	hutil.o					\
+	ieee80211_duration.o			\
+	listsort.o				\
+	main.o					\
+	network.o				\
+	protocol_parser.o			\
 
 LIBS=-lncurses -lm -luwifi
 INCLUDES=-I.
