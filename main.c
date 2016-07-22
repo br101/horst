@@ -658,7 +658,7 @@ int main(int argc, char** argv)
 
 		/* if the interface is not already in monitor mode, try to set
 		 * it to monitor or create an additional virtual monitor interface */
-		if (conf.add_monitor || (!ifctrl_is_monitor() &&
+		if (conf.add_monitor || (!ifctrl_is_monitor(&conf.intf) &&
 					 !ifctrl_iwset_monitor(conf.intf.ifname))) {
 			char mon_ifname[IF_NAMESIZE];
 			generate_mon_ifname(mon_ifname, IF_NAMESIZE);

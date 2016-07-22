@@ -39,12 +39,6 @@
 #define DO_DEBUG 0
 #endif
 
-#if DO_DEBUG
-#define DEBUG(...) do { if (conf.debug) printf(__VA_ARGS__); } while (0)
-#else
-#define DEBUG(...)
-#endif
-
 #define MAX_HISTORY		255
 #define MAX_RATES		44	/* 12 legacy rates and 32 MCS */
 #define MAX_FSTYPE		0xff

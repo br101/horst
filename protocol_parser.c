@@ -25,7 +25,7 @@
 #define __FAVOR_BSD
 #include <netinet/udp.h>
 
-#include <uwifi/wlan_parser.h>
+#include <uwifi/raw_parser.h>
 #include <uwifi/util.h>
 
 #include "olsr_header.h"
@@ -33,7 +33,6 @@
 #include "batman_adv_header-14.h"
 #include "main.h"
 
-extern int wlan_parse_packet(unsigned char* buf, size_t len, struct packet_info* p);
 static int parse_llc(unsigned char* buf, size_t len, struct packet_info* p);
 static int parse_ip_header(unsigned char* buf, size_t len, struct packet_info* p);
 static int parse_udp_header(unsigned char* buf, size_t len, struct packet_info* p);
@@ -45,7 +44,7 @@ static int parse_meshcruzer_packet(unsigned char* buf, size_t len, struct packet
 /* return true if we parsed enough = min ieee header */
 bool parse_packet(unsigned char* buf, size_t len, struct packet_info* p)
 {
-	int ret = wlan_parse_packet(buf, len, p);
+	int ret = wlan_parse_packet(buf, len, p, conf.intf.arphdr);
 	if (ret == 0)
 		return true;
 	else if (ret < 0)
