@@ -434,17 +434,10 @@ static void receive_any(const sigset_t *const waitmask)
 
 void free_lists(void)
 {
-	int i;
 	struct essid_info *e, *f;
-	struct node_info *ni, *mi;
 	struct chan_node *cn, *cn2;
 
-	/* free node list */
-	list_for_each_safe(&nodes, ni, mi, list) {
-		DEBUG("free node %s\n", ether_sprintf(ni->wlan_src));
-		list_del(&ni->list);
-		free(ni);
-	}
+	nodes_free(&nodes);
 
 	/* free essids */
 	list_for_each_safe(&essids.list, e, f, list) {
@@ -454,7 +447,7 @@ void free_lists(void)
 	}
 
 	/* free channel nodes */
-	for (i = 0; i < channel_get_num_channels(&conf.intf.channels); i++) {
+	for (int i = 0; i < channel_get_num_channels(&conf.intf.channels); i++) {
 		list_for_each_safe(&spectrum[i].nodes, cn, cn2, chan_list) {
 			DEBUG("free chan_node %p\n", cn);
 			list_del(&cn->chan_list);
