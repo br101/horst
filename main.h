@@ -95,7 +95,6 @@ struct config {
 				do_macfilter:1,
 				display_initialized:1,
 				monitor_added:1;
-	unsigned char		my_mac_addr[MAC_LEN];
 	int			paused;
 	unsigned int		node_timeout;
 };

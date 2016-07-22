@@ -296,33 +296,6 @@ static bool filter_packet(struct packet_info* p)
 	return false;
 }
 
-static void fixup_packet_channel(struct packet_info* p)
-{
-	int i = -1;
-
-	/* get channel index for packet */
-	if (p->phy_freq) {
-		i = channel_find_index_from_freq(&conf.intf.channels, p->phy_freq);
-	}
-
-	/* if not found from pkt, best guess from config but it might be
-	 * unknown (-1) too */
-	if (i < 0)
-		p->pkt_chan_idx = conf.intf.channel_idx;
-	else
-		p->pkt_chan_idx = i;
-
-	/* wlan_channel is only known for beacons and probe response,
-	 * otherwise we set it from the physical channel */
-	if (p->wlan_channel == 0 && p->pkt_chan_idx >= 0)
-		p->wlan_channel = channel_get_chan(&conf.intf.channels, p->pkt_chan_idx);
-
-	/* if current channel is unknown (this is a mac80211 bug), guess it from
-	 * the packet */
-	if (conf.intf.channel_idx < 0 && p->pkt_chan_idx >= 0)
-		conf.intf.channel_idx = p->pkt_chan_idx;
-}
-
 void handle_packet(struct packet_info* p)
 {
 	struct node_info* n = NULL;
@@ -334,7 +307,7 @@ void handle_packet(struct packet_info* p)
 		return;
 	}
 
-	fixup_packet_channel(p);
+	fixup_packet_channel(p, &conf.intf);
 
 	if (cli_fd != -1)
 		net_send_packet(p);
@@ -684,8 +657,7 @@ int main(int argc, char** argv)
 		mon = open_packet_socket(conf.intf.ifname, conf.recv_buffer_size);
 		if (mon <= 0)
 			err(1, "Couldn't open packet socket");
-		conf.intf.arphdr = device_get_hwinfo(mon, conf.intf.ifname,
-						conf.my_mac_addr);
+		conf.intf.arphdr = device_get_hwinfo(mon, conf.intf.ifname);
 
 		if (conf.intf.arphdr != ARPHRD_IEEE80211_PRISM &&
 		    conf.intf.arphdr != ARPHRD_IEEE80211_RADIOTAP)
