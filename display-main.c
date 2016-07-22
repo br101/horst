@@ -109,7 +109,7 @@ static int compare_nodes_bssid(const struct list_node *p1, const struct list_nod
 	struct uwifi_node* n1 = list_entry(p1, struct uwifi_node, list);
 	struct uwifi_node* n2 = list_entry(p2, struct uwifi_node, list);
 
-	return -memcmp(n1->wlan_bssid, n2->wlan_bssid, MAC_LEN);
+	return -memcmp(n1->wlan_bssid, n2->wlan_bssid, WLAN_MAC_LEN);
 }
 
 static bool sort_input(int c)

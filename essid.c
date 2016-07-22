@@ -51,7 +51,7 @@ static void update_essid_split_status(struct essid_info* e)
 		if (n->wlan_mode & WLAN_MODE_AP)
 			continue;
 
-		if (last_bssid && memcmp(last_bssid, n->wlan_bssid, MAC_LEN) != 0) {
+		if (last_bssid && memcmp(last_bssid, n->wlan_bssid, WLAN_MAC_LEN) != 0) {
 			e->split = 1;
 			DEBUG("SPLIT *** DETECTED!!!\n");
 		}

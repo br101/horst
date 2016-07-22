@@ -71,9 +71,9 @@ struct net_conf_chan {
 struct net_conf_filter {
 	struct net_header	proto;
 
-	unsigned char	filtermac[MAX_FILTERMAC][MAC_LEN];
+	unsigned char	filtermac[MAX_FILTERMAC][WLAN_MAC_LEN];
 	char		filtermac_enabled[MAX_FILTERMAC];
-	unsigned char	filterbssid[MAC_LEN];
+	unsigned char	filterbssid[WLAN_MAC_LEN];
 	uint16_t	filter_stype[WLAN_NUM_TYPES];
 	int		filter_pkt;
 	int		filter_mode;
@@ -119,9 +119,9 @@ struct net_packet_info {
 	/* wlan mac */
 	unsigned int		wlan_len;	/* packet length */
 	unsigned int		wlan_type;	/* frame control field */
-	unsigned char		wlan_src[MAC_LEN];
-	unsigned char		wlan_dst[MAC_LEN];
-	unsigned char		wlan_bssid[MAC_LEN];
+	unsigned char		wlan_src[WLAN_MAC_LEN];
+	unsigned char		wlan_dst[WLAN_MAC_LEN];
+	unsigned char		wlan_bssid[WLAN_MAC_LEN];
 	char			wlan_essid[WLAN_MAX_SSID_LEN];
 	uint64_t		wlan_tsf;	/* timestamp from beacon */
 	unsigned int		wlan_bintval;	/* beacon interval */
@@ -192,9 +192,9 @@ void net_send_packet(struct uwifi_packet *p)
 	np.phy_flags	= htole32(p->phy_flags);
 	np.wlan_len	= htole32(p->wlan_len);
 	np.wlan_type	= htole32(p->wlan_type);
-	memcpy(np.wlan_src, p->wlan_src, MAC_LEN);
-	memcpy(np.wlan_dst, p->wlan_dst, MAC_LEN);
-	memcpy(np.wlan_bssid, p->wlan_bssid, MAC_LEN);
+	memcpy(np.wlan_src, p->wlan_src, WLAN_MAC_LEN);
+	memcpy(np.wlan_dst, p->wlan_dst, WLAN_MAC_LEN);
+	memcpy(np.wlan_bssid, p->wlan_bssid, WLAN_MAC_LEN);
 	memcpy(np.wlan_essid, p->wlan_essid, WLAN_MAX_SSID_LEN);
 	np.wlan_tsf	= htole64(p->wlan_tsf);
 	np.wlan_bintval	= htole32(p->wlan_bintval);
@@ -258,9 +258,9 @@ static int net_receive_packet(unsigned char *buffer, size_t len)
 	p.phy_flags	= le32toh(np->phy_flags);
 	p.wlan_len	= le32toh(np->wlan_len);
 	p.wlan_type	= le32toh(np->wlan_type);
-	memcpy(p.wlan_src, np->wlan_src, MAC_LEN);
-	memcpy(p.wlan_dst, np->wlan_dst, MAC_LEN);
-	memcpy(p.wlan_bssid, np->wlan_bssid, MAC_LEN);
+	memcpy(p.wlan_src, np->wlan_src, WLAN_MAC_LEN);
+	memcpy(p.wlan_dst, np->wlan_dst, WLAN_MAC_LEN);
+	memcpy(p.wlan_bssid, np->wlan_bssid, WLAN_MAC_LEN);
 	memcpy(p.wlan_essid, np->wlan_essid, WLAN_MAX_SSID_LEN);
 	p.wlan_tsf	= le64toh(np->wlan_tsf);
 	p.wlan_bintval	= le32toh(np->wlan_bintval);
@@ -369,7 +369,7 @@ static void net_send_conf_filter(int fd)
 	nc.proto.type = PROTO_CONF_FILTER;
 
 	for (i = 0; i < MAX_FILTERMAC; i++) {
-		memcpy(nc.filtermac[i], conf.filtermac[i], MAC_LEN);
+		memcpy(nc.filtermac[i], conf.filtermac[i], WLAN_MAC_LEN);
 		nc.filtermac_enabled[i] = conf.filtermac_enabled[i];
 	}
 
@@ -377,7 +377,7 @@ static void net_send_conf_filter(int fd)
 		nc.filter_stype[i] = htons(conf.filter_stype[i]);
 	}
 
-	memcpy(nc.filterbssid, conf.filterbssid, MAC_LEN);
+	memcpy(nc.filterbssid, conf.filterbssid, WLAN_MAC_LEN);
 	nc.filter_pkt = htole32(conf.filter_pkt);
 	nc.filter_mode = htole32(conf.filter_mode);
 	nc.filter_flags = 0;
@@ -400,7 +400,7 @@ static int net_receive_conf_filter(unsigned char *buffer, size_t len)
 	nc = (struct net_conf_filter *)buffer;
 
 	for (i = 0; i < MAX_FILTERMAC; i++) {
-		memcpy(conf.filtermac[i], nc->filtermac[i], MAC_LEN);
+		memcpy(conf.filtermac[i], nc->filtermac[i], WLAN_MAC_LEN);
 		conf.filtermac_enabled[i] = nc->filtermac_enabled[i];
 	}
 
@@ -408,7 +408,7 @@ static int net_receive_conf_filter(unsigned char *buffer, size_t len)
 		conf.filter_stype[i] = ntohs(nc->filter_stype[i]);
 	}
 
-	memcpy(conf.filterbssid, nc->filterbssid, MAC_LEN);
+	memcpy(conf.filterbssid, nc->filterbssid, WLAN_MAC_LEN);
 	conf.filter_pkt = le32toh(nc->filter_pkt);
 	conf.filter_mode = le32toh(nc->filter_mode);
 	conf.filter_off = !!(nc->filter_flags & NET_FILTER_OFF);

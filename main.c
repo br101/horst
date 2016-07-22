@@ -275,7 +275,7 @@ static bool filter_packet(struct uwifi_packet* p)
 
 	/* filter BSSID */
 	if (MAC_NOT_EMPTY(conf.filterbssid) &&
-	    memcmp(p->wlan_bssid, conf.filterbssid, MAC_LEN) != 0) {
+	    memcmp(p->wlan_bssid, conf.filterbssid, WLAN_MAC_LEN) != 0) {
 		stats.filtered_packets++;
 		return true;
 	}
@@ -285,7 +285,7 @@ static bool filter_packet(struct uwifi_packet* p)
 		for (i = 0; i < MAX_FILTERMAC; i++) {
 			if (MAC_NOT_EMPTY(p->wlan_src) &&
 			    conf.filtermac_enabled[i] &&
-			    memcmp(p->wlan_src, conf.filtermac[i], MAC_LEN) == 0) {
+			    memcmp(p->wlan_src, conf.filtermac[i], WLAN_MAC_LEN) == 0) {
 				return false;
 			}
 		}
@@ -553,7 +553,7 @@ const char* mac_name_lookup(const unsigned char* mac, int shorten_mac)
 	int i;
 	if (conf.mac_name_lookup) {
 		for (i = 0; i < node_names.count; i++) {
-			if (memcmp(node_names.entry[i].mac, mac, MAC_LEN) == 0)
+			if (memcmp(node_names.entry[i].mac, mac, WLAN_MAC_LEN) == 0)
 				return node_names.entry[i].name;
 		}
 	}

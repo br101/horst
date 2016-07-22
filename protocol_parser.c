@@ -114,7 +114,7 @@ static int parse_batman_adv_packet(unsigned char* buf, size_t len, struct uwifi_
 		switch (bp->packet_type) {
 		case BAT_OGM:
 			/* set GW flags only for "original" (not re-sent) OGMs */
-			if (bp->gw_flags != 0 && memcmp(bp->orig, p->wlan_src, MAC_LEN) == 0)
+			if (bp->gw_flags != 0 && memcmp(bp->orig, p->wlan_src, WLAN_MAC_LEN) == 0)
 				p->bat_gw = 1;
 			DEBUG("OGM %d %d\n", bp->gw_flags, p->bat_gw);
 			return 0;

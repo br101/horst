@@ -78,9 +78,9 @@ struct config {
 	char			control_pipe[MAX_CONF_VALUE_STRLEN + 1];
 	char			mac_name_file[MAX_CONF_VALUE_STRLEN + 1];
 
-	unsigned char		filtermac[MAX_FILTERMAC][MAC_LEN];
+	unsigned char		filtermac[MAX_FILTERMAC][WLAN_MAC_LEN];
 	char			filtermac_enabled[MAX_FILTERMAC];
-	unsigned char		filterbssid[MAC_LEN];
+	unsigned char		filterbssid[WLAN_MAC_LEN];
 	unsigned int		filter_pkt;
 	uint16_t		filter_stype[WLAN_NUM_TYPES];  /* one for MGMT, CTRL, DATA */
 	unsigned int		filter_mode;
@@ -178,7 +178,7 @@ struct chan_node {
 
 struct node_names_info {
 	struct node_name {
-		unsigned char	mac[MAC_LEN];
+		unsigned char	mac[WLAN_MAC_LEN];
 		char		name[MAX_NODE_NAME_STRLEN + 1];
 	} entry[MAX_NODE_NAMES];
 	int count;
