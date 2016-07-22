@@ -344,12 +344,15 @@ void handle_packet(struct packet_info* p)
 
 static void local_receive_packet(int fd, unsigned char* buffer, size_t bufsize)
 {
-	int len;
 	struct packet_info p;
 
 	DEBUG("\n===============================================================================\n");
 
-	len = recv_packet(fd, buffer, bufsize);
+	ssize_t len = recv_packet(fd, buffer, bufsize);
+	if (len <= 0) {
+		DEBUG("recv error");
+		return;
+	}
 
 #if DO_DEBUG
 	if (conf.debug) {
