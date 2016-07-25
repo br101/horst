@@ -19,7 +19,7 @@
 NAME=horst
 
 # build options
-DEBUG=0
+DEBUG=1
 
 OBJS=	conf_options.o				\
 	control.o				\
@@ -45,7 +45,7 @@ INCLUDES=-I.
 CFLAGS+=-std=gnu99 -Wall -Wextra -g $(INCLUDES)
 
 ifeq ($(DEBUG),1)
-  CFLAGS+=-DDO_DEBUG
+	CFLAGS+=-DDEBUG=1
 endif
 
 .PHONY: all check clean force

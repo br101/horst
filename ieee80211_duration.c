@@ -38,11 +38,11 @@ static inline bool ieee80211_is_erp_rate(int phymode, int rate)
 	if (phymode & PHY_FLAG_G) {
 		if (rate != 10 && rate != 20 &&
 		    rate != 55 && rate != 110) {
-			DEBUG("erp\n");
+			DBG_PRINT("erp\n");
 			return true;
 		}
 	}
-	DEBUG("no erp\n");
+	DBG_PRINT("no erp\n");
 	return false;
 }
 
@@ -54,7 +54,7 @@ static int get_cw_time(int cw_min, int cw_max, int retries, int slottime)
 	if(cw >  cw_max)
 		cw = cw_max;
 
-	DEBUG("CW min %d max %d ret %d = %d\n", cw_min, cw_max, retries, cw);
+	DBG_PRINT("CW min %d max %d ret %d = %d\n", cw_min, cw_max, retries, cw);
 	return (cw * slottime) / 2;
 }
 
@@ -84,10 +84,10 @@ int ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamb
 	 * DIV_ROUND_UP() operations.
 	 */
 
-	DEBUG("DUR mode %d, len %d, rate %d, shortpre %d shortslot %d type %x UP %d\n", phymode, (int)len, rate, short_preamble, shortslot, type, qos_class);
+	DBG_PRINT("DUR mode %d, len %d, rate %d, shortpre %d shortslot %d type %x UP %d\n", phymode, (int)len, rate, short_preamble, shortslot, type, qos_class);
 
 	if (phymode == PHY_FLAG_A || erp) {
-		DEBUG("OFDM\n");
+		DBG_PRINT("OFDM\n");
 		/*
 		 * OFDM:
 		 *
@@ -108,7 +108,7 @@ int ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamb
 		dur += 4 * DIV_ROUND_UP((16 + 8 * (len + 4) + 6) * 10,
 					4 * rate); /* T_SYM x N_SYM */
 	} else {
-		DEBUG("CCK\n");
+		DBG_PRINT("CCK\n");
 		/*
 		 * 802.11b or 802.11g with 802.11b compatibility:
 		 * 18.3.4: TXTIME = PreambleLength + PLCPHeaderTime +
@@ -128,7 +128,7 @@ int ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamb
 	if (type == WLAN_FRAME_CTS ||
 	    type == WLAN_FRAME_ACK) {
 		//TODO: also fragments
-		DEBUG("DUR SIFS\n");
+		DBG_PRINT("DUR SIFS\n");
 		dur += sifs;
 	}
 	else if (type == WLAN_FRAME_BEACON) {
@@ -137,23 +137,23 @@ int ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamb
 		dur += (slottime * 1) / 2; /* contention */
 	}
 	else if (WLAN_FRAME_IS_DATA(type) && last_was_cts) {
-		DEBUG("DUR LAST CTS\n");
+		DBG_PRINT("DUR LAST CTS\n");
 		dur += sifs;
 	}
 	else if (type == WLAN_FRAME_QDATA) {
 		unsigned char ac = ieee802_1d_to_ac[(unsigned char)qos_class];
 		dur += sifs + (ac_to_aifs[ac] * slottime); /* AIFS */
 		dur += get_cw_time(ac_to_cwmin[ac], ac_to_cwmax[ac], retries, slottime);
-		DEBUG("DUR AIFS %d CWMIN %d AC %d, UP %d\n", ac_to_aifs[ac], ac_to_cwmin[ac], ac, qos_class);
+		DBG_PRINT("DUR AIFS %d CWMIN %d AC %d, UP %d\n", ac_to_aifs[ac], ac_to_cwmin[ac], ac, qos_class);
 	}
 	else {
-		DEBUG("DUR DIFS\n");
+		DBG_PRINT("DUR DIFS\n");
 		dur += sifs + (2 * slottime); /* DIFS */
 		dur += get_cw_time(4, 10, retries, slottime);
 	}
 
 	if (type == WLAN_FRAME_CTS) {
-		DEBUG("SET CTS\n");
+		DBG_PRINT("SET CTS\n");
 		last_was_cts = 1;
 	}
 	else
@@ -161,6 +161,6 @@ int ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamb
 
 	/* TODO: Add EIFS (SIFS + ACKTXTIME) to frames with CRC errors, if we can get them */
 
-	DEBUG("DUR %d\n", dur);
+	DBG_PRINT("DUR %d\n", dur);
 	return dur;
 }

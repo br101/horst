@@ -91,8 +91,8 @@ static fd_set excpt_fds;
 
 static volatile sig_atomic_t is_sigint_caught;
 
-void __attribute__ ((format (printf, 1, 2)))
-printlog(const char *fmt, ...)
+void __attribute__ ((format (printf, 2, 3)))
+printlog(int level, const char *fmt, ...)
 {
 	char buf[128];
 	va_list ap;
@@ -168,19 +168,19 @@ static void update_spectrum(struct uwifi_packet* p, struct uwifi_node* n)
 	ewma_add(&chan->signal_avg, -chan->signal);
 
 	if (!n) {
-		DEBUG("spec no node\n");
+		DBG_PRINT("spec no node\n");
 		return;
 	}
 
 	/* add node to channel if not already there */
 	list_for_each(&chan->nodes, cn, chan_list) {
 		if (cn->node == n) {
-			DEBUG("SPEC node found %p\n", cn->node);
+			DBG_PRINT("SPEC node found %p\n", cn->node);
 			break;
 		}
 	}
 	if (cn->node != n) {
-		DEBUG("SPEC node adding %p\n", n);
+		DBG_PRINT("SPEC node adding %p\n", n);
 		cn = malloc(sizeof(struct chan_node));
 		cn->node = n;
 		cn->chan = chan;
@@ -320,7 +320,7 @@ void handle_packet(struct uwifi_packet* p)
 
 	/* we can't trust any fields except phy_* of packets with bad FCS */
 	if (!(p->phy_flags & PHY_FLAG_BADFCS)) {
-		DEBUG("handle %s\n", get_packet_type_name(p->wlan_type));
+		DBG_PRINT("handle %s\n", get_packet_type_name(p->wlan_type));
 
 		n = uwifi_node_update(p, &nodes);
 
@@ -346,24 +346,24 @@ static void local_receive_packet(int fd, unsigned char* buffer, size_t bufsize)
 {
 	struct uwifi_packet p;
 
-	DEBUG("\n===============================================================================\n");
+	DBG_PRINT("\n===============================================================================\n");
 
 	ssize_t len = recv_packet(fd, buffer, bufsize);
 	if (len <= 0) {
-		DEBUG("recv error");
+		DBG_PRINT("recv error");
 		return;
 	}
 
 #if DO_DEBUG
 	if (conf.debug) {
-		dump_packet(buffer, len);
-		DEBUG("\n");
+		dump_hex(buffer, len, NULL);
+		DBG_PRINT("\n");
 	}
 #endif
 	memset(&p, 0, sizeof(p));
 
 	if (!parse_packet(buffer, len, &p)) {
-		DEBUG("parsing failed\n");
+		DBG_PRINT("parsing failed\n");
 		return;
 	}
 
@@ -441,7 +441,7 @@ void free_lists(void)
 
 	/* free essids */
 	list_for_each_safe(&essids.list, e, f, list) {
-		DEBUG("free essid '%s'\n", e->essid);
+		DBG_PRINT("free essid '%s'\n", e->essid);
 		list_del(&e->list);
 		free(e);
 	}
@@ -449,7 +449,7 @@ void free_lists(void)
 	/* free channel nodes */
 	for (int i = 0; i < uwifi_channel_get_num_channels(&conf.intf.channels); i++) {
 		list_for_each_safe(&spectrum[i].nodes, cn, cn2, chan_list) {
-			DEBUG("free chan_node %p\n", cn);
+			DBG_PRINT("free chan_node %p\n", cn);
 			list_del(&cn->chan_list);
 			cn->chan->num_nodes--;
 			free(cn);
@@ -521,7 +521,7 @@ static void mac_name_file_read(const char* filename)
 	int n;
 
 	if ((fp = fopen(filename, "r")) == NULL) {
-		printlog("Could not open mac name file '%s'", filename);
+		printlog(LOG_ERR, "Could not open mac name file '%s'", filename);
 		return;
 	}
 
@@ -543,7 +543,7 @@ static void mac_name_file_read(const char* filename)
 	node_names.count = idx;
 
 	for (n = 0; n < node_names.count; n++) {
-		printlog("MAC %s = %s", ether_sprintf(node_names.entry[n].mac),
+		printlog(LOG_INFO, "MAC %s = %s", ether_sprintf(node_names.entry[n].mac),
 			 node_names.entry[n].name );
 	}
 }
@@ -612,7 +612,7 @@ int main(int argc, char** argv)
 		mac_name_file_read(conf.mac_name_file);
 
 	if (conf.allow_control) {
-		printlog("Allowing control socket '%s'", conf.control_pipe);
+		printlog(LOG_INFO, "Allowing control socket '%s'", conf.control_pipe);
 		control_init_pipe();
 	}
 
@@ -631,7 +631,7 @@ int main(int argc, char** argv)
 			if (!ifctrl_iwadd_monitor(conf.intf.ifname, mon_ifname))
 				err(1, "failed to add virtual monitor interface");
 
-			printlog("INFO: A virtual interface '%s' will be used "
+			printlog(LOG_INFO, "A virtual interface '%s' will be used "
 				 "instead of '%s'.", mon_ifname, conf.intf.ifname);
 
 			strncpy(conf.intf.ifname, mon_ifname, IF_NAMESIZE);
@@ -713,14 +713,14 @@ int main(int argc, char** argv)
 void main_pause(int pause)
 {
 	conf.paused = pause;
-	printlog(conf.paused ? "- PAUSED -" : "- RESUME -");
+	printlog(LOG_INFO, conf.paused ? "- PAUSED -" : "- RESUME -");
 }
 
 void main_reset(void)
 {
 	if (!conf.quiet && !conf.debug)
 		display_clear();
-	printlog("- RESET -");
+	printlog(LOG_INFO, "- RESET -");
 	free_lists();
 	essids.split_active = 0;
 	essids.split_essid = NULL;
@@ -739,7 +739,7 @@ void dumpfile_open(const char* name)
 	}
 
 	if (name == NULL || strlen(name) == 0) {
-		printlog("- Not writing outfile");
+		printlog(LOG_INFO, "- Not writing outfile");
 		conf.dumpfile[0] = '\0';
 		return;
 	}
@@ -754,7 +754,7 @@ void dumpfile_open(const char* name)
 	fprintf(DF, "LENGTH, PHY RATE, FREQUENCY, TSF, ESSID, MODE, CHANNEL, ");
 	fprintf(DF, "WEP, WPA1, RSN (WPA2), IP SRC, IP DST\n");
 
-	printlog("- Writing to outfile %s", conf.dumpfile);
+	printlog(LOG_INFO, "- Writing to outfile %s", conf.dumpfile);
 }
 
 

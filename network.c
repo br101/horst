@@ -162,14 +162,14 @@ static bool net_write(int fd, unsigned char* buf, size_t len)
 	ret = write(fd, buf, len);
 	if (ret == -1) {
 		if (errno == EPIPE) {
-			printlog("Client has closed");
+			printlog(LOG_INFO, "Client has closed");
 			close(fd);
 			if (fd == cli_fd)
 				cli_fd = -1;
 			net_init_server_socket(conf.port);
 		}
 		else
-			printlog("ERROR: in net_write");
+			printlog(LOG_ERR, "ERROR: in net_write");
 		return false;
 	}
 	return true;
@@ -336,7 +336,7 @@ static int net_receive_conf_chan(unsigned char *buffer, size_t len)
 	    ht40p != conf.intf.channel_ht40plus) { /* something changed */
 		if (cli_fd > -1) { /* server */
 			if (!uwifi_channel_change(&conf.intf, nc->channel, width, ht40p)) {
-				printlog("Net Channel %d %s is not available/allowed",
+				printlog(LOG_ERR, "Net Channel %d %s is not available/allowed",
 					uwifi_channel_get_chan(&conf.intf.channels, nc->channel),
 					uwifi_channel_width_string(width, ht40p));
 				net_send_channel_config();
@@ -443,7 +443,7 @@ static void net_send_chan_list(int fd)
 
 	for (i = 0; i < uwifi_channel_get_num_channels(&conf.intf.channels); i++) {
 		nc->freq[i] = htole32(uwifi_channel_get_freq(&conf.intf.channels, i));
-		DEBUG("NET send freq %d %d\n", i, channel_get_freq(&conf.intf.channels, i));
+		DBG_PRINT("NET send freq %d %d\n", i, uwifi_channel_get_freq(&conf.intf.channels, i));
 	}
 
 	net_write(fd, (unsigned char *)buf, sizeof(struct net_chan_list) +
@@ -472,7 +472,7 @@ static int net_receive_chan_list(unsigned char *buffer, size_t len)
 
 	for (int i = 0; i < num_chans; i++) {
 		uwifi_channel_list_add(&conf.intf.channels, le32toh(nc->freq[i]));
-		DEBUG("NET recv freq %d %d\n", i, le32toh(nc->freq[i]));
+		DBG_PRINT("NET recv freq %d %d\n", i, le32toh(nc->freq[i]));
 	}
 	init_spectrum();
 	return sizeof(struct net_chan_list) + sizeof(unsigned int) * (num_chans - 1);
@@ -483,7 +483,7 @@ static int try_receive_packet(unsigned char* buf, size_t len)
 	struct net_header *nh = (struct net_header *)buf;
 
 	if (nh->version != PROTO_VERSION) {
-		printlog("ERROR: protocol version %x", nh->version);
+		printlog(LOG_ERR, "ERROR: protocol version %x", nh->version);
 		return 0;
 	}
 
@@ -501,7 +501,7 @@ static int try_receive_packet(unsigned char* buf, size_t len)
 		len = net_receive_conf_filter(buf, len);
 		break;
 	default:
-		printlog("ERROR: unknown net packet type");
+		printlog(LOG_ERR, "ERROR: unknown net packet type");
 		len = 0;
 	}
 
@@ -540,7 +540,7 @@ void net_handle_server_conn(void)
 	memset(&cin, 0, sizeof(struct sockaddr_in));
 	cli_fd = accept(srv_fd, (struct sockaddr*)&cin, &cinlen);
 
-	printlog("Accepting client");
+	printlog(LOG_INFO, "Accepting client");
 
 	/* send initial config */
 	net_send_chan_list(cli_fd);
@@ -557,7 +557,7 @@ void net_init_server_socket(int rport)
 	struct sockaddr_in sock_in;
 	int reuse = 1;
 
-	printlog("Initializing server port %d", rport);
+	printlog(LOG_INFO, "Initializing server port %d", rport);
 
 	memset(&sock_in, 0, sizeof(struct sockaddr_in));
 	sock_in.sin_family = AF_INET;
@@ -586,7 +586,7 @@ int net_open_client_socket(char* serveraddr, int rport)
 
 	snprintf(rport_str, 20, "%d", rport);
 
-	printlog("Connecting to server %s port %s", serveraddr, rport_str);
+	printlog(LOG_INFO, "Connecting to server %s port %s", serveraddr, rport_str);
 
 	/* Obtain address(es) matching host/port */
 	memset(&saddr, 0, sizeof(struct addrinfo));
@@ -622,7 +622,7 @@ int net_open_client_socket(char* serveraddr, int rport)
 
 	freeaddrinfo(result);
 
-	printlog("Connected to server %s", serveraddr);
+	printlog(LOG_INFO, "Connected to server %s", serveraddr);
 	return netmon_fd;
 }
 

@@ -52,7 +52,7 @@ void control_send_command(const char* cmd)
 	}
 
 	while (access(conf.control_pipe, F_OK) < 0) {
-		printlog("Waiting for control pipe '%s'...", conf.control_pipe);
+		printlog(LOG_INFO, "Waiting for control pipe '%s'...", conf.control_pipe);
 		sleep(1);
 	}
 
@@ -70,7 +70,7 @@ void control_send_command(const char* cmd)
 		*pos = '\n';
 	}
 
-	printlog("Sending command: %s", new);
+	printlog(LOG_INFO, "Sending command: %s", new);
 
 	write(ctlpipe, new, len+1);
 	close(ctlpipe);
@@ -82,7 +82,7 @@ static void parse_command(char* in) {
 
 	cmd = strsep(&in, "=");
 	val = in;
-	//printlog("RECV CMD %s VAL %s", cmd, val);
+	//printlog(LOG_ERR, "RECV CMD %s VAL %s", cmd, val);
 
 	/* commands without value */
 

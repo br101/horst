@@ -167,7 +167,7 @@ bool channel_input(WINDOW *win, int c)
 			if (conf.serveraddr[0] == '\0') {
 				/* server */
 				if (!uwifi_channel_change(&conf.intf, new_idx, conf.intf.channel_set_width, conf.intf.channel_set_ht40plus)) {
-					printlog("Channel %d %s is not available/allowed", conf.intf.channel_set_num,
+					printlog(LOG_ERR, "Channel %d %s is not available/allowed", conf.intf.channel_set_num,
 						 uwifi_channel_width_string(conf.intf.channel_set_width,
 								      conf.intf.channel_set_ht40plus));
 					/* reset UI */
@@ -181,7 +181,7 @@ bool channel_input(WINDOW *win, int c)
 				conf.intf.channel_idx = new_idx;
 				conf.intf.channel_width = conf.intf.channel_set_width;
 				conf.intf.channel_ht40plus = conf.intf.channel_set_ht40plus;
-				printlog("Sending channel config to server");
+				printlog(LOG_INFO, "Sending channel config to server");
 				net_send_channel_config();
 			}
 		}
