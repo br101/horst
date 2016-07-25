@@ -97,7 +97,9 @@ static int parse_llc(unsigned char* buf, size_t len, struct uwifi_packet* p)
 	}
 }
 
-static int parse_batman_adv_packet(unsigned char* buf, size_t len, struct uwifi_packet* p)
+static int parse_batman_adv_packet(unsigned char* buf,
+				   __attribute__((unused)) size_t len,
+				   struct uwifi_packet* p)
 {
 	struct batman_ogm_packet *bp;
 	//batadv_ogm_packet
