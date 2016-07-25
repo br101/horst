@@ -37,3 +37,40 @@ const char* kilo_mega_ize(unsigned int val) {
 		snprintf(buf, sizeof(buf), "%d", val);
 	return buf;
 }
+
+const char* ether_sprintf_short(const unsigned char *mac)
+{
+	static char etherbuf[5];
+	sprintf(etherbuf, "%02x%02x",
+		mac[4], mac[5]);
+	return etherbuf;
+}
+
+const char* ip_sprintf(const unsigned int ip)
+{
+	static char ipbuf[18];
+	unsigned char* cip = (unsigned char*)&ip;
+	sprintf(ipbuf, "%d.%d.%d.%d",
+		cip[0], cip[1], cip[2], cip[3]);
+	return ipbuf;
+}
+
+const char* ip_sprintf_short(const unsigned int ip)
+{
+	static char ipbuf[5];
+	unsigned char* cip = (unsigned char*)&ip;
+	sprintf(ipbuf, ".%d", cip[3]);
+	return ipbuf;
+}
+
+int normalize(float oval, int max_val, int max) {
+	int val;
+	val= (oval / max_val) * max;
+	if (val > max) /* cap if still bigger */
+		val = max;
+	if (val == 0 && oval > 0)
+		val = 1;
+	if (val < 0)
+		val = 0;
+	return val;
+}

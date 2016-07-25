@@ -26,6 +26,7 @@
 
 #include "display.h"
 #include "main.h"
+#include "hutil.h"
 
 #define CH_SPACE	6
 #define SPEC_POS_Y	1

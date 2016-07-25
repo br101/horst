@@ -25,6 +25,7 @@
 
 #include "display.h"
 #include "main.h"
+#include "hutil.h"
 
 void update_essid_win(WINDOW *win)
 {

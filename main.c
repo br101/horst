@@ -389,12 +389,12 @@ static void receive_any(const sigset_t *const waitmask)
 	if (ctlpipe != -1)
 		FD_SET(ctlpipe, &read_fds);
 
-	usecs = min(uwifi_channel_get_remaining_dwell_time(&conf.intf), 1000000);
+	usecs = MIN(uwifi_channel_get_remaining_dwell_time(&conf.intf), 1000000);
 	ts.tv_sec = usecs / 1000000;
 	ts.tv_nsec = usecs % 1000000 * 1000;
-	mfd = max(mon, srv_fd);
-	mfd = max(mfd, ctlpipe);
-	mfd = max(mfd, cli_fd) + 1;
+	mfd = MAX(mon, srv_fd);
+	mfd = MAX(mfd, ctlpipe);
+	mfd = MAX(mfd, cli_fd) + 1;
 
 	ret = pselect(mfd, &read_fds, &write_fds, &excpt_fds, &ts, waitmask);
 	if (ret == -1 && errno == EINTR) /* interrupted */
