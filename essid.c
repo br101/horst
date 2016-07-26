@@ -44,9 +44,8 @@ static void update_essid_split_status(struct essid_info* e)
 
 	/* check for split */
 	list_for_each(&e->nodes, n, essid_nodes) {
-		DBG_PRINT("SPLIT      node %p src %s",
-			n, ether_sprintf(n->wlan_src));
-		DBG_PRINT(" bssid %s\n", ether_sprintf(n->wlan_bssid));
+		DBG_PRINT("SPLIT      node %p src " MAC_FMT " bssid " MAC_FMT "\n",
+			n, MAC_PAR(n->wlan_src), MAC_PAR(n->wlan_bssid));
 
 		if (n->wlan_mode & WLAN_MODE_AP)
 			continue;
@@ -100,9 +99,8 @@ void update_essids(struct uwifi_packet* p, struct uwifi_node* n)
 	    (p->wlan_type != WLAN_FRAME_PROBE_RESP))
 		return;
 
-	DBG_PRINT("SPLIT check ibss '%s' node %s ", p->wlan_essid,
-		ether_sprintf(n->wlan_src));
-	DBG_PRINT("bssid %s\n", ether_sprintf(p->wlan_bssid));
+	DBG_PRINT("SPLIT check ibss '%s' node " MAC_FMT "bssid " MAC_FMT "\n" , p->wlan_essid,
+		MAC_PAR(n->wlan_src), MAC_PAR(p->wlan_bssid));
 
 	/* find essid if already recorded */
 	list_for_each(&essids.list, e, list) {
@@ -130,8 +128,8 @@ void update_essids(struct uwifi_packet* p, struct uwifi_node* n)
 
 	/* new node */
 	if (n->essid == NULL) {
-		DBG_PRINT("SPLIT   node not found, adding new %s\n",
-			ether_sprintf(n->wlan_src));
+		DBG_PRINT("SPLIT   node not found, adding new " MAC_FMT "\n",
+			MAC_PAR(n->wlan_src));
 		list_add_tail(&e->nodes, &n->essid_nodes);
 		e->num_nodes++;
 		n->essid = e;

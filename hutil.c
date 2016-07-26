@@ -38,7 +38,7 @@ const char* kilo_mega_ize(unsigned int val) {
 	return buf;
 }
 
-const char* ether_sprintf_short(const unsigned char *mac)
+const char* mac_sprint_short(const unsigned char *mac)
 {
 	static char etherbuf[5];
 	sprintf(etherbuf, "%02x%02x",

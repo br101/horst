@@ -22,6 +22,7 @@
 #include <stdlib.h>
 
 #include <uwifi/node.h>
+#include <uwifi/util.h>
 
 #include "display.h"
 #include "main.h"
@@ -68,7 +69,7 @@ void update_essid_win(WINDOW *win)
 			mvwprintw(win, line, 3, "%2d. %s %-17s", i++,
 				(n->wlan_mode & WLAN_MODE_AP) ? "AP  " : "IBSS",
 				mac_name_lookup(n->wlan_src, 0));
-			wprintw(win, " (%s)", ether_sprintf(n->wlan_bssid));
+			wprintw(win, " " MAC_FMT, MAC_PAR(n->wlan_bssid));
 			wprintw(win, " %016llx", n->wlan_tsf);
 			wprintw(win, " (%d)", n->wlan_bintval);
 			if (n->wlan_bintval < 1000)

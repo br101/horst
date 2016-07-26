@@ -393,7 +393,7 @@ void update_dump_win(struct uwifi_packet* p)
 	wprintw(dump_win, "%03d ", p->phy_signal);
 	wprintw(dump_win, "%3d ", p->phy_rate/10);
 	wprintw(dump_win, "%-17s ", mac_name_lookup(p->wlan_src, 0));
-	wprintw(dump_win, "(%s) ", ether_sprintf(p->wlan_bssid));
+	wprintw(dump_win, "(" MAC_FMT ") ", MAC_PAR(p->wlan_bssid));
 
 	if (p->phy_flags & PHY_FLAG_BADFCS) {
 		wprintw(dump_win, "*BADFCS* ");

@@ -221,10 +221,10 @@ static void write_to_file(struct uwifi_packet* p)
 	i += strftime(buf + i, sizeof(buf) - i, " %z", ltm);
 	fprintf(DF, "%s, ", buf);
 
-	fprintf(DF, "%s, %s, ",
-		get_packet_type_name(p->wlan_type), ether_sprintf(p->wlan_src));
-	fprintf(DF, "%s, ", ether_sprintf(p->wlan_dst));
-	fprintf(DF, "%s, ", ether_sprintf(p->wlan_bssid));
+	fprintf(DF, "%s, " MAC_FMT ", ",
+		get_packet_type_name(p->wlan_type), MAC_PAR(p->wlan_src));
+	fprintf(DF, MAC_FMT ", ", MAC_PAR(p->wlan_dst));
+	fprintf(DF, MAC_FMT ", ", MAC_PAR(p->wlan_bssid));
 	fprintf(DF, "%x, %d, %d, %d, %d, ",
 		p->pkt_types, p->phy_signal, p->wlan_len, p->phy_rate, p->phy_freq);
 	fprintf(DF, "%016llx, ", (unsigned long long)p->wlan_tsf);
@@ -543,7 +543,7 @@ static void mac_name_file_read(const char* filename)
 	node_names.count = idx;
 
 	for (n = 0; n < node_names.count; n++) {
-		printlog(LOG_INFO, "MAC %s = %s", ether_sprintf(node_names.entry[n].mac),
+		printlog(LOG_INFO, "MAC " MAC_FMT " = %s", MAC_PAR(node_names.entry[n].mac),
 			 node_names.entry[n].name );
 	}
 }
@@ -557,7 +557,7 @@ const char* mac_name_lookup(const unsigned char* mac, int shorten_mac)
 				return node_names.entry[i].name;
 		}
 	}
-	return shorten_mac ? ether_sprintf_short(mac) : ether_sprintf(mac);
+	return shorten_mac ? mac_sprint_short(mac) : mac_sprint(mac);
 }
 
 static void generate_mon_ifname(char *const buf, const size_t buf_size)

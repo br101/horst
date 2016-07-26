@@ -92,17 +92,17 @@ void update_filter_win(WINDOW *win)
 	wattroff(win, A_BOLD);
 
 	for (i = 0; i < MAX_FILTERMAC; i++) {
-		mvwprintw(win, l++, MAC_COL, "%d: [%c] %s", i+1,
+		mvwprintw(win, l++, MAC_COL, "%d: [%c] " MAC_FMT, i+1,
 			  CHECKED(conf.filtermac_enabled[i]),
-			  ether_sprintf(conf.filtermac[i]));
+			  MAC_PAR(conf.filtermac[i]));
 	}
 
 	l = THIRD_ROW;
 	wattron(win, A_BOLD);
 	mvwprintw(win, l++, MODE_COL, "BSSID");
 	wattroff(win, A_BOLD);
-	mvwprintw(win, l++, MODE_COL, "_: [%c] %s",
-		CHECKED(MAC_NOT_EMPTY(conf.filterbssid)), ether_sprintf(conf.filterbssid));
+	mvwprintw(win, l++, MODE_COL, "_: [%c] " MAC_FMT,
+		CHECKED(MAC_NOT_EMPTY(conf.filterbssid)), MAC_PAR(conf.filterbssid));
 
 	l++;
 
