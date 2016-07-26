@@ -19,7 +19,7 @@
 NAME=horst
 
 # build options
-DEBUG=1
+DEBUG=0
 
 OBJS=	conf_options.o				\
 	control.o				\
