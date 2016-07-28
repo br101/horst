@@ -36,6 +36,7 @@
 #include <uwifi/node.h>
 #include <uwifi/ifctrl.h>
 #include <uwifi/raw_parser.h>
+#include <uwifi/netdev.h>
 
 #include "main.h"
 #include "hutil.h"
@@ -465,7 +466,7 @@ static void exit_handler(void)
 		close_packet_socket(mon);
 	}
 
-	ifctrl_flags(conf.intf.ifname, false, false);
+	netdev_set_up_promisc(conf.intf.ifname, false, false);
 
 	if (conf.monitor_added)
 		ifctrl_iwdel(conf.intf.ifname);
@@ -640,7 +641,7 @@ int main(int argc, char** argv)
 			 * normally. The interface will be deleted at exit. */
 		}
 
-		if (!ifctrl_flags(conf.intf.ifname, true, true))
+		if (!netdev_set_up_promisc(conf.intf.ifname, true, true))
 			err(1, "failed to bring interface '%s' up",
 			    conf.intf.ifname);
 
@@ -650,7 +651,7 @@ int main(int argc, char** argv)
 		mon = open_packet_socket(conf.intf.ifname);
 		if (mon <= 0)
 			err(1, "Couldn't open packet socket");
-		conf.intf.arphdr = device_get_hwinfo(mon, conf.intf.ifname);
+		conf.intf.arphdr = netdev_get_hwinfo(conf.intf.ifname);
 
 		if (conf.intf.arphdr != ARPHRD_IEEE80211_PRISM &&
 		    conf.intf.arphdr != ARPHRD_IEEE80211_RADIOTAP)
