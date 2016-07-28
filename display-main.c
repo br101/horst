@@ -350,9 +350,9 @@ static void update_node_list_win(void)
 	mvwprintw(list_win, win_split - 1, COLS-10, "LiveStatus");
 
 	if (sortfunc)
-		listsort(&nodes.n, sortfunc);
+		listsort(&conf.intf.wlan_nodes.n, sortfunc);
 
-	list_for_each(&nodes, n, list) {
+	list_for_each(&conf.intf.wlan_nodes, n, list) {
 		if (conf.filter_mode != 0 && (n->wlan_mode & conf.filter_mode) == 0)
 			continue;
 		line++;

@@ -48,7 +48,6 @@
 #include "ieee80211_duration.h"
 #include "protocol_parser.h"
 
-struct list_head nodes;
 struct essid_meta_info essids;
 struct history hist;
 struct statistics stats;
@@ -58,8 +57,6 @@ struct node_names_info node_names;
 struct config conf;
 
 struct timespec the_time;
-
-int mon; /* monitoring socket */
 
 static FILE* DF = NULL;
 
@@ -323,7 +320,7 @@ void handle_packet(struct uwifi_packet* p)
 	if (!(p->phy_flags & PHY_FLAG_BADFCS)) {
 		DBG_PRINT("handle %s\n", get_packet_type_name(p->wlan_type));
 
-		n = uwifi_node_update(p, &nodes);
+		n = uwifi_node_update(p, &conf.intf.wlan_nodes);
 
 		p->pkt_duration = ieee80211_frame_duration(
 				p->phy_flags & PHY_FLAG_MODE_MASK,
@@ -382,7 +379,7 @@ static void receive_any(const sigset_t *const waitmask)
 	FD_ZERO(&excpt_fds);
 	if (!conf.quiet && !conf.debug)
 		FD_SET(0, &read_fds);
-	FD_SET(mon, &read_fds);
+	FD_SET(conf.intf.sock, &read_fds);
 	if (srv_fd != -1)
 		FD_SET(srv_fd, &read_fds);
 	if (cli_fd != -1)
@@ -393,7 +390,7 @@ static void receive_any(const sigset_t *const waitmask)
 	usecs = MIN(uwifi_channel_get_remaining_dwell_time(&conf.intf), 1000000);
 	ts.tv_sec = usecs / 1000000;
 	ts.tv_nsec = usecs % 1000000 * 1000;
-	mfd = MAX(mon, srv_fd);
+	mfd = MAX(conf.intf.sock, srv_fd);
 	mfd = MAX(mfd, ctlpipe);
 	mfd = MAX(mfd, cli_fd) + 1;
 
@@ -413,11 +410,11 @@ static void receive_any(const sigset_t *const waitmask)
 		handle_user_input();
 
 	/* local packet or client */
-	if (FD_ISSET(mon, &read_fds)) {
+	if (FD_ISSET(conf.intf.sock, &read_fds)) {
 		if (conf.serveraddr[0] != '\0')
-			net_receive(mon, buffer, &buflen, sizeof(buffer));
+			net_receive(conf.intf.sock, buffer, &buflen, sizeof(buffer));
 		else
-			local_receive_packet(mon, buffer, sizeof(buffer));
+			local_receive_packet(conf.intf.sock, buffer, sizeof(buffer));
 	}
 
 	/* server */
@@ -437,8 +434,6 @@ void free_lists(void)
 {
 	struct essid_info *e, *f;
 	struct chan_node *cn, *cn2;
-
-	uwifi_nodes_free(&nodes);
 
 	/* free essids */
 	list_for_each_safe(&essids.list, e, f, list) {
@@ -462,11 +457,7 @@ static void exit_handler(void)
 {
 	free_lists();
 
-	if (conf.serveraddr[0] == '\0') {
-		close_packet_socket(mon);
-	}
-
-	netdev_set_up_promisc(conf.intf.ifname, false, false);
+	uwifi_fini(&conf.intf);
 
 	if (conf.monitor_added)
 		ifctrl_iwdel(conf.intf.ifname);
@@ -587,7 +578,6 @@ int main(int argc, char** argv)
 	struct sigaction sigpipe_action;
 
 	list_head_init(&essids.list);
-	list_head_init(&nodes);
 	init_spectrum();
 
 	config_parse_file_and_cmdline(argc, argv);
@@ -618,7 +608,7 @@ int main(int argc, char** argv)
 	}
 
 	if (conf.serveraddr[0] != '\0')
-		mon = net_open_client_socket(conf.serveraddr, conf.port);
+		conf.intf.sock = net_open_client_socket(conf.serveraddr, conf.port);
 	else {
 		ifctrl_init();
 		ifctrl_iwget_interface_info(&conf.intf);
@@ -641,28 +631,10 @@ int main(int argc, char** argv)
 			 * normally. The interface will be deleted at exit. */
 		}
 
-		if (!netdev_set_up_promisc(conf.intf.ifname, true, true))
-			err(1, "failed to bring interface '%s' up",
-			    conf.intf.ifname);
-
-		/* get info again, as chan width is only available on UP interfaces */
-		ifctrl_iwget_interface_info(&conf.intf);
-
-		mon = open_packet_socket(conf.intf.ifname);
-		if (mon <= 0)
-			err(1, "Couldn't open packet socket");
-		conf.intf.arphdr = netdev_get_hwinfo(conf.intf.ifname);
-
-		if (conf.intf.arphdr != ARPHRD_IEEE80211_PRISM &&
-		    conf.intf.arphdr != ARPHRD_IEEE80211_RADIOTAP)
-			err(1, "interface '%s' is not in monitor mode",
-			    conf.intf.ifname);
+		uwifi_init(&conf.intf);
 
 		if (conf.recv_buffer_size)
-			set_receive_buffer(mon, conf.recv_buffer_size);
-
-		if (!uwifi_channel_init(&conf.intf) && conf.quiet)
-			err(1, "failed to change the initial channel number");
+			set_receive_buffer(conf.intf.sock, conf.recv_buffer_size);
 	}
 
 	printf("Max PHY rate: %d Mbps\n", conf.intf.max_phy_rate/10);
@@ -693,7 +665,7 @@ int main(int argc, char** argv)
 			exit(1);
 
 		clock_gettime(CLOCK_MONOTONIC, &the_time);
-		uwifi_nodes_timeout(&nodes, conf.node_timeout);
+		uwifi_nodes_timeout(&conf.intf.wlan_nodes, conf.node_timeout);
 
 		if (conf.serveraddr[0] == '\0') { /* server */
 			if (!conf.paused && uwifi_channel_auto_change(&conf.intf)) {
