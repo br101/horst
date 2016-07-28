@@ -346,7 +346,7 @@ static void local_receive_packet(int fd, unsigned char* buffer, size_t bufsize)
 
 	DBG_PRINT("\n===============================================================================\n");
 
-	ssize_t len = recv_packet(fd, buffer, bufsize);
+	ssize_t len = capture_recv(fd, buffer, bufsize);
 	if (len <= 0) {
 		DBG_PRINT("recv error");
 		return;
@@ -634,7 +634,7 @@ int main(int argc, char** argv)
 		uwifi_init(&conf.intf);
 
 		if (conf.recv_buffer_size)
-			set_receive_buffer(conf.intf.sock, conf.recv_buffer_size);
+			capture_set_receive_buffer(conf.intf.sock, conf.recv_buffer_size);
 	}
 
 	printf("Max PHY rate: %d Mbps\n", conf.intf.max_phy_rate/10);
