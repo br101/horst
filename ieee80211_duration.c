@@ -19,7 +19,6 @@
 #include <uwifi/platform.h>
 #include <uwifi/wlan80211.h>
 #include <uwifi/util.h>
-#include <uwifi/phy_info.h>
 
 #include "main.h"
 #include "ieee80211_duration.h"
