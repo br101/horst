@@ -220,7 +220,7 @@ static void write_to_file(struct uwifi_packet* p)
 	fprintf(DF, "%s, ", buf);
 
 	fprintf(DF, "%s, " MAC_FMT ", ",
-		get_packet_type_name(p->wlan_type), MAC_PAR(p->wlan_src));
+		wlan_get_packet_type_name(p->wlan_type), MAC_PAR(p->wlan_src));
 	fprintf(DF, MAC_FMT ", ", MAC_PAR(p->wlan_dst));
 	fprintf(DF, MAC_FMT ", ", MAC_PAR(p->wlan_bssid));
 	fprintf(DF, "%x, %d, %d, %d, %d, ",
@@ -318,7 +318,7 @@ void handle_packet(struct uwifi_packet* p)
 
 	/* we can't trust any fields except phy_* of packets with bad FCS */
 	if (!(p->phy_flags & PHY_FLAG_BADFCS)) {
-		DBG_PRINT("handle %s\n", get_packet_type_name(p->wlan_type));
+		DBG_PRINT("handle %s\n", wlan_get_packet_type_name(p->wlan_type));
 
 		n = uwifi_node_update(p, &conf.intf.wlan_nodes);
 

@@ -88,7 +88,7 @@ void update_statistics_win(WINDOW *win)
 		if (stats.packets_per_rate[i] > 0) {
 			wattron(win, A_BOLD);
 			if (i <= 12)
-				mvwprintw(win, line, 2, "%3dM", rate_index_to_rate(i)/10);
+				mvwprintw(win, line, 2, "%3dM", wlan_rate_to_rate(i)/10);
 			else
 				mvwprintw(win, line, 2, "MCS%d", i - 12);
 			wattroff(win, A_BOLD);
@@ -130,7 +130,7 @@ void update_statistics_win(WINDOW *win)
 		if (stats.packets_per_type[i] > 0) {
 			wattron(win, get_packet_type_color(i));
 			wattron(win, A_BOLD);
-			mvwprintw(win, line, 2, "%s", get_packet_type_name(i));
+			mvwprintw(win, line, 2, "%s", wlan_get_packet_type_name(i));
 			wattroff(win, A_BOLD);
 			mvwprintw(win, line, STAT_PACK_POS, "%8d",
 				stats.packets_per_type[i]);

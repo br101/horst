@@ -93,7 +93,7 @@ void update_history_win(WINDOW *win)
 
 		wattron(win, get_packet_type_color(hist.type[i]));
 		mvwprintw(win, TYPE_POS, col, "%c", \
-			get_packet_type_char(hist.type[i]));
+			wlan_get_packet_type_char(hist.type[i]));
 
 		if (hist.retry[i])
 			mvwprintw(win, TYPE_POS+1, col, "r");

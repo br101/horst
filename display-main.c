@@ -258,7 +258,7 @@ static void print_node_list_line(int line, struct uwifi_node* n)
 	mvwprintw(list_win, line, COL_SOURCE, "%-17s", mac_name_lookup(n->wlan_src, 0));
 
 	mvwprintw(list_win, line, COL_WIDTH, "%-2s %-3s",
-		get_80211std(n->wlan_chan_width, n->wlan_channel),
+		wlan_80211std_string(n->wlan_chan_width, n->wlan_channel),
 		(n->wlan_chan_width == CHAN_WIDTH_UNSPEC ||
 		 n->wlan_chan_width == CHAN_WIDTH_20_NOHT) ? "20" :
 		uwifi_channel_width_string_short(n->wlan_chan_width, n->wlan_ht40plus));
@@ -456,7 +456,7 @@ void update_dump_win(struct uwifi_packet* p)
 		wprintw(dump_win, "%-7s", "ARP", ip_sprintf(p->ip_src));
 	}
 	else {
-		wprintw(dump_win, "%-7s", get_packet_type_name(p->wlan_type));
+		wprintw(dump_win, "%-7s", wlan_get_packet_type_name(p->wlan_type));
 
 		switch (p->wlan_type) {
 		case WLAN_FRAME_DATA:
