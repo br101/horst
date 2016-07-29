@@ -665,7 +665,8 @@ int main(int argc, char** argv)
 			exit(1);
 
 		clock_gettime(CLOCK_MONOTONIC, &the_time);
-		uwifi_nodes_timeout(&conf.intf.wlan_nodes, conf.node_timeout);
+		uwifi_nodes_timeout(&conf.intf.wlan_nodes, conf.node_timeout,
+				    &conf.intf.last_nodetimeout);
 
 		if (conf.serveraddr[0] == '\0') { /* server */
 			if (!conf.paused && uwifi_channel_auto_change(&conf.intf)) {
