@@ -52,11 +52,11 @@ static struct ewma bpsn_avg;
 
 /******************* UTIL *******************/
 
-void print_dump_win(const char *str, int refresh)
+void print_dump_win(const char *str, int color, bool refresh)
 {
-	wattron(dump_win, RED);
+	wattron(dump_win, color);
 	wprintw(dump_win, str);
-	wattroff(dump_win, RED);
+	wattroff(dump_win, color);
 	if (refresh)
 		wrefresh(dump_win);
 	else

@@ -312,9 +312,15 @@ void update_display_clock(void)
 	}
 }
 
-void display_log(const char *string)
+void display_log(int level, const char *string)
 {
-	print_dump_win(string, show_win == NULL);
+	int color;
+	switch (level) {
+		case LOG_ERR: color = RED; break;
+		case LOG_DEBUG: color = WHITE; break;
+		default: color = YELLOW; break;
+	}
+	print_dump_win(string, color, show_win == NULL);
 }
 
 void update_display(struct uwifi_packet* pkt)

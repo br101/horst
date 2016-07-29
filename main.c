@@ -104,7 +104,7 @@ printlog(int level, const char *fmt, ...)
 	else {
 		/* fix up string for display log */
 		buf[0] = '\n';
-		display_log(buf);
+		display_log(level, buf);
 	}
 }
 
