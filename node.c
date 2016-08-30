@@ -34,7 +34,7 @@ static void copy_nodeinfo(struct node_info* n, struct packet_info* p)
 
 	memcpy(&(n->last_pkt), p, sizeof(struct packet_info));
 	// update timestamp
-	n->last_seen = time(NULL);
+	n->last_seen = the_time.tv_sec;
 	n->pkt_count++;
 	n->pkt_types |= p->pkt_types;
 	if (p->ip_src)
