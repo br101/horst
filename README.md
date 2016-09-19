@@ -45,11 +45,18 @@ supports monitor mode. The latest stable version is 5.0 from July 01 2016.
 
 ## Building
 
-	git clone https://github.com/br101/horst
-
 `horst` is just a simple tool, and `libncurses` and header files is the only
 hard requirement. Recently we have added support for `nl80211` via `libnl`, so
-normally you need `libnl3` + header files as well.
+normally you need `libnl3` + header files as well. `horst` builds on `libuwifi` as
+a git submodule and `libuwifi` in turn includes `radiotap` as a submodule. With
+newer versions of git the easiest way to check out is:
+
+	git clone --recursive https://github.com/br101/horst
+
+For older versions of git, or if you have already cloned horst before, you can
+use:
+
+	git submodule update --init --recursive
 
 Building is as simple as typing:
 
@@ -61,7 +68,7 @@ If you have an old or proprietary WLAN driver which only knows the deprecated
 	make WEXT=1
 
 To experimentally build using libpcap (note that libpcap on Linux is not
-necessary and not recommended) use:
+necessary and not recommended) use (Broken right now!):
 
 	make PCAP=1
 
@@ -70,7 +77,7 @@ libnl:
 
 	make PCAP=1 LIBNL=0
 
-To build for Mac OSX:
+To build for Mac OSX (Broken right now!):
 
 	make OSX=1
 
