@@ -41,7 +41,7 @@ OBJS=	conf_options.o				\
 	protocol_parser.o			\
 
 LIBS=-lncurses -lm -luwifi
-INCLUDES=-I.
+INCLUDES=-I. -I./libuwifi/inst/include
 CFLAGS+=-std=gnu99 -Wall -Wextra -g $(INCLUDES)
 
 ifeq ($(DEBUG),1)
@@ -60,7 +60,10 @@ all: $(NAME)
 $(NAME): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
-$(OBJS): .buildflags
+$(OBJS): .buildflags libuwifi/libuwifi.so.1
+
+libuwifi/libuwifi.so.1:
+	make -C libuwifi INST_PATH=inst install
 
 check:
 	sparse $(CFLAGS) *.[ch]
@@ -70,6 +73,8 @@ clean:
 	-rm -f $(NAME)
 	-rm -f .buildflags
 	-rm -f .objdeps.mk
+	-rm -r libuwifi/inst
+	-make -C libuwifi clean
 
 .buildflags: force
 	echo '$(CFLAGS)' | cmp -s - $@ || echo '$(CFLAGS)' > $@

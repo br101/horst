@@ -1,0 +1,3 @@
+[submodule "libuwifi"]
+	path = libuwifi
+	url = https://github.com/br101/libuwifi
