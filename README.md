@@ -47,9 +47,17 @@ supports monitor mode. The latest stable version is 5.0 from July 01 2016.
 
 `horst` is just a simple tool, and `libncurses` and header files is the only
 hard requirement. Recently we have added support for `nl80211` via `libnl`, so
-normally you need `libnl3` + header files as well. `horst` builds on `libuwifi` as
-a git submodule and `libuwifi` in turn includes `radiotap` as a submodule. With
-newer versions of git the easiest way to check out is:
+normally you need `libnl3` + header files as well. 
+
+Note: The `master` branch is in heavy restructuring mode right now, as it is
+switching to use `libuwifi` (https://github.com/br101/libuwifi). If you just want
+to build `horst`, please use the `stable` branch!
+
+	git clone -b stable https://github.com/br101/horst
+
+The master branch of `horst` builds on `libuwifi` as a git submodule and
+`libuwifi` in turn includes `radiotap` as a submodule. With newer versions of
+git the easiest way to check out is:
 
 	git clone --recursive https://github.com/br101/horst
 
