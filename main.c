@@ -44,6 +44,10 @@
 #include "conf_options.h"
 #include "ifctrl.h"
 
+#ifdef __MACH__
+#include "mach_clock_gettime.h"
+#endif
+
 struct list_head nodes;
 struct essid_meta_info essids;
 struct history hist;
