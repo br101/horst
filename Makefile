@@ -59,6 +59,7 @@ ifeq ($(OSX),1)
     WEXT=0
     LIBNL=0
     LIBS+=-framework CoreWLAN -framework CoreData -framework Foundation
+    OBJS+=mach_clock_gettime.o
 endif
 
 ifeq ($(DEBUG),1)
