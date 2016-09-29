@@ -48,6 +48,8 @@ ifeq ($(DEBUG),1)
 	CFLAGS+=-DDEBUG=1
 endif
 
+DESTDIR?=/usr/local
+
 .PHONY: all check clean force
 
 all: $(NAME)
@@ -75,6 +77,16 @@ clean:
 	-rm -f .objdeps.mk
 	-rm -r libuwifi/inst
 	-make -C libuwifi clean
+
+install:
+	mkdir -p $(DESTDIR)/sbin/
+	mkdir -p $(DESTDIR)/etc
+	mkdir -p $(DESTDIR)/man/man8/
+	mkdir -p $(DESTDIR)/man/man5
+	cp horst $(DESTDIR)/sbin/
+	cp horst.conf $(DESTDIR)/etc/
+	gzip horst.8 -c > $(DESTDIR)/man/man8/horst.8.gz
+	gzip horst.conf.5 -c > $(DESTDIR)/man/man5/horst.conf.5.gz
 
 .buildflags: force
 	echo '$(CFLAGS)' | cmp -s - $@ || echo '$(CFLAGS)' > $@
