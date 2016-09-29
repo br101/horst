@@ -43,15 +43,28 @@ problems.
 supports monitor mode. The latest stable version is 5.0 from July 01 2016.
 
 
-## Building
+## Checkout
 
-	git clone https://github.com/br101/horst
+If you just want to use `horst`, the recommended way is to download the latest
+stable version from https://github.com/br101/horst/releases or to use the
+stable branch:
+
+	git clone -b stable https://github.com/br101/horst
+
+
+## Dependencies
 
 `horst` is just a simple tool, and `libncurses` and header files is the only
 hard requirement. Recently we have added support for `nl80211` via `libnl`, so
-normally you need `libnl3` + header files as well.
+on Linux normally you need `libnl3` + header files as well. On Debian/Ubuntu
+based distros you can install them with:
 
-Building is as simple as typing:
+	sudo apt-get install libncurses5-dev libnl-3-dev libnl-genl-3-dev
+
+
+## Building
+
+Building is normally done with:
 
 	make
 
