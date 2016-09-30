@@ -52,7 +52,7 @@ OBJS=						   \
 	util.o					   \
 	wlan_util.o
 LIBS=-lncurses -lm
-CFLAGS+=-std=gnu99 -Wall -Wextra -g -I.
+CFLAGS+=-std=gnu99 -Wall -Wextra -g -I. -DVERSION=\"$(shell git describe --tags)\"
 
 ifeq ($(OSX),1)
     PCAP=1

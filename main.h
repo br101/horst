@@ -29,7 +29,6 @@
 #include "channel.h"
 #include "wlan80211.h"
 
-#define VERSION "5.1-pre"
 #define CONFIG_FILE "/etc/horst.conf"
 
 #ifndef DO_DEBUG
