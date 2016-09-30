@@ -104,6 +104,27 @@ To build for Mac OSX (Broken right now!):
 Please note that PCAP and OSX support is not so well tested and some features
 may be missing.
 
+To install (with optional `DESTDIR=/path`):
+
+	make install
+
+
+## Config and other files
+
+`horst` by default reads a config file `/etc/horst.conf`. The location of the file
+can be changed with the `-c file` command line option. See the file itself or
+`man horst.conf` for a description of the options.
+
+You can use `-Mfilename` to define a MAC address to host name mapping file which
+can either be a `dhcp.leases` file or simply contain `MAC-Address<whitesspace>Name`
+one each line.
+
+`-o outfile` can write the packets to a comma separated list file.
+
+`-X[filename]` is not a real file, but allows a control socket named pipe which can
+later be used with `-x command` to send commands in the same format as the options
+in the config file.
+
 
 ## Usage notes
 
@@ -134,18 +155,18 @@ Usually you have to start `horst` as root:
 To do remote monitoring over the network you can start a server (-q without a 
 user interface), usually on your AP or device with
 
-	horst -i wlan0 -C -q
+	horst -i wlan0 -N -q
 
 and connect a client (only one client is allowed at a time), usually from your 
 PC with
 
-	horst -c IP
+	horst -n IP
 
 Please read the man page for more details about the options, output and 
 abbreviations. It should be be part of your distribution package, but you can 
 read it in the source code locally with:
 
-	man -l horst.1
+	man -l horst.8
 	man -l horst.conf.5
 
 Please contact me if you have any problems or questions. New feature ideas, 
