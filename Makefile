@@ -42,7 +42,7 @@ OBJS=	conf_options.o				\
 
 LIBS=-lncurses -lm -luwifi
 INCLUDES=-I. -I./libuwifi/inst/include
-CFLAGS+=-std=gnu99 -Wall -Wextra -g $(INCLUDES)
+CFLAGS+=-std=gnu99 -Wall -Wextra -g $(INCLUDES) -DVERSION=\"$(shell git describe --tags)\"
 
 ifeq ($(DEBUG),1)
 	CFLAGS+=-DDEBUG=1

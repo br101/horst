@@ -37,7 +37,7 @@ void update_help_win(WINDOW *win)
 	print_centered(win, 2, COLS, "HORST - Horsts OLSR Radio Scanning Tool (or)");
 	print_centered(win, 3, COLS, "HORST - Highly Optimized Radio Scanning Tool");
 
-	print_centered(win, 5, COLS, "Version " VERSION " (build date " __DATE__ " " __TIME__ ")");
+	print_centered(win, 5, COLS, VERSION " (build date " __DATE__ " " __TIME__ ")");
 	print_centered(win, 6, COLS, "(C) 2005-2016 Bruno Randolf, Licensed under the GPLv2");
 
 	mvwprintw(win, 8, 2, "Known IEEE802.11 Packet Types:");
@@ -70,7 +70,7 @@ void update_help_win(WINDOW *win)
 	}
 
 	wattron(win, WHITE);
-	print_centered(win, 39, COLS, "For more info read the man page or check http://br1.einfach.org/horst/");
+	print_centered(win, 39, COLS, "For more info read the man page or check http://github.com/br101/horst");
 
 	wrefresh(win);
 }

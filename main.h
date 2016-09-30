@@ -32,7 +32,6 @@
 #include <uwifi/conf.h>
 #include <uwifi/platform.h>
 
-#define VERSION "6.0-pre"
 #define CONFIG_FILE "/etc/horst.conf"
 
 #ifndef DO_DEBUG
