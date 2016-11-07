@@ -71,9 +71,9 @@ static int compare_nodes_signal(const struct list_node *p1, const struct list_no
 	struct uwifi_node* n1 = list_entry(p1, struct uwifi_node, list);
 	struct uwifi_node* n2 = list_entry(p2, struct uwifi_node, list);
 
-	if (n1->last_pkt.phy_signal > n2->last_pkt.phy_signal)
+	if (n1->phy_sig_last > n2->phy_sig_last)
 		return -1;
-	else if (n1->last_pkt.phy_signal == n2->last_pkt.phy_signal)
+	else if (n1->phy_sig_last == n2->phy_sig_last)
 		return 0;
 	else
 		return 1;
@@ -255,7 +255,7 @@ static void print_node_list_line(int line, struct uwifi_node* n)
 		mvwprintw(list_win, line, COL_CHAN, "%3d", n->wlan_channel );
 
 	mvwprintw(list_win, line, COL_SIG, "%3d", -ewma_read(&n->phy_sig_avg));
-	mvwprintw(list_win, line, COL_RATE, "%3d", n->last_pkt.phy_rate/10);
+	mvwprintw(list_win, line, COL_RATE, "%3d", n->phy_rate_last/10);
 	mvwprintw(list_win, line, COL_SOURCE, "%-17s", mac_name_lookup(n->wlan_src, 0));
 
 	mvwprintw(list_win, line, COL_WIDTH, "%-2s %-3s",
@@ -285,7 +285,8 @@ static void print_node_list_line(int line, struct uwifi_node* n)
 	}
 	if (n->wlan_mode & WLAN_MODE_PROBE) {
 		wprintw(list_win, " PR");
-		ssid = n->last_pkt.wlan_essid;
+		if (n->essid != NULL)
+			ssid = n->essid->essid;
 	}
 	if (n->wlan_mode & WLAN_MODE_4ADDR) {
 			wprintw(list_win, " 4A");
