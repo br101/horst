@@ -668,8 +668,9 @@ int main(int argc, char** argv)
 		uwifi_nodes_timeout(&conf.intf.wlan_nodes, conf.node_timeout,
 				    &conf.intf.last_nodetimeout);
 
-		if (conf.serveraddr[0] == '\0') { /* server */
-			if (!conf.paused && uwifi_channel_auto_change(&conf.intf)) {
+		if (conf.serveraddr[0] == '\0' /* server */ && !conf.paused) {
+			int ret = uwifi_channel_auto_change(&conf.intf);
+			if (ret == 1) {
 				net_send_channel_config();
 				update_spectrum_durations();
 				if (!conf.quiet && !conf.debug)
@@ -678,6 +679,11 @@ int main(int argc, char** argv)
 				if (uwifi_channel_get_chan(&conf.intf.channels, conf.intf.channel_idx) == conf.intf.channel_set_num
 				    && conf.intf.channel_scan_rounds > 0)
 					--conf.intf.channel_scan_rounds;
+			} else if (ret == -1) {
+				printlog(LOG_ERR, "Channel change failed. Disabling scan on '%s'",
+					 conf.intf.ifname);
+				conf.intf.channel_scan = false;
+				update_display(NULL);
 			}
 		}
 	}
