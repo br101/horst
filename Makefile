@@ -32,7 +32,6 @@ OBJS=	conf_options.o				\
 	display-spectrum.o			\
 	display-statistics.o			\
 	display.o				\
-	essid.o					\
 	hutil.o					\
 	ieee80211_duration.o			\
 	listsort.o				\
@@ -43,6 +42,7 @@ OBJS=	conf_options.o				\
 LIBS=-lncurses -lm -luwifi
 INCLUDES=-I. -I./libuwifi/inst/include
 CFLAGS+=-std=gnu99 -Wall -Wextra -g $(INCLUDES) -DVERSION=\"$(shell git describe --tags)\"
+LDFLAGS+=-L./libuwifi
 
 ifeq ($(DEBUG),1)
 	CFLAGS+=-DDEBUG=1

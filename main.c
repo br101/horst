@@ -37,18 +37,17 @@
 #include <uwifi/ifctrl.h>
 #include <uwifi/raw_parser.h>
 #include <uwifi/netdev.h>
+#include <uwifi/essid.h>
 
 #include "main.h"
 #include "hutil.h"
 #include "network.h"
 #include "display.h"
 #include "control.h"
-#include "essid.h"
 #include "conf_options.h"
 #include "ieee80211_duration.h"
 #include "protocol_parser.h"
 
-struct essid_meta_info essids;
 struct history hist;
 struct statistics stats;
 struct channel_info spectrum[MAX_CHANNELS];
@@ -334,7 +333,7 @@ void handle_packet(struct uwifi_packet* p)
 	update_history(p);
 	update_statistics(p);
 	update_spectrum(p, n);
-	update_essids(p, n);
+	uwifi_essids_update(p, n);
 
 	if (!conf.quiet && !conf.debug)
 		update_display(p);
@@ -432,15 +431,7 @@ static void receive_any(const sigset_t *const waitmask)
 
 void free_lists(void)
 {
-	struct essid_info *e, *f;
 	struct chan_node *cn, *cn2;
-
-	/* free essids */
-	list_for_each_safe(&essids.list, e, f, list) {
-		DBG_PRINT("free essid '%s'\n", e->essid);
-		list_del(&e->list);
-		free(e);
-	}
 
 	/* free channel nodes */
 	for (int i = 0; i < uwifi_channel_get_num_channels(&conf.intf.channels); i++) {
@@ -451,6 +442,8 @@ void free_lists(void)
 			free(cn);
 		}
 	}
+
+	uwifi_essids_free();
 }
 
 static void exit_handler(void)
@@ -577,7 +570,7 @@ int main(int argc, char** argv)
 	struct sigaction sigint_action;
 	struct sigaction sigpipe_action;
 
-	list_head_init(&essids.list);
+	uwifi_essids_init();
 	init_spectrum();
 
 	config_parse_file_and_cmdline(argc, argv);
@@ -702,8 +695,7 @@ void main_reset(void)
 		display_clear();
 	printlog(LOG_INFO, "- RESET -");
 	free_lists();
-	essids.split_active = 0;
-	essids.split_essid = NULL;
+	uwifi_essids_reset();
 	memset(&hist, 0, sizeof(hist));
 	memset(&stats, 0, sizeof(stats));
 	memset(&spectrum, 0, sizeof(spectrum));

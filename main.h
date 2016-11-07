@@ -100,24 +100,6 @@ struct config {
 
 extern struct config conf;
 
-struct essid_info;
-
-struct essid_info {
-	struct list_node	list;
-	char			essid[WLAN_MAX_SSID_LEN];
-	struct list_head	nodes;
-	unsigned int		num_nodes;
-	int			split;
-};
-
-struct essid_meta_info {
-	struct list_head	list;
-	struct essid_info*	split_essid;
-	int			split_active;
-};
-
-extern struct essid_meta_info essids;
-
 struct history {
 	int			signal[MAX_HISTORY];
 	int			rate[MAX_HISTORY];

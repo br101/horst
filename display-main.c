@@ -26,6 +26,7 @@
 #include <uwifi/wlan_util.h>
 #include <uwifi/channel.h>
 #include <uwifi/node.h>
+#include <uwifi/essid.h>
 
 #include "display.h"
 #include "main.h"

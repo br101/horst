@@ -23,6 +23,7 @@
 
 #include <uwifi/node.h>
 #include <uwifi/util.h>
+#include <uwifi/essid.h>
 
 #include "display.h"
 #include "main.h"
