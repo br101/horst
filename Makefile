@@ -20,6 +20,7 @@ NAME = horst
 
 # build options
 DEBUG = 0
+LIBUWIFI_SUBMODULE = 1
 
 OBJS += conf_options.o
 OBJS += control.o
@@ -40,9 +41,14 @@ OBJS += network.o
 OBJS += protocol_parser.o
 
 LIBS = -lncurses -lm -luwifi
-INCLUDES = -I. -I./libuwifi/inst/include
+INCLUDES = -I.
 CFLAGS += -std=gnu99 -Wall -Wextra -g $(INCLUDES) -DVERSION=\"$(shell git describe --tags)\"
-LDFLAGS += -L./libuwifi
+
+ifeq ($(LIBUWIFI_SUBMODULE),1)
+	INCLUDES += -I./libuwifi/inst/include
+	LDFLAGS += -L./libuwifi
+	UWIFI_DEPEND = libuwifi/libuwifi.so.1
+endif
 
 ifeq ($(DEBUG),1)
 	CFLAGS += -DDEBUG=1
@@ -62,7 +68,7 @@ all: $(NAME)
 $(NAME): $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
-$(OBJS): .buildflags libuwifi/libuwifi.so.1
+$(OBJS): .buildflags $(UWIFI_DEPEND)
 
 libuwifi/libuwifi.so.1:
 	make -C libuwifi INST_PATH=inst install
