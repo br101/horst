@@ -74,7 +74,7 @@ libuwifi/libuwifi.so.1:
 	make -C libuwifi INST_PATH=inst install
 
 check:
-	sparse $(CFLAGS) *.[ch]
+	sparse $(CFLAGS)  -D__linux__ *.[ch]
 
 clean:
 	-rm -f *.o *~
