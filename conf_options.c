@@ -96,14 +96,18 @@ static bool conf_channel_set(const char* value) {
 	}
 
 	int n = atoi(value);
+
+	struct uwifi_chan_spec ch;
+	ch.freq = wlan_chan2freq(n);
+	ch.width = width;
+	ch.center_freq = ch.freq + ht40plus ? 10 : -10;
+
 	if (conf.intf.channel_initialized)
-		uwifi_channel_change(&conf.intf, uwifi_channel_idx_from_chan(&conf.intf.channels, n), width, ht40plus);
+		uwifi_channel_change(&conf.intf, &ch);
 	else {
 		/* We have not yet initialized the channel module, channel will be
 		* changed in channel_init(). */
-		conf.intf.channel_set_num = n;
-		conf.intf.channel_set_width = width;
-		conf.intf.channel_set_ht40plus = ht40plus;
+		conf.intf.channel_set = ch;
 	}
 	return true;
 }

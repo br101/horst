@@ -21,11 +21,15 @@
 
 #include <stdlib.h>
 
+#include <uwifi/wlan_util.h>
+
 #include "display.h"
 #include "main.h"
 #include "network.h"
 
 #define COL_BAND2 23
+
+static bool set_ht40plus;
 
 void update_channel_win(WINDOW *win)
 {
@@ -55,7 +59,7 @@ void update_channel_win(WINDOW *win)
 				wattron(win, WHITE);
 			mvwprintw(win, l++,
 				col,
-				"%s", uwifi_channel_get_string(&conf.intf.channels, c));
+				"%s", uwifi_channel_list_string(&conf.intf.channels, c));
 		}
 	}
 	wattroff(win, WHITE);
@@ -71,20 +75,20 @@ void update_channel_win(WINDOW *win)
 
 	l++;
 	wattron(win, A_BOLD);
-	mvwprintw(win, l++, 2, "m: Set channel: %d  ", conf.intf.channel_set_num);
+	mvwprintw(win, l++, 2, "m: Set channel: %d  ", wlan_freq2chan(conf.intf.channel_set.freq));
 	wattroff(win, A_BOLD);
 	mvwprintw(win, l++, 2, "1: [%c] 20 (no HT)",
-		CHECKED(conf.intf.channel_set_width == CHAN_WIDTH_20_NOHT));
+		CHECKED(conf.intf.channel_set.width == CHAN_WIDTH_20_NOHT));
 	mvwprintw(win, l++, 2, "2: [%c] HT20",
-		CHECKED(conf.intf.channel_set_width == CHAN_WIDTH_20));
+		CHECKED(conf.intf.channel_set.width == CHAN_WIDTH_20));
 	mvwprintw(win, l++, 2, "4: [%c] HT40-",
-		CHECKED(conf.intf.channel_set_width == CHAN_WIDTH_40 && !conf.intf.channel_set_ht40plus));
+		CHECKED(conf.intf.channel_set.width == CHAN_WIDTH_40 && !set_ht40plus));
 	mvwprintw(win, l++, 2, "5: [%c] HT40+",
-		CHECKED(conf.intf.channel_set_width == CHAN_WIDTH_40 && conf.intf.channel_set_ht40plus));
+		CHECKED(conf.intf.channel_set.width == CHAN_WIDTH_40 && set_ht40plus));
 	mvwprintw(win, l++, 2, "8: [%c] VHT80",
-		CHECKED(conf.intf.channel_set_width == CHAN_WIDTH_80));
+		CHECKED(conf.intf.channel_set.width == CHAN_WIDTH_80));
 	mvwprintw(win, l++, 2, "6: [%c] VHT160",
-		CHECKED(conf.intf.channel_set_width == CHAN_WIDTH_160));
+		CHECKED(conf.intf.channel_set.width == CHAN_WIDTH_160));
 
 	print_centered(win, CHANNEL_WIN_HEIGHT-1, CHANNEL_WIN_WIDTH,
 		       "[ Press keys and ENTER to apply ]");
@@ -129,58 +133,54 @@ bool channel_input(WINDOW *win, int c)
 		curs_set(0);
 		noecho();
 		sscanf(buf, "%d", &x);
-		conf.intf.channel_set_num = x;
+		conf.intf.channel_set.freq = wlan_chan2freq(x);
 		break;
 
 	case '1':
-		conf.intf.channel_set_width = CHAN_WIDTH_20_NOHT;
+		conf.intf.channel_set.width = CHAN_WIDTH_20_NOHT;
 		break;
 
 	case '2':
-		conf.intf.channel_set_width = CHAN_WIDTH_20;
+		conf.intf.channel_set.width = CHAN_WIDTH_20;
 		break;
 
 	case '4':
-		conf.intf.channel_set_width = CHAN_WIDTH_40;
-		conf.intf.channel_set_ht40plus = false;
+		conf.intf.channel_set.width = CHAN_WIDTH_40;
+		set_ht40plus = false;
 		break;
 
 	case '5':
-		conf.intf.channel_set_width = CHAN_WIDTH_40;
-		conf.intf.channel_set_ht40plus = true;
+		conf.intf.channel_set.width = CHAN_WIDTH_40;
+		set_ht40plus = true;
 		break;
 
 	case '8':
-		conf.intf.channel_set_width = CHAN_WIDTH_80;
+		conf.intf.channel_set.width = CHAN_WIDTH_80;
 		break;
 
 	case '6':
-		conf.intf.channel_set_width = CHAN_WIDTH_160;
+		conf.intf.channel_set.width = CHAN_WIDTH_160;
 		break;
 
 	case '\r': case KEY_ENTER: /* used to close win, too */
-		new_idx = uwifi_channel_idx_from_chan(&conf.intf.channels, conf.intf.channel_set_num);
+		new_idx = uwifi_channel_idx_from_freq(&conf.intf.channels, conf.intf.channel_set.freq);
 		if ((new_idx >= 0 && new_idx != conf.intf.channel_idx) ||
-		    conf.intf.channel_set_width != conf.intf.channel_width ||
-		    conf.intf.channel_set_ht40plus != conf.intf.channel_ht40plus) {
+		    conf.intf.channel_set.width != conf.intf.channel.width ||
+		    set_ht40plus != uwifi_channel_is_ht40plus(&conf.intf.channel)) {
+			conf.intf.channel_set.center_freq = conf.intf.channel_set.freq + (set_ht40plus ? 10 : -10);
 			/* some setting changed */
 			if (conf.serveraddr[0] == '\0') {
 				/* server */
-				if (!uwifi_channel_change(&conf.intf, new_idx, conf.intf.channel_set_width, conf.intf.channel_set_ht40plus)) {
-					printlog(LOG_ERR, "Channel %d %s is not available/allowed", conf.intf.channel_set_num,
-						 uwifi_channel_width_string(conf.intf.channel_set_width,
-								      conf.intf.channel_set_ht40plus));
+				if (!uwifi_channel_change(&conf.intf, &conf.intf.channel_set)) {
 					/* reset UI */
-					conf.intf.channel_set_width = conf.intf.channel_width;
-					conf.intf.channel_set_ht40plus = conf.intf.channel_ht40plus;
+					conf.intf.channel_set = conf.intf.channel;
 				} else {
 					net_send_channel_config();
 				}
 			} else {
 				/* client */
 				conf.intf.channel_idx = new_idx;
-				conf.intf.channel_width = conf.intf.channel_set_width;
-				conf.intf.channel_ht40plus = conf.intf.channel_set_ht40plus;
+				conf.intf.channel = conf.intf.channel_set;
 				printlog(LOG_INFO, "Sending channel config to server");
 				net_send_channel_config();
 			}

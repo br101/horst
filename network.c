@@ -40,7 +40,7 @@ int srv_fd = -1;
 int cli_fd = -1;
 static int netmon_fd;
 
-#define PROTO_VERSION	3
+#define PROTO_VERSION	4
 
 enum pkt_type {
 	PROTO_PKT_INFO		= 0,
@@ -59,12 +59,12 @@ struct net_conf_chan {
 
 	unsigned char do_change;
 	unsigned char upper;
-	char channel;
-
-#define NET_WIDTH_HT40PLUS	0x80
-	unsigned char width_ht40p;	// use upper bit for HT40+-
-
 	int dwell_time;
+
+	/* channel */
+	unsigned int freq;
+	unsigned int center_freq;
+	unsigned char width;
 
 } __attribute__ ((packed));
 
@@ -306,12 +306,11 @@ static void net_send_conf_chan(int fd)
 	nc.proto.type	= PROTO_CONF_CHAN;
 	nc.do_change = conf.intf.channel_scan;
 	nc.upper = conf.intf.channel_max;
-	nc.channel = conf.intf.channel_idx;
-	nc.width_ht40p = conf.intf.channel_width;
-	if (conf.intf.channel_ht40plus)
-			nc.width_ht40p |= NET_WIDTH_HT40PLUS;
-
 	nc.dwell_time = htole32(conf.intf.channel_time);
+
+	nc.freq = conf.intf.channel.freq;
+	nc.center_freq = conf.intf.channel.center_freq;
+	nc.width = conf.intf.channel.width;
 
 	net_write(fd, (unsigned char *)&nc, sizeof(nc));
 }
@@ -328,30 +327,27 @@ static int net_receive_conf_chan(unsigned char *buffer, size_t len)
 	conf.intf.channel_max = nc->upper;
 	conf.intf.channel_time = le32toh(nc->dwell_time);
 
-	enum uwifi_chan_width width = nc->width_ht40p & ~NET_WIDTH_HT40PLUS;
-	bool ht40p = !!(nc->width_ht40p & NET_WIDTH_HT40PLUS);
+	struct uwifi_chan_spec ch;
+	ch.freq = nc->freq;
+	ch.center_freq = nc->center_freq;
+	ch.width = nc->width;
 
-	if (nc->channel != conf.intf.channel_idx ||
-	    width != conf.intf.channel_width ||
-	    ht40p != conf.intf.channel_ht40plus) { /* something changed */
+	if (conf.intf.channel.freq != ch.freq ||
+	    conf.intf.channel.center_freq != ch.center_freq ||
+	    conf.intf.channel.width != ch.width) { /* something changed */
 		if (cli_fd > -1) { /* server */
-			if (!uwifi_channel_change(&conf.intf, nc->channel, width, ht40p)) {
-				printlog(LOG_ERR, "Net Channel %d %s is not available/allowed",
-					uwifi_channel_get_chan(&conf.intf.channels, nc->channel),
-					uwifi_channel_width_string(width, ht40p));
+			if (!uwifi_channel_change(&conf.intf, &ch)) {
+				printlog(LOG_ERR, "Net Channel %s is not available/allowed",
+					uwifi_channel_get_string(&ch));
 				net_send_channel_config();
 			} else {
 				/* success: update UI */
-				conf.intf.channel_set_num = uwifi_channel_get_chan(&conf.intf.channels, nc->channel);
-				conf.intf.channel_set_width = width;
-				conf.intf.channel_set_ht40plus = ht40p;
+				conf.intf.channel_set = ch;
 				update_display(NULL);
 			}
 		} else { /* client */
-			conf.intf.channel_idx = nc->channel;
-			conf.intf.channel_width = conf.intf.channel_set_width = width;
-			conf.intf.channel_ht40plus = conf.intf.channel_set_ht40plus = ht40p;
-			conf.intf.channel_set_num = uwifi_channel_get_chan(&conf.intf.channels, nc->channel);
+			conf.intf.channel_idx = uwifi_channel_idx_from_freq(&conf.intf.channels, ch.freq);
+			conf.intf.channel = conf.intf.channel_set = ch;
 			update_spectrum_durations();
 			update_display(NULL);
 		}

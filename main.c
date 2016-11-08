@@ -669,7 +669,7 @@ int main(int argc, char** argv)
 				if (!conf.quiet && !conf.debug)
 					update_display(NULL);
 
-				if (uwifi_channel_get_chan(&conf.intf.channels, conf.intf.channel_idx) == conf.intf.channel_set_num
+				if (conf.intf.channel_idx == uwifi_channel_idx_from_freq(&conf.intf.channels, conf.intf.channel_set.freq)
 				    && conf.intf.channel_scan_rounds > 0)
 					--conf.intf.channel_scan_rounds;
 			} else if (ret == -1) {
