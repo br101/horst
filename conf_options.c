@@ -21,7 +21,6 @@
 #include <string.h>
 #include <getopt.h>
 #include <err.h>
-#include <time.h>
 
 #include <uwifi/util.h>
 #include <uwifi/wlan_util.h>
