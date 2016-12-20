@@ -56,6 +56,7 @@ struct node_names_info node_names;
 struct config conf;
 
 struct timespec the_time;
+struct timespec display_time;
 
 static FILE* DF = NULL;
 
@@ -210,11 +211,11 @@ static void write_to_file(struct uwifi_packet* p)
 {
 	char buf[40];
 	int i;
-	struct tm* ltm = localtime(&the_time.tv_sec);
+	struct tm* ltm = localtime(&display_time.tv_sec);
 
 	//timestamp, e.g. 2015-05-16 15:05:44.338806 +0300
 	i = strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", ltm);
-	i += snprintf(buf + i, sizeof(buf) - i, ".%06ld", (long)(the_time.tv_nsec / 1000));
+	i += snprintf(buf + i, sizeof(buf) - i, ".%06ld", (long)(display_time.tv_nsec / 1000));
 	i += strftime(buf + i, sizeof(buf) - i, " %z", ltm);
 	fprintf(DF, "%s, ", buf);
 
@@ -587,8 +588,9 @@ int main(int argc, char** argv)
 
 	atexit(exit_handler);
 
-	clock_gettime(conf.clock_id, &stats.stats_time);
-	clock_gettime(conf.clock_id, &the_time);
+	clock_gettime(CLOCK_MONOTONIC, &stats.stats_time);
+	clock_gettime(CLOCK_MONOTONIC, &the_time);
+	clock_gettime(conf.display_clock, &display_time);
 
 	conf.intf.channel_idx = -1;
 
@@ -657,7 +659,8 @@ int main(int argc, char** argv)
 		if (is_sigint_caught)
 			exit(1);
 
-		clock_gettime(conf.clock_id, &the_time);
+		clock_gettime(CLOCK_MONOTONIC, &the_time);
+		clock_gettime(conf.display_clock, &display_time);
 		uwifi_nodes_timeout(&conf.intf.wlan_nodes, conf.node_timeout,
 				    &conf.intf.last_nodetimeout);
 
@@ -700,7 +703,8 @@ void main_reset(void)
 	memset(&stats, 0, sizeof(stats));
 	memset(&spectrum, 0, sizeof(spectrum));
 	init_spectrum();
-	clock_gettime(conf.clock_id, &stats.stats_time);
+	clock_gettime(CLOCK_MONOTONIC, &stats.stats_time);
+	clock_gettime(conf.display_clock, &display_time);
 }
 
 void dumpfile_open(const char* name)

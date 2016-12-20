@@ -96,7 +96,7 @@ struct config {
 				monitor_added:1;
 	int			paused;
 	unsigned int		node_timeout;
-	clockid_t		clock_id;
+	clockid_t		display_clock;
 };
 
 extern struct config conf;
@@ -169,6 +169,7 @@ struct node_names_info {
 extern struct node_names_info node_names;
 
 extern struct timespec the_time;
+extern struct timespec display_time;
 
 extern struct list_head nodes;
 
