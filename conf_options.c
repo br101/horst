@@ -327,7 +327,7 @@ static struct conf_option conf_options[] = {
 	{ 'B', "filter_bssid", 		1, NULL,	conf_filter_bssid },
 	{ 'm', "filter_mode",		1, "ALL",	conf_filter_mode },
 	{ 'f', "filter_packet",		1, "ALL",	conf_filter_pkt },
-	{ 'M', "mac_names",		2, NULL,	conf_mac_names }
+	{ 'M', "mac_names",		2, NULL,	conf_mac_names },
 };
 
 /*
