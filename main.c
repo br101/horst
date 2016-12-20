@@ -587,8 +587,8 @@ int main(int argc, char** argv)
 
 	atexit(exit_handler);
 
-	clock_gettime(CLOCK_MONOTONIC, &stats.stats_time);
-	clock_gettime(CLOCK_MONOTONIC, &the_time);
+	clock_gettime(conf.clock_id, &stats.stats_time);
+	clock_gettime(conf.clock_id, &the_time);
 
 	conf.intf.channel_idx = -1;
 
@@ -657,7 +657,7 @@ int main(int argc, char** argv)
 		if (is_sigint_caught)
 			exit(1);
 
-		clock_gettime(CLOCK_MONOTONIC, &the_time);
+		clock_gettime(conf.clock_id, &the_time);
 		uwifi_nodes_timeout(&conf.intf.wlan_nodes, conf.node_timeout,
 				    &conf.intf.last_nodetimeout);
 
@@ -700,7 +700,7 @@ void main_reset(void)
 	memset(&stats, 0, sizeof(stats));
 	memset(&spectrum, 0, sizeof(spectrum));
 	init_spectrum();
-	clock_gettime(CLOCK_MONOTONIC, &stats.stats_time);
+	clock_gettime(conf.clock_id, &stats.stats_time);
 }
 
 void dumpfile_open(const char* name)

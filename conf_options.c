@@ -21,6 +21,7 @@
 #include <string.h>
 #include <getopt.h>
 #include <err.h>
+#include <time.h>
 
 #include <uwifi/util.h>
 #include <uwifi/wlan_util.h>
@@ -300,6 +301,22 @@ static bool conf_mac_names(const char* value) {
 	return true;
 }
 
+static bool conf_clock_id(const char* value) {
+	const char* clock_names[] = { "CLOCK_REALTIME", "CLOCK_MONOTONIC" };
+	const int clock_ids[] = { CLOCK_REALTIME, CLOCK_MONOTONIC };
+	const int num_clocks = sizeof(clock_ids) / sizeof(int);
+
+	for(int i = 0; i < num_clocks; i++) {
+		if (strcmp(value, clock_names[i]) == 0) {
+			conf.clock_id = clock_ids[i];
+			return true;
+		}
+	}
+
+	printlog(LOG_ERR, "Not supported clock: %s", value);
+	return false;
+}
+
 static struct conf_option conf_options[] = {
 	/* C , NAME        VALUE REQUIRED, DEFAULT	CALLBACK */
 	{ 'q', "quiet",			0, NULL,	conf_quiet },		// NOT dynamic
@@ -327,6 +344,7 @@ static struct conf_option conf_options[] = {
 	{ 'm', "filter_mode",		1, "ALL",	conf_filter_mode },
 	{ 'f', "filter_packet",		1, "ALL",	conf_filter_pkt },
 	{ 'M', "mac_names",		2, NULL,	conf_mac_names },
+	{ 'T', "clock_id",		1, "CLOCK_MONOTONIC", 	conf_clock_id }
 };
 
 /*
@@ -478,6 +496,7 @@ static void print_usage(const char* name)
 		"  -V view\tDisplay view: history|essid|statistics|spectrum\n"
 		"  -b <bytes>\tReceive buffer size in bytes (not set)\n"
 		"  -M[filename]\tMAC address to host name mapping (/tmp/dhcp.leases)\n"
+		"  -T <clock_id>\tClock id to use for output (CLOCK_MONOTONIC)\n"
 
 		"\nFeature Options:\n"
 		"  -s\t\t(Poor mans) Spectrum analyzer mode\n"

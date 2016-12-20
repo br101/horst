@@ -96,6 +96,7 @@ struct config {
 				monitor_added:1;
 	int			paused;
 	unsigned int		node_timeout;
+	clockid_t		clock_id;
 };
 
 extern struct config conf;
