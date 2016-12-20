@@ -237,7 +237,7 @@ static void print_node_list_line(int line, struct uwifi_node* n)
 
 	if (n->pkt_types & PKT_TYPE_OLSR)
 		wattron(list_win, GREEN);
-	if (n->last_seen > (the_time.tv_sec - conf.node_timeout / 2))
+	if (n->last_seen > (time_mono.tv_sec - conf.node_timeout / 2))
 		wattron(list_win, A_BOLD);
 	else
 		wattron(list_win, A_NORMAL);
