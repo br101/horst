@@ -54,14 +54,14 @@ void get_per_second(unsigned long bytes, unsigned long duration,
 	float timediff;
 
 	/* reacalculate only every second or more */
-	timediff = (the_time.tv_sec + the_time.tv_nsec/1000000000.0) -
+	timediff = (time_mono.tv_sec + time_mono.tv_nsec/1000000000.0) -
 		   (last.tv_sec + last.tv_nsec/1000000000.0);
 	if (timediff >= 1.0) {
 		last_dps = (1.0*(duration - last_dur)) / timediff;
 		last_bps = (1.0*(bytes - last_bytes)) / timediff;
 		last_pps = (1.0*(packets - last_pkts)) / timediff;
 		last_rps = (1.0*(retries - last_retr)) / timediff;
-		last = the_time;
+		last = time_mono;
 		last_dur = duration;
 		last_bytes = bytes;
 		last_pkts = packets;
@@ -239,7 +239,7 @@ static void update_menu(void)
 	wattroff(stdscr, BLACKONWHITE);
 
 	update_mini_status();
-	update_clock(&the_time.tv_sec);
+	update_clock(&time_real.tv_sec);
 }
 
 /******************* WINDOW MANAGEMENT / UPDATE *******************/
@@ -306,8 +306,8 @@ static void show_conf_window(int key)
 void update_display_clock(void)
 {
 	/* helper to update just the clock every second */
-	if (the_time.tv_sec > last_time.tv_sec) {
-		update_clock(&the_time.tv_sec);
+	if (time_mono.tv_sec > last_time.tv_sec) {
+		update_clock(&time_real.tv_sec);
 		doupdate();
 	}
 }
@@ -330,8 +330,8 @@ void update_display(struct uwifi_packet* pkt)
 	 * if pkt is NULL we want to force an update
 	 */
 	if (pkt != NULL &&
-	    the_time.tv_sec == last_time.tv_sec &&
-	    (the_time.tv_nsec - last_time.tv_nsec) / 1000 < conf.display_interval ) {
+	    time_mono.tv_sec == last_time.tv_sec &&
+	    (time_mono.tv_nsec - last_time.tv_nsec) / 1000 < conf.display_interval ) {
 		/* just add the line to dump win so we don't loose it */
 		update_dump_win(pkt);
 		return;
@@ -345,10 +345,10 @@ void update_display(struct uwifi_packet* pkt)
 	update_menu();
 
 	/* update clock every second */
-	if (the_time.tv_sec > last_time.tv_sec)
-		update_clock(&the_time.tv_sec);
+	if (time_mono.tv_sec > last_time.tv_sec)
+		update_clock(&time_real.tv_sec);
 
-	last_time = the_time;
+	last_time = time_mono;
 
 	if (show_win != NULL)
 		update_show_win();

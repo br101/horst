@@ -167,7 +167,8 @@ struct node_names_info {
 
 extern struct node_names_info node_names;
 
-extern struct timespec the_time;
+extern struct timespec time_mono;
+extern struct timespec time_real;
 
 extern struct list_head nodes;
 
