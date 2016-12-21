@@ -51,7 +51,7 @@ ifeq ($(LIBUWIFI_SUBMODULE),1)
 endif
 
 ifeq ($(DEBUG),1)
-	CFLAGS += -DDEBUG=1
+	CFLAGS += -DDO_DEBUG=1
 endif
 
 DESTDIR ?= /usr/local
