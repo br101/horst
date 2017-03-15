@@ -452,9 +452,7 @@ static char* config_get_getopt_string(char* buf, size_t maxlen, const char* add)
 
 static void print_usage(const char* name)
 {
-	printf("\nUsage: %s [-v] [-h] [-q] [-D] [-a] [-c file] [-i interface] [-t sec] [-d ms] [-V view] [-b bytes]\n"
-		"\t\t[-s] [-u] [-N] [-n IP] [-p port] [-o file] [-X[name]] [-x command]\n"
-		"\t\t[][-e MAC] [-f PKT_NAME] [-m MODE] [-B BSSID]\n\n"
+	printf("\nUsage: %s [options]\n\n"
 
 		"General Options: Description (default value)\n"
 		"  -v\t\tshow version\n"
