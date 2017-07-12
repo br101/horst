@@ -58,6 +58,7 @@ struct node_names_info node_names;
 struct config conf;
 
 struct timespec time_mono;
+struct timespec time_real;
 
 int mon; /* monitoring socket */
 
@@ -214,7 +215,7 @@ static void write_to_file(struct packet_info* p)
 {
 	char buf[40];
 	int i;
-	struct tm* ltm = localtime(&time_mono.tv_sec);
+	struct tm* ltm = localtime(&time_real.tv_sec);
 
 	//timestamp, e.g. 2015-05-16 15:05:44.338806 +0300
 	i = strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", ltm);
@@ -725,6 +726,8 @@ int main(int argc, char** argv)
 			exit(1);
 
 		clock_gettime(CLOCK_MONOTONIC, &time_mono);
+		clock_gettime(CLOCK_REALTIME, &time_real);
+
 		node_timeout();
 
 		if (conf.serveraddr[0] == '\0') { /* server */

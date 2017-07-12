@@ -345,6 +345,7 @@ struct config {
 extern struct config conf;
 
 extern struct timespec time_mono;
+extern struct timespec time_real;
 
 void free_lists(void);
 void init_spectrum(void);

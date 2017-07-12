@@ -238,7 +238,7 @@ static void update_menu(void)
 	wattroff(stdscr, BLACKONWHITE);
 
 	update_mini_status();
-	update_clock(&time_mono.tv_sec);
+	update_clock(&time_real.tv_sec);
 }
 
 /******************* WINDOW MANAGEMENT / UPDATE *******************/
@@ -306,7 +306,7 @@ void update_display_clock(void)
 {
 	/* helper to update just the clock every second */
 	if (time_mono.tv_sec > time_mono.tv_sec) {
-		update_clock(&time_mono.tv_sec);
+		update_clock(&time_real.tv_sec);
 		doupdate();
 	}
 }
@@ -339,7 +339,7 @@ void update_display(struct packet_info* pkt)
 
 	/* update clock every second */
 	if (time_mono.tv_sec > time_mono.tv_sec)
-		update_clock(&time_mono.tv_sec);
+		update_clock(&time_real.tv_sec);
 
 	last_time = time_mono;
 
