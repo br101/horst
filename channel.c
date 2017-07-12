@@ -36,8 +36,8 @@ uint32_t channel_get_remaining_dwell_time(void)
 		return UINT32_MAX;
 
 	int64_t ret = (int64_t)conf.channel_time
-		- (the_time.tv_sec -  last_channelchange.tv_sec) * 1000000
-		- (the_time.tv_nsec - last_channelchange.tv_nsec) / 1000;
+		- (time_mono.tv_sec -  last_channelchange.tv_sec) * 1000000
+		- (time_mono.tv_nsec - last_channelchange.tv_nsec) / 1000;
 
 	if (ret < 0)
 		return 0;
@@ -178,17 +178,19 @@ bool channel_change(int idx, enum chan_width width, bool ht40plus)
 		return false;
 	}
 
+#if 0
 	printlog("Set CH %d (%d MHz) %s center %d after %ldms",
 		channels.chan[idx].chan, channels.chan[idx].freq,
 		channel_width_string(width, ht40plus),
 		 center1, (the_time.tv_sec - last_channelchange.tv_sec) * 1000
 		 + (the_time.tv_nsec - last_channelchange.tv_nsec) / 1000000);
+#endif
 
 	conf.channel_idx = idx;
 	conf.channel_width = width;
 	conf.channel_ht40plus = ht40plus;
 	conf.max_phy_rate = get_phy_thruput(width, channel_get_band_from_idx(idx).streams_rx);
-	last_channelchange = the_time;
+	last_channelchange = time_mono;
 	return true;
 }
 

@@ -34,7 +34,7 @@ static void copy_nodeinfo(struct node_info* n, struct packet_info* p)
 
 	memcpy(&(n->last_pkt), p, sizeof(struct packet_info));
 	// update timestamp
-	n->last_seen = the_time.tv_sec;
+	n->last_seen = time_mono.tv_sec;
 	n->pkt_count++;
 	n->pkt_types |= p->pkt_types;
 	if (p->ip_src)
@@ -167,11 +167,11 @@ void node_timeout(void)
 	struct node_info *n, *m, *n2, *m2;
 	struct chan_node *cn, *cn2;
 
-	if ((the_time.tv_sec - last_nodetimeout.tv_sec) < conf.node_timeout )
+	if ((time_mono.tv_sec - last_nodetimeout.tv_sec) < conf.node_timeout )
 		return;
 
 	list_for_each_safe(&nodes, n, m, list) {
-		if (n->last_seen < (the_time.tv_sec - conf.node_timeout)) {
+		if (n->last_seen < (time_mono.tv_sec - conf.node_timeout)) {
 			list_del(&n->list);
 			if (n->essid != NULL)
 				remove_node_from_essid(n);
@@ -191,5 +191,5 @@ void node_timeout(void)
 			free(n);
 		}
 	}
-	last_nodetimeout = the_time;
+	last_nodetimeout = time_mono;
 }

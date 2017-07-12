@@ -59,7 +59,7 @@ void update_essid_win(WINDOW *win)
 			if (line > LINES-3)
 				break;
 
-			if (n->last_seen > (the_time.tv_sec - conf.node_timeout / 2))
+			if (n->last_seen > (time_mono.tv_sec - conf.node_timeout / 2))
 				wattron(win, A_BOLD);
 			else
 				wattroff(win, A_BOLD);
