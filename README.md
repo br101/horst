@@ -21,7 +21,7 @@ smaller and shows different, aggregated information which is not easily
 available from other tools. It is made for debugging wireless LANs with a focus 
 on getting a quick overview instead of deep packet inspection and has special 
 features for Ad-hoc (IBSS) mode and mesh networks. It can be useful to get a 
-quick overview of what's going on on all wireless LAN channels and to identify 
+quick overview of what's going on all wireless LAN channels and to identify 
 problems.
 
 * Shows signal (RSSI) values per station, something hard to get, especially in 
