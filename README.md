@@ -69,11 +69,11 @@ use:
 ## Dependencies
 
 `horst` is just a simple tool, and `libncurses` and header files is the only
-hard requirement. Recently we have added support for `nl80211` via `libnl`, so
-on Linux normally you need `libnl3` + header files as well. On Debian/Ubuntu
-based distros you can install them with:
+hard requirement as well as the `pkg-config` tool. Recently we have added support
+for `nl80211` via `libnl`, so on Linux normally you need `libnl3` + header files 
+as well. On Debian/Ubuntu based distros you can install them with:
 
-	sudo apt-get install libncurses5-dev libnl-3-dev libnl-genl-3-dev
+	sudo apt-get install libncurses5-dev libnl-3-dev libnl-genl-3-dev pkg-config
 
 
 ## Building
