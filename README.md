@@ -21,7 +21,7 @@ smaller and shows different, aggregated information which is not easily
 available from other tools. It is made for debugging wireless LANs with a focus 
 on getting a quick overview instead of deep packet inspection and has special 
 features for Ad-hoc (IBSS) mode and mesh networks. It can be useful to get a 
-quick overview of what's going on on all wireless LAN channels and to identify 
+quick overview of what's going on all wireless LAN channels and to identify 
 problems.
 
 * Shows signal (RSSI) values per station, something hard to get, especially in 
@@ -69,11 +69,11 @@ use:
 ## Dependencies
 
 `horst` is just a simple tool, and `libncurses` and header files is the only
-hard requirement. Recently we have added support for `nl80211` via `libnl`, so
-on Linux normally you need `libnl3` + header files as well. On Debian/Ubuntu
-based distros you can install them with:
+hard requirement as well as the `pkg-config` tool. Recently we have added support
+for `nl80211` via `libnl`, so on Linux normally you need `libnl3` + header files 
+as well. On Debian/Ubuntu based distros you can install them with:
 
-	sudo apt-get install libncurses5-dev libnl-3-dev libnl-genl-3-dev
+	sudo apt-get install libncurses5-dev libnl-3-dev libnl-genl-3-dev pkg-config
 
 
 ## Building
