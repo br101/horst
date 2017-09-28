@@ -24,6 +24,8 @@
 #include <sys/stat.h>
 #include <err.h>
 
+#include <uwifi/log.h>
+
 #include "main.h"
 #include "control.h"
 #include "conf_options.h"
@@ -52,7 +54,7 @@ void control_send_command(const char* cmd)
 	}
 
 	while (access(conf.control_pipe, F_OK) < 0) {
-		printlog(LOG_INFO, "Waiting for control pipe '%s'...", conf.control_pipe);
+		LOG_INF("Waiting for control pipe '%s'...", conf.control_pipe);
 		sleep(1);
 	}
 
@@ -70,7 +72,7 @@ void control_send_command(const char* cmd)
 		*pos = '\n';
 	}
 
-	printlog(LOG_INFO, "Sending command: %s", new);
+	LOG_INF("Sending command: %s", new);
 
 	write(ctlpipe, new, len+1);
 	close(ctlpipe);
@@ -82,7 +84,7 @@ static void parse_command(char* in) {
 
 	cmd = strsep(&in, "=");
 	val = in;
-	//printlog(LOG_ERR, "RECV CMD %s VAL %s", cmd, val);
+	//LOG_ERR("RECV CMD %s VAL %s", cmd, val);
 
 	/* commands without value */
 

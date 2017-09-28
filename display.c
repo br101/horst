@@ -29,6 +29,7 @@
 #include <uwifi/wlan80211.h>
 #include <uwifi/channel.h>
 #include <uwifi/util.h>
+#include <uwifi/log.h>
 
 #include "display.h"
 #include "main.h"
@@ -316,8 +317,8 @@ void display_log(int level, const char *string)
 {
 	int color;
 	switch (level) {
-		case LOG_ERR: color = RED; break;
-		case LOG_DEBUG: color = WHITE; break;
+		case LL_ERR: color = RED; break;
+		case LL_DEBUG: color = WHITE; break;
 		default: color = YELLOW; break;
 	}
 	print_dump_win(string, color, show_win == NULL);

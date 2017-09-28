@@ -22,6 +22,7 @@
 #include <stdlib.h>
 
 #include <uwifi/wlan_util.h>
+#include <uwifi/log.h>
 
 #include "display.h"
 #include "main.h"
@@ -181,7 +182,7 @@ bool channel_input(WINDOW *win, int c)
 				/* client */
 				conf.intf.channel_idx = new_idx;
 				conf.intf.channel = conf.intf.channel_set;
-				printlog(LOG_INFO, "Sending channel config to server");
+				LOG_INF("Sending channel config to server");
 				net_send_channel_config();
 			}
 		}
