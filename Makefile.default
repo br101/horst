@@ -62,7 +62,7 @@ $(BUILD_DIR)/$(NAME).a: $(OBJS)
 $(BUILD_DIR)/$(NAME).so: $(OBJS)
 	@printf "  LD      $@\n"
 	$(Q)$(CC) $(LDFLAGS) -shared -Wl,-soname,$@.1 -o $@ $(OBJS) $(LIBS)
-	$(Q)-ln -sfn $@ $@.1
+	$(Q)-ln -sfn $(NAME).so $@.1
 
 $(BUILD_DIR)/%.o: %.c
 	@printf "  CC      $(*).c\n"
