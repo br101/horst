@@ -1,6 +1,6 @@
 # horst - Highly Optimized Radio Scanning Tool
 #
-# Copyright (C) 2005-2016 Bruno Randolf (br1@einfach.org)
+# Copyright (C) 2005-2017 Bruno Randolf (br1@einfach.org)
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -16,73 +16,53 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-NAME = horst
+NAME		= horst
 
 # build options
-DEBUG = 0
-LIBUWIFI_SUBMODULE = 1
+DEBUG		= 0
+LIBUWIFI_SUBMOD	= 0
+DESTDIR		?= /usr/local
 
-OBJS += conf_options.o
-OBJS += control.o
-OBJS += display-channel.o
-OBJS += display-essid.o
-OBJS += display-filter.o
-OBJS += display-help.o
-OBJS += display-history.o
-OBJS += display-main.o
-OBJS += display-spectrum.o
-OBJS += display-statistics.o
-OBJS += display.o
-OBJS += hutil.o
-OBJS += ieee80211_duration.o
-OBJS += listsort.o
-OBJS += main.o
-OBJS += network.o
-OBJS += protocol_parser.o
+SRC		+= conf_options.c
+SRC		+= control.c
+SRC		+= display-channel.c
+SRC		+= display-essid.c
+SRC		+= display-filter.c
+SRC		+= display-help.c
+SRC		+= display-history.c
+SRC		+= display-main.c
+SRC		+= display-spectrum.c
+SRC		+= display-statistics.c
+SRC		+= display.c
+SRC		+= hutil.c
+SRC		+= ieee80211_duration.c
+SRC		+= listsort.c
+SRC		+= main.c
+SRC		+= network.c
+SRC		+= protocol_parser.c
 
-LIBS = -lncurses -lm -luwifi
-INCLUDES = -I.
-CFLAGS += -std=gnu99 -Wall -Wextra -g $(INCLUDES) -DVERSION=\"$(shell git describe --tags)\"
+LIBS		= -lncurses -lm -luwifi
 
-ifeq ($(LIBUWIFI_SUBMODULE),1)
+INCLUDES	= -I.
+CFLAGS		+= -std=gnu99 -Wall -Wextra -g
+CHECK_FLAGS	+= -D__linux__
+
+ifeq ($(LIBUWIFI_SUBMOD),1)
 	INCLUDES += -I./libuwifi/inst/include
-	LDFLAGS += -L./libuwifi
+	LDFLAGS	+= -L./libuwifi
 	UWIFI_DEPEND = libuwifi/libuwifi.so.1
 endif
 
 ifeq ($(DEBUG),1)
-	CFLAGS += -DDO_DEBUG=1
+	DEFS	+= -DDO_DEBUG=1
 endif
 
-DESTDIR ?= /usr/local
-
-.PHONY: all check clean force
-
-all: $(NAME)
-
-.objdeps.mk: $(OBJS:%.o=%.c)
-	gcc -MM $(INCLUDES) $^ >$@
-
--include .objdeps.mk
-
-$(NAME): $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
-
-$(OBJS): .buildflags $(UWIFI_DEPEND)
+all: bin
+check:
+clean:
 
 libuwifi/libuwifi.so.1:
 	make -C libuwifi INST_PATH=inst install
-
-check:
-	sparse $(CFLAGS)  -D__linux__ *.[ch]
-
-clean:
-	-rm -f *.o *~
-	-rm -f $(NAME)
-	-rm -f .buildflags
-	-rm -f .objdeps.mk
-	-rm -r libuwifi/inst
-	-make -C libuwifi clean
 
 install:
 	mkdir -p $(DESTDIR)/sbin/
@@ -94,5 +74,4 @@ install:
 	gzip horst.8 -c > $(DESTDIR)/man/man8/horst.8.gz
 	gzip horst.conf.5 -c > $(DESTDIR)/man/man5/horst.conf.5.gz
 
-.buildflags: force
-	echo '$(CFLAGS)' | cmp -s - $@ || echo '$(CFLAGS)' > $@
+include Makefile.default

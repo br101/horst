@@ -1,0 +1,98 @@
+## Common Makefile rules
+
+### defaults and output ########################################################
+
+CHECK		?= sparse
+
+ifneq ($(V),1)
+Q		:= @
+NULL		:= 2>/dev/null
+endif
+
+### build dir ##################################################################
+
+BUILD_DIR	?= build
+VERSION		:= $(shell git describe --tags --dirty=+ 2>/dev/null)
+
+# function for removing duplicates in a list
+remduplicates = $(strip $(if $1,$(firstword $1) $(call remduplicates,$(filter-out $(firstword $1),$1))))
+
+OBJS		= $(addprefix $(BUILD_DIR)/, $(SRC:.c=.o))
+OBJ_DIRS	:= $(call remduplicates, $(dir $(OBJS)))
+
+### common flags ###############################################################
+
+DEFS		+= -DVERSION=\"$(VERSION)\"
+
+CPPFLAGS	+= -MD
+
+CFLAGS		+= $(INCLUDES)
+CPPFLAGS	+= $(DEFS)
+
+ifeq ($(DEBUG),1)
+CFLAGS		+= -DDEBUG=1
+endif
+
+### targets ####################################################################
+
+.PHONY: force
+
+# common targets
+bin: $(BUILD_DIR)/$(NAME)
+lib-static: $(BUILD_DIR)/$(NAME).a
+lib-dynamic: $(BUILD_DIR)/$(NAME).so
+
+dir: $(OBJ_DIRS)
+	@printf "  DIR     $(BUILD_DIR)\n"
+
+$(OBJ_DIRS):
+	$(Q)mkdir -p $@
+
+# binary
+$(BUILD_DIR)/$(NAME): $(OBJS)
+	@printf "  LD      $@\n"
+	$(Q)$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
+
+# static library
+$(BUILD_DIR)/$(NAME).a: $(OBJS)
+	@printf "  AR      $@\n"
+	$(Q)$(AR) rcs $@ $(OBJS)
+
+# dynamic library
+$(BUILD_DIR)/$(NAME).so: $(OBJS)
+	@printf "  LD      $@\n"
+	$(Q)$(CC) $(LDFLAGS) -shared -Wl,-soname,$@.1 -o $@ $(OBJS) $(LIBS)
+	$(Q)-ln -sfn $@ $@.1
+
+$(BUILD_DIR)/%.o: %.c
+	@printf "  CC      $(*).c\n"
+	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) $(ARCH_FLAGS) -o $(BUILD_DIR)/$(*).o -c $(*).c
+
+$(BUILD_DIR)/%.o: %.cpp
+	@printf "  CXX     $(*).cpp\n"
+	$(Q)$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(ARCH_FLAGS) -o $(BUILD_DIR)/$(*).o -c $(*).cpp
+
+# build flags
+$(BUILD_DIR)/buildflags: force
+	@#@printf "  FLAGS\n"
+	$(Q)mkdir -p $(BUILD_DIR)
+	$(Q)echo '$(CFLAGS) $(CPPFLAGS)' | cmp -s - $@ || echo '$(CFLAGS) $(CPPFLAGS)' > $@
+
+$(OBJS): dir $(BUILD_DIR)/buildflags
+
+check: $(filter-out libs%,$(SRC))
+	@printf "  CHECK $^\n"
+	$(Q)$(CHECK) $(CFLAGS) $(CPPFLAGS) $(CHECK_FLAGS) $^
+
+clean: $(EXTRA_CLEAN)
+	@printf "  CLEAN\n"
+	$(Q)-rm -f $(OBJS) $(OBJS:.o=.d) *~
+	$(Q)-rm -f $(NAME) $(NAME).a $(NAME).so*
+	$(Q)-rm -f .objdeps.mk
+    ifneq (.,$(BUILD_DIR))
+    ifneq (..,$(BUILD_DIR))
+	$(Q)$(RM) -r $(BUILD_DIR)
+    endif
+    endif
+
+-include $(OBJS:.o=.d)
