@@ -42,12 +42,6 @@ bin: $(BUILD_DIR)/$(NAME)
 lib-static: $(BUILD_DIR)/$(NAME).a
 lib-dynamic: $(BUILD_DIR)/$(NAME).so
 
-dir: $(OBJ_DIRS)
-	@printf "  DIR     $(BUILD_DIR)\n"
-
-$(OBJ_DIRS):
-	$(Q)mkdir -p $@
-
 # binary
 $(BUILD_DIR)/$(NAME): $(OBJS)
 	@printf "  LD      $@\n"
@@ -75,10 +69,10 @@ $(BUILD_DIR)/%.o: %.cpp
 # build flags
 $(BUILD_DIR)/buildflags: force
 	@#@printf "  FLAGS\n"
-	$(Q)mkdir -p $(BUILD_DIR)
+	$(Q)mkdir -p $(OBJ_DIRS)
 	$(Q)echo '$(CFLAGS) $(CPPFLAGS)' | cmp -s - $@ || echo '$(CFLAGS) $(CPPFLAGS)' > $@
 
-$(OBJS): dir $(BUILD_DIR)/buildflags
+$(OBJS): $(BUILD_DIR)/buildflags
 
 check: $(filter-out libs%,$(SRC))
 	@printf "  CHECK $^\n"
