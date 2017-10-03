@@ -24,6 +24,9 @@ LIBNL=3.0
 OSX=0
 
 NAME=horst
+VERSION=5.1
+#VERSION=$(shell git describe --tags)
+
 OBJS=						   \
 	average.o				   \
 	capture$(if $(filter 1,$(PCAP)),-pcap).o   \
@@ -52,7 +55,7 @@ OBJS=						   \
 	util.o					   \
 	wlan_util.o
 LIBS=-lncurses -lm
-CFLAGS+=-std=gnu99 -Wall -Wextra -g -I. -DVERSION=\"$(shell git describe --tags)\"
+CFLAGS+=-std=gnu99 -Wall -Wextra -g -I. -DVERSION=\"$(VERSION)\"
 
 ifeq ($(OSX),1)
     PCAP=1
