@@ -5,3 +5,4 @@ horst
 .objdeps.mk
 .project
 *.kdev4
+build/
