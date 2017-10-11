@@ -9,7 +9,7 @@ GNU Public License (GPL) V2
 
 * Main page: https://github.com/br101/horst
 * Issue tracker: https://github.com/br101/horst/issues
-* Download Stable (Version 5.0): https://github.com/br101/horst/archive/version-5.0.tar.gz
+* Download Stable (Version 5.1): https://github.com/br101/horst/archive/v5.1.tar.gz
 * Download Development (MASTER): https://github.com/br101/horst/tarball/master
 
 
