@@ -42,6 +42,7 @@ SRC		+= network.c
 SRC		+= protocol_parser.c
 
 LIBS		= -lncurses -lm -luwifi
+LDFLAGS		+= -Wl,-rpath,/usr/local/lib
 
 INCLUDES	= -I.
 CFLAGS		+= -std=gnu99 -Wall -Wextra -g
@@ -70,9 +71,13 @@ install:
 	mkdir -p $(DESTDIR)/etc
 	mkdir -p $(DESTDIR)/man/man8/
 	mkdir -p $(DESTDIR)/man/man5
-	cp horst $(DESTDIR)/sbin/
+	cp build/horst $(DESTDIR)/sbin/
 	cp horst.conf $(DESTDIR)/etc/
 	gzip horst.8 -c > $(DESTDIR)/man/man8/horst.8.gz
 	gzip horst.conf.5 -c > $(DESTDIR)/man/man5/horst.conf.5.gz
+  ifeq ($(LIBUWIFI_SUBMOD),1)
+	mkdir -p $(DESTDIR)/lib/
+	cp -a build/lib/libuwifi.so* $(DESTDIR)/lib/
+  endif
 
 include Makefile.default
