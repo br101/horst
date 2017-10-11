@@ -78,9 +78,15 @@ as well. On Debian/Ubuntu based distros you can install them with:
 
 ## Building
 
-Building is normally done with:
+Building is normally done with "make" (optional V=1 or DEBUG=1). This assumes
+you have previously built and installed `libuwifi':
 
 	make
+
+If you have checked out with submodules (--recursive) before, you can build
+`libuwifi` while building horst with
+
+	make LIBUWIFI_SUBMOD=1
 
 If you have an old or proprietary WLAN driver which only knows the deprecated
 `wireless extensions` you can build `horst` with support for them:
