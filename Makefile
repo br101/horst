@@ -48,21 +48,22 @@ CFLAGS		+= -std=gnu99 -Wall -Wextra -g
 CHECK_FLAGS	+= -D__linux__
 
 ifeq ($(LIBUWIFI_SUBMOD),1)
-	INCLUDES += -I./libuwifi/inst/include
-	LDFLAGS	+= -L./libuwifi
-	UWIFI_DEPEND = libuwifi/libuwifi.so.1
+	INCLUDES += -I./build/include/
+	LDFLAGS	+= -L./build/lib/
+	UWIFI_DEPEND = build/lib/libuwifi.so.1
+	LDFLAGS += -Wl,-rpath,\$$ORIGIN/lib
 endif
 
 ifeq ($(DEBUG),1)
 	DEFS	+= -DDO_DEBUG=1
 endif
 
-all: bin
+all: $(UWIFI_DEPEND) bin
 check:
 clean:
 
-libuwifi/libuwifi.so.1:
-	make -C libuwifi INST_PATH=inst install
+build/lib/libuwifi.so.1:
+	make -C libuwifi BUILD_DIR=../build/libuwifi/ INST_PATH=../build install
 
 install:
 	mkdir -p $(DESTDIR)/sbin/
