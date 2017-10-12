@@ -446,6 +446,7 @@ void free_lists(void)
 		}
 	}
 
+	uwifi_nodes_free(&conf.intf.wlan_nodes);
 	uwifi_essids_free();
 }
 
