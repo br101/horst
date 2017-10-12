@@ -167,19 +167,19 @@ static void update_spectrum(struct uwifi_packet* p, struct uwifi_node* n)
 	ewma_add(&chan->signal_avg, -chan->signal);
 
 	if (!n) {
-		LOG_DBG("spec no node\n");
+		LOG_DBG("spec no node");
 		return;
 	}
 
 	/* add node to channel if not already there */
 	list_for_each(&chan->nodes, cn, chan_list) {
 		if (cn->node == n) {
-			LOG_DBG("SPEC node found %p\n", cn->node);
+			LOG_DBG("SPEC node found %p", cn->node);
 			break;
 		}
 	}
 	if (cn->node != n) {
-		LOG_DBG("SPEC node adding %p\n", n);
+		LOG_DBG("SPEC node adding %p", n);
 		cn = malloc(sizeof(struct chan_node));
 		cn->node = n;
 		cn->chan = chan;
@@ -319,7 +319,7 @@ void handle_packet(struct uwifi_packet* p)
 
 	/* we can't trust any fields except phy_* of packets with bad FCS */
 	if (!(p->phy_flags & PHY_FLAG_BADFCS)) {
-		LOG_DBG("handle %s\n", wlan_get_packet_type_name(p->wlan_type));
+		LOG_DBG("handle %s", wlan_get_packet_type_name(p->wlan_type));
 
 		n = uwifi_node_update(p, &conf.intf.wlan_nodes);
 
@@ -345,7 +345,7 @@ static void local_receive_packet(int fd, unsigned char* buffer, size_t bufsize)
 {
 	struct uwifi_packet p;
 
-	LOG_DBG("\n===============================================================================\n");
+	LOG_DBG("===============================================================================");
 
 	ssize_t len = packet_socket_recv(fd, buffer, bufsize);
 	if (len <= 0) {
@@ -356,13 +356,12 @@ static void local_receive_packet(int fd, unsigned char* buffer, size_t bufsize)
 #if DO_DEBUG
 	if (conf.debug) {
 		dump_hex(buffer, len, NULL);
-		LOG_DBG("\n");
 	}
 #endif
 	memset(&p, 0, sizeof(p));
 
 	if (!parse_packet(buffer, len, &p)) {
-		LOG_DBG("parsing failed\n");
+		LOG_DBG("parsing failed");
 		return;
 	}
 
@@ -438,7 +437,7 @@ void free_lists(void)
 	/* free channel nodes */
 	for (int i = 0; i < uwifi_channel_get_num_channels(&conf.intf.channels); i++) {
 		list_for_each_safe(&spectrum[i].nodes, cn, cn2, chan_list) {
-			LOG_DBG("free chan_node %p\n", cn);
+			LOG_DBG("free chan_node %p", cn);
 			list_del(&cn->chan_list);
 			cn->chan->num_nodes--;
 			free(cn);

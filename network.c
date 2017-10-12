@@ -440,7 +440,7 @@ static void net_send_chan_list(int fd)
 
 	for (i = 0; i < uwifi_channel_get_num_channels(&conf.intf.channels); i++) {
 		nc->freq[i] = htole32(uwifi_channel_get_freq(&conf.intf.channels, i));
-		LOG_DBG("NET send freq %d %d\n", i, uwifi_channel_get_freq(&conf.intf.channels, i));
+		LOG_DBG("NET send freq %d %d", i, uwifi_channel_get_freq(&conf.intf.channels, i));
 	}
 
 	net_write(fd, (unsigned char *)buf, sizeof(struct net_chan_list) +
@@ -469,7 +469,7 @@ static int net_receive_chan_list(unsigned char *buffer, size_t len)
 
 	for (int i = 0; i < num_chans; i++) {
 		uwifi_channel_list_add(&conf.intf.channels, le32toh(nc->freq[i]));
-		LOG_DBG("NET recv freq %d %d\n", i, le32toh(nc->freq[i]));
+		LOG_DBG("NET recv freq %d %d", i, le32toh(nc->freq[i]));
 	}
 	init_spectrum();
 	return sizeof(struct net_chan_list) + sizeof(unsigned int) * (num_chans - 1);

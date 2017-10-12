@@ -69,7 +69,7 @@ bool parse_packet(unsigned char* buf, size_t len, struct uwifi_packet* p)
 
 static int parse_llc(unsigned char* buf, size_t len, struct uwifi_packet* p)
 {
-	LOG_DBG("* parse LLC\n");
+	LOG_DBG("* parse LLC");
 
 	if (len < 6)
 		return -1;
@@ -78,7 +78,7 @@ static int parse_llc(unsigned char* buf, size_t len, struct uwifi_packet* p)
 	buf = buf + 6;
 
 	if (ntohs(*((uint16_t*)buf)) == 0x4305) {
-		LOG_DBG("BATMAN-ADV\n");
+		LOG_DBG("BATMAN-ADV");
 		buf++; buf++;
 		return parse_batman_adv_packet(buf, len - 8, p);
 	}
@@ -94,7 +94,7 @@ static int parse_llc(unsigned char* buf, size_t len, struct uwifi_packet* p)
 			return -1;
 		buf++;
 
-		LOG_DBG("* parse LLC left %zd\n", len - 8);
+		LOG_DBG("* parse LLC left %zd", len - 8);
 		return 8;
 	}
 }
@@ -111,7 +111,7 @@ static int parse_batman_adv_packet(unsigned char* buf,
 	p->bat_version = bp->version;
 	p->bat_packet_type = bp->packet_type;
 
-	LOG_DBG("parse bat len %zd type %d vers %d\n", len, bp->packet_type, bp->version);
+	LOG_DBG("parse bat len %zd type %d vers %d", len, bp->packet_type, bp->version);
 
 	/* version 14 */
 	if (bp->version == 14) {
@@ -120,16 +120,16 @@ static int parse_batman_adv_packet(unsigned char* buf,
 			/* set GW flags only for "original" (not re-sent) OGMs */
 			if (bp->gw_flags != 0 && memcmp(bp->orig, p->wlan_src, WLAN_MAC_LEN) == 0)
 				p->bat_gw = 1;
-			LOG_DBG("OGM %d %d\n", bp->gw_flags, p->bat_gw);
+			LOG_DBG("OGM %d %d", bp->gw_flags, p->bat_gw);
 			return 0;
 		case BAT_ICMP:
-			LOG_DBG("ICMP\n");
+			LOG_DBG("ICMP");
 			break;
 		case BAT_UNICAST:
-			LOG_DBG("UNI %zu\n", sizeof(struct unicast_packet));
+			LOG_DBG("UNI %zu", sizeof(struct unicast_packet));
 			return sizeof(struct unicast_packet) + 14;
 		case BAT_BCAST:
-			LOG_DBG("BCAST\n");
+			LOG_DBG("BCAST");
 			break;
 		case BAT_VIS:
 		case BAT_UNICAST_FRAG:
@@ -145,20 +145,20 @@ static int parse_ip_header(unsigned char* buf, size_t len, struct uwifi_packet* 
 {
 	struct ip* ih;
 
-	LOG_DBG("* parse IP\n");
+	LOG_DBG("* parse IP");
 
 	if (len < sizeof(struct ip))
 		return -1;
 
 	ih = (struct ip*)buf;
 
-	LOG_DBG("*** IP SRC: %s\n", ip_sprintf(ih->ip_src.s_addr));
-	LOG_DBG("*** IP DST: %s\n", ip_sprintf(ih->ip_dst.s_addr));
+	LOG_DBG("*** IP SRC: %s", ip_sprintf(ih->ip_src.s_addr));
+	LOG_DBG("*** IP DST: %s", ip_sprintf(ih->ip_dst.s_addr));
 	p->ip_src = ih->ip_src.s_addr;
 	p->ip_dst = ih->ip_dst.s_addr;
 	p->pkt_types |= PKT_TYPE_IP;
 
-	LOG_DBG("IP proto: %d\n", ih->ip_p);
+	LOG_DBG("IP proto: %d", ih->ip_p);
 	switch (ih->ip_p) {
 		case IPPROTO_UDP: p->pkt_types |= PKT_TYPE_UDP; break;
 		/* all others set the type and return. no more parsing */
@@ -178,7 +178,7 @@ static int parse_udp_header(unsigned char* buf, size_t len, struct uwifi_packet*
 
 	uh = (struct udphdr*)buf;
 
-	LOG_DBG("UPD dest port: %d\n", ntohs(uh->uh_dport));
+	LOG_DBG("UPD dest port: %d", ntohs(uh->uh_dport));
 	p->tcpudp_port = ntohs(uh->uh_dport);
 
 	buf = buf + 8;
@@ -209,7 +209,7 @@ static int parse_olsr_packet(unsigned char* buf, size_t len, struct uwifi_packet
 	// TODO: more than one olsr messages can be in one packet
 	msgtype = oh->olsr_msg[0].olsr_msgtype;
 
-	LOG_DBG("OLSR msgtype: %d\n*** ", msgtype);
+	LOG_DBG("OLSR msgtype: %d*** ", msgtype);
 
 	p->pkt_types |= PKT_TYPE_OLSR;
 	p->olsr_type = msgtype;
@@ -219,13 +219,13 @@ static int parse_olsr_packet(unsigned char* buf, size_t len, struct uwifi_packet
 
 	if (msgtype == HELLO_MESSAGE) {
 		number = (ntohs(oh->olsr_msg[0].olsr_msgsize) - 12) / sizeof(struct hellomsg);
-		LOG_DBG("HELLO %d\n", number);
+		LOG_DBG("HELLO %d", number);
 		p->olsr_neigh = number;
 	}
 
 	if (msgtype == LQ_HELLO_MESSAGE) {
 		number = (ntohs(oh->olsr_msg[0].olsr_msgsize) - 16) / 12;
-		LOG_DBG("LQ_HELLO %d (%d)\n", number, (ntohs(oh->olsr_msg[0].olsr_msgsize) - 16));
+		LOG_DBG("LQ_HELLO %d (%d)", number, (ntohs(oh->olsr_msg[0].olsr_msgsize) - 16));
 		p->olsr_neigh = number;
 	}
 #if 0
@@ -234,13 +234,13 @@ static int parse_olsr_packet(unsigned char* buf, size_t len, struct uwifi_packet
 
 	if (msgtype == TC_MESSAGE) {
 		number = (ntohs(oh->olsr_msg[0].olsr_msgsize)-12) / sizeof(struct tcmsg);
-		LOG_DBG("TC %d\n", number);
+		LOG_DBG("TC %d", number);
 		p->olsr_tc = number;
 	}
 
 	if (msgtype == LQ_TC_MESSAGE) {
 		number = (ntohs(oh->olsr_msg[0].olsr_msgsize)-16) / 8;
-		LOG_DBG("LQ_TC %d (%d)\n", number, (ntohs(oh->olsr_msg[0].olsr_msgsize)-16));
+		LOG_DBG("LQ_TC %d (%d)", number, (ntohs(oh->olsr_msg[0].olsr_msgsize)-16));
 		p->olsr_tc = number;
 	}
 
@@ -249,12 +249,12 @@ static int parse_olsr_packet(unsigned char* buf, size_t len, struct uwifi_packet
 		know how to contact the gw, so have a indirect connection to a GW themselves */
 		struct hnapair* hna;
 		number = (ntohs(oh->olsr_msg[0].olsr_msgsize) - 12) / sizeof(struct hnapair);
-		LOG_DBG("HNA NUM: %d (%d) [%d]\n", number, ntohs(oh->olsr_msg[0].olsr_msgsize),
+		LOG_DBG("HNA NUM: %d (%d) [%d]", number, ntohs(oh->olsr_msg[0].olsr_msgsize),
 			(int)sizeof(struct hnapair) );
 		for (i = 0; i < number; i++) {
 			hna = &(oh->olsr_msg[0].message.hna.hna_net[i]);
 			LOG_DBG("HNA %s", ip_sprintf(hna->addr));
-			LOG_DBG("/%s\n", ip_sprintf(hna->netmask));
+			LOG_DBG("/%s", ip_sprintf(hna->netmask));
 			if (hna->addr == 0 && hna->netmask == 0)
 				p->pkt_types |= PKT_TYPE_OLSR_GW;
 		}
