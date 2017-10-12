@@ -40,7 +40,7 @@ problems.
 * Automatically adds and removes monitor interface
 
 `horst` is a Linux program and can be used on any wireless LAN interface which 
-supports monitor mode. The latest stable version is 5.0 from July 01 2016.
+supports monitor mode.
 
 
 ## Checkout
@@ -78,7 +78,7 @@ as well. On Debian/Ubuntu based distros you can install them with:
 
 ## Building
 
-Building is normally done with "make" (optional V=1 or DEBUG=1). This checks out
+Building is normally done with "make" (optional `V=1` or `DEBUG=1`). This checks out
 `libuwifi` as a submodule if necessary:
 
 	make
@@ -92,10 +92,6 @@ Should you expect on `libuwifi` in the system path (`/usr/local/include/` and
 `/usr/local/lib/` or similar) you can do:
 
 	make LIBUWIFI=
-
-To build for Mac OSX (broken right now, and some features are missing!):
-
-	make OSX=1
 
 To install (with optional `DESTDIR=/path`):
 
