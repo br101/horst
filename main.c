@@ -319,7 +319,9 @@ void handle_packet(struct uwifi_packet* p)
 
 	/* we can't trust any fields except phy_* of packets with bad FCS */
 	if (!(p->phy_flags & PHY_FLAG_BADFCS)) {
-		LOG_DBG("handle %s", wlan_get_packet_type_name(p->wlan_type));
+		LOG_DBG("handle %s " MAC_FMT " (" MAC_FMT ")",
+			wlan_get_packet_type_name(p->wlan_type),
+			MAC_PAR(p->wlan_src), MAC_PAR(p->wlan_bssid));
 
 		n = uwifi_node_update(p, &conf.intf.wlan_nodes);
 
