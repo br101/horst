@@ -20,7 +20,7 @@ NAME		= horst
 
 # build options
 DEBUG		= 0
-LIBUWIFI_SUBMOD	= 0
+LIBUWIFI	= libuwifi
 DESTDIR		?= /usr/local
 
 SRC		+= conf_options.c
@@ -48,7 +48,7 @@ INCLUDES	= -I.
 CFLAGS		+= -std=gnu99 -Wall -Wextra -g
 CHECK_FLAGS	+= -D__linux__
 
-ifeq ($(LIBUWIFI_SUBMOD),1)
+ifneq ($(LIBUWIFI),)
 	INCLUDES += -I./build/include/
 	LDFLAGS	+= -L./build/lib/
 	UWIFI_DEPEND = build/lib/libuwifi.so.1
@@ -63,8 +63,11 @@ all: $(UWIFI_DEPEND) bin
 check:
 clean:
 
-build/lib/libuwifi.so.1:
-	make -C libuwifi BUILD_DIR=../build/libuwifi/ INST_PATH=../build install
+$(LIBUWIFI_PATH)/Makefile:
+	git submodule update --init --recursive
+
+build/lib/libuwifi.so.1: $(LIBUWIFI)/Makefile
+	make -C $(LIBUWIFI) BUILD_DIR=$(CURDIR)/build/libuwifi INST_PATH=$(CURDIR)/build install
 
 install:
 	mkdir -p $(DESTDIR)/sbin/
@@ -75,7 +78,7 @@ install:
 	cp horst.conf $(DESTDIR)/etc/
 	gzip horst.8 -c > $(DESTDIR)/man/man8/horst.8.gz
 	gzip horst.conf.5 -c > $(DESTDIR)/man/man5/horst.conf.5.gz
-  ifeq ($(LIBUWIFI_SUBMOD),1)
+  ifneq ($(LIBUWIFI),)
 	mkdir -p $(DESTDIR)/lib/
 	cp -a build/lib/libuwifi.so* $(DESTDIR)/lib/
   endif
