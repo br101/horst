@@ -63,7 +63,7 @@ all: $(LIBUWIFI_DEPEND) bin
 check:
 clean:
 
-$(LIBUWIFI_PATH)/Makefile:
+$(LIBUWIFI)/Makefile:
 	git submodule update --init --recursive
 
 build/lib/libuwifi.so.1: $(LIBUWIFI)/Makefile
