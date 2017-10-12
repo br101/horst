@@ -51,7 +51,7 @@ CHECK_FLAGS	+= -D__linux__
 ifneq ($(LIBUWIFI),)
 	INCLUDES += -I./build/include/
 	LDFLAGS	+= -L./build/lib/
-	UWIFI_DEPEND = build/lib/libuwifi.so.1
+	LIBUWIFI_DEPEND = build/lib/libuwifi.so.1
 	LDFLAGS += -Wl,-rpath,\$$ORIGIN/lib
 endif
 
@@ -59,7 +59,7 @@ ifeq ($(DEBUG),1)
 	DEFS	+= -DDO_DEBUG=1
 endif
 
-all: $(UWIFI_DEPEND) bin
+all: $(LIBUWIFI_DEPEND) bin
 check:
 clean:
 
