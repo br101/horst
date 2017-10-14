@@ -63,11 +63,13 @@ all: $(LIBUWIFI_DEPEND) bin
 check:
 clean:
 
+include Makefile.default
+
 $(LIBUWIFI)/Makefile:
 	git submodule update --init --recursive
 
-build/lib/libuwifi.so.1: $(LIBUWIFI)/Makefile
-	make -C $(LIBUWIFI) BUILD_DIR=$(CURDIR)/build/libuwifi INST_PATH=$(CURDIR)/build install
+build/lib/libuwifi.so.1: $(LIBUWIFI)/Makefile $(BUILD_DIR)/buildflags
+	make -C $(LIBUWIFI) DEBUG=$(DEBUG) BUILD_DIR=$(CURDIR)/build/libuwifi INST_PATH=$(CURDIR)/build install
 
 install:
 	mkdir -p $(DESTDIR)/sbin/
@@ -82,5 +84,3 @@ install:
 	mkdir -p $(DESTDIR)/lib/
 	cp -a build/lib/libuwifi.so* $(DESTDIR)/lib/
   endif
-
-include Makefile.default
