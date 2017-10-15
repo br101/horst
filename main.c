@@ -49,6 +49,7 @@
 #include "ieee80211_duration.h"
 #include "protocol_parser.h"
 
+struct list_head essids;
 struct history hist;
 struct statistics stats;
 struct channel_info spectrum[MAX_CHANNELS];
@@ -337,7 +338,7 @@ void handle_packet(struct uwifi_packet* p)
 	update_history(p);
 	update_statistics(p);
 	update_spectrum(p, n);
-	uwifi_essids_update(p, n);
+	uwifi_essids_update(&essids, p, n);
 
 	if (!conf.quiet && !conf.debug)
 		update_display(p);
@@ -447,7 +448,7 @@ void free_lists(void)
 	}
 
 	uwifi_nodes_free(&conf.intf.wlan_nodes);
-	uwifi_essids_free();
+	uwifi_essids_free(&essids);
 }
 
 static void exit_handler(void)
@@ -574,7 +575,7 @@ int main(int argc, char** argv)
 	struct sigaction sigint_action;
 	struct sigaction sigpipe_action;
 
-	uwifi_essids_init();
+	list_head_init(&essids);
 	init_spectrum();
 
 	config_parse_file_and_cmdline(argc, argv);
@@ -705,7 +706,6 @@ void main_reset(void)
 		display_clear();
 	LOG_INF("- RESET -");
 	free_lists();
-	uwifi_essids_reset();
 	memset(&hist, 0, sizeof(hist));
 	memset(&stats, 0, sizeof(stats));
 	memset(&spectrum, 0, sizeof(spectrum));

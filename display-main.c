@@ -363,15 +363,6 @@ static void update_node_list_win(void)
 		print_node_list_line(line, n);
 	}
 
-	if (essids.split_active > 0) {
-		wattron(list_win, WHITEONRED);
-		mvwhline(list_win, win_split - 2, 1, ' ', COLS - 2);
-		print_centered(list_win, win_split - 2, COLS - 2,
-			"*** IBSS SPLIT DETECTED!!! ESSID '%s' %d nodes ***",
-			essids.split_essid->essid, essids.split_essid->num_nodes);
-		wattroff(list_win, WHITEONRED);
-	}
-
 	wnoutrefresh(list_win);
 }
 

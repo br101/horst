@@ -170,7 +170,7 @@ extern struct node_names_info node_names;
 extern struct timespec time_mono;
 extern struct timespec time_real;
 
-extern struct list_head nodes;
+extern struct list_head essids;
 
 void free_lists(void);
 void init_spectrum(void);
