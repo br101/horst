@@ -226,15 +226,12 @@ static void update_status_win(struct uwifi_packet* p)
 #define COL_MODE	COL_SOURCE + 18
 #define COL_WIDTH	COL_MODE + 6
 #define COL_ENC		COL_WIDTH + 11
-#define COL_ESSID	COL_ENC + 6
-#define COL_INFO	COL_ESSID + 13
+#define COL_INFO	COL_ENC + 6
 
 static char spin[4] = {'/', '-', '\\', '|'};
 
 static void print_node_list_line(int line, struct uwifi_node* n)
 {
-	char* ssid = NULL;
-
 	if (n->pkt_types & PKT_TYPE_OLSR)
 		wattron(list_win, GREEN);
 	if (n->last_seen > (time_mono.tv_sec - conf.node_timeout / 2))
@@ -268,29 +265,16 @@ static void print_node_list_line(int line, struct uwifi_node* n)
 		wprintw(list_win, " %dx%d", n->wlan_tx_streams, n->wlan_rx_streams);
 
 	wmove(list_win, line, COL_MODE-1);
-	if (n->wlan_mode & WLAN_MODE_AP) {
+	if (n->wlan_mode & WLAN_MODE_AP)
 		wprintw(list_win, " AP");
-		if (n->essid != NULL)
-			ssid = n->essid->essid;
-	}
-	if (n->wlan_mode & WLAN_MODE_IBSS) {
+	if (n->wlan_mode & WLAN_MODE_IBSS)
 		wprintw(list_win, " AD");
-		if (n->essid != NULL)
-			ssid = n->essid->essid;
-	}
-	if (n->wlan_mode & WLAN_MODE_STA) {
-		wprintw(list_win, " ST");
-		if (n->wlan_ap_node != NULL && n->wlan_ap_node->essid != NULL)
-			ssid = n->wlan_ap_node->essid->essid;
-	}
-	if (n->wlan_mode & WLAN_MODE_PROBE) {
+	if (n->wlan_mode & WLAN_MODE_STA)
+		wprintw(list_win, " -ST");
+	if (n->wlan_mode & WLAN_MODE_PROBE)
 		wprintw(list_win, " PR");
-		if (n->essid != NULL)
-			ssid = n->essid->essid;
-	}
-	if (n->wlan_mode & WLAN_MODE_4ADDR) {
+	if (n->wlan_mode & WLAN_MODE_4ADDR)
 			wprintw(list_win, " 4A");
-	}
 
 	if (n->wlan_rsn && n->wlan_wpa)
 		mvwprintw(list_win, line, COL_ENC, "WPA12");
@@ -301,11 +285,12 @@ static void print_node_list_line(int line, struct uwifi_node* n)
 	else if (n->wlan_wep)
 		mvwprintw(list_win, line, COL_ENC, "WEP?");
 
-	if (ssid != NULL)
-		mvwprintw(list_win, line, COL_ESSID, "%s ", ssid);
+	wmove(list_win, line, COL_INFO);
 
-	if (ssid == NULL || strlen(ssid) < 12)
-		wmove(list_win, line, COL_INFO);
+	if (n->wlan_mode & (WLAN_MODE_IBSS | WLAN_MODE_AP)) {
+		wprintw(list_win, "TSF %016llx", n->wlan_tsf);
+		wprintw(list_win, " (%d)", n->wlan_bintval);
+	}
 
 	if (n->pkt_types & PKT_TYPE_OLSR)
 		wprintw(list_win, "OLSR N:%d ", n->olsr_neigh);
@@ -326,7 +311,8 @@ static void print_node_list_line(int line, struct uwifi_node* n)
 
 static void update_node_list_win(void)
 {
-	struct uwifi_node* n;
+	struct essid_info* e;
+	struct uwifi_node* n, *m;
 	int line = 0;
 
 	werase(list_win);
@@ -340,7 +326,6 @@ static void update_node_list_win(void)
 	mvwprintw(list_win, 0, COL_MODE, "MODE");
 	mvwprintw(list_win, 0, COL_WIDTH, "ST-MHz-TxR");
 	mvwprintw(list_win, 0, COL_ENC, "ENCR");
-	mvwprintw(list_win, 0, COL_ESSID, "ESSID");
 	mvwprintw(list_win, 0, COL_INFO, "INFO");
 
 	/* reuse bottom line for information on other win */
@@ -354,13 +339,28 @@ static void update_node_list_win(void)
 	if (sortfunc)
 		listsort(&conf.intf.wlan_nodes.n, sortfunc);
 
-	list_for_each(&conf.intf.wlan_nodes, n, list) {
-		if (conf.filter_mode != 0 && (n->wlan_mode & conf.filter_mode) == 0)
-			continue;
+	list_for_each(&essids, e, list) {
 		line++;
-		if (line >= win_split - 1)
-			break; /* prevent overdraw of last line */
-		print_node_list_line(line, n);
+		wattron(list_win, GREEN | A_BOLD);
+		mvwprintw(list_win, line, 1, "ESSID '%s'", e->essid );
+		if (e->split > 0) {
+			wattron(list_win, RED);
+			wprintw(list_win, " *** SPLIT ***");
+		}
+		wattroff(list_win, GREEN | A_BOLD);
+
+		list_for_each(&e->nodes, n, essid_nodes) {
+			line++;
+			print_node_list_line(line, n);
+			list_for_each(&n->ap_nodes, m, ap_list) {
+				if (conf.filter_mode != 0 && (n->wlan_mode & conf.filter_mode) == 0)
+					continue;
+				if (line >= win_split - 1)
+					break; /* prevent overdraw of last line */
+				line++;
+				print_node_list_line(line, m);
+			}
+		}
 	}
 
 	wnoutrefresh(list_win);
