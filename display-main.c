@@ -230,8 +230,11 @@ static void update_status_win(struct uwifi_packet* p)
 
 static char spin[4] = {'/', '-', '\\', '|'};
 
-static void print_node_list_line(int line, struct uwifi_node* n)
+static bool print_node_list_line(int line, struct uwifi_node* n)
 {
+	if (conf.filter_mode != 0 && (n->wlan_mode & conf.filter_mode) == 0)
+		return false;
+
 	if (n->pkt_types & PKT_TYPE_OLSR)
 		wattron(list_win, GREEN);
 	if (n->last_seen > (time_mono.tv_sec - conf.node_timeout / 2))
@@ -307,13 +310,16 @@ static void print_node_list_line(int line, struct uwifi_node* n)
 	wattroff(list_win, A_BOLD);
 	wattroff(list_win, GREEN);
 	wattroff(list_win, RED);
+	return true;
 }
+
+#define LINE_INC(_l) if (++line > win_split - 1) goto out;
 
 static void update_node_list_win(void)
 {
 	struct essid_info* e;
 	struct uwifi_node* n, *m;
-	int line = 0;
+	int line = 1;
 
 	werase(list_win);
 	wattron(list_win, WHITE);
@@ -339,30 +345,51 @@ static void update_node_list_win(void)
 	if (sortfunc)
 		listsort(&conf.intf.wlan_nodes.n, sortfunc);
 
+	/* All ESSIDs */
 	list_for_each(&essids, e, list) {
-		line++;
 		wattron(list_win, GREEN | A_BOLD);
-		mvwprintw(list_win, line, 1, "ESSID '%s'", e->essid );
+		mvwprintw(list_win, line, 1, "ESSID: '%s'", e->essid);
 		if (e->split > 0) {
 			wattron(list_win, RED);
 			wprintw(list_win, " *** SPLIT ***");
 		}
 		wattroff(list_win, GREEN | A_BOLD);
+		LINE_INC(line);
 
+		/* All APs/IBSS of ESSID */
 		list_for_each(&e->nodes, n, essid_nodes) {
-			line++;
-			print_node_list_line(line, n);
+			if (print_node_list_line(line, n))
+				LINE_INC(line);
+
+			/* All STAs associated to AP */
 			list_for_each(&n->ap_nodes, m, ap_list) {
-				if (conf.filter_mode != 0 && (n->wlan_mode & conf.filter_mode) == 0)
-					continue;
-				if (line >= win_split - 1)
-					break; /* prevent overdraw of last line */
-				line++;
-				print_node_list_line(line, m);
+				if (print_node_list_line(line, m))
+					LINE_INC(line);
 			}
 		}
 	}
 
+	/* finally print all nodes which can not be associated to an AP or ESSID */
+	int lline = line;
+	int count = 0;
+
+	LINE_INC(line);
+
+	list_for_each(&conf.intf.wlan_nodes, n, list) {
+		if (n->ap_node != NULL || n->essid != NULL)
+			continue;
+		count++;
+		if (print_node_list_line(line, n))
+			LINE_INC(line);
+	}
+
+	if (count > 0) {
+		wattron(list_win, GREEN | A_BOLD);
+		mvwprintw(list_win, lline, 1, "NO ESSID:");
+		wattroff(list_win, GREEN | A_BOLD);
+	}
+
+out:
 	wnoutrefresh(list_win);
 }
 
