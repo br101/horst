@@ -55,10 +55,6 @@ ifneq ($(LIBUWIFI),)
 	LDFLAGS += -Wl,-rpath,\$$ORIGIN/lib
 endif
 
-ifeq ($(DEBUG),1)
-	DEFS	+= -DDO_DEBUG=1
-endif
-
 all: $(LIBUWIFI_DEPEND) bin
 check:
 clean:

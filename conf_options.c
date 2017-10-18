@@ -44,7 +44,7 @@ static bool conf_quiet(__attribute__((unused)) const char* value) {
 	return true;
 }
 
-#if DO_DEBUG
+#if DEBUG
 static bool conf_debug(__attribute__((unused)) const char* value) {
 	conf.debug = 1;
 	return true;
@@ -304,7 +304,7 @@ static bool conf_mac_names(const char* value) {
 static struct conf_option conf_options[] = {
 	/* C , NAME        VALUE REQUIRED, DEFAULT	CALLBACK */
 	{ 'q', "quiet",			0, NULL,	conf_quiet },		// NOT dynamic
-#if DO_DEBUG
+#if DEBUG
 	{ 'D', "debug", 		0, NULL,	conf_debug },		// NOT dynamic
 #endif
 	{ 'i', "interface", 		1, "wlan0",	conf_interface },	// NOT dynamic
@@ -467,7 +467,7 @@ static void print_usage(const char* name)
 		"  -v\t\tshow version\n"
 		"  -h\t\tHelp\n"
 		"  -q\t\tQuiet, no output\n"
-#if DO_DEBUG
+#if DEBUG
 		"  -D\t\tShow lots of debug output, no UI\n"
 #endif
 		"  -a\t\tAlways add virtual monitor interface\n"

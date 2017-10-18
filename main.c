@@ -356,7 +356,7 @@ static void local_receive_packet(int fd, unsigned char* buffer, size_t bufsize)
 		return;
 	}
 
-#if DO_DEBUG
+#if DEBUG
 	if (conf.debug) {
 		dump_hex(buffer, len, NULL);
 	}

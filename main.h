@@ -34,10 +34,6 @@
 
 #define CONFIG_FILE "/etc/horst.conf"
 
-#ifndef DO_DEBUG
-#define DO_DEBUG 0
-#endif
-
 #define MAX_HISTORY		255
 #define MAX_RATES		44	/* 12 legacy rates and 32 MCS */
 #define MAX_FSTYPE		0xff
