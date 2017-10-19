@@ -259,7 +259,7 @@ static bool print_node_list_line(int line, struct uwifi_node* n)
 	mvwprintw(list_win, line, COL_SOURCE, "%-17s", mac_name_lookup(n->wlan_src, 0));
 
 	mvwprintw(list_win, line, COL_WIDTH, "%-2s %-3s",
-		wlan_80211std_string(n->wlan_chan_width, n->wlan_channel),
+		wlan_80211std_str(n->wlan_std),
 		(n->wlan_chan_width == CHAN_WIDTH_UNSPEC ||
 		 n->wlan_chan_width == CHAN_WIDTH_20_NOHT) ? "20" :
 		uwifi_channel_width_string_short(n->wlan_chan_width, n->wlan_ht40plus));
