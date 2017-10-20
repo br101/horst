@@ -229,8 +229,6 @@ static bool conf_filter_mode(const char* value) {
 		conf.filter_mode |= WLAN_MODE_STA;
 	else if (strcmp(value, "ADH") == 0 || strcmp(value, "IBSS") == 0)
 		conf.filter_mode |= WLAN_MODE_IBSS;
-	else if (strcmp(value, "PRB") == 0)
-		conf.filter_mode |= WLAN_MODE_PROBE;
 	else if (strcmp(value, "WDS") == 0)
 		conf.filter_mode |= WLAN_MODE_4ADDR;
 	else if (strcmp(value, "UNKNOWN") == 0)

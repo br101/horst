@@ -274,10 +274,8 @@ static bool print_node_list_line(int line, struct uwifi_node* n)
 		wprintw(list_win, " AD");
 	if (n->wlan_mode & WLAN_MODE_STA)
 		wprintw(list_win, " -ST");
-	if (n->wlan_mode & WLAN_MODE_PROBE)
-		wprintw(list_win, " PR");
 	if (n->wlan_mode & WLAN_MODE_4ADDR)
-			wprintw(list_win, " 4A");
+		wprintw(list_win, " 4A");
 
 	if (n->wlan_rsn && n->wlan_wpa)
 		mvwprintw(list_win, line, COL_ENC, "WPA12");
