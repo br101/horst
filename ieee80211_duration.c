@@ -15,6 +15,7 @@
  */
 
 #include <stdbool.h>
+#include <math.h>
 
 #include <uwifi/platform.h>
 #include <uwifi/wlan80211.h>
