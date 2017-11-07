@@ -325,7 +325,7 @@ void handle_packet(struct uwifi_packet* p)
 			MAC_PAR(p->wlan_src), MAC_PAR(p->wlan_bssid));
 
 		n = uwifi_node_update(p, &conf.intf.wlan_nodes);
-		uwifi_nodes_find_ap(n, p, &conf.intf.wlan_nodes);
+		uwifi_nodes_find_ap(n, &conf.intf.wlan_nodes);
 		p->pkt_duration = ieee80211_frame_duration(
 				p->phy_flags & PHY_FLAG_MODE_MASK,
 				p->wlan_len, p->phy_rate,
