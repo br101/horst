@@ -168,7 +168,7 @@ bool channel_input(WINDOW *win, int c)
 		if ((new_idx >= 0 && new_idx != conf.intf.channel_idx) ||
 		    conf.intf.channel_set.width != conf.intf.channel.width ||
 		    set_ht40plus != uwifi_channel_is_ht40plus(&conf.intf.channel)) {
-			conf.intf.channel_set.center_freq = conf.intf.channel_set.freq + (set_ht40plus ? 10 : -10);
+			uwifi_channel_fix_center_freq(&conf.intf.channel_set, set_ht40plus);
 			/* some setting changed */
 			if (conf.serveraddr[0] == '\0') {
 				/* server */
