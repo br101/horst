@@ -47,7 +47,7 @@ void update_channel_win(WINDOW *win)
 		wattron(win, A_BOLD);
 		mvwprintw(win, 2, col, "%s: %s",
 			col == 2 ? "2.4GHz" : "5GHz",
-			uwifi_channel_width_string(bp->max_chan_width, -1));
+			uwifi_channel_width_string(bp->max_chan_width));
 
 		if (bp->streams_rx || bp->streams_tx)
 			wprintw(win, " %dx%d", bp->streams_rx, bp->streams_tx);
