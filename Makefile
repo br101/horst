@@ -24,8 +24,8 @@ LIBNL=3.0
 OSX=0
 
 NAME=horst
-VERSION=5.1
-#VERSION=$(shell git describe --tags)
+#VERSION=5.2
+VERSION=$(shell git describe --tags)
 
 OBJS=						   \
 	average.o				   \
