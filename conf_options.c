@@ -519,7 +519,7 @@ void config_parse_file_and_cmdline(int argc, char** argv)
 			conf_filename = optarg;
 			break;
 		case 'v':
-			printf("%s (build date: %s %s)\n", VERSION, __DATE__, __TIME__);
+			printf("%s\n", VERSION);
 			exit(0);
 		case 'h':
 		case '?':
