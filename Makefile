@@ -92,7 +92,8 @@ else
   endif
 endif
 
-DESTDIR?=/usr/local
+PREFIX?=/usr/local
+DESTDIR?=/
 
 .PHONY: all check clean force
 
@@ -125,14 +126,14 @@ clean:
 	-rm -f .objdeps.mk
 
 install:
-	mkdir -p $(DESTDIR)/sbin/
+	mkdir -p $(DESTDIR)$(PREFIX)/sbin/
 	mkdir -p $(DESTDIR)/etc
-	mkdir -p $(DESTDIR)/man/man8/
-	mkdir -p $(DESTDIR)/man/man5
-	cp horst $(DESTDIR)/sbin/
+	mkdir -p $(DESTDIR)$(PREFIX)/man/man8/
+	mkdir -p $(DESTDIR)$(PREFIX)/man/man5
+	cp horst $(DESTDIR)$(PREFIX)/sbin/
 	cp horst.conf $(DESTDIR)/etc/
-	gzip horst.8 -c > $(DESTDIR)/man/man8/horst.8.gz
-	gzip horst.conf.5 -c > $(DESTDIR)/man/man5/horst.conf.5.gz
+	gzip horst.8 -c > $(DESTDIR)$(PREFIX)/man/man8/horst.8.gz
+	gzip horst.conf.5 -c > $(DESTDIR)$(PREFIX)/man/man5/horst.conf.5.gz
 
 .buildflags: force
 	echo '$(CFLAGS)' | cmp -s - $@ || echo '$(CFLAGS)' > $@
