@@ -128,12 +128,12 @@ clean:
 install:
 	mkdir -p $(DESTDIR)$(PREFIX)/sbin/
 	mkdir -p $(DESTDIR)/etc
-	mkdir -p $(DESTDIR)$(PREFIX)/man/man8/
-	mkdir -p $(DESTDIR)$(PREFIX)/man/man5
+	mkdir -p $(DESTDIR)$(PREFIX)/share/man/man8/
+	mkdir -p $(DESTDIR)$(PREFIX)/share/man/man5
 	cp horst $(DESTDIR)$(PREFIX)/sbin/
 	cp horst.conf $(DESTDIR)/etc/
-	gzip horst.8 -c > $(DESTDIR)$(PREFIX)/man/man8/horst.8.gz
-	gzip horst.conf.5 -c > $(DESTDIR)$(PREFIX)/man/man5/horst.conf.5.gz
+	gzip horst.8 -c > $(DESTDIR)$(PREFIX)/share/man/man8/horst.8.gz
+	gzip horst.conf.5 -c > $(DESTDIR)$(PREFIX)/share/man/man5/horst.conf.5.gz
 
 .buildflags: force
 	echo '$(CFLAGS)' | cmp -s - $@ || echo '$(CFLAGS)' > $@
