@@ -74,6 +74,11 @@ int ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamb
 	int sifs, slottime;
 	static int last_was_cts;
 
+	if (rate == 0) {
+		LOG_ERR("*** RATE *");
+		exit(1);
+	}
+
 	erp = ieee80211_is_erp_rate(phymode, rate);
 
 	/* calculate duration (in microseconds, rounded up to next higher
