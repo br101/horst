@@ -70,12 +70,12 @@ build/lib/libuwifi.so.1: $(LIBUWIFI)/Makefile $(BUILD_DIR)/buildflags
 install:
 	mkdir -p $(DESTDIR)/sbin/
 	mkdir -p $(DESTDIR)/etc
-	mkdir -p $(DESTDIR)/man/man8/
-	mkdir -p $(DESTDIR)/man/man5
+	mkdir -p $(DESTDIR)/share/man/man8/
+	mkdir -p $(DESTDIR)/share/man/man5
 	cp build/horst $(DESTDIR)/sbin/
 	cp horst.conf $(DESTDIR)/etc/
-	gzip horst.8 -c > $(DESTDIR)/man/man8/horst.8.gz
-	gzip horst.conf.5 -c > $(DESTDIR)/man/man5/horst.conf.5.gz
+	gzip horst.8 -c > $(DESTDIR)/share/man/man8/horst.8.gz
+	gzip horst.conf.5 -c > $(DESTDIR)/share/man/man5/horst.conf.5.gz
   ifneq ($(LIBUWIFI),)
 	mkdir -p $(DESTDIR)/lib/
 	cp -a build/lib/libuwifi.so* $(DESTDIR)/lib/
