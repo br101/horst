@@ -221,10 +221,9 @@ static void update_status_win(struct uwifi_packet* p)
 #define COL_PKT		3
 #define COL_CHAN	COL_PKT + 7
 #define COL_SIG		COL_CHAN + 4
-#define COL_RATE	COL_SIG + 4
-#define COL_SOURCE	COL_RATE + 4
-#define COL_MODE	COL_SOURCE + 18
-#define COL_WIDTH	COL_MODE + 6
+#define COL_MODE	COL_SIG + 4
+#define COL_SOURCE	COL_MODE + 3
+#define COL_WIDTH	COL_SOURCE + 18
 #define COL_ENC		COL_WIDTH + 11
 #define COL_INFO	COL_ENC + 6
 
@@ -255,7 +254,17 @@ static bool print_node_list_line(int line, struct uwifi_node* n)
 		mvwprintw(list_win, line, COL_CHAN, "%3d", n->wlan_channel );
 
 	mvwprintw(list_win, line, COL_SIG, "%3d", -ewma_read(&n->phy_sig_avg));
-	mvwprintw(list_win, line, COL_RATE, "%3d", n->phy_rate_last/10);
+
+	wmove(list_win, line, COL_MODE);
+	if (n->wlan_mode & WLAN_MODE_AP)
+		wprintw(list_win, "AP");
+	if (n->wlan_mode & WLAN_MODE_IBSS)
+		wprintw(list_win, "AD");
+	if (n->wlan_mode & WLAN_MODE_STA)
+		wprintw(list_win, "ST");
+	if (n->wlan_mode & WLAN_MODE_4ADDR)
+		wprintw(list_win, "4A");
+
 	mvwprintw(list_win, line, COL_SOURCE, "%-17s", mac_name_lookup(n->wlan_src, 0));
 
 	mvwprintw(list_win, line, COL_WIDTH, "%-2s %-3s",
@@ -266,16 +275,6 @@ static bool print_node_list_line(int line, struct uwifi_node* n)
 
 	if (n->wlan_rx_streams)
 		wprintw(list_win, " %dx%d", n->wlan_tx_streams, n->wlan_rx_streams);
-
-	wmove(list_win, line, COL_MODE-1);
-	if (n->wlan_mode & WLAN_MODE_AP)
-		wprintw(list_win, " AP");
-	if (n->wlan_mode & WLAN_MODE_IBSS)
-		wprintw(list_win, " AD");
-	if (n->wlan_mode & WLAN_MODE_STA)
-		wprintw(list_win, " -ST");
-	if (n->wlan_mode & WLAN_MODE_4ADDR)
-		wprintw(list_win, " 4A");
 
 	if (n->wlan_rsn && n->wlan_wpa)
 		mvwprintw(list_win, line, COL_ENC, "WPA12");
@@ -290,19 +289,19 @@ static bool print_node_list_line(int line, struct uwifi_node* n)
 
 	if (n->wlan_mode & (WLAN_MODE_IBSS | WLAN_MODE_AP)) {
 		wprintw(list_win, "TSF %016llx", n->wlan_tsf);
-		wprintw(list_win, " (%d)", n->wlan_bintval);
+		wprintw(list_win, " (%d) ", n->wlan_bintval);
 	}
 
 	if (n->pkt_types & PKT_TYPE_OLSR)
 		wprintw(list_win, "OLSR N:%d ", n->olsr_neigh);
 
 	if (n->pkt_types & PKT_TYPE_BATMAN)
-		wprintw(list_win, "BATMAN %s", n->bat_gw ? "GW " : "");
+		wprintw(list_win, "BATMAN %s ", n->bat_gw ? "GW " : "");
 
 	if (n->pkt_types & (PKT_TYPE_MESHZ))
 		wprintw(list_win, "MC ");
 
-	if (n->pkt_types & PKT_TYPE_IP)
+	if (!(n->wlan_mode & WLAN_MODE_AP) && n->pkt_types & PKT_TYPE_IP)
 		wprintw(list_win, "%s", ip_sprintf(n->ip_src));
 
 	wattroff(list_win, A_BOLD);
@@ -325,9 +324,8 @@ static void update_node_list_win(void)
 	mvwprintw(list_win, 0, COL_PKT, "Pk/Re%%");
 	mvwprintw(list_win, 0, COL_CHAN, "Cha");
 	mvwprintw(list_win, 0, COL_SIG, "Sig");
-	mvwprintw(list_win, 0, COL_RATE, "RAT");
+	mvwprintw(list_win, 0, COL_MODE, "AP");
 	mvwprintw(list_win, 0, COL_SOURCE, "TRANSMITTER");
-	mvwprintw(list_win, 0, COL_MODE, "MODE");
 	mvwprintw(list_win, 0, COL_WIDTH, "ST-MHz-TxR");
 	mvwprintw(list_win, 0, COL_ENC, "ENCR");
 	mvwprintw(list_win, 0, COL_INFO, "INFO");
