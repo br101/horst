@@ -608,9 +608,10 @@ int main(int argc, char** argv)
 		control_init_pipe();
 	}
 
-	if (conf.serveraddr[0] != '\0')
+	if (conf.serveraddr[0] != '\0') {
 		conf.intf.sock = net_open_client_socket(conf.serveraddr, conf.port);
-	else {
+		list_head_init(&conf.intf.wlan_nodes);
+	} else {
 		ifctrl_init();
 		ifctrl_iwget_interface_info(&conf.intf);
 
