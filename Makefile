@@ -21,7 +21,8 @@ NAME		= horst
 # build options
 DEBUG		= 0
 LIBUWIFI	= libuwifi
-DESTDIR		?= /usr/local
+PREFIX		?= /usr/local
+DESTDIR		?= /
 
 SRC		+= conf_options.c
 SRC		+= control.c
@@ -68,15 +69,15 @@ build/lib/libuwifi.so.1: $(LIBUWIFI)/Makefile $(BUILD_DIR)/buildflags
 	make -C $(LIBUWIFI) DEBUG=$(DEBUG) BUILD_DIR=$(CURDIR)/build/libuwifi INST_PATH=$(CURDIR)/build install
 
 install:
-	mkdir -p $(DESTDIR)/sbin/
+	mkdir -p $(DESTDIR)$(PREFIX)/sbin/
 	mkdir -p $(DESTDIR)/etc
-	mkdir -p $(DESTDIR)/share/man/man8/
-	mkdir -p $(DESTDIR)/share/man/man5
-	cp build/horst $(DESTDIR)/sbin/
+	mkdir -p $(DESTDIR)$(PREFIX)/share/man/man8/
+	mkdir -p $(DESTDIR)$(PREFIX)/share/man/man5
+	cp build/horst $(DESTDIR)$(PREFIX)/sbin/
 	cp horst.conf $(DESTDIR)/etc/
-	gzip horst.8 -c > $(DESTDIR)/share/man/man8/horst.8.gz
-	gzip horst.conf.5 -c > $(DESTDIR)/share/man/man5/horst.conf.5.gz
+	gzip horst.8 -c > $(DESTDIR)$(PREFIX)/share/man/man8/horst.8.gz
+	gzip horst.conf.5 -c > $(DESTDIR)$(PREFIX)/share/man/man5/horst.conf.5.gz
   ifneq ($(LIBUWIFI),)
-	mkdir -p $(DESTDIR)/lib/
-	cp -a build/lib/libuwifi.so* $(DESTDIR)/lib/
+	mkdir -p $(DESTDIR)$(PREFIX)/lib/
+	cp -a build/lib/libuwifi.so* $(DESTDIR)$(PREFIX)/lib/
   endif
