@@ -130,7 +130,7 @@ static bool sort_input(int c)
 	case 'c': case 'C':
 	case 'b': case 'B':
 		do_sort = c;
-		/* no break */
+		/* fallthru */
 	case '\r': case KEY_ENTER:
 		delwin(sort_win);
 		sort_win = NULL;
