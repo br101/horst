@@ -222,8 +222,8 @@ static void write_to_file(struct uwifi_packet* p)
 	fprintf(DF, "%s, ", buf);
 
 	fprintf(DF, "%s, " MAC_FMT ", ",
-		wlan_get_packet_type_name(p->wlan_type), MAC_PAR(p->wlan_src));
-	fprintf(DF, MAC_FMT ", ", MAC_PAR(p->wlan_dst));
+		wlan_get_packet_type_name(p->wlan_type), MAC_PAR(p->wlan_ta));
+	fprintf(DF, MAC_FMT ", ", MAC_PAR(p->wlan_ra));
 	fprintf(DF, MAC_FMT ", ", MAC_PAR(p->wlan_bssid));
 	fprintf(DF, "%x, %d, %d, %d, %d, ",
 		p->pkt_types, p->phy_signal, p->wlan_len, p->phy_rate, p->phy_freq);
@@ -283,9 +283,9 @@ static bool filter_packet(struct uwifi_packet* p)
 	/* filter MAC adresses */
 	if (conf.do_macfilter) {
 		for (i = 0; i < MAX_FILTERMAC; i++) {
-			if (MAC_NOT_EMPTY(p->wlan_src) &&
+			if (MAC_NOT_EMPTY(p->wlan_ta) &&
 			    conf.filtermac_enabled[i] &&
-			    memcmp(p->wlan_src, conf.filtermac[i], WLAN_MAC_LEN) == 0) {
+			    memcmp(p->wlan_ta, conf.filtermac[i], WLAN_MAC_LEN) == 0) {
 				return false;
 			}
 		}
@@ -322,7 +322,7 @@ void handle_packet(struct uwifi_packet* p)
 	if (!(p->phy_flags & PHY_FLAG_BADFCS)) {
 		LOG_DBG("handle %s " MAC_FMT " (" MAC_FMT ")",
 			wlan_get_packet_type_name(p->wlan_type),
-			MAC_PAR(p->wlan_src), MAC_PAR(p->wlan_bssid));
+			MAC_PAR(p->wlan_ta), MAC_PAR(p->wlan_bssid));
 
 		n = uwifi_node_update(p, &conf.intf.wlan_nodes);
 		if (n)

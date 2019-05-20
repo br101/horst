@@ -122,8 +122,8 @@ struct net_packet_info {
 	/* wlan mac */
 	unsigned int		wlan_len;	/* packet length */
 	unsigned int		wlan_type;	/* frame control field */
-	unsigned char		wlan_src[WLAN_MAC_LEN];
-	unsigned char		wlan_dst[WLAN_MAC_LEN];
+	unsigned char		wlan_ta[WLAN_MAC_LEN];
+	unsigned char		wlan_ra[WLAN_MAC_LEN];
 	unsigned char		wlan_bssid[WLAN_MAC_LEN];
 	char			wlan_essid[WLAN_MAX_SSID_LEN];
 	uint64_t		wlan_tsf;	/* timestamp from beacon */
@@ -195,8 +195,8 @@ void net_send_packet(struct uwifi_packet *p)
 	np.phy_flags	= htole32(p->phy_flags);
 	np.wlan_len	= htole32(p->wlan_len);
 	np.wlan_type	= htole32(p->wlan_type);
-	memcpy(np.wlan_src, p->wlan_src, WLAN_MAC_LEN);
-	memcpy(np.wlan_dst, p->wlan_dst, WLAN_MAC_LEN);
+	memcpy(np.wlan_ta, p->wlan_ta, WLAN_MAC_LEN);
+	memcpy(np.wlan_ra, p->wlan_ra, WLAN_MAC_LEN);
 	memcpy(np.wlan_bssid, p->wlan_bssid, WLAN_MAC_LEN);
 	memcpy(np.wlan_essid, p->wlan_essid, WLAN_MAX_SSID_LEN);
 	np.wlan_tsf	= htole64(p->wlan_tsf);
@@ -261,8 +261,8 @@ static int net_receive_packet(unsigned char *buffer, size_t len)
 	p.phy_flags	= le32toh(np->phy_flags);
 	p.wlan_len	= le32toh(np->wlan_len);
 	p.wlan_type	= le32toh(np->wlan_type);
-	memcpy(p.wlan_src, np->wlan_src, WLAN_MAC_LEN);
-	memcpy(p.wlan_dst, np->wlan_dst, WLAN_MAC_LEN);
+	memcpy(p.wlan_ta, np->wlan_ta, WLAN_MAC_LEN);
+	memcpy(p.wlan_ra, np->wlan_ra, WLAN_MAC_LEN);
 	memcpy(p.wlan_bssid, np->wlan_bssid, WLAN_MAC_LEN);
 	memcpy(p.wlan_essid, np->wlan_essid, WLAN_MAX_SSID_LEN);
 	p.wlan_tsf	= le64toh(np->wlan_tsf);

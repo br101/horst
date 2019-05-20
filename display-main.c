@@ -410,7 +410,7 @@ void update_dump_win(struct uwifi_packet* p)
 	wprintw(dump_win, "\n%3d ", p->wlan_channel);
 	wprintw(dump_win, "%03d ", p->phy_signal);
 	wprintw(dump_win, "%3d ", p->phy_rate/10);
-	wprintw(dump_win, "%-17s ", mac_name_lookup(p->wlan_src, 0));
+	wprintw(dump_win, "%-17s ", mac_name_lookup(p->wlan_ta, 0));
 	wprintw(dump_win, "(" MAC_FMT ") ", MAC_PAR(p->wlan_bssid));
 
 	if (p->phy_flags & PHY_FLAG_BADFCS) {
@@ -493,7 +493,7 @@ void update_dump_win(struct uwifi_packet* p)
 		case WLAN_FRAME_ACK:
 		case WLAN_FRAME_BLKACK:
 		case WLAN_FRAME_BLKACK_REQ:
-			wprintw(dump_win, "%-17s", mac_name_lookup(p->wlan_dst, 0));
+			wprintw(dump_win, "%-17s", mac_name_lookup(p->wlan_ra, 0));
 			break;
 		case WLAN_FRAME_BEACON:
 		case WLAN_FRAME_PROBE_RESP:
