@@ -73,6 +73,7 @@ void update_channel_win(WINDOW *win)
 	mvwprintw(win, l++, 2, "d: Dwell: %d ms   ",
 		  conf.intf.channel_time/1000);
 	mvwprintw(win, l++, 2, "u: Upper limit: %d  ", conf.intf.channel_max);
+	mvwprintw(win, l++, 2, "l: Lower limit: %d  ", conf.intf.channel_min);
 
 	l++;
 	wattron(win, A_BOLD);
@@ -125,6 +126,16 @@ bool channel_input(WINDOW *win, int c)
 		noecho();
 		sscanf(buf, "%d", &x);
 		conf.intf.channel_max = x;
+		break;
+
+	case 'l': case 'L':
+		echo();
+		curs_set(1);
+		mvwgetnstr(win, 21, 18, buf, 6);
+		curs_set(0);
+		noecho();
+		sscanf(buf, "%d", &x);
+		conf.intf.channel_min = x;
 		break;
 
 	case 'm': case 'M':

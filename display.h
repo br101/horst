@@ -43,7 +43,7 @@
 #define FILTER_WIN_HEIGHT	35
 
 #define CHANNEL_WIN_WIDTH	41
-#define CHANNEL_WIN_HEIGHT	31
+#define CHANNEL_WIN_HEIGHT	32
 
 struct uwifi_packet;
 struct uwifi_node;
