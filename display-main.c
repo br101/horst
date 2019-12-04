@@ -68,8 +68,8 @@ void print_dump_win(const char *str, int color, bool refresh)
 
 static int compare_nodes_signal(const struct cc_list_node *p1, const struct cc_list_node *p2)
 {
-	struct uwifi_node* n1 = list_entry(p1, struct uwifi_node, list);
-	struct uwifi_node* n2 = list_entry(p2, struct uwifi_node, list);
+	struct uwifi_node* n1 = cc_list_entry(p1, struct uwifi_node, list);
+	struct uwifi_node* n2 = cc_list_entry(p2, struct uwifi_node, list);
 
 	if (n1->phy_sig_last > n2->phy_sig_last)
 		return -1;
@@ -81,8 +81,8 @@ static int compare_nodes_signal(const struct cc_list_node *p1, const struct cc_l
 
 static int compare_nodes_time(const struct cc_list_node *p1, const struct cc_list_node *p2)
 {
-	struct uwifi_node* n1 = list_entry(p1, struct uwifi_node, list);
-	struct uwifi_node* n2 = list_entry(p2, struct uwifi_node, list);
+	struct uwifi_node* n1 = cc_list_entry(p1, struct uwifi_node, list);
+	struct uwifi_node* n2 = cc_list_entry(p2, struct uwifi_node, list);
 
 	if (n1->last_seen > n2->last_seen)
 		return -1;
@@ -94,8 +94,8 @@ static int compare_nodes_time(const struct cc_list_node *p1, const struct cc_lis
 
 static int compare_nodes_channel(const struct cc_list_node *p1, const struct cc_list_node *p2)
 {
-	struct uwifi_node* n1 = list_entry(p1, struct uwifi_node, list);
-	struct uwifi_node* n2 = list_entry(p2, struct uwifi_node, list);
+	struct uwifi_node* n1 = cc_list_entry(p1, struct uwifi_node, list);
+	struct uwifi_node* n2 = cc_list_entry(p2, struct uwifi_node, list);
 
 	if (n1->wlan_channel < n2->wlan_channel)
 		return 1;
@@ -107,8 +107,8 @@ static int compare_nodes_channel(const struct cc_list_node *p1, const struct cc_
 
 static int compare_nodes_bssid(const struct cc_list_node *p1, const struct cc_list_node *p2)
 {
-	struct uwifi_node* n1 = list_entry(p1, struct uwifi_node, list);
-	struct uwifi_node* n2 = list_entry(p2, struct uwifi_node, list);
+	struct uwifi_node* n1 = cc_list_entry(p1, struct uwifi_node, list);
+	struct uwifi_node* n2 = cc_list_entry(p2, struct uwifi_node, list);
 
 	return -memcmp(n1->wlan_bssid, n2->wlan_bssid, WLAN_MAC_LEN);
 }
@@ -342,7 +342,7 @@ static void update_node_list_win(void)
 		listsort(&conf.intf.wlan_nodes.n, sortfunc);
 
 	/* All ESSIDs */
-	list_for_each(&essids, e, list) {
+	cc_list_for_each(&essids, e, list) {
 		wattron(list_win, GREEN | A_BOLD);
 		mvwprintw(list_win, line, 1, "ESSID: '%s'", e->essid);
 		if (e->split > 0) {
@@ -353,12 +353,12 @@ static void update_node_list_win(void)
 		LINE_INC(line);
 
 		/* All APs/IBSS of ESSID */
-		list_for_each(&e->nodes, n, essid_nodes) {
+		cc_list_for_each(&e->nodes, n, essid_nodes) {
 			if (print_node_list_line(line, n))
 				LINE_INC(line);
 
 			/* All STAs associated to AP */
-			list_for_each(&n->ap_nodes, m, ap_list) {
+			cc_list_for_each(&n->ap_nodes, m, ap_list) {
 				if (print_node_list_line(line, m))
 					LINE_INC(line);
 			}
@@ -371,7 +371,7 @@ static void update_node_list_win(void)
 
 	LINE_INC(line);
 
-	list_for_each(&conf.intf.wlan_nodes, n, list) {
+	cc_list_for_each(&conf.intf.wlan_nodes, n, list) {
 		if (n->ap_node != NULL || n->essid != NULL)
 			continue;
 		count++;

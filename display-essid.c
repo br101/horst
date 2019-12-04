@@ -45,7 +45,7 @@ void update_essid_win(WINDOW *win)
 
 	mvwprintw(win, line++, 3, "NO. MODE SOURCE            (BSSID)             TSF              (BINT) CH Sig E IP");
 
-	list_for_each(&essids, e, list) {
+	cc_list_for_each(&essids, e, list) {
 		if (line > LINES-3)
 			break;
 
@@ -60,7 +60,7 @@ void update_essid_win(WINDOW *win)
 		line++;
 
 		i = 1;
-		list_for_each(&e->nodes, n, essid_nodes) {
+		cc_list_for_each(&e->nodes, n, essid_nodes) {
 			if (line > LINES-3)
 				break;
 

@@ -168,8 +168,8 @@ struct element {
 int
 elem_cmp(const struct list_head *a, const struct list_head *b)
 {
-	struct element *ea = list_entry(a, struct element, list);
-	struct element *eb = list_entry(b, struct element, list);
+	struct element *ea = cc_list_entry(a, struct element, list);
+	struct element *eb = cc_list_entry(b, struct element, list);
 	//printf("  cmp %d - %d\n", ea->i, eb->i);
 	return ea->i - eb->i;
 }
@@ -214,12 +214,12 @@ int main(void) {
 			printf(" %d", p->i);
 			//if (p->list.next && p->list.next->prev != p->list)
 			//	printf(" [REVERSE LINK ERROR!]");
-			p = list_entry(p->list.next, struct element, list);
+			p = cc_list_entry(p->list.next, struct element, list);
 		} while (p != head);
 		printf("\n");
 
 		lh = listsort(&head->list, &elem_cmp);
-		head = list_entry(lh, struct element, list);
+		head = cc_list_entry(lh, struct element, list);
 
 		printf(" after:");
 		p = head;
@@ -227,7 +227,7 @@ int main(void) {
 			printf(" %d", p->i);
 			//if (p->next && p->next->prev != p)
 			//	printf(" [REVERSE LINK ERROR!]");
-			p = list_entry(p->list.next, struct element, list);
+			p = cc_list_entry(p->list.next, struct element, list);
 		} while (p != head);
 		printf("\n");
 
@@ -238,11 +238,11 @@ int main(void) {
 
 int main(void)
 {
-	struct list_head lh;
+	struct cc_list_head lh;
 	struct element e[5];
 	struct element* ep;
 
-	list_head_init(&lh);
+	cc_list_head_init(&lh);
 
 	e[0].i = 5;
 	e[1].i = 2;
@@ -256,14 +256,14 @@ int main(void)
 	list_add_tail(&lh, &e[3].list);
 	list_add_tail(&lh, &e[4].list);
 
-	list_for_each(&lh, ep, list) {
+	cc_list_for_each(&lh, ep, list) {
 		printf("%d ", ep->i);
 	}
 	printf("\n");
 
 	listsort(&lh, &elem_cmp);
 
-	list_for_each(&lh, ep, list) {
+	cc_list_for_each(&lh, ep, list) {
 		printf("%d ", ep->i);
 		//printf("  [%p next %p prev %p]\n", &ep->list, ep->list.next, ep->list.prev);
 		if (ep->list.next->prev != &ep->list)

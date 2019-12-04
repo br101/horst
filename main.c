@@ -173,7 +173,7 @@ static void update_spectrum(struct uwifi_packet* p, struct uwifi_node* n)
 	}
 
 	/* add node to channel if not already there */
-	list_for_each(&chan->nodes, cn, chan_list) {
+	cc_list_for_each(&chan->nodes, cn, chan_list) {
 		if (cn->node == n) {
 			LOG_DBG("SPEC node found %p", cn->node);
 			break;
@@ -185,8 +185,8 @@ static void update_spectrum(struct uwifi_packet* p, struct uwifi_node* n)
 		cn->node = n;
 		cn->chan = chan;
 		ewma_init(&cn->sig_avg, 1024, 8);
-		list_add_tail(&chan->nodes, &cn->chan_list);
-		list_add_tail(&n->on_channels, &cn->node_list);
+		cc_list_add_tail(&chan->nodes, &cn->chan_list);
+		cc_list_add_tail(&n->on_channels, &cn->node_list);
 		chan->num_nodes++;
 		n->num_on_channels++;
 	}
@@ -441,9 +441,9 @@ void free_lists(void)
 
 	/* free channel nodes */
 	for (int i = 0; i < uwifi_channel_get_num_channels(&conf.intf.channels); i++) {
-		list_for_each_safe(&spectrum[i].nodes, cn, cn2, chan_list) {
+		cc_list_for_each_safe(&spectrum[i].nodes, cn, cn2, chan_list) {
 			LOG_DBG("free chan_node %p", cn);
-			list_del(&cn->chan_list);
+			cc_list_del(&cn->chan_list);
 			cn->chan->num_nodes--;
 			free(cn);
 		}
@@ -497,7 +497,7 @@ void init_spectrum(void)
 	int i;
 
 	for (i = 0; i < MAX_CHANNELS; i++) {
-		list_head_init(&spectrum[i].nodes);
+		cc_list_head_init(&spectrum[i].nodes);
 		ewma_init(&spectrum[i].signal_avg, 1024, 8);
 		ewma_init(&spectrum[i].durations_avg, 1024, 8);
 	}
@@ -577,7 +577,7 @@ int main(int argc, char** argv)
 	struct sigaction sigint_action;
 	struct sigaction sigpipe_action;
 
-	list_head_init(&essids);
+	cc_list_head_init(&essids);
 	init_spectrum();
 
 	config_parse_file_and_cmdline(argc, argv);
@@ -610,7 +610,7 @@ int main(int argc, char** argv)
 
 	if (conf.serveraddr[0] != '\0') {
 		conf.intf.sock = net_open_client_socket(conf.serveraddr, conf.port);
-		list_head_init(&conf.intf.wlan_nodes);
+		cc_list_head_init(&conf.intf.wlan_nodes);
 	} else {
 		ifctrl_init();
 		ifctrl_iwget_interface_info(&conf.intf);
