@@ -43,7 +43,7 @@
  * SOFTWARE.
  */
 
-#include <ccan/list/list.h>
+#include <uwifi/cc_list.h>
 #include "listsort.h"
 
 /*
@@ -62,10 +62,10 @@
  * list element itself (as common in the linux linked list implementation).
  * If the first element moves, head is adjusted accordingly.
  */
-void listsort(struct list_node *head,
-	      int(*cmp)(const struct list_node*, const struct list_node*))
+void listsort(struct cc_list_node *head,
+	      int(*cmp)(const struct cc_list_node*, const struct cc_list_node*))
 {
-	struct list_node *list, *p, *q, *e, *tail, *oldhead;
+	struct cc_list_node *list, *p, *q, *e, *tail, *oldhead;
 	int insize, nmerges, psize, qsize, i;
 
 	if (!head || head->next == head)

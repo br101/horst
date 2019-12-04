@@ -49,7 +49,7 @@
 #include "ieee80211_duration.h"
 #include "protocol_parser.h"
 
-struct list_head essids;
+struct cc_list_head essids;
 struct history hist;
 struct statistics stats;
 struct channel_info spectrum[MAX_CHANNELS];
@@ -668,7 +668,7 @@ int main(int argc, char** argv)
 		receive_any(&waitmask);
 
 		if (is_sigint_caught)
-			exit(1);
+			exit(2);
 
 		clock_gettime(CLOCK_MONOTONIC, &time_mono);
 		clock_gettime(CLOCK_REALTIME, &time_real);

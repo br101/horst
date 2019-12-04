@@ -76,7 +76,7 @@ int ieee80211_frame_duration(int phymode, size_t len, int rate, int short_preamb
 
 	if (rate == 0) {
 		LOG_ERR("*** RATE *");
-		exit(1);
+		exit(12);
 	}
 
 	erp = ieee80211_is_erp_rate(phymode, rate);

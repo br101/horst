@@ -42,7 +42,7 @@ static WINDOW *stat_win = NULL;
 
 static int do_sort = 'n';
 /* pointer to the sort function */
-static int(*sortfunc)(const struct list_node*, const struct list_node*) = NULL;
+static int(*sortfunc)(const struct cc_list_node*, const struct cc_list_node*) = NULL;
 
 /* sizes of split window (list_win & status_win) */
 static int win_split;
@@ -66,7 +66,7 @@ void print_dump_win(const char *str, int color, bool refresh)
 
 /******************* SORTING *******************/
 
-static int compare_nodes_signal(const struct list_node *p1, const struct list_node *p2)
+static int compare_nodes_signal(const struct cc_list_node *p1, const struct cc_list_node *p2)
 {
 	struct uwifi_node* n1 = list_entry(p1, struct uwifi_node, list);
 	struct uwifi_node* n2 = list_entry(p2, struct uwifi_node, list);
@@ -79,7 +79,7 @@ static int compare_nodes_signal(const struct list_node *p1, const struct list_no
 		return 1;
 }
 
-static int compare_nodes_time(const struct list_node *p1, const struct list_node *p2)
+static int compare_nodes_time(const struct cc_list_node *p1, const struct cc_list_node *p2)
 {
 	struct uwifi_node* n1 = list_entry(p1, struct uwifi_node, list);
 	struct uwifi_node* n2 = list_entry(p2, struct uwifi_node, list);
@@ -92,7 +92,7 @@ static int compare_nodes_time(const struct list_node *p1, const struct list_node
 		return 1;
 }
 
-static int compare_nodes_channel(const struct list_node *p1, const struct list_node *p2)
+static int compare_nodes_channel(const struct cc_list_node *p1, const struct cc_list_node *p2)
 {
 	struct uwifi_node* n1 = list_entry(p1, struct uwifi_node, list);
 	struct uwifi_node* n2 = list_entry(p2, struct uwifi_node, list);
@@ -105,7 +105,7 @@ static int compare_nodes_channel(const struct list_node *p1, const struct list_n
 		return -1;
 }
 
-static int compare_nodes_bssid(const struct list_node *p1, const struct list_node *p2)
+static int compare_nodes_bssid(const struct cc_list_node *p1, const struct cc_list_node *p2)
 {
 	struct uwifi_node* n1 = list_entry(p1, struct uwifi_node, list);
 	struct uwifi_node* n2 = list_entry(p2, struct uwifi_node, list);

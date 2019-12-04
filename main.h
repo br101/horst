@@ -24,7 +24,7 @@
 #include <time.h>
 
 #undef LIST_HEAD 
-#include <ccan/list/list.h>
+#include <uwifi/cc_list.h>
 #include <uwifi/average.h>
 #include <uwifi/channel.h>
 #include <uwifi/wlan80211.h>
@@ -135,7 +135,7 @@ struct channel_info {
 	unsigned long		durations;
 	unsigned long		durations_last;
 	struct ewma		durations_avg;
-	struct list_head	nodes;
+	struct cc_list_head	nodes;
 	unsigned int		num_nodes;
 };
 
@@ -146,8 +146,8 @@ extern struct channel_info spectrum[MAX_CHANNELS];
 struct chan_node {
 	struct uwifi_node*	node;
 	struct channel_info*	chan;
-	struct list_node	chan_list;	/* list for nodes per channel */
-	struct list_node	node_list;	/* list for channels per node */
+	struct cc_list_node	chan_list;	/* list for nodes per channel */
+	struct cc_list_node	node_list;	/* list for channels per node */
 	int			sig;
 	struct ewma		sig_avg;
 	unsigned long		packets;
@@ -166,7 +166,7 @@ extern struct node_names_info node_names;
 extern struct timespec time_mono;
 extern struct timespec time_real;
 
-extern struct list_head essids;
+extern struct cc_list_head essids;
 
 void free_lists(void);
 void init_spectrum(void);

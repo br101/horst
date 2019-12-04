@@ -20,9 +20,9 @@
 #ifndef _LISTSORT_H
 #define _LISTSORT_H
 
-struct list_node;
+struct cc_list_node;
 
-void listsort(struct list_node *list,
-	      int(*cmp)(const struct list_node*, const struct list_node*));
+void listsort(struct cc_list_node *list,
+	      int(*cmp)(const struct cc_list_node*, const struct cc_list_node*));
 
 #endif
