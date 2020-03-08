@@ -577,8 +577,10 @@ int wlan_parse_packet(unsigned char* buf, size_t len, struct packet_info* p)
 			return -1;
 	} else if (conf.arphrd == ARPHRD_IEEE80211_RADIOTAP) {
 		ret = parse_radiotap_header(buf, len, p);
-		if (ret <= 0) /* 0: Bad FCS, allow packet but stop parsing */
+		if (ret == 0) /* 0: Bad FCS, allow packet but stop parsing */
 			return 0;
+		else if (ret < 0) /* Malformed header, don't allow packet */
+			return -1;
 	} else {
 		return -1;
 	}
