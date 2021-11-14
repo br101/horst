@@ -88,7 +88,7 @@ print_centered(WINDOW* win, int line, int cols, const char *fmt, ...)
 	vsnprintf(buf, cols, fmt, ap);
 	va_end(ap);
 
-	mvwprintw(win, line, cols / 2 - strlen(buf) / 2, buf);
+	mvwprintw(win, line, cols / 2 - strlen(buf) / 2, "%s", buf);
 	free(buf);
 }
 
