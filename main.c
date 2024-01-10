@@ -612,6 +612,10 @@ int main(int argc, char** argv)
 		conf.intf.sock = net_open_client_socket(conf.serveraddr, conf.port);
 		cc_list_head_init(&conf.intf.wlan_nodes);
 	} else {
+		if (!netdev_check_if_exists(conf.intf.ifname)) {
+			fprintf(stderr, "invalid interface name, please check configuration\n");
+			return(-EINVAL);
+		}
 		ifctrl_init();
 		ifctrl_iwget_interface_info(&conf.intf);
 
